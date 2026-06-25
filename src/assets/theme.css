@@ -1,0 +1,158 @@
+@import 'tailwindcss';
+
+/*
+  GitKraken-inspired dark-first design system.
+  Colors are tuned for a dense, professional developer tool: near-black app
+  surface, slightly raised panels, muted borders, and a saturated accent set
+  reused for branch lanes.
+*/
+
+@theme {
+  --color-app: #0d0f14;
+  --color-panel: #161b22;
+  --color-panel-raised: #1c2128;
+  --color-elevated: #21262d;
+  --color-hover: #262c36;
+  --color-active: #2d333b;
+
+  --color-border: rgba(255, 255, 255, 0.06);
+  --color-border-strong: rgba(255, 255, 255, 0.12);
+
+  --color-fg: #e6edf3;
+  --color-fg-muted: #9198a1;
+  --color-fg-subtle: #6b7280;
+
+  --color-accent: #6e9fff;
+  --color-accent-strong: #4a82ff;
+  --color-accent-soft: rgba(110, 159, 255, 0.16);
+
+  --color-success: #3fb950;
+  --color-warning: #f0883e;
+  --color-danger: #f85149;
+  --color-info: #58a6ff;
+
+  /* Branch lane palette (8 rotating colors). */
+  --color-lane-0: #a371f7;
+  --color-lane-1: #3fb950;
+  --color-lane-2: #58a6ff;
+  --color-lane-3: #f0883e;
+  --color-lane-4: #db61a2;
+  --color-lane-5: #e3b341;
+  --color-lane-6: #56d4dd;
+  --color-lane-7: #ff7b72;
+
+  --font-sans: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono: 'JetBrains Mono', 'SF Mono', ui-monospace, monospace;
+
+  --radius: 0.5rem;
+}
+
+@layer base {
+  * {
+    border-color: var(--color-border);
+  }
+
+  html,
+  body,
+  #app {
+    height: 100%;
+    margin: 0;
+  }
+
+  body {
+    background-color: var(--color-app);
+    color: var(--color-fg);
+    font-family: var(--font-sans);
+    font-size: 13px;
+    line-height: 1.45;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    overflow: hidden;
+    user-select: none;
+  }
+
+  ::selection {
+    background: var(--color-accent-soft);
+  }
+
+  /* Thin, unobtrusive scrollbars matching the dark theme. */
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 999px;
+    border: 2px solid transparent;
+    background-clip: padding-box;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.2);
+    background-clip: padding-box;
+  }
+  ::-webkit-scrollbar-corner {
+    background: transparent;
+  }
+}
+
+@layer utilities {
+  .app-drag {
+    -webkit-app-region: drag;
+  }
+  .app-no-drag {
+    -webkit-app-region: no-drag;
+  }
+  .focus-ring {
+    outline: none;
+  }
+  .focus-ring:focus-visible {
+    box-shadow: 0 0 0 2px var(--color-app), 0 0 0 4px var(--color-accent);
+  }
+
+  @keyframes pop-in {
+    from {
+      opacity: 0;
+      transform: scale(0.96) translateY(-2px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+  .animate-pop[data-state='open'],
+  .animate-pop[data-state='delayed-open'] {
+    animation: pop-in 0.15s ease-out;
+    transform-origin: var(--reka-tooltip-content-transform-origin, top);
+  }
+}
+
+/* splitpanes divider styling to match GitKraken's subtle dividers. */
+.splitpanes--vertical > .splitpanes__splitter {
+  width: 1px;
+  background: var(--color-border);
+  position: relative;
+  transition: background 0.15s ease;
+}
+.splitpanes--vertical > .splitpanes__splitter::before {
+  content: '';
+  position: absolute;
+  inset: 0 -3px;
+  z-index: 10;
+}
+.splitpanes--vertical > .splitpanes__splitter:hover,
+.splitpanes--dragging .splitpanes__splitter {
+  background: var(--color-accent-strong);
+}
+.splitpanes__pane {
+  transition: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
