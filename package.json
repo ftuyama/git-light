@@ -5,6 +5,9 @@
   "author": "Git Light",
   "license": "MIT",
   "main": "out/main/main.js",
+  "resolutions": {
+    "vite": "^7.3.6"
+  },
   "scripts": {
     "dev": "electron-vite dev",
     "build": "electron-vite build",
@@ -29,6 +32,7 @@
   },
   "dependencies": {
     "@faker-js/faker": "^10.5.0",
+    "@vueuse/core": "^14.2.1",
     "@lucide/vue": "^1.21.0",
     "@tanstack/vue-virtual": "^3.13.29",
     "class-variance-authority": "^0.7.1",
