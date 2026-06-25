@@ -8,6 +8,7 @@
       content="Git Light — a GitKraken-inspired desktop Git client built with Electron, Vue 3, and TypeScript."
     />
     <title>Git Light — A lighter Git client</title>
+    <link rel="icon" href="icon.png" type="image/png" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -109,12 +110,8 @@
         width: 1.75rem;
         height: 1.75rem;
         border-radius: 0.375rem;
-        background: linear-gradient(135deg, var(--accent) 0%, var(--lane-0) 100%);
-        display: grid;
-        place-items: center;
-        font-size: 0.75rem;
-        font-weight: 700;
-        color: #fff;
+        object-fit: cover;
+        flex-shrink: 0;
       }
 
       nav {
@@ -425,7 +422,7 @@
     <header>
       <div class="wrap header-inner">
         <a class="logo" href="#">
-          <span class="logo-mark">GL</span>
+          <img class="logo-mark" src="icon.png" alt="" width="28" height="28" />
           Git Light
         </a>
         <nav>

@@ -1,133 +1,110 @@
 # Architecture
 
-Technical reference for contributors and anyone extending Git Light.
-
-## Overview
-
-Git Light is an Electron desktop app with a Vue 3 renderer. The UI is built around a `GitService` interface so the renderer never talks to Git directly. Today that interface is fulfilled by `MockGitService`, which serves seeded data from `generateAwesomeShop` and resolves actions after a short delay to mimic real latency.
-
-Swapping in a real implementation — CLI wrapper, libgit2, or isomorphic-git — should require no component changes, only a new service class wired through the preload IPC bridge.
+Git Light is an Electron desktop app with a Vue 3 renderer. The UI depends on a `GitService` interface; the renderer never talks to Git directly.
 
 ## Stack
 
 | Layer | Technology |
 |-------|------------|
-| Desktop shell | Electron 41, electron-vite |
-| UI framework | Vue 3 (`<script setup>`), TypeScript (strict) |
-| Styling | Tailwind CSS v4, reka-ui primitives |
-| State | Pinia, `electron-store` for persisted UI sizes |
-| Lists | `@tanstack/vue-virtual` for commit and file lists |
-| Motion & icons | motion-v, @lucide/vue |
-| Graph | Custom layout engine (`computeGraphLayout`) — no graph library |
-| Tests | Vitest |
+| Shell | Electron 41 |
+| UI | Vue 3, Pinia, Tailwind v4, reka-ui |
+| Build | electron-vite, TypeScript |
+| Git | Native `git` CLI in main process |
+| File watch | chokidar (debounced 150ms) |
 
-## Project layout
+## Process model
 
 ```
-electron/            Main process + preload (typed IPC: window.electron)
-src/
-  components/ui/     Reusable primitives (Button, Tooltip, ContextMenu, Checkbox, …)
-  features/
-    toolbar/         GitKraken-style action toolbar
-    branch-sidebar/  Repository explorer (branches, tags, stashes, worktrees)
-    commit-graph/    Virtualized commit graph (SVG lanes + DOM rows)
-    working-tree/    Changes / staged / conflicts + commit box
-    status-bar/      Repository status footer
-    layout/          Collapsed rails, toast viewport
-  stores/            Pinia stores (ui, repository, selection, toast)
-  lib/
-    git/             GitService interface + MockGitService
-    graph/           computeGraphLayout (pure, unit-tested)
-  data/              generateAwesomeShop seeded mock data
-  types/             Domain types
-docs/                GitHub Pages landing site
+┌─────────────────────────────────────────────────────────────┐
+│  Renderer (Vue)                                              │
+│  features/ → stores/repository → lib/git/IpcGitService       │
+└───────────────────────────┬─────────────────────────────────┘
+                            │ contextBridge (typed IPC)
+┌───────────────────────────▼─────────────────────────────────┐
+│  Main process                                                │
+│  registerIpc → GitProvider → GitCliProvider + parsers          │
+│              → RepositoryWatcher (chokidar)                    │
+│              → ActionRouter (GitAction → git argv)           │
+└─────────────────────────────────────────────────────────────┘
+```
+
+## Shared contracts (`shared/git/`)
+
+| Module | Purpose |
+|--------|---------|
+| `ipc.ts` | Channel names + `IpcContract` request/response tuples |
+| `models.ts` | Wire types (ISO date strings, serializable snapshots) |
+| `actions.ts` | `GitActionKind` + `GitAction` — single source of truth |
+| `errors.ts` | `GitError`, `classifyGitError()`, serialized error payloads |
+
+## Renderer git layer (`src/lib/git/`)
+
+| File | Role |
+|------|------|
+| `GitService.ts` | Interface the store depends on |
+| `IpcGitService.ts` | Production implementation via `window.electron.git` |
+| `MockGitService.ts` | Generated data; used when `VITE_USE_MOCK=true` or outside Electron |
+| `wireAdapter.ts` | Revives wire snapshots into domain types (`Date`, etc.) |
+| `destructive.ts` | Actions that require confirmation in the UI |
+
+## Main-process git layer (`electron/git/`)
+
+| File | Role |
+|------|------|
+| `GitCliProvider.ts` | Spawns `git` with argument arrays only |
+| `GitProvider.ts` | Open/validate repo, snapshot, pagination, execute, diff, search |
+| `ActionRouter.ts` | Maps each `GitActionKind` to git commands |
+| `RepoCache.ts` | TTL cache for status/branches |
+| `RepositoryWatcher.ts` | Debounced filesystem events → `git:changed` |
+| `parsers/` | Parse porcelain log, status, branches, diffs, etc. |
+
+## UI layout
+
+```
+App.vue
+├── StartupView          (no repo open)
+└── main view
+    ├── Toolbar          remote/history actions, repo switcher
+    ├── OperationBanner  merge/rebase/cherry-pick/revert in progress
+    ├── Splitpanes
+    │   ├── BranchSidebar
+    │   ├── CommitGraph  (virtualized + infinite scroll)
+    │   └── WorkingTreePanel + DiffPanel
+    ├── StatusBar        ahead/behind, progress, cancel
+    ├── PromptHost       confirm / prompt dialogs
+    └── SearchOverlay    commit + file search
 ```
 
 ## Data flow
 
-```
-┌─────────────┐     GitService      ┌──────────────────┐
-│  Vue UI     │ ◄────────────────── │  MockGitService  │  (today)
-│  components │                     │  generateAwesome │
-└─────────────┘                     └──────────────────┘
-       ▲
-       │  future: RealGitService via preload IPC
-       ▼
-┌─────────────┐
-│  Electron   │
-│  main/git   │
-└─────────────┘
-```
+1. User opens repo → `git:open-repo` → `GitProvider.open()` → full snapshot over IPC.
+2. `wireAdapter` revives dates; store runs `computeGraphLayout` on commits.
+3. Mutations dispatch `GitAction` → `ActionRouter` → git CLI → cache invalidation → `git:changed` → scoped `refreshSnapshot`.
+4. External edits trigger chokidar → same refresh path.
 
-1. Pinia stores call methods on `GitService` (load repo, stage file, commit, etc.).
-2. `MockGitService` returns in-memory data and simulates latency on mutations.
-3. Components react to store state; they have no knowledge of whether the backend is mock or real.
+## Persistence
 
-The interface lives at `src/lib/git/GitService.ts`. Any real backend must implement the same contract.
+| Key | Storage |
+|-----|---------|
+| `git-light:ui` | Panel sizes, collapsed state (electron-store / localStorage) |
+| `recent-repos` | Recent repository list (electron-store, main) |
+| `branch-favorites:{path}` | Per-repo pinned branches |
 
-## Commit graph engine
+## Testing
 
-The graph is rendered by a purpose-built engine, not a generic node library.
+- `src/lib/graph/computeGraphLayout.test.ts` — graph layout algorithm
+- `src/lib/git/statusParser.test.ts` — status porcelain parser
 
-1. **`computeGraphLayout`** (`src/lib/graph/computeGraphLayout.ts`) — pure function that assigns each commit to a lane and emits per-band edge segments. Covered by unit tests.
-2. **`CommitGraph.vue`** — virtualizes rows with `@tanstack/vue-virtual`. Draws only the SVG segments and nodes intersecting the visible viewport.
-3. **Result** — smooth scrolling with hundreds of commits and GitKraken-style lane merging.
+Run: `npm run test`
 
-## Pinia stores
+## Extension points
 
-| Store | Responsibility |
-|-------|----------------|
-| `repository` | Commits, branches, files, HEAD; delegates actions to `GitService` |
-| `ui` | Panel sizes, collapsed sidebars; persisted via `electron-store` |
-| `selection` | Selected commit index; keyboard navigation |
-| `toast` | Operation feedback notifications |
+- **New git operation:** add kind to `shared/git/actions.ts`, route in `ActionRouter.ts`, wire UI.
+- **New snapshot field:** extend wire model + parser + `wireAdapter` + store state.
+- **Replace CLI backend:** implement `GitService` without touching Vue features.
 
-## Electron IPC
+## Security notes
 
-The preload script exposes a typed `window.electron` bridge. The main process handles:
-
-- `electron-store` read/write for UI preferences
-- External URL opening
-- Future Git command execution
-
-Renderer code should not import Node or Electron APIs directly.
-
-## Scope
-
-Only the **main repository view** is implemented:
-
-- Toolbar, branch sidebar, commit graph, working-directory panel, status bar
-
-Not implemented:
-
-- Settings, onboarding, authentication, cloning, diff viewer
-- Real Git read/write
-
-## Scripts
-
-```bash
-npm run dev          # Electron + Vite dev server
-npm run build        # Production build (main + preload + renderer)
-npm run preview      # Preview production renderer
-npm run typecheck    # vue-tsc strict check
-npm run test         # Vitest (graph layout engine)
-npm run test:watch   # Vitest in watch mode
-```
-
-## Extending with a real Git backend
-
-1. Implement `GitService` in `src/lib/git/` (e.g. `CliGitService.ts`).
-2. Add IPC handlers in `electron/main.ts` for git subprocess calls or native bindings.
-3. Expose safe methods through `electron/preload.ts`.
-4. Swap the service instance in the store bootstrap (`src/stores/repository.ts`).
-
-Keep all Git I/O in the main process or a dedicated worker — the renderer stays sandboxed.
-
-## Design system
-
-Colors and spacing follow a GitKraken-inspired dark theme defined in `src/assets/theme.css`:
-
-- Near-black app surface (`--color-app`)
-- Raised panels and muted borders
-- Eight rotating lane colors for branch graph lines
-- Inter (UI) and JetBrains Mono (SHAs, paths)
+- Renderer is sandboxed with `contextIsolation: true`; only preload exposes IPC.
+- Git commands use argv arrays (no shell interpolation).
+- Paths passed to git are validated with `assertPathInsideRepo`.

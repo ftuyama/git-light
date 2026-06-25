@@ -1,44 +1,62 @@
 import { defineStore } from 'pinia'
+import {
+  DEFAULT_COLUMNS,
+  DEFAULT_SECTIONS,
+  mergePreferences,
+  PREFERENCES_KEY,
+  type CommitColumnKey,
+  type UserPreferences,
+} from '@/lib/preferences'
 
-const STORE_KEY = 'git-light:ui'
+const LEGACY_STORE_KEY = 'git-light:ui'
 
-interface PersistedUiState {
-  leftSize: number
-  rightSize: number
-  leftCollapsed: boolean
-  rightCollapsed: boolean
-  sections: Record<string, boolean>
-}
-
-const DEFAULT_SECTIONS: Record<string, boolean> = {
-  localBranches: true,
-  remoteBranches: true,
-  tags: true,
-  stashes: true,
-  worktrees: false,
-}
-
-async function readPersisted(): Promise<PersistedUiState | null> {
+async function readPersisted(): Promise<Partial<UserPreferences> | null> {
   if (window.electron?.store) {
-    return window.electron.store.get<PersistedUiState | null>(STORE_KEY, null)
+    const current = await window.electron.store.get<Partial<UserPreferences> | null>(
+      PREFERENCES_KEY,
+      null,
+    )
+    if (current) return current
+    return window.electron.store.get<Partial<UserPreferences> | null>(LEGACY_STORE_KEY, null)
   }
   try {
-    const raw = localStorage.getItem(STORE_KEY)
-    return raw ? (JSON.parse(raw) as PersistedUiState) : null
+    const raw =
+      localStorage.getItem(PREFERENCES_KEY) ?? localStorage.getItem(LEGACY_STORE_KEY)
+    return raw ? (JSON.parse(raw) as Partial<UserPreferences>) : null
   } catch {
     return null
   }
 }
 
-function writePersisted(state: PersistedUiState): void {
+function writePersisted(state: UserPreferences): void {
   if (window.electron?.store) {
-    void window.electron.store.set(STORE_KEY, state)
+    void window.electron.store.set(PREFERENCES_KEY, state)
     return
   }
   try {
-    localStorage.setItem(STORE_KEY, JSON.stringify(state))
+    localStorage.setItem(PREFERENCES_KEY, JSON.stringify(state))
   } catch {
     /* ignore */
+  }
+}
+
+function snapshot(state: {
+  leftSize: number
+  rightSize: number
+  leftCollapsed: boolean
+  rightCollapsed: boolean
+  sections: Record<string, boolean>
+  columns: UserPreferences['columns']
+  lastRepositoryPath: string | null
+}): UserPreferences {
+  return {
+    leftSize: state.leftSize,
+    rightSize: state.rightSize,
+    leftCollapsed: state.leftCollapsed,
+    rightCollapsed: state.rightCollapsed,
+    sections: state.sections,
+    columns: state.columns,
+    lastRepositoryPath: state.lastRepositoryPath,
   }
 }
 
@@ -49,29 +67,35 @@ export const useUiStore = defineStore('ui', {
     leftCollapsed: false,
     rightCollapsed: false,
     sections: { ...DEFAULT_SECTIONS },
+    columns: { ...DEFAULT_COLUMNS },
+    lastRepositoryPath: null as string | null,
     commandPaletteOpen: false,
   }),
   actions: {
     async hydrate(): Promise<void> {
-      const saved = await readPersisted()
-      if (saved) {
-        this.leftSize = saved.leftSize ?? this.leftSize
-        this.rightSize = saved.rightSize ?? this.rightSize
-        this.leftCollapsed = saved.leftCollapsed ?? false
-        this.rightCollapsed = saved.rightCollapsed ?? false
-        this.sections = { ...DEFAULT_SECTIONS, ...(saved.sections ?? {}) }
-      }
+      const saved = mergePreferences(await readPersisted())
+      this.leftSize = saved.leftSize
+      this.rightSize = saved.rightSize
+      this.leftCollapsed = saved.leftCollapsed
+      this.rightCollapsed = saved.rightCollapsed
+      this.sections = saved.sections
+      this.columns = saved.columns
+      this.lastRepositoryPath = saved.lastRepositoryPath
       let timer: ReturnType<typeof setTimeout> | undefined
       this.$subscribe(() => {
         clearTimeout(timer)
         timer = setTimeout(() => {
-          writePersisted({
-            leftSize: this.leftSize,
-            rightSize: this.rightSize,
-            leftCollapsed: this.leftCollapsed,
-            rightCollapsed: this.rightCollapsed,
-            sections: this.sections,
-          })
+          writePersisted(
+            snapshot({
+              leftSize: this.leftSize,
+              rightSize: this.rightSize,
+              leftCollapsed: this.leftCollapsed,
+              rightCollapsed: this.rightCollapsed,
+              sections: this.sections,
+              columns: this.columns,
+              lastRepositoryPath: this.lastRepositoryPath,
+            }),
+          )
         }, 200)
       })
     },
@@ -92,6 +116,15 @@ export const useUiStore = defineStore('ui', {
     },
     isSectionOpen(key: string): boolean {
       return this.sections[key] ?? true
+    },
+    isColumnVisible(key: CommitColumnKey): boolean {
+      return this.columns[key] ?? DEFAULT_COLUMNS[key]
+    },
+    toggleColumn(key: CommitColumnKey): void {
+      this.columns[key] = !this.isColumnVisible(key)
+    },
+    setLastRepositoryPath(path: string | null): void {
+      this.lastRepositoryPath = path
     },
   },
 })

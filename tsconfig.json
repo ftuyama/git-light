@@ -16,13 +16,15 @@
     "lib": ["ESNext", "DOM", "DOM.Iterable"],
     "types": ["node"],
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "@shared/*": ["./shared/*"]
     }
   },
   "include": [
     "src/**/*.ts",
     "src/**/*.d.ts",
     "src/**/*.vue",
-    "electron/**/*.ts"
+    "electron/**/*.ts",
+    "shared/**/*.ts"
   ]
 }

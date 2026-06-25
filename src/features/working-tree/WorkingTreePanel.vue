@@ -5,6 +5,7 @@ import FileList from './FileList.vue'
 import { useRepositoryStore } from '@/stores/repository'
 import { useUiStore } from '@/stores/ui'
 import CommitBox from './CommitBox.vue'
+import DiffPanel from '@/features/diff/DiffPanel.vue'
 
 const repo = useRepositoryStore()
 const ui = useUiStore()
@@ -82,5 +83,6 @@ const conflicts = computed(() => repo.conflictedFiles)
     </div>
 
     <CommitBox />
+    <DiffPanel />
   </aside>
 </template>

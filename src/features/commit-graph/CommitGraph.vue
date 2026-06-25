@@ -1,14 +1,38 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
 import { useVirtualizer } from '@tanstack/vue-virtual'
+import { Columns3 } from '@lucide/vue'
 import { storeToRefs } from 'pinia'
 import CommitRow from './CommitRow.vue'
+import DropdownMenu from '@/components/ui/DropdownMenu.vue'
+import type { MenuItem } from '@/components/ui/menu'
 import { useRepositoryStore } from '@/stores/repository'
 import { useSelectionStore } from '@/stores/selection'
+import { useUiStore } from '@/stores/ui'
 
 const repo = useRepositoryStore()
 const selection = useSelectionStore()
+const ui = useUiStore()
 const { selectedSha } = storeToRefs(selection)
+const { columns } = storeToRefs(ui)
+
+const columnMenu = computed<MenuItem[]>(() => [
+  {
+    label: 'Author',
+    checked: ui.isColumnVisible('author'),
+    onSelect: () => ui.toggleColumn('author'),
+  },
+  {
+    label: 'SHA',
+    checked: ui.isColumnVisible('sha'),
+    onSelect: () => ui.toggleColumn('sha'),
+  },
+  {
+    label: 'When',
+    checked: ui.isColumnVisible('when'),
+    onSelect: () => ui.toggleColumn('when'),
+  },
+])
 
 const BASE_ROW_HEIGHT = 30
 const BASE_LANE_WIDTH = 16
@@ -115,6 +139,15 @@ watch(selectedSha, (sha) => {
   if (index >= 0) virtualizer.value.scrollToIndex(index, { align: 'auto' })
 })
 
+function onScroll(): void {
+  const el = scrollEl.value
+  if (!el || repo.loadingMoreCommits || !repo.commitPage.hasMore) return
+  const remaining = el.scrollHeight - el.scrollTop - el.clientHeight
+  if (remaining < rowHeight.value * 8) {
+    void repo.loadMoreCommits()
+  }
+}
+
 function selectRow(sha: string): void {
   selection.select(sha)
 }
@@ -128,9 +161,18 @@ function selectRow(sha: string): void {
     >
       <span :style="{ width: `${graphWidth - 12}px` }">Graph</span>
       <span class="flex-1">Commit</span>
-      <span class="hidden w-24 text-right xl:block">Author</span>
-      <span class="w-14">SHA</span>
-      <span class="w-24 text-right">When</span>
+      <span v-if="columns.author" class="w-24 text-right">Author</span>
+      <span v-if="columns.sha" class="w-14">SHA</span>
+      <span v-if="columns.when" class="w-24 text-right">When</span>
+      <DropdownMenu :items="columnMenu" align="end">
+        <button
+          class="app-no-drag focus-ring ml-1 flex h-6 w-6 shrink-0 items-center justify-center rounded text-[var(--color-fg-subtle)] transition-colors hover:bg-[var(--color-hover)] hover:text-[var(--color-fg)]"
+          title="Show columns"
+          aria-label="Show columns"
+        >
+          <Columns3 :size="14" />
+        </button>
+      </DropdownMenu>
     </div>
 
     <!-- Loading skeleton -->
@@ -150,6 +192,7 @@ function selectRow(sha: string): void {
       class="relative min-h-0 flex-1 overflow-auto outline-none"
       tabindex="0"
       @wheel="onWheel"
+      @scroll="onScroll"
     >
       <div class="relative w-full" :style="{ height: `${totalSize}px` }">
         <svg

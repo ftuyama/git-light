@@ -38,6 +38,24 @@ export const STATUS_META: Record<FileStatus, StatusMeta> = {
     color: 'var(--color-danger)',
     bg: 'color-mix(in srgb, var(--color-danger) 24%, transparent)',
   },
+  copied: {
+    letter: 'C',
+    label: 'Copied',
+    color: 'var(--color-info)',
+    bg: 'color-mix(in srgb, var(--color-info) 18%, transparent)',
+  },
+  untracked: {
+    letter: '?',
+    label: 'Untracked',
+    color: 'var(--color-fg-muted)',
+    bg: 'color-mix(in srgb, var(--color-fg-muted) 12%, transparent)',
+  },
+  ignored: {
+    letter: 'I',
+    label: 'Ignored',
+    color: 'var(--color-fg-subtle)',
+    bg: 'transparent',
+  },
 }
 
 export const STATUS_ORDER: FileStatus[] = ['modified', 'added', 'deleted', 'renamed', 'conflicted']

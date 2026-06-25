@@ -1,3 +1,8 @@
+import type { RepoState } from '@shared/git/models'
+
+export type { GitAction, GitActionKind, ActionResult } from '@shared/git/actions'
+export type { RepoState } from '@shared/git/models'
+
 export interface Author {
   name: string
   email: string
@@ -46,6 +51,7 @@ export interface Branch {
   isFavorite: boolean
   lastActivity: Date
   laneColorIndex: number
+  upstream?: string
 }
 
 export interface Tag {
@@ -54,6 +60,7 @@ export interface Tag {
   sha: string
   message: string
   date: Date
+  annotated?: boolean
 }
 
 export interface Stash {
@@ -73,7 +80,15 @@ export interface Worktree {
   isLocked: boolean
 }
 
-export type FileStatus = 'modified' | 'added' | 'deleted' | 'renamed' | 'conflicted'
+export type FileStatus =
+  | 'modified'
+  | 'added'
+  | 'deleted'
+  | 'renamed'
+  | 'copied'
+  | 'untracked'
+  | 'ignored'
+  | 'conflicted'
 
 export interface WorkingTreeFile {
   id: string
@@ -85,6 +100,13 @@ export interface WorkingTreeFile {
   additions: number
   deletions: number
   oldPath?: string
+  isSubmodule?: boolean
+}
+
+export interface Remote {
+  name: string
+  fetchUrl: string
+  pushUrl: string
 }
 
 export interface Repository {
@@ -95,6 +117,10 @@ export interface Repository {
   ahead: number
   behind: number
   remoteUrl: string
+  detached?: boolean
+  headSha?: string
+  remotes?: Remote[]
+  state?: RepoState
 }
 
 export interface RepositoryData {
@@ -108,51 +134,9 @@ export interface RepositoryData {
   authors: Author[]
 }
 
-export type GitActionKind =
-  | 'fetch'
-  | 'pull'
-  | 'push'
-  | 'force-push'
-  | 'sync'
-  | 'stash'
-  | 'pop-stash'
-  | 'apply-stash'
-  | 'drop-stash'
-  | 'cherry-pick'
-  | 'merge'
-  | 'rebase'
-  | 'interactive-rebase'
-  | 'reset-soft'
-  | 'reset-mixed'
-  | 'reset-hard'
-  | 'revert'
-  | 'undo'
-  | 'redo'
-  | 'refresh'
-  | 'open-terminal'
-  | 'checkout'
-  | 'create-branch'
-  | 'delete-branch'
-  | 'rename-branch'
-  | 'compare-branches'
-  | 'tag'
-  | 'copy-sha'
-  | 'open-on-github'
-  | 'rebase-from-here'
-  | 'stage-all'
-  | 'unstage-all'
-  | 'stage'
-  | 'unstage'
-  | 'commit'
-  | 'commit-and-push'
-
-export interface GitAction {
-  kind: GitActionKind
-  target?: string
-  meta?: Record<string, unknown>
-}
-
-export interface ActionResult {
-  ok: boolean
-  message: string
+/** Commit-graph pagination state surfaced to the store/UI. */
+export interface CommitPageInfo {
+  oldestSha: string | null
+  hasMore: boolean
+  total: number | null
 }

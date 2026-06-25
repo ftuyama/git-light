@@ -20,6 +20,7 @@ import { relativeTime } from '@/lib/format'
 import type { Commit } from '@/types/git'
 import { useRepositoryStore } from '@/stores/repository'
 import { useToastStore } from '@/stores/toast'
+import { useUiStore } from '@/stores/ui'
 
 const props = defineProps<{
   commit: Commit
@@ -29,6 +30,7 @@ const props = defineProps<{
 
 const repo = useRepositoryStore()
 const toast = useToastStore()
+const ui = useUiStore()
 
 const menu = computed<MenuItem[]>(() => [
   { label: 'Checkout Commit', icon: Check, onSelect: () => act('checkout') },
@@ -91,14 +93,23 @@ function openOnGithub(): void {
         <Badge v-if="commit.isMerge" tone="info">merge</Badge>
       </div>
 
-      <Avatar :author="commit.author" :size="18" />
-      <span class="hidden w-24 truncate text-right text-[var(--color-fg-muted)] xl:block">
+      <Avatar v-if="ui.isColumnVisible('author')" :author="commit.author" :size="18" />
+      <span
+        v-if="ui.isColumnVisible('author')"
+        class="w-24 truncate text-right text-[var(--color-fg-muted)]"
+      >
         {{ commit.author.name }}
       </span>
-      <span class="w-14 shrink-0 font-mono text-[11px] text-[var(--color-fg-subtle)]">
+      <span
+        v-if="ui.isColumnVisible('sha')"
+        class="w-14 shrink-0 font-mono text-[11px] text-[var(--color-fg-subtle)]"
+      >
         {{ commit.shortSha }}
       </span>
-      <span class="w-24 shrink-0 text-right text-[11px] text-[var(--color-fg-subtle)]">
+      <span
+        v-if="ui.isColumnVisible('when')"
+        class="w-24 shrink-0 text-right text-[11px] text-[var(--color-fg-subtle)]"
+      >
         {{ relativeTime(commit.date) }}
       </span>
     </div>

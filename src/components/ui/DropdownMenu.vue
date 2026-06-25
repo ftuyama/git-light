@@ -7,6 +7,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from 'reka-ui'
+import { Check } from '@lucide/vue'
 import { MENU_CONTENT_CLASS, MENU_ITEM_CLASS, type MenuItem } from './menu'
 
 withDefaults(
@@ -44,8 +45,13 @@ withDefaults(
           >
             <component v-if="item.icon" :is="item.icon" :size="15" />
             <span class="flex-1">{{ item.label }}</span>
+            <Check
+              v-if="item.checked"
+              :size="14"
+              class="text-[var(--color-accent)] group-data-[highlighted]:text-white"
+            />
             <kbd
-              v-if="item.shortcut"
+              v-else-if="item.shortcut"
               class="font-mono text-[10px] text-[var(--color-fg-subtle)] group-data-[highlighted]:text-white/70"
             >
               {{ item.shortcut }}

@@ -11,12 +11,23 @@ async function bootstrap(): Promise<void> {
   const pinia = createPinia()
   app.use(pinia)
 
-  // Hydrate persisted UI sizes before mount to avoid a layout flash.
   const ui = useUiStore(pinia)
   await ui.hydrate()
 
-  // Kick off the (mocked) repository load; components render skeletons until ready.
-  void useRepositoryStore(pinia).load()
+  const repo = useRepositoryStore(pinia)
+  await repo.init()
+
+  const useMock =
+    import.meta.env.DEV && import.meta.env.VITE_USE_MOCK === 'true' && typeof repo.loadMock === 'function'
+  if (useMock) {
+    void repo.loadMock()
+  } else {
+    const lastPath = ui.lastRepositoryPath
+    if (lastPath) {
+      const opened = await repo.openRepository(lastPath, { silent: true })
+      if (!opened) ui.setLastRepositoryPath(null)
+    }
+  }
 
   app.mount('#app')
 }

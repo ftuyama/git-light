@@ -1,0 +1,147 @@
+import { GitError } from '@shared/git/errors'
+import type {
+  CommitPageInfo,
+  DiffRequest,
+  DiffResult,
+  OperationProgress,
+  RecentRepository,
+  RepoChangeEvent,
+  SearchQuery,
+  SearchResults,
+  SnapshotScope,
+} from '@shared/git/models'
+import type { ActionResult, GitAction, RepositoryData } from '@/types/git'
+import type { GitService } from './GitService'
+import { reviveCommits, wireSnapshotToRepositoryData } from './wireAdapter'
+
+function envelopeToResult(envelope: {
+  ok: boolean
+  message: string
+  error?: ReturnType<GitError['serialize']>
+}): ActionResult {
+  if (envelope.error) {
+    const err = envelope.error
+    const detail = err.detail ? `: ${err.detail}` : ''
+    return { ok: false, message: `${err.message}${detail}` }
+  }
+  return { ok: envelope.ok, message: envelope.message }
+}
+
+/**
+ * Renderer-side GitService backed by typed IPC to the main-process GitProvider.
+ */
+export class IpcGitService implements GitService {
+  private page: CommitPageInfo = { oldestSha: null, hasMore: false, total: null }
+
+  get commitPage(): CommitPageInfo {
+    return this.page
+  }
+
+  async recentRepos(): Promise<RecentRepository[]> {
+    return window.electron.git.recentRepos()
+  }
+
+  async removeRecent(path: string): Promise<RecentRepository[]> {
+    return window.electron.git.removeRecent({ path })
+  }
+
+  async openRepository(path: string): Promise<{ ok: boolean; data?: RepositoryData; message: string }> {
+    const result = await window.electron.git.openRepo({ path })
+    if (!result.ok || !result.snapshot) {
+      const err = result.error
+      return {
+        ok: false,
+        message: err?.message ?? 'Failed to open repository.',
+      }
+    }
+    const data = wireSnapshotToRepositoryData(result.snapshot)
+    this.page = data.page
+    return { ok: true, data, message: `Opened ${data.repository.name}` }
+  }
+
+  async pickAndOpenRepository(): Promise<{
+    ok: boolean
+    cancelled?: boolean
+    data?: RepositoryData
+    message: string
+  }> {
+    const result = await window.electron.git.pickAndOpenRepo({})
+    if ('cancelled' in result) {
+      return { ok: false, cancelled: true, message: '' }
+    }
+    if (!result.ok || !result.snapshot) {
+      const err = result.error
+      return {
+        ok: false,
+        message: err?.message ?? 'Failed to open repository.',
+      }
+    }
+    const data = wireSnapshotToRepositoryData(result.snapshot)
+    this.page = data.page
+    return { ok: true, data, message: `Opened ${data.repository.name}` }
+  }
+
+  async closeRepository(): Promise<void> {
+    await window.electron.git.closeRepo()
+    this.page = { oldestSha: null, hasMore: false, total: null }
+  }
+
+  async refreshSnapshot(scopes?: SnapshotScope[]): Promise<RepositoryData> {
+    const snapshot = await window.electron.git.snapshot({
+      options: scopes ? { scopes } : undefined,
+    })
+    const data = wireSnapshotToRepositoryData(snapshot)
+    this.page = data.page
+    return data
+  }
+
+  async loadMoreCommits(): Promise<{ commits: RepositoryData['commits']; hasMore: boolean }> {
+    if (!this.page.oldestSha || !this.page.hasMore) {
+      return { commits: [], hasMore: false }
+    }
+    const result = await window.electron.git.commitPage({ beforeSha: this.page.oldestSha })
+    this.page = result.page
+    return { commits: reviveCommits(result.commits), hasMore: result.page.hasMore }
+  }
+
+  /** @deprecated Use openRepository / refreshSnapshot instead. */
+  async load(): Promise<RepositoryData> {
+    return this.refreshSnapshot()
+  }
+
+  async execute(action: GitAction): Promise<ActionResult> {
+    const envelope = await window.electron.git.action(action)
+    return envelopeToResult(envelope)
+  }
+
+  async getDiff(request: DiffRequest): Promise<DiffResult> {
+    return window.electron.git.diff(request)
+  }
+
+  async search(query: SearchQuery): Promise<SearchResults> {
+    return window.electron.git.search(query)
+  }
+
+  async openTerminal(path?: string): Promise<boolean> {
+    const result = await window.electron.git.openTerminal({ path })
+    return result.ok
+  }
+
+  async revealPath(path: string): Promise<void> {
+    await window.electron.git.revealPath({ path })
+  }
+
+  async cancelActiveOperation(): Promise<void> {
+    await window.electron.git.cancel()
+  }
+
+  onRepositoryChanged(cb: (event: RepoChangeEvent) => void): () => void {
+    return window.electron.git.onChanged(cb)
+  }
+
+  onProgress(cb: (progress: OperationProgress) => void): () => void {
+    return window.electron.git.onProgress(cb)
+  }
+}
+
+export const ipcGitService = new IpcGitService()

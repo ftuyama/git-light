@@ -8,6 +8,7 @@ export interface MenuItem {
   shortcut?: string
   danger?: boolean
   disabled?: boolean
+  checked?: boolean
   onSelect?: () => void
   children?: MenuItem[]
 }

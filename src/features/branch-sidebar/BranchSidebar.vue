@@ -2,18 +2,21 @@
 import { computed, reactive, ref } from 'vue'
 import {
   ChevronRight,
-  Clock,
   Folder,
+  GitBranchPlus,
   Inbox,
   Star,
   Tag as TagIcon,
   TreePine,
 } from '@lucide/vue'
 import GkSearchInput from '@/components/ui/GkSearchInput.vue'
+import GkButton from '@/components/ui/GkButton.vue'
+import ContextMenu from '@/components/ui/ContextMenu.vue'
+import type { MenuItem } from '@/components/ui/menu'
 import SidebarSection from './SidebarSection.vue'
 import BranchRow from './BranchRow.vue'
 import { useRepositoryStore } from '@/stores/repository'
-import type { Branch } from '@/types/git'
+import type { Branch, Stash, Tag } from '@/types/git'
 
 const repo = useRepositoryStore()
 const query = ref('')
@@ -51,50 +54,52 @@ const remoteBranches = computed(() =>
     : repo.remoteBranches,
 )
 
-const recent = computed(() =>
-  repo.recentBranches
-    .map((name) => repo.localBranches.find((b) => b.name === name))
-    .filter((b): b is Branch => Boolean(b)),
-)
-
 function isGroupOpen(group: string): boolean {
   return openGroups[group] ?? false
 }
 function toggleGroup(group: string): void {
   openGroups[group] = !isGroupOpen(group)
 }
+
+function tagMenu(tag: Tag): MenuItem[] {
+  return [
+    { label: 'Checkout Tag', onSelect: () => void repo.runAction({ kind: 'checkout-tag', target: tag.name }) },
+    { label: 'Delete Tag', danger: true, onSelect: () => void repo.runAction({ kind: 'delete-tag', target: tag.name }) },
+  ]
+}
+
+function stashMenu(stash: Stash): MenuItem[] {
+  const ref = `stash@{${stash.index}}`
+  return [
+    { label: 'Apply', onSelect: () => void repo.runAction({ kind: 'apply-stash', target: ref }) },
+    { label: 'Pop', onSelect: () => void repo.runAction({ kind: 'pop-stash', target: ref }) },
+    { label: 'Drop', danger: true, onSelect: () => void repo.runAction({ kind: 'drop-stash', target: ref }) },
+  ]
+}
 </script>
 
 <template>
   <aside class="flex h-full flex-col bg-[var(--color-panel)]">
-    <div class="border-b border-[var(--color-border)] p-2">
+    <div class="space-y-2 border-b border-[var(--color-border)] p-2">
       <GkSearchInput
         ref="search"
         v-model="query"
         placeholder="Search branches"
         shortcut="⌘F"
       />
+      <GkButton block size="sm" :icon="GitBranchPlus" @click="repo.createBranch()">
+        New Branch
+      </GkButton>
     </div>
 
     <div class="min-h-0 flex-1 overflow-y-auto py-1">
-      <!-- Favorites + Recent (only when not searching) -->
+      <!-- Favorites (only when not searching) -->
       <template v-if="!normalizedQuery">
         <SidebarSection section-key="favorites" title="Favorites" :count="repo.favoriteBranches.length">
           <div v-if="repo.favoriteBranches.length === 0" class="px-6 py-1 text-xs text-[var(--color-fg-subtle)]">
             <Star :size="12" class="mr-1 inline" /> Pin branches to see them here
           </div>
           <BranchRow v-for="branch in repo.favoriteBranches" :key="branch.id" :branch="branch" />
-        </SidebarSection>
-
-        <SidebarSection section-key="recent" title="Recently Checked Out" :count="recent.length">
-          <div
-            v-for="branch in recent"
-            :key="branch.id"
-            class="flex h-7 items-center gap-2 pr-2 pl-6 text-[13px] text-[var(--color-fg-muted)]"
-          >
-            <Clock :size="12" class="text-[var(--color-fg-subtle)]" />
-            <span class="truncate">{{ branch.name }}</span>
-          </div>
         </SidebarSection>
       </template>
 
@@ -137,32 +142,39 @@ function toggleGroup(group: string): void {
 
       <!-- Tags -->
       <SidebarSection section-key="tags" title="Tags" :count="repo.tags.length">
-        <div
-          v-for="tag in repo.tags"
-          :key="tag.id"
-          class="flex h-7 items-center gap-2 rounded-md pr-2 pl-6 text-[13px] text-[var(--color-fg-muted)] hover:bg-[var(--color-hover)]"
+        <ContextMenu v-for="tag in repo.tags" :key="tag.id" :items="tagMenu(tag)">
+          <div
+            class="flex h-7 cursor-pointer items-center gap-2 rounded-md pr-2 pl-6 text-[13px] text-[var(--color-fg-muted)] hover:bg-[var(--color-hover)]"
+            @dblclick="void repo.runAction({ kind: 'checkout-tag', target: tag.name })"
+          >
+            <TagIcon :size="13" class="text-[var(--color-warning)]" />
+            <span class="flex-1 truncate">{{ tag.name }}</span>
+            <span class="font-mono text-[10px] text-[var(--color-fg-subtle)]">{{ tag.sha.slice(0, 7) }}</span>
+          </div>
+        </ContextMenu>
+        <button
+          class="mx-2 mt-1 w-[calc(100%-1rem)] rounded-md px-2 py-1 text-left text-xs text-[var(--color-accent)] hover:bg-[var(--color-hover)]"
+          @click="repo.createTag()"
         >
-          <TagIcon :size="13" class="text-[var(--color-warning)]" />
-          <span class="flex-1 truncate">{{ tag.name }}</span>
-          <span class="font-mono text-[10px] text-[var(--color-fg-subtle)]">{{ tag.sha.slice(0, 7) }}</span>
-        </div>
+          + Create tag
+        </button>
       </SidebarSection>
 
       <!-- Stashes -->
       <SidebarSection section-key="stashes" title="Stashes" :count="repo.stashes.length">
-        <div
-          v-for="stash in repo.stashes"
-          :key="stash.id"
-          class="flex h-8 items-center gap-2 rounded-md pr-2 pl-6 text-[13px] text-[var(--color-fg-muted)] hover:bg-[var(--color-hover)]"
-        >
-          <Inbox :size="13" class="text-[var(--color-info)]" />
-          <div class="min-w-0 flex-1">
-            <div class="truncate">{{ stash.message }}</div>
-            <div class="truncate text-[10px] text-[var(--color-fg-subtle)]">
-              on {{ stash.branch }} · {{ stash.filesChanged }} files
+        <ContextMenu v-for="stash in repo.stashes" :key="stash.id" :items="stashMenu(stash)">
+          <div
+            class="flex h-8 cursor-pointer items-center gap-2 rounded-md pr-2 pl-6 text-[13px] text-[var(--color-fg-muted)] hover:bg-[var(--color-hover)]"
+          >
+            <Inbox :size="13" class="text-[var(--color-info)]" />
+            <div class="min-w-0 flex-1">
+              <div class="truncate">{{ stash.message }}</div>
+              <div class="truncate text-[10px] text-[var(--color-fg-subtle)]">
+                on {{ stash.branch }} · {{ stash.filesChanged }} files
+              </div>
             </div>
           </div>
-        </div>
+        </ContextMenu>
       </SidebarSection>
 
       <!-- Worktrees -->

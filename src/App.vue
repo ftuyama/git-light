@@ -10,13 +10,20 @@ import WorkingTreePanel from '@/features/working-tree/WorkingTreePanel.vue'
 import StatusBar from '@/features/status-bar/StatusBar.vue'
 import SidebarRail from '@/features/layout/SidebarRail.vue'
 import ToastViewport from '@/features/layout/ToastViewport.vue'
+import StartupView from '@/features/startup/StartupView.vue'
+import OperationBanner from '@/features/layout/OperationBanner.vue'
+import PromptHost from '@/features/layout/PromptHost.vue'
+import SearchOverlay from '@/features/search/SearchOverlay.vue'
 import { useUiStore } from '@/stores/ui'
 import { useSelectionStore } from '@/stores/selection'
+import { useRepositoryStore } from '@/stores/repository'
 import { useKeyboardShortcuts } from '@/composables/useKeyboardShortcuts'
 
 const ui = useUiStore()
+const repo = useRepositoryStore()
 const selection = useSelectionStore()
 const { leftSize, rightSize, leftCollapsed, rightCollapsed } = storeToRefs(ui)
+const { screen } = storeToRefs(repo)
 
 const branchSidebar = ref<InstanceType<typeof BranchSidebar>>()
 
@@ -46,6 +53,9 @@ function onResized(payload: SplitpanesResizedPayload): void {
 
 useKeyboardShortcuts([
   { key: 'f', meta: true, handler: () => branchSidebar.value?.focusSearch() },
+  { key: 'f', meta: true, shift: true, handler: () => repo.openSearch() },
+  { key: 't', meta: true, handler: () => void repo.runAction({ kind: 'open-terminal' }) },
+  { key: 'r', meta: true, handler: () => void repo.runAction({ kind: 'refresh' }) },
   { key: 'arrowdown', handler: () => selection.moveBy(1) },
   { key: 'arrowup', handler: () => selection.moveBy(-1) },
   { key: 'j', handler: () => selection.moveBy(1) },
@@ -55,9 +65,12 @@ useKeyboardShortcuts([
 </script>
 
 <template>
-  <TooltipProvider :delay-duration="320" :skip-delay-duration="120">
+  <StartupView v-if="screen === 'startup'" />
+
+  <TooltipProvider v-else :delay-duration="320" :skip-delay-duration="120">
     <div class="flex h-screen w-screen flex-col overflow-hidden bg-[var(--color-app)]">
       <Toolbar />
+      <OperationBanner />
 
       <div class="flex min-h-0 flex-1">
         <SidebarRail v-if="leftCollapsed" side="left" @expand="ui.toggleLeft()" />
@@ -80,5 +93,7 @@ useKeyboardShortcuts([
       <StatusBar />
     </div>
     <ToastViewport />
+    <PromptHost />
+    <SearchOverlay />
   </TooltipProvider>
 </template>

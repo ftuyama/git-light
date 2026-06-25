@@ -32,9 +32,10 @@
   },
   "dependencies": {
     "@faker-js/faker": "^10.5.0",
-    "@vueuse/core": "^14.2.1",
     "@lucide/vue": "^1.21.0",
     "@tanstack/vue-virtual": "^3.13.29",
+    "@vueuse/core": "^14.2.1",
+    "chokidar": "^5.0.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "date-fns": "^4.4.0",

@@ -1,10 +1,12 @@
 import { join } from 'node:path'
 import { app, BrowserWindow, ipcMain, shell } from 'electron'
 import Store from 'electron-store'
+import { registerGitIpc } from './git/registerIpc'
 
 const store = new Store({ name: 'git-light-ui' })
+let mainWindow: BrowserWindow | null = null
 
-function createWindow(): void {
+function createWindow(): BrowserWindow {
   const win = new BrowserWindow({
     width: 1440,
     height: 900,
@@ -22,7 +24,12 @@ function createWindow(): void {
     },
   })
 
+  mainWindow = win
+
   win.on('ready-to-show', () => win.show())
+  win.on('closed', () => {
+    if (mainWindow === win) mainWindow = null
+  })
 
   win.webContents.setWindowOpenHandler(({ url }) => {
     shell.openExternal(url)
@@ -37,9 +44,10 @@ function createWindow(): void {
   } else {
     win.loadFile(join(__dirname, '../renderer/index.html'))
   }
+
+  return win
 }
 
-// Persisted UI state bridge (sidebar sizes, collapsed state, etc.).
 ipcMain.handle('store:get', (_event, key: string, fallback: unknown) => {
   return store.get(key, fallback)
 })
@@ -48,17 +56,12 @@ ipcMain.handle('store:set', (_event, key: string, value: unknown) => {
   store.set(key, value)
 })
 
-// Stubbed git action endpoint. A real GitService implementation can replace
-// this handler with spawn('git', ...) / libgit2 calls without UI changes.
-ipcMain.handle('git:action', async (_event, action: unknown) => {
-  return { ok: true, action }
-})
-
 ipcMain.handle('app:open-external', (_event, url: string) => {
   return shell.openExternal(url)
 })
 
 app.whenReady().then(() => {
+  registerGitIpc(() => mainWindow, store)
   createWindow()
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow()

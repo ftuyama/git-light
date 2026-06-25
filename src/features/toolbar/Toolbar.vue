@@ -10,6 +10,7 @@ import {
   Cherry,
   CloudDownload,
   FolderGit2,
+  FolderOpen,
   GitBranch,
   GitMerge,
   Inbox,
@@ -27,9 +28,11 @@ import GkIconButton from '@/components/ui/GkIconButton.vue'
 import DropdownMenu from '@/components/ui/DropdownMenu.vue'
 import type { MenuItem } from '@/components/ui/menu'
 import { useRepositoryStore } from '@/stores/repository'
+import { useSelectionStore } from '@/stores/selection'
 import type { GitActionKind } from '@/types/git'
 
 const repo = useRepositoryStore()
+const selection = useSelectionStore()
 
 function run(kind: GitActionKind, target?: string): void {
   void repo.runAction({ kind, target })
@@ -37,14 +40,19 @@ function run(kind: GitActionKind, target?: string): void {
 
 const isBusy = (kind: GitActionKind): boolean => repo.busyAction === kind
 
-const repoMenu = computed<MenuItem[]>(() => [
-  { label: 'AwesomeShop', icon: FolderGit2, onSelect: () => {} },
-  { label: 'design-system', icon: FolderGit2, onSelect: () => {} },
-  { label: 'infra-terraform', icon: FolderGit2, onSelect: () => {} },
-  { separator: true },
-  { label: 'Open Repository…', onSelect: () => {} },
-  { label: 'Clone Repository…', onSelect: () => {} },
-])
+const repoMenu = computed<MenuItem[]>(() => {
+  const items: MenuItem[] = repo.recentRepos.slice(0, 8).map((r) => ({
+    label: r.name,
+    icon: FolderGit2,
+    onSelect: () => void repo.openRepository(r.path),
+  }))
+  if (items.length > 0) items.push({ separator: true })
+  items.push(
+    { label: 'Open Repository…', icon: FolderOpen, onSelect: () => void repo.pickAndOpenRepository() },
+    { label: 'Close Repository', onSelect: () => void repo.closeRepository() },
+  )
+  return items
+})
 
 const branchMenu = computed<MenuItem[]>(() =>
   repo.localBranches.slice(0, 8).map((branch) => ({
@@ -61,7 +69,6 @@ const branchMenu = computed<MenuItem[]>(() =>
   >
     <div class="w-[68px] shrink-0" />
 
-    <!-- Repository selector -->
     <DropdownMenu :items="repoMenu" align="start">
       <button
         class="app-no-drag focus-ring flex h-8 items-center gap-2 rounded-md border border-[var(--color-border-strong)] bg-[var(--color-panel-raised)] px-2.5 text-[13px] font-medium text-[var(--color-fg)] transition-colors hover:bg-[var(--color-hover)]"
@@ -72,14 +79,13 @@ const branchMenu = computed<MenuItem[]>(() =>
       </button>
     </DropdownMenu>
 
-    <!-- Current branch -->
     <DropdownMenu :items="branchMenu" align="start">
       <button
         class="app-no-drag focus-ring flex h-8 items-center gap-2 rounded-md px-2.5 text-[13px] text-[var(--color-fg-muted)] transition-colors hover:bg-[var(--color-hover)] hover:text-[var(--color-fg)]"
       >
         <GitBranch :size="15" />
         <span class="font-medium text-[var(--color-fg)]">
-          {{ repo.currentBranch?.name ?? 'main' }}
+          {{ repo.currentBranch?.name ?? '—' }}
         </span>
         <ChevronDown :size="14" class="text-[var(--color-fg-subtle)]" />
       </button>
@@ -87,7 +93,6 @@ const branchMenu = computed<MenuItem[]>(() =>
 
     <div class="mx-1 h-6 w-px bg-[var(--color-border)]" />
 
-    <!-- Remote operations -->
     <div class="flex items-center gap-0.5">
       <GkIconButton :icon="CloudDownload" label="Fetch" :busy="isBusy('fetch')" @click="run('fetch')" />
       <GkIconButton :icon="ArrowDown" label="Pull" shortcut="⌘⇧L" :busy="isBusy('pull')" @click="run('pull')" />
@@ -97,36 +102,32 @@ const branchMenu = computed<MenuItem[]>(() =>
 
     <div class="mx-1 h-6 w-px bg-[var(--color-border)]" />
 
-    <!-- Stash -->
     <div class="flex items-center gap-0.5">
-      <GkIconButton :icon="Inbox" label="Stash" @click="run('stash')" />
+      <GkIconButton :icon="Inbox" label="Stash" @click="repo.stashChanges()" />
       <GkIconButton :icon="ArchiveRestore" label="Pop Stash" @click="run('pop-stash')" />
     </div>
 
     <div class="mx-1 h-6 w-px bg-[var(--color-border)]" />
 
-    <!-- History operations -->
     <div class="flex items-center gap-0.5">
-      <GkIconButton :icon="Cherry" label="Cherry Pick" @click="run('cherry-pick')" />
-      <GkIconButton :icon="GitMerge" label="Merge" @click="run('merge')" />
-      <GkIconButton :icon="Spline" label="Rebase" @click="run('rebase')" />
-      <GkIconButton :icon="ListTree" label="Interactive Rebase" @click="run('interactive-rebase')" />
-      <GkIconButton :icon="RotateCcw" label="Reset" @click="run('reset-mixed')" />
+      <GkIconButton :icon="Cherry" label="Cherry Pick" @click="repo.cherryPickCommit(selection.selectedSha ?? undefined)" />
+      <GkIconButton :icon="GitMerge" label="Merge" @click="repo.mergeBranch()" />
+      <GkIconButton :icon="Spline" label="Rebase" @click="repo.rebaseOnto()" />
+      <GkIconButton :icon="ListTree" label="Interactive Rebase" @click="run('interactive-rebase', 'HEAD~5')" />
+      <GkIconButton :icon="RotateCcw" label="Reset" @click="repo.resetTo('reset-mixed')" />
     </div>
 
     <div class="mx-1 h-6 w-px bg-[var(--color-border)]" />
 
-    <!-- Undo / redo -->
     <div class="flex items-center gap-0.5">
-      <GkIconButton :icon="Undo2" label="Undo" shortcut="⌘Z" @click="run('undo')" />
-      <GkIconButton :icon="Redo2" label="Redo" shortcut="⌘⇧Z" @click="run('redo')" />
+      <GkIconButton :icon="Undo2" label="Undo" shortcut="⌘Z" disabled />
+      <GkIconButton :icon="Redo2" label="Redo" shortcut="⌘⇧Z" disabled />
     </div>
 
     <div class="app-drag flex-1" />
 
-    <!-- Right cluster -->
     <div class="flex items-center gap-0.5">
-      <GkIconButton :icon="Search" label="Search Commits" shortcut="⌘F" @click="run('refresh')" />
+      <GkIconButton :icon="Search" label="Search" shortcut="⌘⇧F" @click="repo.openSearch()" />
       <GkIconButton :icon="Terminal" label="Open Terminal" shortcut="⌘T" @click="run('open-terminal')" />
       <GkIconButton :icon="RotateCw" label="Refresh" shortcut="⌘R" :busy="isBusy('refresh')" @click="run('refresh')" />
       <GkIconButton :icon="Settings" label="Settings (coming soon)" disabled />
