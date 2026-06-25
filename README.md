@@ -4,6 +4,8 @@ A GitKraken-style desktop Git client **UI shell**, built to prioritize an except
 
 This is intentionally **not** a working Git client. Every button exists and every interaction feels alive, but Git operations are mocked. The architecture is designed so a real Git backend (CLI, libgit2, or isomorphic-git) can be connected later without a UI rewrite.
 
+![Git Light — AwesomeShop repository view](docs/screenshot.png)
+
 ## Stack
 
 - **Electron** + **electron-vite** — desktop shell with a single `dev` command
