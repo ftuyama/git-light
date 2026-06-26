@@ -3,11 +3,13 @@ import { computed } from 'vue'
 import { Check, Loader2, X } from '@lucide/vue'
 import GkButton from '@/components/ui/GkButton.vue'
 import { useRepositoryStore } from '@/stores/repository'
+import { useRepoDiffStore } from '@/stores/repoDiff'
 
 const repo = useRepositoryStore()
+const diffStore = useRepoDiffStore()
 
-const path = computed(() => repo.selectedFilePath)
-const conflict = computed(() => repo.conflict)
+const path = computed(() => diffStore.selectedFilePath)
+const conflict = computed(() => diffStore.conflict)
 const blockCount = computed(() => conflict.value?.blocks.length ?? 0)
 
 function lineRows(text: string): string[] {
@@ -30,14 +32,14 @@ function lineRows(text: string): string[] {
       </span>
       <button
         class="focus-ring rounded px-1.5 py-0.5 text-[10px] normal-case text-[var(--color-fg-subtle)] hover:bg-[var(--color-hover)]"
-        @click="repo.selectFile(null)"
+        @click="diffStore.selectFile(null)"
       >
         Close
       </button>
     </header>
 
     <div
-      v-if="repo.conflictLoading"
+      v-if="diffStore.conflictLoading"
       class="flex flex-1 items-center justify-center text-xs text-[var(--color-fg-subtle)]"
     >
       <Loader2 :size="16" class="mr-2 animate-spin" /> Loading conflict…

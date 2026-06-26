@@ -2,56 +2,125 @@
 import { computed, watch } from 'vue'
 import { storeToRefs } from 'pinia'
 import { Splitpanes, Pane, type SplitpanesResizedPayload } from 'splitpanes'
-import { CheckCheck, ChevronRight, Loader2, TriangleAlert, X } from '@lucide/vue'
+import { CheckCheck, ChevronRight, Loader2, Trash2, TriangleAlert, X } from '@lucide/vue'
+import GkIconButton from '@/components/ui/GkIconButton.vue'
 import FileList from './FileList.vue'
 import CommitDetailHeader from './CommitDetailHeader.vue'
+import CompareDetailHeader from './CompareDetailHeader.vue'
 import FileListViewToggle from './FileListViewToggle.vue'
 import { useRepositoryStore } from '@/stores/repository'
+import { useRepoDiffStore } from '@/stores/repoDiff'
 import { useSelectionStore } from '@/stores/selection'
 import { useUiStore } from '@/stores/ui'
 import CommitBox from './CommitBox.vue'
 
 const repo = useRepositoryStore()
+const diffStore = useRepoDiffStore()
 const selection = useSelectionStore()
 const ui = useUiStore()
-const { selectedSha } = storeToRefs(selection)
+const { selectedSha, compareRange, isCompareMode } = storeToRefs(selection)
 const { workingTreeChangesSize } = storeToRefs(ui)
 
 const unstaged = computed(() => repo.unstagedFiles)
 const staged = computed(() => repo.stagedFiles)
 const conflicts = computed(() => repo.conflictedFiles)
-const viewingCommit = computed(() => Boolean(selectedSha.value))
+const viewingCommit = computed(() => Boolean(selectedSha.value) && !isCompareMode.value)
+const viewingCompare = computed(() => isCompareMode.value && compareRange.value != null)
 const selectedCommit = computed(() =>
   selectedSha.value ? repo.commits.find((c) => c.sha === selectedSha.value) : undefined,
 )
-const showWorkingTree = computed(() => !viewingCommit.value)
+const showWorkingTree = computed(() => !selectedSha.value && !isCompareMode.value)
+const compareFiles = computed(() => diffStore.compareFiles)
+const commitFiles = computed(() => diffStore.commitFiles)
 
 const workingTreeStagedSize = computed(() => 100 - workingTreeChangesSize.value)
 
+const changedFileCount = computed(() => new Set(repo.workingTree.map((f) => f.path)).size)
+const branchName = computed(() => repo.currentBranch?.name ?? '—')
+const changesSummary = computed(() => {
+  const n = changedFileCount.value
+  const fileWord = n === 1 ? 'file' : 'files'
+  return `${n} ${fileWord} changed on ${branchName.value}`
+})
+const canDiscardAll = computed(() => changedFileCount.value > 0 && conflicts.value.length === 0)
+
 const commitEmptyMessage = 'No files changed in this commit'
+
+function discardAllChanges(): void {
+  void repo.discardAllChanges()
+}
+const compareEmptyMessage = 'No file changes between these commits'
 
 function onWorkingTreeResized(payload: SplitpanesResizedPayload): void {
   const size = payload.panes[0]?.size
   if (size != null) ui.setWorkingTreeChangesSize(size)
 }
 
+function exitCompare(): void {
+  selection.clearCompare()
+}
+
 watch(
   selectedSha,
   (sha) => {
-    if (sha) void repo.loadCommitFiles(sha)
-    else repo.clearCommitFiles()
+    if (isCompareMode.value && compareRange.value) {
+      void diffStore.loadCompareFiles(compareRange.value.fromSha, compareRange.value.toSha)
+      return
+    }
+    if (sha) void diffStore.loadCommitFiles(sha)
+    else diffStore.clearCommitFiles()
   },
   { immediate: true },
 )
+
+watch(compareRange, (range) => {
+  if (range) void diffStore.loadCompareFiles(range.fromSha, range.toSha)
+})
 </script>
 
 <template>
   <aside class="flex h-full flex-col border-l border-[var(--color-border)] bg-[var(--color-panel)]">
-    <template v-if="viewingCommit">
+    <template v-if="viewingCompare && compareRange">
+      <CompareDetailHeader
+        :range="compareRange"
+        :file-count="compareFiles.length"
+        @close="exitCompare"
+      />
+
+      <div class="flex min-h-0 flex-1 flex-col">
+        <header
+          class="flex h-9 shrink-0 items-center gap-2 px-3 text-[11px] font-semibold tracking-wide text-[var(--color-fg-muted)] uppercase"
+        >
+          <span class="flex-1">Changed files</span>
+          <FileListViewToggle />
+        </header>
+
+        <div
+          v-if="diffStore.compareFilesLoading"
+          class="flex flex-1 items-center justify-center text-xs text-[var(--color-fg-subtle)]"
+        >
+          <Loader2 :size="16" class="mr-2 animate-spin" /> Loading files…
+        </div>
+        <FileList
+          v-else-if="compareFiles.length"
+          :key="`${compareRange.fromSha}-${compareRange.toSha}`"
+          :files="compareFiles"
+          readonly
+        />
+        <div
+          v-else
+          class="flex flex-1 items-center justify-center px-4 text-center text-xs text-[var(--color-fg-subtle)]"
+        >
+          {{ compareEmptyMessage }}
+        </div>
+      </div>
+    </template>
+
+    <template v-else-if="viewingCommit">
       <CommitDetailHeader
         v-if="selectedCommit"
         :commit="selectedCommit"
-        :file-count="repo.commitFiles.length"
+        :file-count="commitFiles.length"
       />
 
       <div class="flex min-h-0 flex-1 flex-col">
@@ -63,15 +132,15 @@ watch(
         </header>
 
         <div
-          v-if="repo.commitFilesLoading"
+          v-if="diffStore.commitFilesLoading"
           class="flex flex-1 items-center justify-center text-xs text-[var(--color-fg-subtle)]"
         >
           <Loader2 :size="16" class="mr-2 animate-spin" /> Loading files…
         </div>
         <FileList
-          v-else-if="repo.commitFiles.length"
+          v-else-if="commitFiles.length"
           :key="selectedSha ?? 'none'"
-          :files="repo.commitFiles"
+          :files="commitFiles"
           readonly
         />
         <div
@@ -84,6 +153,23 @@ watch(
     </template>
 
     <template v-if="showWorkingTree">
+      <header
+        class="flex h-9 shrink-0 items-center gap-2 border-b border-[var(--color-border)] px-2"
+      >
+        <GkIconButton
+          :icon="Trash2"
+          label="Discard all changes"
+          danger
+          tooltip-side="left"
+          :disabled="!canDiscardAll"
+          :busy="repo.busyAction === 'discard-all'"
+          @click="discardAllChanges"
+        />
+        <p class="min-w-0 flex-1 truncate text-[12px] text-[var(--color-fg-muted)]">
+          {{ changesSummary }}
+        </p>
+      </header>
+
       <Splitpanes
         horizontal
         class="working-tree-split min-h-0 flex-1"

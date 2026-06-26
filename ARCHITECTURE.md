@@ -17,7 +17,7 @@ Git Light is an Electron desktop app with a Vue 3 renderer. The UI depends on a 
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │  Renderer (Vue)                                              │
-│  features/ → stores/repository → lib/git/IpcGitService       │
+│  features/ → stores/repository + repoDiff → lib/git/IpcGitService       │
 └───────────────────────────┬─────────────────────────────────┘
                             │ contextBridge (typed IPC)
 ┌───────────────────────────▼─────────────────────────────────┐
@@ -41,6 +41,8 @@ Git Light is an Electron desktop app with a Vue 3 renderer. The UI depends on a 
 | `avatar.ts` | Gravatar URL helpers for commit authors |
 | `rebase.ts` | Interactive rebase entry types and sequence helpers |
 | `undoPolicy.ts` | Reflog-based undo/redo eligibility rules |
+| `destructive.ts` | Shared destructive-action set for UI + ActionRouter |
+| `credentialHints.ts` | Recovery hints for authentication/network errors |
 | `githubUrl.ts` | Parse remotes and build GitHub browse URLs |
 
 `shared/diff/buildPatch.ts` builds unified patches for per-hunk stage/unstage.
@@ -69,6 +71,19 @@ Git Light is an Electron desktop app with a Vue 3 renderer. The UI depends on a 
 | `RepoCache.ts` | TTL cache for status/branches |
 | `RepositoryWatcher.ts` | Debounced filesystem events → `git:changed` |
 | `parsers/` | Parse porcelain log, status, branches, diffs, conflicts, rebase commits, etc. |
+
+## Renderer stores (`src/stores/`)
+
+| Store | Role |
+|-------|------|
+| `repository` | Repo lifecycle, commits, branches, git actions, commit box |
+| `repoDiff` | Selected file, diff/conflict loading, commit/compare file lists |
+| `selection` | Selected/hovered commit, shift-compare range |
+| `ui` | Layout prefs, graph columns, sidebar sections |
+| `interactiveRebase` | Interactive rebase dialog state |
+| `prompt` / `toast` | Modal and toast UI |
+
+Helpers live under `src/stores/repo/` (`graphLayout.ts`, `actionHelpers.ts`).
 
 ## UI layout
 
@@ -137,6 +152,7 @@ Run: `npm run test`
 
 ## Security notes
 
-- Renderer is sandboxed with `contextIsolation: true`; only preload exposes IPC.
+- Renderer uses `contextIsolation: true` and `nodeIntegration: false`; only preload exposes IPC.
+- **`sandbox: false`** is intentional today: the preload script and Electron 41 + chokidar file watching were validated with sandbox disabled. Enabling sandbox would require auditing preload surface area and retesting git IPC + `electron-store`. Revisit before a hardened release build.
 - Git commands use argv arrays (no shell interpolation).
 - Paths passed to git are validated with `assertPathInsideRepo`.

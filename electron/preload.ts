@@ -26,6 +26,8 @@ const git = {
     invoke(IpcChannels.conflict, req),
   commitFiles: (req: IpcContract[typeof IpcChannels.commitFiles][0]) =>
     invoke(IpcChannels.commitFiles, req),
+  compareFiles: (req: IpcContract[typeof IpcChannels.compareFiles][0]) =>
+    invoke(IpcChannels.compareFiles, req),
   search: (req: IpcContract[typeof IpcChannels.search][0]) => invoke(IpcChannels.search, req),
   rebaseCommits: (req: IpcContract[typeof IpcChannels.rebaseCommits][0]) =>
     invoke(IpcChannels.rebaseCommits, req),

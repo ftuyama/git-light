@@ -140,9 +140,4 @@ export interface RepositoryData {
   commitAuthor: Author
 }
 
-/** Commit-graph pagination state surfaced to the store/UI. */
-export interface CommitPageInfo {
-  oldestSha: string | null
-  hasMore: boolean
-  total: number | null
-}
+export type { CommitPageInfo } from '@shared/git/models'

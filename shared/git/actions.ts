@@ -92,4 +92,5 @@ export interface GitAction {
 export interface ActionResult {
   ok: boolean
   message: string
+  errorCode?: import('./errors').GitErrorCode
 }

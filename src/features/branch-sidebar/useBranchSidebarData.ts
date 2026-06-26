@@ -49,6 +49,16 @@ export function useBranchSidebarData(query: Ref<string>) {
       .map(([remote, branches]) => [remote, sortCurrentBranchFirst(branches)] as const)
   })
 
+  const hasLocalMatches = computed(() => {
+    if (!normalizedQuery.value) return true
+    return (
+      filteredLocal.value.length > 0 ||
+      remoteBranches.value.length > 0 ||
+      repo.tags.some((t) => t.name.toLowerCase().includes(normalizedQuery.value)) ||
+      repo.stashes.some((s) => s.message.toLowerCase().includes(normalizedQuery.value))
+    )
+  })
+
   return {
     repo,
     normalizedQuery,
@@ -57,6 +67,7 @@ export function useBranchSidebarData(query: Ref<string>) {
     groupedBranches,
     remoteBranches,
     groupedRemoteBranches,
+    hasLocalMatches,
   }
 }
 

@@ -222,6 +222,11 @@ export interface CommitFilesRequest {
   sha: string
 }
 
+export interface CompareCommitsRequest {
+  fromSha: string
+  toSha: string
+}
+
 export interface DiffLine {
   type: 'context' | 'add' | 'del' | 'hunk' | 'meta'
   content: string

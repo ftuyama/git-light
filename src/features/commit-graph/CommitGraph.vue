@@ -17,6 +17,7 @@ import {
   virtualRowCount,
 } from '@/lib/graph/pendingGraphRow'
 import { useRepositoryStore } from '@/stores/repository'
+import { useRepoDiffStore } from '@/stores/repoDiff'
 import { useSelectionStore } from '@/stores/selection'
 import { useUiStore } from '@/stores/ui'
 import DiffPanel from '@/features/diff/DiffPanel.vue'
@@ -24,9 +25,10 @@ import type { CommitColumnWidthKey } from '@/lib/preferences'
 import type { Author } from '@/types/git'
 
 const repo = useRepositoryStore()
+const diffStore = useRepoDiffStore()
 const selection = useSelectionStore()
 const ui = useUiStore()
-const { selectedSha } = storeToRefs(selection)
+const { selectedSha, hoveredSha, compareRange } = storeToRefs(selection)
 const { columns, columnWidths } = storeToRefs(ui)
 
 const columnMenu = computed<MenuItem[]>(() => [
@@ -263,12 +265,29 @@ function resizeColumn(key: CommitColumnWidthKey, deltaX: number): void {
   ui.setColumnWidth(key, columnWidths.value[key] + deltaX)
 }
 
-function selectRow(sha: string): void {
+function selectRow(sha: string, event?: MouseEvent): void {
+  if (event?.shiftKey && selectedSha.value && selectedSha.value !== sha) {
+    selection.selectWithShift(sha)
+    return
+  }
   selection.select(selectedSha.value === sha ? null : sha)
 }
 
 function selectPendingRow(): void {
   selection.select(null)
+}
+
+function rowClasses(commitIndex: number): string {
+  const sha = repo.commits[commitIndex]?.sha
+  const isSelected = selectedSha.value === sha
+  const isHovered = hoveredSha.value === sha
+  const range = compareRange.value
+  const inCompare = range && (sha === range.fromSha || sha === range.toSha)
+
+  if (isSelected) return 'border-[var(--color-accent)] bg-[var(--color-accent-soft)]'
+  if (inCompare) return 'border-[var(--color-info)] bg-[var(--color-info)]/10'
+  if (isHovered) return 'border-transparent bg-[var(--color-hover)]/80'
+  return 'border-transparent hover:bg-[var(--color-hover)]/60'
 }
 
 function onBodyScroll(): void {
@@ -284,7 +303,7 @@ function onBodyScroll(): void {
 
 <template>
   <div class="flex h-full min-w-0 flex-col bg-[var(--color-app)]">
-    <div v-show="!repo.selectedFilePath" class="flex min-h-0 flex-1 flex-col">
+    <div v-show="!diffStore.selectedFilePath" class="flex min-h-0 flex-1 flex-col">
     <!-- Column header -->
     <div
       class="flex h-8 shrink-0 items-stretch border-b border-[var(--color-border)]"
@@ -489,15 +508,12 @@ function onBodyScroll(): void {
           <div
             v-else
             class="group/row h-full cursor-pointer border-l-2 transition-colors"
-            :class="
-              selectedSha === repo.commits[resolveCommitIndex(item.index)!]?.sha
-                ? 'border-[var(--color-accent)] bg-[var(--color-accent-soft)]'
-                : 'border-transparent hover:bg-[var(--color-hover)]/60'
-            "
+            :class="rowClasses(resolveCommitIndex(item.index)!)"
             role="row"
             :aria-selected="selectedSha === repo.commits[resolveCommitIndex(item.index)!]?.sha"
-            @click="selectRow(repo.commits[resolveCommitIndex(item.index)!].sha)"
+            @click="selectRow(repo.commits[resolveCommitIndex(item.index)!].sha, $event)"
             @mouseenter="selection.hover(repo.commits[resolveCommitIndex(item.index)!].sha)"
+            @mouseleave="selection.hover(null)"
           >
             <CommitRow
               :commit="repo.commits[resolveCommitIndex(item.index)!]"

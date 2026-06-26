@@ -9,7 +9,10 @@ import { assertPathInsideRepo } from './pathUtils'
 import { applyConflictResolution, parseConflictMarkers } from './parsers/conflictParser'
 import { createRebaseEditorBundle } from './rebaseSequenceEditor'
 import type { ReflogJournal } from './ReflogJournal'
+import { isDestructiveAction } from '@shared/git/destructive'
 import { isUndoRedoSafe } from './ReflogJournal'
+
+export { isDestructiveAction }
 
 export interface ActionContext {
   cwd: string
@@ -17,21 +20,6 @@ export interface ActionContext {
   onProgress?: (phase: string, percent: number | null) => void
   journal?: ReflogJournal
   repoState?: RepoState
-}
-
-const DESTRUCTIVE = new Set([
-  'reset-hard',
-  'force-push',
-  'commit-and-force-push',
-  'delete-branch',
-  'delete-remote-branch',
-  'drop-stash',
-  'discard-file',
-  'discard-all',
-])
-
-export function isDestructiveAction(kind: string): boolean {
-  return DESTRUCTIVE.has(kind)
 }
 
 export async function executeGitAction(

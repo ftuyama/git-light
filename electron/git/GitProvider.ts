@@ -445,6 +445,16 @@ export class GitProvider {
     return parseCommitFiles(nameStatus.stdout, numstat.stdout)
   }
 
+  async getCompareFiles(fromSha: string, toSha: string): Promise<WireRepositorySnapshot['workingTree']> {
+    const cwd = this.requireRepo()
+    const range = `${fromSha}..${toSha}`
+    const [nameStatus, numstat] = await Promise.all([
+      gitCli.run(['diff', '--name-status', '-z', range], { cwd, allowFailure: true }),
+      gitCli.run(['diff', '--numstat', '-z', range], { cwd, allowFailure: true }),
+    ])
+    return parseCommitFiles(nameStatus.stdout, numstat.stdout)
+  }
+
   async getDiff(request: DiffRequest): Promise<DiffResult> {
     const cwd = this.requireRepo()
     const path = request.path

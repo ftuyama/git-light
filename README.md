@@ -12,18 +12,21 @@ Git Light is an Electron app that recreates GitKraken's main repository view and
 
 ## Features
 
-- **Real Git backend** — native `git` CLI in the Electron main process (renderer never shells out)
-- Commit graph with colored lanes, refs, pending-changes row, infinite scroll, and keyboard navigation
-- Branch sidebar — favorites, local/remote branches, tags, stashes, worktrees; drag-and-drop merge/rebase
-- Working tree — flat or tree file list, stage/unstage (including patch hunks), commit, conflict resolution
-- Diff viewer — unified and split views with syntax highlighting and per-hunk stage buttons
-- Interactive rebase — reorder, squash, fixup, drop, and edit commits before starting
-- Toolbar — fetch, pull, push, merge, rebase, stash, cherry-pick, undo/redo, search
-- App preferences — panel layout, graph columns, sidebar sections, commit history limit
-- Startup screen with recent repositories and open-folder dialog
-- File watcher with debounced auto-refresh on external changes
-- Resizable three-pane layout with persisted panel sizes
-- Operation banner for merge/rebase/cherry-pick/revert in progress
+| Area | Status |
+|------|--------|
+| Real Git backend (`git` CLI in main process; renderer never shells out) | ✅ |
+| Open local repos · recent repos · startup screen | ✅ |
+| Commit graph — lanes, refs, pagination, shift-compare, keyboard nav | ✅ |
+| Branch sidebar — favorites, tags, stashes, worktrees; drag-and-drop merge/rebase | ✅ |
+| Working tree — flat/tree view, stage/unstage (patch hunks), commit | ✅ |
+| Diff viewer — unified/split, syntax highlighting, per-hunk staging | ✅ |
+| Fetch / pull / push / sync | ✅ |
+| Merge / rebase / interactive rebase / cherry-pick (continue/abort banner) | ✅ |
+| Merge conflict resolution (ours/theirs/per-block) | ✅ |
+| Undo / redo (reflog-backed) · stash · search | ✅ |
+| Open on GitHub · app preferences (layout, graph, sidebar) | ✅ |
+| Resizable three-pane layout · file watcher auto-refresh | ✅ |
+| Clone / hosting auth UI | ❌ Not yet |
 
 ## Quick start
 
@@ -60,24 +63,6 @@ VITE_USE_MOCK=true npm run dev
 | `npm run build` | Production build |
 | `npm run typecheck` | TypeScript check |
 | `npm run test` | Unit tests (graph layout, parsers, rebase, conflicts, undo) |
-
-## What works today
-
-| Area | Status |
-|------|--------|
-| Open local repositories | ✅ |
-| Commit graph + pagination + pending changes row | ✅ |
-| Stage / commit / branch ops | ✅ |
-| Fetch / pull / push / sync | ✅ |
-| Merge / rebase / interactive rebase / cherry-pick (with continue/abort banner) | ✅ |
-| Diff viewer (unified + split, patch staging, syntax highlighting) | ✅ |
-| Merge conflict resolution (ours/theirs/per-block) | ✅ |
-| Branch drag-and-drop merge/rebase | ✅ |
-| Undo / redo (reflog-backed) | ✅ |
-| Open on GitHub (from remote URL) | ✅ |
-| Commit & file search | ✅ |
-| App preferences (layout, graph, sidebar) | ✅ |
-| Clone / hosting auth UI | ❌ Not yet |
 
 ## Sponsor
 

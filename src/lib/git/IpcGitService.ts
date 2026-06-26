@@ -27,7 +27,7 @@ function envelopeToResult(envelope: {
   if (envelope.error) {
     const err = envelope.error
     const detail = err.detail ? `: ${err.detail}` : ''
-    return { ok: false, message: `${err.message}${detail}` }
+    return { ok: false, message: `${err.message}${detail}`, errorCode: err.code }
   }
   return { ok: envelope.ok, message: envelope.message }
 }
@@ -145,6 +145,11 @@ export class IpcGitService implements GitService {
 
   async getCommitFiles(sha: string): Promise<RepositoryData['workingTree']> {
     const wire = await window.electron.git.commitFiles({ sha })
+    return wire.map(reviveWorkingTreeFile)
+  }
+
+  async getCompareFiles(fromSha: string, toSha: string): Promise<RepositoryData['workingTree']> {
+    const wire = await window.electron.git.compareFiles({ fromSha, toSha })
     return wire.map(reviveWorkingTreeFile)
   }
 

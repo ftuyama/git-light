@@ -47,6 +47,7 @@ export interface GitService {
   getDiff(request: DiffRequest): Promise<DiffResult>
   getConflict(request: ConflictRequest): Promise<ConflictResult>
   getCommitFiles(sha: string): Promise<RepositoryData['workingTree']>
+  getCompareFiles(fromSha: string, toSha: string): Promise<RepositoryData['workingTree']>
   search(query: SearchQuery): Promise<SearchResults>
   getRebaseCommits(request: RebaseCommitsRequest): Promise<RebaseCommitsResult>
   openTerminal(path?: string): Promise<boolean>

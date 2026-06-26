@@ -3,6 +3,7 @@ import type { RebaseCommitsRequest, RebaseCommitsResult } from './rebase'
 import type {
   ActionEnvelope,
   CommitFilesRequest,
+  CompareCommitsRequest,
   CommitPageRequest,
   CommitPageResult,
   ConflictRequest,
@@ -29,6 +30,7 @@ export const IpcChannels = {
   diff: 'git:diff',
   conflict: 'git:conflict',
   commitFiles: 'git:commit-files',
+  compareFiles: 'git:compare-files',
   search: 'git:search',
   rebaseCommits: 'git:rebase-commits',
   cancel: 'git:cancel',
@@ -52,6 +54,7 @@ export interface IpcContract {
   [IpcChannels.diff]: [DiffRequest, DiffResult]
   [IpcChannels.conflict]: [ConflictRequest, ConflictResult]
   [IpcChannels.commitFiles]: [CommitFilesRequest, WireWorkingTreeFile[]]
+  [IpcChannels.compareFiles]: [CompareCommitsRequest, WireWorkingTreeFile[]]
   [IpcChannels.search]: [SearchQuery, SearchResults]
   [IpcChannels.rebaseCommits]: [RebaseCommitsRequest, RebaseCommitsResult]
   [IpcChannels.cancel]: [void, void]

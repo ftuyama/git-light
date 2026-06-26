@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
-import type { CommitPageInfo, ConflictResult, DiffResult, OperationProgress, RecentRepository, SnapshotOptions, SnapshotScope } from '@shared/git/models'
+import type { CommitPageInfo, OperationProgress, RecentRepository, SnapshotOptions, SnapshotScope } from '@shared/git/models'
+import { credentialHintFor } from '@shared/git/credentialHints'
 import type {
   Author,
   Branch,
@@ -12,15 +13,22 @@ import type {
   WorkingTreeFile,
   Worktree,
 } from '@/types/git'
-import { computeGraphLayout, type GraphLayout } from '@/lib/graph/computeGraphLayout'
-import { remapHeadLaneToLeft } from '@/lib/graph/remapHeadLaneLeft'
 import type { SnapshotRefreshOptions } from '@/lib/git/GitService'
 import { gitService } from '@/lib/git'
 import { isDestructiveAction } from '@/lib/git/destructive'
+import { buildGraphLayout, EMPTY_LAYOUT, EMPTY_PAGE } from './repo/graphLayout'
+import {
+  describeAction,
+  isBranchSwitchAction,
+  labelForOperation,
+  scopesForAction,
+} from './repo/actionHelpers'
+import { useRepoDiffStore } from './repoDiff'
 import { usePromptStore } from './prompt'
 import { useSelectionStore } from './selection'
 import { useToastStore } from './toast'
 import { useUiStore } from './ui'
+import type { GraphLayout } from '@/lib/graph/computeGraphLayout'
 
 type AppScreen = 'startup' | 'main'
 
@@ -48,24 +56,8 @@ interface RepositoryState {
   signOff: boolean
   amend: boolean
   recentRepos: RecentRepository[]
-  selectedFilePath: string | null
-  /** Whether the selected file row is from the staged section (index diff). */
-  selectedFileStaged: boolean | null
-  commitFiles: WorkingTreeFile[]
-  commitFilesLoading: boolean
-  diff: DiffResult | null
-  diffLoading: boolean
-  conflict: ConflictResult | null
-  conflictLoading: boolean
   searchOpen: boolean
   commitAuthor: Author | null
-}
-
-const EMPTY_LAYOUT: GraphLayout = { nodes: [], bands: [], maxLanes: 1 }
-const EMPTY_PAGE: CommitPageInfo = { oldestSha: null, hasMore: false, total: null }
-
-function buildGraphLayout(commits: Commit[], headCommitIndex: number): GraphLayout {
-  return remapHeadLaneToLeft(computeGraphLayout(commits), headCommitIndex)
 }
 
 let changeUnsub: (() => void) | null = null
@@ -110,14 +102,6 @@ export const useRepositoryStore = defineStore('repository', {
     signOff: false,
     amend: false,
     recentRepos: [],
-    selectedFilePath: null,
-    selectedFileStaged: null,
-    commitFiles: [],
-    commitFilesLoading: false,
-    diff: null,
-    diffLoading: false,
-    conflict: null,
-    conflictLoading: false,
     searchOpen: false,
     commitAuthor: null,
   }),
@@ -145,11 +129,6 @@ export const useRepositoryStore = defineStore('repository', {
         if (bySha >= 0) return bySha
       }
       return state.commits.findIndex((c) => c.refs.some((r) => r.isHead))
-    },
-    selectedFileIsConflicted(state): boolean {
-      if (!state.selectedFilePath) return false
-      const file = state.workingTree.find((f) => f.path === state.selectedFilePath)
-      return file?.status === 'conflicted'
     },
     hasUnresolvedConflicts(): boolean {
       return this.conflictedFiles.length > 0
@@ -298,11 +277,7 @@ export const useRepositoryStore = defineStore('repository', {
       this.worktrees = []
       this.workingTree = []
       this.layout = EMPTY_LAYOUT
-      this.selectedFilePath = null
-      this.selectedFileStaged = null
-      this.commitFiles = []
-      this.diff = null
-      this.conflict = null
+      useRepoDiffStore().resetOnRepoClose()
       this.screen = 'startup'
       this.recentRepos = await gitService.recentRepos()
     },
@@ -334,9 +309,10 @@ export const useRepositoryStore = defineStore('repository', {
           if (scopes.includes('worktrees')) this.worktrees = data.worktrees
           if (scopes.includes('status')) this.workingTree = data.workingTree
         }
-        if (this.selectedFilePath) {
-          if (this.selectedFileIsConflicted) void this.loadConflict(this.selectedFilePath)
-          else void this.loadDiff(this.selectedFilePath)
+        const diffStore = useRepoDiffStore()
+        if (diffStore.selectedFilePath) {
+          if (diffStore.selectedFileIsConflicted) void diffStore.loadConflict(diffStore.selectedFilePath)
+          else void diffStore.loadDiff(diffStore.selectedFilePath)
         }
       } catch {
         /* no repo open */
@@ -431,7 +407,9 @@ export const useRepositoryStore = defineStore('repository', {
 
       const result = await gitService.execute(action)
 
-      toast.push(result.message, result.ok ? 'success' : 'error')
+      const hint = !result.ok && result.errorCode ? credentialHintFor(result.errorCode) : undefined
+      const toastMessage = hint ? `${result.message} — ${hint}` : result.message
+      toast.push(toastMessage, result.ok ? 'success' : 'error')
       if (result.ok) {
         this.refreshing = true
         try {
@@ -441,9 +419,7 @@ export const useRepositoryStore = defineStore('repository', {
         }
         if (switchingBranch) {
           useSelectionStore().select(this.commits[0]?.sha ?? null)
-          this.selectedFilePath = null
-          this.selectedFileStaged = null
-          this.diff = null
+          useRepoDiffStore().resetOnRepoClose()
         }
       } else if (this.inProgressOperation) {
         await this.refreshSnapshot(['status', 'branches'])
@@ -649,96 +625,14 @@ export const useRepositoryStore = defineStore('repository', {
       void this.runAction({ kind: file.staged ? 'unstage' : 'stage', target: file.path })
     },
 
-    selectFile(path: string | null, options?: { staged?: boolean }): void {
-      this.selectedFilePath = path
-      if (path == null) {
-        this.selectedFileStaged = null
-      } else if (options?.staged !== undefined) {
-        this.selectedFileStaged = options.staged
-      } else {
-        const file = this.workingTree.find((f) => f.path === path)
-        this.selectedFileStaged = file?.staged ?? false
-      }
-      this.diff = null
-      this.conflict = null
-      if (!path) return
-      if (this.workingTree.find((f) => f.path === path)?.status === 'conflicted') {
-        void this.loadConflict(path)
-      } else {
-        void this.loadDiff(path)
-      }
-    },
-
-    async loadCommitFiles(sha: string): Promise<void> {
-      this.commitFilesLoading = true
-      this.selectedFilePath = null
-      this.selectedFileStaged = null
-      this.diff = null
-      try {
-        this.commitFiles = await gitService.getCommitFiles(sha)
-      } catch (error) {
-        this.commitFiles = []
-        const detail = error instanceof Error ? error.message : String(error)
-        useToastStore().push(`Could not load commit files: ${detail}`, 'error')
-      } finally {
-        this.commitFilesLoading = false
-      }
-    },
-
-    clearCommitFiles(): void {
-      this.commitFiles = []
-      this.commitFilesLoading = false
-      this.selectedFilePath = null
-      this.selectedFileStaged = null
-      this.diff = null
-    },
-
-    async loadDiff(path: string): Promise<void> {
-      const commitSha = useSelectionStore().selectedSha
-      const viewingCommitFile =
-        Boolean(commitSha) && this.commitFiles.some((f) => f.path === path)
-      const staged =
-        this.selectedFileStaged ??
-        this.workingTree.find((f) => f.path === path && f.staged)?.staged ??
-        false
-      this.diffLoading = true
-      this.conflict = null
-      try {
-        this.diff = await gitService.getDiff(
-          viewingCommitFile
-            ? { path, source: 'commit', sha: commitSha! }
-            : {
-                path,
-                source: staged ? 'index' : 'worktree',
-              },
-        )
-      } catch {
-        this.diff = null
-      } finally {
-        this.diffLoading = false
-      }
-    },
-
-    async loadConflict(path: string): Promise<void> {
-      this.conflictLoading = true
-      this.diff = null
-      try {
-        this.conflict = await gitService.getConflict({ path })
-      } catch {
-        this.conflict = null
-      } finally {
-        this.conflictLoading = false
-      }
-    },
-
     async resolveConflictOurs(path: string): Promise<void> {
       await this.runAction({ kind: 'resolve-conflict-ours', target: path }, { skipConfirm: true })
-      await this.afterConflictAction(path)
+      await useRepoDiffStore().afterConflictAction(path)
     },
 
     async resolveConflictTheirs(path: string): Promise<void> {
       await this.runAction({ kind: 'resolve-conflict-theirs', target: path }, { skipConfirm: true })
-      await this.afterConflictAction(path)
+      await useRepoDiffStore().afterConflictAction(path)
     },
 
     async resolveConflictBlock(path: string, blockIndex: number, side: 'ours' | 'theirs'): Promise<void> {
@@ -746,24 +640,12 @@ export const useRepositoryStore = defineStore('repository', {
         { kind: 'resolve-conflict-block', target: path, meta: { blockIndex, side } },
         { skipConfirm: true },
       )
-      await this.afterConflictAction(path)
+      await useRepoDiffStore().afterConflictAction(path)
     },
 
     async markConflictResolved(path: string): Promise<void> {
       await this.runAction({ kind: 'mark-conflict-resolved', target: path }, { skipConfirm: true })
-      await this.afterConflictAction(path)
-    },
-
-    async afterConflictAction(path: string): Promise<void> {
-      const stillConflicted = this.workingTree.some(
-        (f) => f.path === path && f.status === 'conflicted',
-      )
-      if (stillConflicted) {
-        await this.loadConflict(path)
-      } else if (this.selectedFilePath === path) {
-        this.conflict = null
-        await this.loadDiff(path)
-      }
+      await useRepoDiffStore().afterConflictAction(path)
     },
 
     stageAll(): void {
@@ -772,6 +654,15 @@ export const useRepositoryStore = defineStore('repository', {
 
     unstageAll(): void {
       void this.runAction({ kind: 'unstage-all' })
+    },
+
+    async discardAllChanges(): Promise<void> {
+      if (this.workingTree.length === 0) return
+      if (this.stagedFiles.length > 0) {
+        const ok = await this.runAction({ kind: 'unstage-all' }, { skipConfirm: true })
+        if (!ok) return
+      }
+      await this.runAction({ kind: 'discard-all' })
     },
 
     async commit(options: { thenPush?: boolean; forcePush?: boolean } = {}): Promise<void> {
@@ -810,68 +701,3 @@ export const useRepositoryStore = defineStore('repository', {
     },
   },
 })
-
-function describeAction(action: GitAction): string {
-  const target = action.target ? ` "${action.target}"` : ''
-  return `Are you sure you want to run ${action.kind}${target}? This cannot be undone.`
-}
-
-function isBranchSwitchAction(kind: GitAction['kind']): boolean {
-  return kind === 'checkout' || kind === 'checkout-commit' || kind === 'checkout-tag'
-}
-
-function labelForOperation(action: GitAction): string | null {
-  switch (action.kind) {
-    case 'fetch':
-    case 'fetch-all':
-      return 'Fetching...'
-    case 'pull':
-      return 'Pulling...'
-    case 'push':
-    case 'force-push':
-      return 'Pushing...'
-    case 'sync':
-      return 'Syncing...'
-    case 'commit-and-push':
-      return 'Committing and pushing...'
-    case 'commit-and-force-push':
-      return 'Committing and force-pushing...'
-    case 'rebase':
-    case 'interactive-rebase':
-    case 'rebase-from-here':
-      return 'Rebasing...'
-    case 'merge':
-      return 'Merging...'
-    case 'checkout':
-      return `Switching to ${action.target ?? 'branch'}...`
-    case 'checkout-commit':
-      return 'Checking out commit...'
-    case 'checkout-tag':
-      return `Checking out ${action.target ?? 'tag'}...`
-    default:
-      return null
-  }
-}
-
-function scopesForAction(kind: GitAction['kind']): SnapshotScope[] | undefined {
-  if (kind.startsWith('reset') || kind.includes('rebase') || kind.includes('merge') || kind.includes('cherry')) {
-    return ['commits', 'branches', 'status']
-  }
-  if (kind.includes('branch') || kind === 'checkout' || kind === 'checkout-commit' || kind === 'checkout-tag') {
-    return ['commits', 'branches', 'status']
-  }
-  if (kind === 'commit' || kind === 'amend' || kind === 'commit-and-push' || kind === 'commit-and-force-push') {
-    return ['commits', 'status']
-  }
-  if (kind.includes('stage') || kind === 'stash' || kind.includes('discard') || kind.includes('conflict')) {
-    return ['status']
-  }
-  if (kind === 'fetch' || kind === 'pull' || kind === 'push' || kind === 'sync' || kind === 'fetch-all') {
-    return ['branches', 'commits', 'status']
-  }
-  if (kind === 'create-tag' || kind === 'delete-tag' || kind === 'tag') return ['tags', 'commits']
-  if (kind.includes('stash')) return ['stashes', 'status']
-  if (kind === 'refresh') return undefined
-  if (kind === 'undo' || kind === 'redo') return ['commits', 'branches', 'status']
-  return ['status', 'branches']
-}

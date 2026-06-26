@@ -5,10 +5,12 @@ import GkSearchInput from '@/components/ui/GkSearchInput.vue'
 import { gitService } from '@/lib/git'
 import type { SearchCommitHit } from '@shared/git/models'
 import { useRepositoryStore } from '@/stores/repository'
+import { useRepoDiffStore } from '@/stores/repoDiff'
 import { useSelectionStore } from '@/stores/selection'
 import { useUiStore } from '@/stores/ui'
 
 const repo = useRepositoryStore()
+const diffStore = useRepoDiffStore()
 const selection = useSelectionStore()
 const ui = useUiStore()
 
@@ -47,7 +49,8 @@ function selectCommit(hit: SearchCommitHit): void {
 }
 
 function selectFile(path: string): void {
-  repo.selectFile(path)
+  selection.select(null)
+  diffStore.selectFile(path)
   repo.closeSearch()
 }
 

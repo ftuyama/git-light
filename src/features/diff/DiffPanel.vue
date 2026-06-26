@@ -1,26 +1,26 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { Columns2, Loader2, Rows3 } from '@lucide/vue'
-import { useRepositoryStore } from '@/stores/repository'
+import { useRepoDiffStore } from '@/stores/repoDiff'
 import { useUiStore } from '@/stores/ui'
 import SplitDiffView from './SplitDiffView.vue'
 import UnifiedDiffView from './UnifiedDiffView.vue'
 
-const repo = useRepositoryStore()
+const diffStore = useRepoDiffStore()
 const ui = useUiStore()
 
-const diff = computed(() => repo.diff)
+const diff = computed(() => diffStore.diff)
 </script>
 
 <template>
   <section
-    v-if="repo.selectedFilePath"
+    v-if="diffStore.selectedFilePath"
     class="flex h-full min-h-0 w-full flex-1 flex-col bg-[var(--color-app)]"
   >
     <header
       class="flex h-8 shrink-0 items-center gap-2 border-b border-[var(--color-border)] px-3 text-[11px] font-semibold tracking-wide text-[var(--color-fg-muted)] uppercase"
     >
-      <span class="flex-1 truncate normal-case">{{ repo.selectedFilePath }}</span>
+      <span class="flex-1 truncate normal-case">{{ diffStore.selectedFilePath }}</span>
       <span v-if="diff" class="font-mono text-[10px] normal-case">
         +{{ diff.additions }} −{{ diff.deletions }}
       </span>
@@ -54,13 +54,13 @@ const diff = computed(() => repo.diff)
       <button
         type="button"
         class="focus-ring rounded px-1.5 py-0.5 text-[10px] normal-case text-[var(--color-fg-subtle)] hover:bg-[var(--color-hover)]"
-        @click="repo.selectFile(null)"
+        @click="diffStore.selectFile(null)"
       >
         Close
       </button>
     </header>
 
-    <div v-if="repo.diffLoading" class="flex flex-1 items-center justify-center text-xs text-[var(--color-fg-subtle)]">
+    <div v-if="diffStore.diffLoading" class="flex flex-1 items-center justify-center text-xs text-[var(--color-fg-subtle)]">
       <Loader2 :size="16" class="mr-2 animate-spin" /> Loading diff…
     </div>
 

@@ -18,7 +18,7 @@ const search = ref<InstanceType<typeof GkSearchInput>>()
 
 const sidebarData = useBranchSidebarData(query)
 provide('branchSidebarData', sidebarData)
-const { normalizedQuery, filteredLocal, remoteBranches } = sidebarData
+const { normalizedQuery, filteredLocal, remoteBranches, hasLocalMatches } = sidebarData
 
 defineExpose({
   focusSearch: () => search.value?.focus(),
@@ -90,7 +90,14 @@ async function confirmIntegrate(mode: 'merge' | 'rebase'): Promise<void> {
       />
     </div>
 
-    <div class="min-h-0 flex-1 overflow-y-auto py-1">
+    <div
+      v-if="normalizedQuery && !hasLocalMatches"
+      class="px-4 py-6 text-center text-xs text-[var(--color-fg-subtle)]"
+    >
+      No branches match &ldquo;{{ query.trim() }}&rdquo;
+    </div>
+
+    <div v-else class="min-h-0 flex-1 overflow-y-auto py-1">
       <SidebarSection
         v-for="sectionKey in openSectionKeys"
         :key="sectionKey"

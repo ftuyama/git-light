@@ -9,6 +9,7 @@ import type { FileListView } from '@/lib/preferences'
 import { STATUS_META } from './fileStatus'
 import type { WorkingTreeFile } from '@/types/git'
 import { useRepositoryStore } from '@/stores/repository'
+import { useRepoDiffStore } from '@/stores/repoDiff'
 import { useToastStore } from '@/stores/toast'
 
 const props = withDefaults(
@@ -16,11 +17,12 @@ const props = withDefaults(
   { view: 'path' },
 )
 const repo = useRepositoryStore()
+const diffStore = useRepoDiffStore()
 const toast = useToastStore()
 
 const meta = computed(() => STATUS_META[props.file.status])
 const selected = computed(
-  () => repo.selectedFilePath === props.file.path && repo.selectedFileStaged === props.file.staged,
+  () => diffStore.selectedFilePath === props.file.path && diffStore.selectedFileStaged === props.file.staged,
 )
 
 const menu = computed<MenuItem[]>(() => {
@@ -28,7 +30,7 @@ const menu = computed<MenuItem[]>(() => {
     return [
       { label: 'Reveal in Finder', icon: FolderOpen, onSelect: reveal },
       { label: 'Copy Path', icon: Copy, onSelect: copyPath },
-      { label: 'View Diff', icon: ExternalLink, onSelect: () => repo.selectFile(props.file.path, { staged: props.file.staged }) },
+      { label: 'View Diff', icon: ExternalLink, onSelect: () => diffStore.selectFile(props.file.path, { staged: props.file.staged }) },
     ]
   }
   if (props.file.status === 'conflicted') {
@@ -53,7 +55,7 @@ const menu = computed<MenuItem[]>(() => {
       {
         label: 'Resolve Conflict',
         icon: ExternalLink,
-        onSelect: () => repo.selectFile(props.file.path, { staged: props.file.staged }),
+        onSelect: () => diffStore.selectFile(props.file.path, { staged: props.file.staged }),
       },
     ]
   }
@@ -74,7 +76,7 @@ const menu = computed<MenuItem[]>(() => {
     {
       label: 'View Diff',
       icon: ExternalLink,
-      onSelect: () => repo.selectFile(props.file.path, { staged: props.file.staged }),
+      onSelect: () => diffStore.selectFile(props.file.path, { staged: props.file.staged }),
     },
   ]
 })
@@ -98,7 +100,7 @@ function copyPath(): void {
     <div
       class="group/file flex h-7 cursor-pointer items-center gap-2 rounded-md px-2 transition-colors hover:bg-[var(--color-hover)]"
       :class="cn(selected && 'bg-[var(--color-accent-soft)]')"
-      @click="repo.selectFile(file.path, { staged: file.staged })"
+      @click="diffStore.selectFile(file.path, { staged: file.staged })"
     >
       <Checkbox
         v-if="!readonly && file.status !== 'conflicted'"

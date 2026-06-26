@@ -158,6 +158,17 @@ export class MockGitService implements GitService {
     }))
   }
 
+  async getCompareFiles(fromSha: string, toSha: string): Promise<RepositoryData['workingTree']> {
+    const data = await this.load()
+    void fromSha
+    void toSha
+    return data.workingTree.slice(0, 4).map((file, index) => ({
+      ...file,
+      id: `compare-${index}`,
+      staged: false,
+    }))
+  }
+
   async search(query: SearchQuery): Promise<SearchResults> {
     const data = await this.load()
     const needle = query.text.toLowerCase()

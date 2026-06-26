@@ -1,18 +1,47 @@
 import { defineStore } from 'pinia'
+import { normalizeCompareRange, type CompareRange } from '@/lib/graph/compareRange'
 import { useRepositoryStore } from './repository'
+
+export type { CompareRange }
 
 export const useSelectionStore = defineStore('selection', {
   state: () => ({
     selectedSha: null as string | null,
     hoveredSha: null as string | null,
+    compareRange: null as CompareRange | null,
   }),
+
+  getters: {
+    isCompareMode(): boolean {
+      return this.compareRange != null
+    },
+  },
+
   actions: {
     select(sha: string | null): void {
       this.selectedSha = sha
+      this.compareRange = null
     },
+
     hover(sha: string | null): void {
       this.hoveredSha = sha
     },
+
+    /** Shift+click: compare selected commit with another (GitKraken-style). */
+    selectWithShift(sha: string): void {
+      const repo = useRepositoryStore()
+      if (!this.selectedSha || this.selectedSha === sha) {
+        this.select(sha)
+        return
+      }
+      this.compareRange = normalizeCompareRange(this.selectedSha, sha, repo.commits)
+      this.selectedSha = sha
+    },
+
+    clearCompare(): void {
+      this.compareRange = null
+    },
+
     moveBy(delta: number): void {
       const repo = useRepositoryStore()
       const commits = repo.commits
@@ -21,13 +50,14 @@ export const useSelectionStore = defineStore('selection', {
         ? commits.findIndex((c) => c.sha === this.selectedSha)
         : -1
       const next = Math.min(commits.length - 1, Math.max(0, current + delta))
-      this.selectedSha = commits[next].sha
+      this.select(commits[next].sha)
     },
+
     selectIndex(index: number): void {
       const repo = useRepositoryStore()
       const commits = repo.commits
       if (index < 0 || index >= commits.length) return
-      this.selectedSha = commits[index].sha
+      this.select(commits[index].sha)
     },
   },
 })

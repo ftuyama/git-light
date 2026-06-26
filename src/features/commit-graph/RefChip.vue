@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, onUnmounted, ref, useTemplateRef } from 'vue'
-import { Check } from '@lucide/vue'
+import { Check, Cloud, Monitor } from '@lucide/vue'
 import { formatRefLabel } from '@shared/git/refLabel'
 import type { Ref } from '@/types/git'
 
@@ -13,6 +13,8 @@ const label = computed(() =>
 )
 
 const isCurrent = computed(() => props.refData.isHead === true)
+const isLocalBranch = computed(() => props.refData.type === 'localBranch')
+const isRemoteBranch = computed(() => props.refData.type === 'remoteBranch')
 
 const resolvedColor = computed((): string => {
   if (isCurrent.value) return 'var(--color-accent)'
@@ -20,10 +22,13 @@ const resolvedColor = computed((): string => {
 })
 
 const chipStyle = computed(() => {
-  const mix = isCurrent.value ? 32 : 22
-  const borderMix = isCurrent.value ? 65 : 50
+  const mix = isCurrent.value ? 44 : 38
+  const borderMix = isCurrent.value ? 78 : 72
+  const textColor = isCurrent.value
+    ? 'var(--color-fg)'
+    : `color-mix(in srgb, ${resolvedColor.value} 50%, var(--color-fg))`
   return {
-    color: resolvedColor.value,
+    color: textColor,
     backgroundColor: `color-mix(in srgb, ${resolvedColor.value} ${mix}%, var(--color-panel-raised))`,
     border: `1px solid color-mix(in srgb, ${resolvedColor.value} ${borderMix}%, var(--color-border-strong))`,
   }
@@ -98,10 +103,12 @@ onUnmounted(() => {
       <span
         ref="labelRef"
         class="min-w-0 truncate"
-        :class="isCurrent ? 'font-semibold text-[var(--color-fg)]' : ''"
+        :class="isCurrent ? 'font-semibold' : 'font-medium'"
       >
         {{ label }}
       </span>
+      <Cloud v-if="isRemoteBranch" :size="10" class="shrink-0 opacity-90" />
+      <Monitor v-else-if="isLocalBranch" :size="10" class="shrink-0 opacity-90" />
     </span>
   </span>
 
@@ -119,7 +126,9 @@ onUnmounted(() => {
       @mouseleave="scheduleCollapse"
     >
       <Check v-if="isCurrent" :size="10" class="shrink-0" />
-      <span :class="isCurrent ? 'font-semibold text-[var(--color-fg)]' : ''">{{ label }}</span>
+      <span :class="isCurrent ? 'font-semibold' : 'font-medium'">{{ label }}</span>
+      <Cloud v-if="isRemoteBranch" :size="10" class="shrink-0 opacity-90" />
+      <Monitor v-else-if="isLocalBranch" :size="10" class="shrink-0 opacity-90" />
     </span>
   </Teleport>
 </template>
