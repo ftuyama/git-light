@@ -1,29 +1,34 @@
 import { join } from 'node:path'
-import { app, BrowserWindow, ipcMain, Menu, shell } from 'electron'
+import { app, BrowserWindow, ipcMain, Menu, nativeImage, shell } from 'electron'
 import Store from 'electron-store'
 import { AppIpcChannels } from '@shared/app/ipc'
 import {
   APP_AUTHOR,
-  APP_DESCRIPTION,
   APP_HOMEPAGE,
+  APP_MAKER,
   APP_NAME,
   APP_VERSION,
 } from '@shared/app/metadata'
+import { formatAboutCredits } from '@shared/app/credits'
 import { registerGitIpc } from './git/registerIpc'
 import { buildApplicationMenu } from './menu'
 import { checkForUpdates } from './updateCheck'
 
-if (process.platform === 'darwin') {
-  app.setName(APP_NAME)
-  app.setAboutPanelOptions({
-    applicationName: APP_NAME,
-    applicationVersion: APP_VERSION,
-    version: APP_VERSION,
-    copyright: `Copyright © ${new Date().getFullYear()} ${APP_AUTHOR}`,
-    website: APP_HOMEPAGE,
-    credits: APP_DESCRIPTION,
-  })
+app.setName(APP_NAME)
+
+if (!app.isPackaged) {
+  app.setPath('userData', join(app.getPath('appData'), APP_NAME))
 }
+
+app.setAboutPanelOptions({
+  applicationName: APP_NAME,
+  applicationVersion: APP_VERSION,
+  version: APP_VERSION,
+  copyright: `Copyright © ${new Date().getFullYear()} ${APP_AUTHOR}`,
+  website: APP_HOMEPAGE,
+  authors: [APP_MAKER],
+  credits: formatAboutCredits(),
+})
 
 const store = new Store({ name: 'git-light-ui' })
 let mainWindow: BrowserWindow | null = null
@@ -35,6 +40,7 @@ function createWindow(): BrowserWindow {
     minWidth: 1024,
     minHeight: 640,
     show: false,
+    title: APP_NAME,
     backgroundColor: '#12151a',
     titleBarStyle: process.platform === 'darwin' ? 'hiddenInset' : 'default',
     trafficLightPosition: { x: 16, y: 16 },
@@ -83,6 +89,11 @@ ipcMain.handle(AppIpcChannels.openExternal, (_event, { url }: { url: string }) =
 })
 
 app.whenReady().then(() => {
+  if (process.platform === 'darwin' && !app.isPackaged && app.dock) {
+    const icon = nativeImage.createFromPath(join(__dirname, '../../build/icon.png'))
+    if (!icon.isEmpty()) app.dock.setIcon(icon)
+  }
+
   Menu.setApplicationMenu(buildApplicationMenu())
   registerGitIpc(() => mainWindow, store)
   createWindow()

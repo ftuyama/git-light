@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { onUnmounted, ref, watch } from 'vue'
-import { GitCommitHorizontal, LayoutPanelLeft, PanelLeft, Rows3, X } from '@lucide/vue'
+import { GitCommitHorizontal, Heart, LayoutPanelLeft, PanelLeft, Rows3, X } from '@lucide/vue'
 import { storeToRefs } from 'pinia'
 import Button from '@/components/ui/Button.vue'
+import SettingsCreditsPanel from './SettingsCreditsPanel.vue'
 import SettingsRow from './SettingsRow.vue'
 import {
   COLUMN_LABELS,
@@ -21,18 +22,23 @@ const repo = useRepositoryStore()
 const { leftCollapsed, rightCollapsed, settingsOpen, graphScopeAll, commitGraphLimit, fileListView } =
   storeToRefs(ui)
 
-type SettingsCategory = 'layout' | 'changes' | 'commit-graph' | 'sidebar'
+type SettingsCategory = 'layout' | 'changes' | 'commit-graph' | 'sidebar' | 'credits'
 
 const activeCategory = ref<SettingsCategory>('layout')
 
 const columnKeys = Object.keys(COLUMN_LABELS) as CommitColumnKey[]
 
-const categories: { id: SettingsCategory; label: string; icon: typeof LayoutPanelLeft }[] = [
-  { id: 'layout', label: 'Layout', icon: LayoutPanelLeft },
-  { id: 'changes', label: 'Changes', icon: Rows3 },
-  { id: 'commit-graph', label: 'Commit Graph', icon: GitCommitHorizontal },
-  { id: 'sidebar', label: 'Sidebar', icon: PanelLeft },
-]
+const preferenceCategories: { id: SettingsCategory; label: string; icon: typeof LayoutPanelLeft }[] =
+  [
+    { id: 'layout', label: 'Layout', icon: LayoutPanelLeft },
+    { id: 'changes', label: 'Changes', icon: Rows3 },
+    { id: 'commit-graph', label: 'Commit Graph', icon: GitCommitHorizontal },
+    { id: 'sidebar', label: 'Sidebar', icon: PanelLeft },
+  ]
+
+const creditsCategory = { id: 'credits' as const, label: 'Credits', icon: Heart }
+
+const categories = [...preferenceCategories, creditsCategory]
 
 const columnDescriptions: Record<CommitColumnKey, string> = {
   author: 'Show the commit author avatar and name in each row.',
@@ -98,7 +104,7 @@ onUnmounted(() => document.removeEventListener('keydown', onKeydown))
             Preferences
           </p>
           <button
-            v-for="category in categories"
+            v-for="category in preferenceCategories"
             :key="category.id"
             class="focus-ring mx-2 flex items-center gap-2.5 rounded-md px-2.5 py-2 text-left text-[13px] transition-colors"
             :class="
@@ -110,6 +116,19 @@ onUnmounted(() => document.removeEventListener('keydown', onKeydown))
           >
             <component :is="category.icon" :size="15" class="shrink-0" />
             {{ category.label }}
+          </button>
+          <div class="my-3 border-t border-[var(--color-border)]" />
+          <button
+            class="focus-ring mx-2 flex items-center gap-2.5 rounded-md px-2.5 py-2 text-left text-[13px] transition-colors"
+            :class="
+              activeCategory === creditsCategory.id
+                ? 'bg-[var(--color-accent-soft)] font-medium text-[var(--color-accent)]'
+                : 'text-[var(--color-fg-muted)] hover:bg-[var(--color-hover)] hover:text-[var(--color-fg)]'
+            "
+            @click="activeCategory = creditsCategory.id"
+          >
+            <component :is="creditsCategory.icon" :size="15" class="shrink-0" />
+            {{ creditsCategory.label }}
           </button>
         </nav>
 
@@ -267,6 +286,10 @@ onUnmounted(() => document.removeEventListener('keydown', onKeydown))
                   @update:model-value="ui.setSectionOpen(key, $event)"
                 />
               </section>
+            </template>
+
+            <template v-else-if="activeCategory === 'credits'">
+              <SettingsCreditsPanel />
             </template>
           </div>
         </div>

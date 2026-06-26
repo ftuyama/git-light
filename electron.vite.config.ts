@@ -36,6 +36,8 @@ export default defineConfig({
     },
     plugins: [vue(), tailwindcss()],
     build: {
+      minify: true,
+      sourcemap: false,
       rollupOptions: {
         input: resolve(__dirname, 'index.html'),
       },

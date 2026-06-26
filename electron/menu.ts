@@ -1,12 +1,21 @@
-import { Menu, shell, type MenuItemConstructorOptions } from 'electron'
+import { app, Menu, shell, type MenuItemConstructorOptions } from 'electron'
 import { APP_HOMEPAGE, APP_NAME, APP_REPOSITORY } from '@shared/app/metadata'
 import { checkForUpdates } from './updateCheck'
+
+function aboutMenuItem(): MenuItemConstructorOptions {
+  return {
+    label: `About ${APP_NAME}`,
+    click: () => {
+      app.showAboutPanel()
+    },
+  }
+}
 
 function darwinAppMenu(): MenuItemConstructorOptions {
   return {
     label: APP_NAME,
     submenu: [
-      { label: `About ${APP_NAME}`, role: 'about' },
+      aboutMenuItem(),
       {
         label: 'Check for Updates…',
         click: () => {
@@ -34,6 +43,8 @@ export function buildApplicationMenu(): Menu {
     {
       role: 'help',
       submenu: [
+        aboutMenuItem(),
+        { type: 'separator' },
         {
           label: `${APP_NAME} Website`,
           click: () => {

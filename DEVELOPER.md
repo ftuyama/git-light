@@ -36,6 +36,7 @@ VITE_USE_MOCK=true npm run dev
 | `npm run preview` | Preview production build |
 | `npm run dist` | Build installer for current platform |
 | `npm run dist:mac` | Build a macOS `.dmg` installer (requires macOS) |
+| `npm run dist:analyze` | Print DMG / `.app` / ASAR size breakdown (run after `dist:mac`) |
 | `npm run typecheck` | TypeScript check |
 | `npm run test` | Unit tests (graph layout, parsers, rebase, conflicts, undo) |
 | `npm run test:watch` | Run tests in watch mode |
@@ -92,7 +93,13 @@ Use [semver](https://semver.org/):
 | Minor | `0.1.2` → `0.2.0` |
 | Major | `0.1.2` → `1.0.0` |
 
-If `docs/index.html` shows a version badge or footer version, update it to match.
+Then sync the landing page version markers:
+
+```bash
+npm run sync-version
+```
+
+The app reads `package.json` at build time (`shared/app/metadata.ts`); only `docs/index.html` needs this extra step.
 
 Confirm the tag does not already exist:
 
@@ -143,9 +150,10 @@ To test packaging before pushing a tag (requires macOS):
 
 ```bash
 npm run dist:mac
+npm run dist:analyze
 ```
 
-Output lands in `dist/` (e.g. `dist/Git Light-0.1.3-arm64.dmg`). Builds are unsigned for now; code signing can be added later via `build.mac` in `package.json`.
+Output lands in `dist/` (e.g. `dist/Git Light-0.1.3-arm64.dmg`). `dist:analyze` reports DMG size, installed `.app` size, ASAR contents, locale count, and renderer asset sizes. Builds are unsigned for now; code signing can be added later via `build.mac` in `package.json`.
 
 ### Cursor release command
 

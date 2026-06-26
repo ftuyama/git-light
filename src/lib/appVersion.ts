@@ -1,3 +1,1 @@
-import packageJson from '../../package.json'
-
-export const appVersion = packageJson.version
+export { APP_VERSION as appVersion } from '@shared/app/metadata'

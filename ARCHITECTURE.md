@@ -36,6 +36,7 @@ Git Light is an Electron desktop app with a Vue 3 renderer. The UI depends on a 
 | Module | Purpose |
 |--------|---------|
 | `metadata.ts` | App name, version, homepage, repository URL (from `package.json`) |
+| `credits.ts` | App links, third-party attribution list, `formatAboutCredits()` for native About panel |
 | `ipc.ts` | Non-git IPC channels (electron-store, open external, window focus/blur) |
 
 ### Git layer (`shared/git/`)
@@ -77,8 +78,8 @@ Git Light is an Electron desktop app with a Vue 3 renderer. The UI depends on a 
 
 | File | Role |
 |------|------|
-| `main.ts` | Window lifecycle, app menu, startup update check (packaged builds) |
-| `menu.ts` | macOS application menu (About, Check for Updates, Help links) |
+| `main.ts` | Window lifecycle, About panel options, app menu, startup update check (packaged builds) |
+| `menu.ts` | Application menu (About, Check for Updates, Help links) |
 | `updateCheck.ts` | Compares semver against GitHub Releases; prompts to download |
 | `preload.ts` | Exposes typed `window.electron` bridge |
 
@@ -137,7 +138,7 @@ App.vue
     ├── PromptHost       confirm / prompt dialogs
     ├── SearchOverlay    commit + file search
     ├── InteractiveRebaseDialog
-    └── AppSettingsDialog  layout, graph, sidebar preferences
+    └── AppSettingsDialog  layout, graph, sidebar preferences, credits panel
 ```
 
 ## Data flow
@@ -158,6 +159,7 @@ App.vue
 
 ## Testing
 
+- `shared/app/credits.test.ts` — About panel credits text and link lists
 - `electron/updateCheck.test.ts` — semver comparison for update checks
 - `electron/git/ActionRouter.test.ts` — action → git argv routing
 - `electron/git/ReflogJournal.test.ts` — undo/redo journal

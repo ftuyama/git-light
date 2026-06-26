@@ -1,6 +1,6 @@
 {
   "name": "git-light",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "description": "GitKraken-style Git client UI shell built with Electron, Vue 3, and TypeScript.",
   "author": "Git Light",
   "license": "MIT",
@@ -14,20 +14,30 @@
     "vite": "^7.3.6"
   },
   "scripts": {
-    "dev": "electron-vite dev",
+    "dev": "node scripts/brand-electron.mjs && electron-vite dev",
+    "postinstall": "node scripts/brand-electron.mjs",
     "build": "electron-vite build",
     "preview": "electron-vite preview",
     "typecheck": "vue-tsc --noEmit -p tsconfig.json --composite false",
+    "sync-version": "node scripts/sync-version.mjs",
     "test": "vitest run",
     "test:watch": "vitest",
     "dist": "npm run build && electron-builder --publish never",
-    "dist:mac": "npm run build && electron-builder --mac dmg --publish never"
+    "dist:mac": "npm run build && electron-builder --mac dmg --publish never",
+    "dist:analyze": "node scripts/dist-analyze.mjs"
   },
   "build": {
     "appId": "com.gitlight.app",
     "productName": "Git Light",
+    "asar": true,
+    "electronLanguages": [
+      "en"
+    ],
     "files": [
-      "out/**/*"
+      "out/**/*",
+      "!**/*.map",
+      "!**/{README,README.md,CHANGELOG,CHANGELOG.md,LICENSE,LICENSE.md}",
+      "!**/{test,tests,__tests__,docs,example,examples}/**/*"
     ],
     "directories": {
       "output": "dist"
@@ -41,33 +51,33 @@
     }
   },
   "devDependencies": {
-    "@tailwindcss/vite": "^4.3.1",
-    "@types/node": "^26.0.1",
-    "@vitejs/plugin-vue": "^6.0.7",
-    "electron": "^41.7.1",
-    "electron-builder": "^26.15.3",
-    "electron-vite": "^5.0.0",
-    "tailwindcss": "^4.3.1",
-    "typescript": "^6.0.3",
-    "vite": "^7.3.6",
-    "vitest": "^4.1.9",
-    "vue-tsc": "^3.3.5"
-  },
-  "dependencies": {
     "@faker-js/faker": "^10.5.0",
     "@lucide/vue": "^1.21.0",
+    "@tailwindcss/vite": "^4.3.1",
     "@tanstack/vue-virtual": "^3.13.29",
+    "@types/node": "^26.0.1",
+    "@vitejs/plugin-vue": "^6.0.7",
     "@vueuse/core": "^14.2.1",
     "chokidar": "^5.0.0",
     "clsx": "^2.1.1",
     "date-fns": "^4.4.0",
-    "electron-store": "^8.2.0",
+    "electron": "^41.7.1",
+    "electron-builder": "^26.15.3",
+    "electron-vite": "^5.0.0",
     "highlight.js": "^11.11.1",
     "motion-v": "^2.3.0",
     "pinia": "^3.0.4",
     "reka-ui": "^2.10.0",
     "splitpanes": "^4.1.2",
     "tailwind-merge": "^3.6.0",
-    "vue": "^3.5.39"
+    "tailwindcss": "^4.3.1",
+    "typescript": "^6.0.3",
+    "vite": "^7.3.6",
+    "vitest": "^4.1.9",
+    "vue": "^3.5.39",
+    "vue-tsc": "^3.3.5"
+  },
+  "dependencies": {
+    "electron-store": "^8.2.0"
   }
 }
