@@ -1,10 +1,16 @@
 import { defineStore } from 'pinia'
+import type { GraphScope } from '@shared/git/models'
 import {
+  clampCommitGraphLimit,
+  clampColumnWidth,
   DEFAULT_COLUMNS,
+  DEFAULT_COLUMN_WIDTHS,
   DEFAULT_SECTIONS,
+  defaultPreferences,
   mergePreferences,
   PREFERENCES_KEY,
   type CommitColumnKey,
+  type CommitColumnWidthKey,
   type UserPreferences,
 } from '@/lib/preferences'
 
@@ -47,6 +53,9 @@ function snapshot(state: {
   rightCollapsed: boolean
   sections: Record<string, boolean>
   columns: UserPreferences['columns']
+  columnWidths: UserPreferences['columnWidths']
+  graphScopeAll: boolean
+  commitGraphLimit: number
   lastRepositoryPath: string | null
 }): UserPreferences {
   return {
@@ -56,6 +65,9 @@ function snapshot(state: {
     rightCollapsed: state.rightCollapsed,
     sections: state.sections,
     columns: state.columns,
+    columnWidths: state.columnWidths,
+    graphScopeAll: state.graphScopeAll,
+    commitGraphLimit: state.commitGraphLimit,
     lastRepositoryPath: state.lastRepositoryPath,
   }
 }
@@ -68,9 +80,21 @@ export const useUiStore = defineStore('ui', {
     rightCollapsed: false,
     sections: { ...DEFAULT_SECTIONS },
     columns: { ...DEFAULT_COLUMNS },
+    columnWidths: { ...DEFAULT_COLUMN_WIDTHS },
+    graphScopeAll: true,
+    commitGraphLimit: defaultPreferences().commitGraphLimit,
     lastRepositoryPath: null as string | null,
     commandPaletteOpen: false,
+    settingsOpen: false,
   }),
+  getters: {
+    graphScope(state): GraphScope {
+      return state.graphScopeAll ? 'all' : 'head'
+    },
+    clampedCommitGraphLimit(state): number {
+      return clampCommitGraphLimit(state.commitGraphLimit)
+    },
+  },
   actions: {
     async hydrate(): Promise<void> {
       const saved = mergePreferences(await readPersisted())
@@ -80,6 +104,9 @@ export const useUiStore = defineStore('ui', {
       this.rightCollapsed = saved.rightCollapsed
       this.sections = saved.sections
       this.columns = saved.columns
+      this.columnWidths = saved.columnWidths
+      this.graphScopeAll = saved.graphScopeAll
+      this.commitGraphLimit = saved.commitGraphLimit
       this.lastRepositoryPath = saved.lastRepositoryPath
       let timer: ReturnType<typeof setTimeout> | undefined
       this.$subscribe(() => {
@@ -93,6 +120,9 @@ export const useUiStore = defineStore('ui', {
               rightCollapsed: this.rightCollapsed,
               sections: this.sections,
               columns: this.columns,
+              columnWidths: this.columnWidths,
+              graphScopeAll: this.graphScopeAll,
+              commitGraphLimit: this.clampedCommitGraphLimit,
               lastRepositoryPath: this.lastRepositoryPath,
             }),
           )
@@ -123,8 +153,42 @@ export const useUiStore = defineStore('ui', {
     toggleColumn(key: CommitColumnKey): void {
       this.columns[key] = !this.isColumnVisible(key)
     },
+    setColumnVisible(key: CommitColumnKey, visible: boolean): void {
+      this.columns[key] = visible
+    },
+    setColumnWidth(key: CommitColumnWidthKey, width: number): void {
+      this.columnWidths[key] = clampColumnWidth(key, width)
+    },
+    setSectionOpen(key: string, open: boolean): void {
+      this.sections[key] = open
+    },
+    setLeftVisible(visible: boolean): void {
+      this.leftCollapsed = !visible
+    },
+    setRightVisible(visible: boolean): void {
+      this.rightCollapsed = !visible
+    },
+    setGraphScopeAll(value: boolean): void {
+      this.graphScopeAll = value
+    },
+    setCommitGraphLimit(value: number): void {
+      this.commitGraphLimit = clampCommitGraphLimit(value)
+    },
+    openSettings(): void {
+      this.settingsOpen = true
+    },
+    closeSettings(): void {
+      this.settingsOpen = false
+    },
     setLastRepositoryPath(path: string | null): void {
       this.lastRepositoryPath = path
+    },
+    resetLayout(): void {
+      const d = defaultPreferences()
+      this.leftSize = d.leftSize
+      this.rightSize = d.rightSize
+      this.leftCollapsed = d.leftCollapsed
+      this.rightCollapsed = d.rightCollapsed
     },
   },
 })

@@ -16,10 +16,12 @@ Git Light is an Electron app that recreates GitKraken's main repository view and
 - Commit graph with colored lanes, refs, infinite scroll, and keyboard navigation
 - Branch sidebar — favorites, local/remote branches, tags, stashes, worktrees
 - Working tree — stage/unstage, commit, conflict section, unified diff panel
-- Toolbar — fetch, pull, push, merge, rebase, stash, cherry-pick, search
+- Toolbar — fetch, pull, push, merge, rebase, stash, cherry-pick, undo/redo, search
+- App preferences — panel layout, graph columns, sidebar sections, commit history limit
 - Startup screen with recent repositories and open-folder dialog
 - File watcher with debounced auto-refresh on external changes
 - Resizable three-pane layout with persisted panel sizes
+- Operation banner for merge/rebase/cherry-pick/revert in progress
 
 ## Quick start
 
@@ -55,7 +57,7 @@ VITE_USE_MOCK=true npm run dev
 | `npm run dev` | Start Electron + Vite dev server |
 | `npm run build` | Production build |
 | `npm run typecheck` | TypeScript check |
-| `npm run test` | Unit tests (graph layout, parsers) |
+| `npm run test` | Unit tests (graph layout, parsers, ref labels) |
 
 ## What works today
 
@@ -68,7 +70,14 @@ VITE_USE_MOCK=true npm run dev
 | Merge / rebase / cherry-pick (with continue/abort banner) | ✅ |
 | Diff viewer (unified) | ✅ |
 | Commit & file search | ✅ |
+| App preferences (layout, graph, sidebar) | ✅ |
 | Clone / hosting auth UI | ❌ Not yet |
+
+## Sponsor
+
+If Git Light is useful to you, consider supporting ongoing development:
+
+**[Sponsor on Ko-fi](https://ko-fi.com/lelouchiee)**
 
 ## For developers
 

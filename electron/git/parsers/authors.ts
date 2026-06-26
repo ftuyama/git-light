@@ -1,3 +1,4 @@
+import { gravatarUrl, initialsFor } from '@shared/git/avatar'
 import type { WireAuthor } from '@shared/git/models'
 
 const AVATAR_COLORS = [
@@ -20,13 +21,6 @@ function hashString(value: string): number {
   return Math.abs(hash)
 }
 
-function initialsFor(name: string): string {
-  const parts = name.trim().split(/\s+/).filter(Boolean)
-  if (parts.length === 0) return '?'
-  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase()
-  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase()
-}
-
 /**
  * Deduplicates authors by email and assigns each a stable avatar color so the
  * same person always renders identically across the UI.
@@ -42,7 +36,7 @@ export class AuthorRegistry {
     const author: WireAuthor = {
       name: name || email,
       email,
-      avatarUrl: '',
+      avatarUrl: gravatarUrl(email),
       initials: initialsFor(name || email),
       color: AVATAR_COLORS[hashString(key) % AVATAR_COLORS.length],
     }

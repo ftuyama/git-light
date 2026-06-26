@@ -22,6 +22,8 @@ const git = {
     invoke(IpcChannels.commitPage, req),
   action: (req: IpcContract[typeof IpcChannels.action][0]) => invoke(IpcChannels.action, req),
   diff: (req: IpcContract[typeof IpcChannels.diff][0]) => invoke(IpcChannels.diff, req),
+  commitFiles: (req: IpcContract[typeof IpcChannels.commitFiles][0]) =>
+    invoke(IpcChannels.commitFiles, req),
   search: (req: IpcContract[typeof IpcChannels.search][0]) => invoke(IpcChannels.search, req),
   cancel: () => invoke(IpcChannels.cancel),
   openTerminal: (req: IpcContract[typeof IpcChannels.openTerminal][0]) =>

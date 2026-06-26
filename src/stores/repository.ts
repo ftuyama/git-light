@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import type { CommitPageInfo, DiffResult, OperationProgress, RecentRepository, SnapshotScope } from '@shared/git/models'
+import type { CommitPageInfo, DiffResult, OperationProgress, RecentRepository, SnapshotOptions, SnapshotScope } from '@shared/git/models'
 import type {
   Branch,
   Commit,
@@ -12,9 +12,11 @@ import type {
   Worktree,
 } from '@/types/git'
 import { computeGraphLayout, type GraphLayout } from '@/lib/graph/computeGraphLayout'
+import type { SnapshotRefreshOptions } from '@/lib/git/GitService'
 import { gitService } from '@/lib/git'
 import { isDestructiveAction } from '@/lib/git/destructive'
 import { usePromptStore } from './prompt'
+import { useSelectionStore } from './selection'
 import { useToastStore } from './toast'
 import { useUiStore } from './ui'
 
@@ -23,6 +25,8 @@ type AppScreen = 'startup' | 'main'
 interface RepositoryState {
   screen: AppScreen
   loading: boolean
+  refreshing: boolean
+  branchSwitching: boolean
   repository: Repository | null
   commits: Commit[]
   commitPage: CommitPageInfo
@@ -42,6 +46,8 @@ interface RepositoryState {
   signOff: boolean
   recentRepos: RecentRepository[]
   selectedFilePath: string | null
+  commitFiles: WorkingTreeFile[]
+  commitFilesLoading: boolean
   diff: DiffResult | null
   diffLoading: boolean
   searchOpen: boolean
@@ -56,10 +62,23 @@ let refreshTimer: ReturnType<typeof setTimeout> | null = null
 let pendingRefreshScopes: SnapshotScope[] | undefined
 let pendingFullRefresh = false
 
+function graphSnapshotOptions(
+  extra?: Pick<SnapshotOptions, 'invalidateCommits'>,
+): SnapshotRefreshOptions {
+  const ui = useUiStore()
+  return {
+    graphScope: ui.graphScope,
+    commitLimit: ui.clampedCommitGraphLimit,
+    ...extra,
+  }
+}
+
 export const useRepositoryStore = defineStore('repository', {
   state: (): RepositoryState => ({
     screen: 'startup',
     loading: false,
+    refreshing: false,
+    branchSwitching: false,
     repository: null,
     commits: [],
     commitPage: { ...EMPTY_PAGE },
@@ -79,6 +98,8 @@ export const useRepositoryStore = defineStore('repository', {
     signOff: false,
     recentRepos: [],
     selectedFilePath: null,
+    commitFiles: [],
+    commitFilesLoading: false,
     diff: null,
     diffLoading: false,
     searchOpen: false,
@@ -145,6 +166,8 @@ export const useRepositoryStore = defineStore('repository', {
       this.operation = null
       this.operationPhase = null
       this.busyAction = null
+      this.branchSwitching = false
+      this.refreshing = false
       this.canCancel = false
     },
 
@@ -163,7 +186,7 @@ export const useRepositoryStore = defineStore('repository', {
     async openRepository(path: string, options?: { silent?: boolean }): Promise<boolean> {
       const toast = useToastStore()
       this.loading = true
-      const result = await gitService.openRepository(path)
+      const result = await gitService.openRepository(path, graphSnapshotOptions())
       this.loading = false
       if (!result.ok || !result.data) {
         if (!options?.silent) toast.push(result.message, 'error')
@@ -173,14 +196,14 @@ export const useRepositoryStore = defineStore('repository', {
       this.screen = 'main'
       this.recentRepos = await gitService.recentRepos()
       useUiStore().setLastRepositoryPath(path)
-      toast.push(result.message, 'success')
+      if (!options?.silent) toast.push(result.message, 'success')
       return true
     },
 
     async pickAndOpenRepository(): Promise<boolean> {
       const toast = useToastStore()
       this.loading = true
-      const result = await gitService.pickAndOpenRepository()
+      const result = await gitService.pickAndOpenRepository(graphSnapshotOptions())
       this.loading = false
       if (result.cancelled) return false
       if (!result.ok || !result.data) {
@@ -209,16 +232,23 @@ export const useRepositoryStore = defineStore('repository', {
       this.workingTree = []
       this.layout = EMPTY_LAYOUT
       this.selectedFilePath = null
+      this.commitFiles = []
       this.diff = null
       this.screen = 'startup'
       this.recentRepos = await gitService.recentRepos()
-      useUiStore().setLastRepositoryPath(null)
     },
 
-    async refreshSnapshot(scopes?: SnapshotScope[]): Promise<void> {
+    async refreshSnapshot(
+      scopes?: SnapshotScope[],
+      extra?: Pick<SnapshotOptions, 'invalidateCommits'>,
+    ): Promise<void> {
       if (!this.repository) return
       try {
-        const data = await gitService.refreshSnapshot(scopes)
+        const includesCommits = !scopes || scopes.includes('commits')
+        const data = await gitService.refreshSnapshot(scopes, {
+          ...graphSnapshotOptions(),
+          ...(includesCommits && extra?.invalidateCommits ? { invalidateCommits: true } : {}),
+        })
         const full = !scopes || scopes.length === 0
         if (full) {
           this.applySnapshot(data)
@@ -242,18 +272,7 @@ export const useRepositoryStore = defineStore('repository', {
     },
 
     async loadMoreCommits(): Promise<void> {
-      if (this.loadingMoreCommits || !this.commitPage.hasMore) return
-      this.loadingMoreCommits = true
-      try {
-        const { commits, hasMore } = await gitService.loadMoreCommits()
-        if (commits.length > 0) {
-          this.commits = [...this.commits, ...commits]
-          this.layout = computeGraphLayout(this.commits)
-        }
-        this.commitPage = { ...this.commitPage, hasMore }
-      } finally {
-        this.loadingMoreCommits = false
-      }
+      /* pagination removed — graph loads a fixed recent window */
     },
 
     async removeRecent(path: string): Promise<void> {
@@ -295,28 +314,51 @@ export const useRepositoryStore = defineStore('repository', {
       }
 
       if (action.kind === 'refresh') {
-        await this.refreshSnapshot()
+        this.busyAction = 'refresh'
+        this.operation = 'Refreshing...'
+        this.refreshing = true
+        try {
+          await this.refreshSnapshot(undefined, { invalidateCommits: true })
+        } finally {
+          this.refreshing = false
+          this.busyAction = null
+          this.operation = null
+        }
         useToastStore().push('Refreshed repository', 'success')
         return true
       }
 
       const toast = useToastStore()
+      const switchingBranch = isBranchSwitchAction(action.kind)
       this.busyAction = action.kind
       this.operation = labelForOperation(action)
+      this.branchSwitching = switchingBranch
       this.canCancel = ['fetch', 'pull', 'push', 'force-push', 'sync', 'fetch-all'].includes(action.kind)
 
       const result = await gitService.execute(action)
-      this.operation = null
-      this.operationPhase = null
-      this.busyAction = null
-      this.canCancel = false
 
       toast.push(result.message, result.ok ? 'success' : 'error')
       if (result.ok) {
-        await this.refreshSnapshot(scopesForAction(action.kind))
+        this.refreshing = true
+        try {
+          await this.refreshSnapshot(scopesForAction(action.kind))
+        } finally {
+          this.refreshing = false
+        }
+        if (switchingBranch) {
+          useSelectionStore().select(this.commits[0]?.sha ?? null)
+          this.selectedFilePath = null
+          this.diff = null
+        }
       } else if (this.inProgressOperation) {
         await this.refreshSnapshot(['status', 'branches'])
       }
+
+      this.operation = null
+      this.operationPhase = null
+      this.busyAction = null
+      this.branchSwitching = false
+      this.canCancel = false
       return result.ok
     },
 
@@ -471,14 +513,41 @@ export const useRepositoryStore = defineStore('repository', {
       else this.diff = null
     },
 
+    async loadCommitFiles(sha: string): Promise<void> {
+      this.commitFilesLoading = true
+      this.selectedFilePath = null
+      this.diff = null
+      try {
+        this.commitFiles = await gitService.getCommitFiles(sha)
+      } catch (error) {
+        this.commitFiles = []
+        const detail = error instanceof Error ? error.message : String(error)
+        useToastStore().push(`Could not load commit files: ${detail}`, 'error')
+      } finally {
+        this.commitFilesLoading = false
+      }
+    },
+
+    clearCommitFiles(): void {
+      this.commitFiles = []
+      this.commitFilesLoading = false
+      this.selectedFilePath = null
+      this.diff = null
+    },
+
     async loadDiff(path: string): Promise<void> {
       const file = this.workingTree.find((f) => f.path === path)
+      const commitSha = useSelectionStore().selectedSha
       this.diffLoading = true
       try {
-        this.diff = await gitService.getDiff({
-          path,
-          source: file?.staged ? 'index' : 'worktree',
-        })
+        this.diff = await gitService.getDiff(
+          commitSha
+            ? { path, source: 'commit', sha: commitSha }
+            : {
+                path,
+                source: file?.staged ? 'index' : 'worktree',
+              },
+        )
       } catch {
         this.diff = null
       } finally {
@@ -523,6 +592,10 @@ function describeAction(action: GitAction): string {
   return `Are you sure you want to run ${action.kind}${target}? This cannot be undone.`
 }
 
+function isBranchSwitchAction(kind: GitAction['kind']): boolean {
+  return kind === 'checkout' || kind === 'checkout-commit' || kind === 'checkout-tag'
+}
+
 function labelForOperation(action: GitAction): string | null {
   switch (action.kind) {
     case 'fetch':
@@ -543,6 +616,12 @@ function labelForOperation(action: GitAction): string | null {
       return 'Rebasing...'
     case 'merge':
       return 'Merging...'
+    case 'checkout':
+      return `Switching to ${action.target ?? 'branch'}...`
+    case 'checkout-commit':
+      return 'Checking out commit...'
+    case 'checkout-tag':
+      return `Checking out ${action.target ?? 'tag'}...`
     default:
       return null
   }
@@ -555,7 +634,10 @@ function scopesForAction(kind: GitAction['kind']): SnapshotScope[] | undefined {
   if (kind.includes('branch') || kind === 'checkout' || kind === 'checkout-commit' || kind === 'checkout-tag') {
     return ['commits', 'branches', 'status']
   }
-  if (kind.includes('stage') || kind.includes('commit') || kind === 'stash' || kind.includes('discard')) {
+  if (kind === 'commit' || kind === 'commit-and-push') {
+    return ['commits', 'status']
+  }
+  if (kind.includes('stage') || kind === 'stash' || kind.includes('discard')) {
     return ['status']
   }
   if (kind === 'fetch' || kind === 'pull' || kind === 'push' || kind === 'sync' || kind === 'fetch-all') {

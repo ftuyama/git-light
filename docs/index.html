@@ -454,13 +454,14 @@
         <div class="wrap">
           <div class="badge">
             <span class="badge-dot"></span>
-            Open source · Electron desktop app
+            v0.1.1 · Open source · Electron desktop app
           </div>
           <h1>A lighter way to <span>see your Git history</span></h1>
           <p>
-            Git Light is a GitKraken-inspired desktop client with a commit graph,
-            branch sidebar, working tree panel, and keyboard-driven navigation —
-            built with Electron, Vue 3, and TypeScript.
+            Git Light is a GitKraken-inspired desktop client that runs real Git commands
+            against local repositories — commit graph, branch sidebar, working tree panel,
+            fetch/pull/push, and keyboard-driven navigation. Built with Electron, Vue 3,
+            and TypeScript.
           </p>
           <div class="hero-actions">
             <a
@@ -496,7 +497,7 @@
       <section id="features">
         <div class="wrap">
           <h2>Everything you need to navigate a repo</h2>
-          <p class="section-sub">A focused Git UI shell with room to plug in a real backend.</p>
+          <p class="section-sub">Real local Git operations with a GitKraken-inspired three-pane layout.</p>
           <div class="features">
             <div class="feature-card">
               <div class="feature-icon" style="background: rgba(88,166,255,0.15); color: var(--lane-2)">⎇</div>
@@ -514,17 +515,22 @@
               <p>Stage and unstage files, resolve conflicts, and compose commits with sign-off support.</p>
             </div>
             <div class="feature-card">
-              <div class="feature-icon" style="background: rgba(110,159,255,0.15); color: var(--accent)">⌘</div>
-              <h3>Keyboard shortcuts</h3>
-              <p>Navigate commits, focus search, and drive the UI without leaving the keyboard.</p>
+              <div class="feature-icon" style="background: rgba(110,159,255,0.15); color: var(--accent)">⇅</div>
+              <h3>Remote sync</h3>
+              <p>Fetch, pull, push, and sync from the toolbar — with ahead/behind counts in the status bar.</p>
             </div>
             <div class="feature-card">
-              <div class="feature-icon" style="background: rgba(240,136,62,0.15); color: var(--lane-3)">⚙</div>
-              <h3>Pluggable backend</h3>
-              <p><code style="font-family: var(--font-mono); font-size: 0.75rem;">GitService</code> interface separates UI from Git operations — mock included for development.</p>
+              <div class="feature-icon" style="background: rgba(240,136,62,0.15); color: var(--lane-3)">⌘</div>
+              <h3>Search &amp; shortcuts</h3>
+              <p>Search commits and files by message or path. Navigate history and drive the UI from the keyboard.</p>
             </div>
             <div class="feature-card">
-              <div class="feature-icon" style="background: rgba(219,97,162,0.15); color: var(--lane-4, #db61a2)">◆</div>
+              <div class="feature-icon" style="background: rgba(219,97,162,0.15); color: var(--lane-4, #db61a2)">⚙</div>
+              <h3>Real Git backend</h3>
+              <p>Native <code style="font-family: var(--font-mono); font-size: 0.75rem;">git</code> CLI in the Electron main process via typed IPC — mock mode available for UI-only dev.</p>
+            </div>
+            <div class="feature-card">
+              <div class="feature-icon" style="background: rgba(63,185,80,0.12); color: var(--fg-muted)">◆</div>
               <h3>Dark-first design</h3>
               <p>Dense, professional aesthetic tuned for long sessions — inspired by GitKraken's visual language.</p>
             </div>
@@ -535,7 +541,7 @@
       <section>
         <div class="wrap">
           <h2>Built with modern tools</h2>
-          <p class="section-sub">Electron desktop shell, Vue 3 renderer, and a typed Git service layer.</p>
+          <p class="section-sub">Electron desktop shell, Vue 3 renderer, and a typed IPC Git layer.</p>
           <div class="stack">
             <span class="stack-tag">Electron 41</span>
             <span class="stack-tag">Vue 3</span>
@@ -569,6 +575,7 @@
       <div class="wrap">
         <p>
           <a href="https://github.com/ftuyama/git-light">Git Light</a>
+          v0.1.1
           · MIT License · Built by
           <a href="https://github.com/ftuyama">ftuyama</a>
           · <a href="https://ko-fi.com/lelouchiee" target="_blank" rel="noopener noreferrer">Sponsor on Ko-fi</a>

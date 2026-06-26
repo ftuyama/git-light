@@ -87,6 +87,10 @@ export function registerGitIpc(getWindow: () => BrowserWindow | null, store: Sto
     return gitProvider.getDiff(request)
   })
 
+  ipcMain.handle(IpcChannels.commitFiles, async (_e, { sha }) => {
+    return gitProvider.getCommitFiles(sha)
+  })
+
   ipcMain.handle(IpcChannels.search, async (_e, query) => {
     return gitProvider.search(query)
   })

@@ -15,17 +15,18 @@ import {
   GitMerge,
   Inbox,
   ListTree,
+  Loader2,
   RotateCcw,
   RotateCw,
   Redo2,
   Search,
-  Settings,
   Spline,
   Terminal,
   Undo2,
 } from '@lucide/vue'
 import GkIconButton from '@/components/ui/GkIconButton.vue'
 import DropdownMenu from '@/components/ui/DropdownMenu.vue'
+import AppSettingsMenu from '@/features/settings/AppSettingsMenu.vue'
 import type { MenuItem } from '@/components/ui/menu'
 import { useRepositoryStore } from '@/stores/repository'
 import { useSelectionStore } from '@/stores/selection'
@@ -39,6 +40,8 @@ function run(kind: GitActionKind, target?: string): void {
 }
 
 const isBusy = (kind: GitActionKind): boolean => repo.busyAction === kind
+
+const branchSwitching = computed(() => repo.branchSwitching)
 
 const repoMenu = computed<MenuItem[]>(() => {
   const items: MenuItem[] = repo.recentRepos.slice(0, 8).map((r) => ({
@@ -82,8 +85,10 @@ const branchMenu = computed<MenuItem[]>(() =>
     <DropdownMenu :items="branchMenu" align="start">
       <button
         class="app-no-drag focus-ring flex h-8 items-center gap-2 rounded-md px-2.5 text-[13px] text-[var(--color-fg-muted)] transition-colors hover:bg-[var(--color-hover)] hover:text-[var(--color-fg)]"
+        :disabled="branchSwitching"
       >
-        <GitBranch :size="15" />
+        <Loader2 v-if="branchSwitching" :size="15" class="animate-spin" />
+        <GitBranch v-else :size="15" />
         <span class="font-medium text-[var(--color-fg)]">
           {{ repo.currentBranch?.name ?? '—' }}
         </span>
@@ -130,7 +135,7 @@ const branchMenu = computed<MenuItem[]>(() =>
       <GkIconButton :icon="Search" label="Search" shortcut="⌘⇧F" @click="repo.openSearch()" />
       <GkIconButton :icon="Terminal" label="Open Terminal" shortcut="⌘T" @click="run('open-terminal')" />
       <GkIconButton :icon="RotateCw" label="Refresh" shortcut="⌘R" :busy="isBusy('refresh')" @click="run('refresh')" />
-      <GkIconButton :icon="Settings" label="Settings (coming soon)" disabled />
+      <AppSettingsMenu />
     </div>
   </header>
 </template>

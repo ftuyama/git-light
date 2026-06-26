@@ -14,23 +14,105 @@ import {
 import Avatar from '@/components/ui/Avatar.vue'
 import Badge from '@/components/ui/Badge.vue'
 import ContextMenu from '@/components/ui/ContextMenu.vue'
-import RefBadge from './RefBadge.vue'
+import RefChip from './RefChip.vue'
 import type { MenuItem } from '@/components/ui/menu'
 import { relativeTime } from '@/lib/format'
-import type { Commit } from '@/types/git'
+import { formatRefLabel } from '@shared/git/refLabel'
+import type { Commit, Ref } from '@/types/git'
 import { useRepositoryStore } from '@/stores/repository'
 import { useToastStore } from '@/stores/toast'
 import { useUiStore } from '@/stores/ui'
+import { storeToRefs } from 'pinia'
 
 const props = defineProps<{
   commit: Commit
   graphWidth: number
+  nodeX: number
+  nodeSize: number
+  rowHeight: number
   selected: boolean
 }>()
 
 const repo = useRepositoryStore()
 const toast = useToastStore()
 const ui = useUiStore()
+const { columnWidths } = storeToRefs(ui)
+
+function refDisplayLabel(ref: Ref): string {
+  return ref.label || formatRefLabel(ref.name, ref.type)
+}
+
+function refPriority(ref: Ref): number {
+  if (ref.isHead) return 0
+  if (ref.type === 'localBranch') return 1
+  if (ref.type === 'remoteBranch') return 2
+  return 3
+}
+
+const displayRefs = computed(() => {
+  const byLabel = new Map<string, Ref>()
+  for (const ref of props.commit.refs) {
+    if (ref.type === 'head') continue
+    const label = refDisplayLabel(ref)
+    const existing = byLabel.get(label)
+    if (!existing || refPriority(ref) < refPriority(existing)) {
+      byLabel.set(label, ref)
+    }
+  }
+  return [...byLabel.values()].sort((a, b) => {
+    const byPriority = refPriority(a) - refPriority(b)
+    if (byPriority !== 0) return byPriority
+    return refDisplayLabel(a).localeCompare(refDisplayLabel(b))
+  })
+})
+
+const primaryRef = computed(() => displayRefs.value[0] ?? null)
+const hiddenRefs = computed(() => displayRefs.value.slice(1))
+const hiddenCount = computed(() => hiddenRefs.value.length)
+
+const graphNode = computed(() => {
+  const index = repo.commits.findIndex((c) => c.sha === props.commit.sha)
+  return index >= 0 ? repo.layout.nodes[index] : null
+})
+
+const isCurrentBranchRef = computed(() => primaryRef.value?.isHead === true)
+
+const chipColor = computed(() => {
+  if (isCurrentBranchRef.value) return 'var(--color-accent)'
+  return graphNode.value?.color ?? 'var(--color-fg-muted)'
+})
+
+const showConnector = computed(
+  () =>
+    graphNode.value != null &&
+    primaryRef.value != null &&
+    (primaryRef.value.type === 'localBranch' || primaryRef.value.type === 'remoteBranch'),
+)
+
+const connectorStyle = computed((): Record<string, string> | null => {
+  if (!showConnector.value || !graphNode.value) return null
+  return {
+    backgroundColor: isCurrentBranchRef.value
+      ? 'var(--color-accent)'
+      : graphNode.value.color,
+  }
+})
+
+const graphConnectorWidth = computed(() =>
+  Math.max(0, Math.round(props.nodeX - props.nodeSize / 2)),
+)
+
+// Refs column uses gap-1 after the chip and px-2 right padding before the graph column.
+const REFS_CONNECTOR_OVERLAP = 12
+
+const fullConnectorStyle = computed((): Record<string, string> | null => {
+  if (!connectorStyle.value) return null
+  return {
+    ...connectorStyle.value,
+    width: `${graphConnectorWidth.value + REFS_CONNECTOR_OVERLAP}px`,
+    marginLeft: `-${REFS_CONNECTOR_OVERLAP}px`,
+  }
+})
 
 const menu = computed<MenuItem[]>(() => [
   { label: 'Checkout Commit', icon: Check, onSelect: () => act('checkout') },
@@ -73,12 +155,45 @@ function openOnGithub(): void {
 
 <template>
   <ContextMenu :items="menu">
-    <div
-      class="group/row flex h-full items-center gap-2 pr-3 text-[13px]"
-      :style="{ paddingLeft: `${graphWidth + 4}px` }"
-    >
-      <div class="flex min-w-0 flex-1 items-center gap-2">
-        <RefBadge v-for="(ref, i) in commit.refs" :key="i" :ref-data="ref" />
+    <div class="relative flex h-full items-center pr-3 pl-3 text-[13px]">
+      <div
+        class="group/refs relative z-20 flex min-w-0 items-center gap-1 px-2"
+        :style="{ width: `${columnWidths.refs}px` }"
+      >
+        <template v-if="primaryRef">
+          <RefChip class="min-w-0 flex-1 overflow-hidden" :ref-data="primaryRef" :color="chipColor" />
+          <span
+            v-if="hiddenCount"
+            class="absolute top-1/2 right-1 shrink-0 -translate-y-1/2 rounded px-0.5 text-[10px] text-[var(--color-fg-subtle)] group-hover/refs:text-[var(--color-fg-muted)]"
+          >
+            +{{ hiddenCount }}
+          </span>
+          <div
+            v-if="hiddenCount"
+            class="pointer-events-none absolute bottom-full left-1 z-20 mb-1 hidden min-w-max flex-col gap-1 rounded-md border border-[var(--color-border-strong)] bg-[var(--color-elevated)] px-2 py-1.5 shadow-lg shadow-black/40 group-hover/refs:flex"
+          >
+            <RefChip v-for="(ref, i) in hiddenRefs" :key="i" :ref-data="ref" :color="chipColor" />
+          </div>
+        </template>
+      </div>
+
+      <div
+        class="relative z-0 flex shrink-0 items-center"
+        :style="{ width: `${graphWidth}px`, height: `${rowHeight}px` }"
+        aria-hidden="true"
+      >
+        <div
+          v-if="fullConnectorStyle"
+          class="relative z-0 h-[2px]"
+          :class="isCurrentBranchRef ? 'opacity-90' : 'opacity-40'"
+          :style="fullConnectorStyle"
+        />
+      </div>
+
+      <div
+        class="relative flex shrink-0 items-center gap-2 px-2"
+        :style="{ width: `${columnWidths.commit}px` }"
+      >
         <Cherry
           v-if="commit.isCherryPick"
           :size="13"
@@ -93,22 +208,27 @@ function openOnGithub(): void {
         <Badge v-if="commit.isMerge" tone="info">merge</Badge>
       </div>
 
-      <Avatar v-if="ui.isColumnVisible('author')" :author="commit.author" :size="18" />
-      <span
+      <div
         v-if="ui.isColumnVisible('author')"
-        class="w-24 truncate text-right text-[var(--color-fg-muted)]"
+        class="relative flex shrink-0 items-center justify-end gap-2 px-2"
+        :style="{ width: `${columnWidths.author}px` }"
       >
-        {{ commit.author.name }}
-      </span>
+        <Avatar :author="commit.author" :size="18" />
+        <span class="min-w-0 truncate text-right text-[var(--color-fg-muted)]">
+          {{ commit.author.name }}
+        </span>
+      </div>
       <span
         v-if="ui.isColumnVisible('sha')"
-        class="w-14 shrink-0 font-mono text-[11px] text-[var(--color-fg-subtle)]"
+        class="relative shrink-0 truncate px-2 font-mono text-[11px] text-[var(--color-fg-subtle)]"
+        :style="{ width: `${columnWidths.sha}px` }"
       >
         {{ commit.shortSha }}
       </span>
       <span
         v-if="ui.isColumnVisible('when')"
-        class="w-24 shrink-0 text-right text-[11px] text-[var(--color-fg-subtle)]"
+        class="relative shrink-0 truncate px-2 text-right text-[11px] text-[var(--color-fg-subtle)]"
+        :style="{ width: `${columnWidths.when}px` }"
       >
         {{ relativeTime(commit.date) }}
       </span>

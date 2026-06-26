@@ -5,6 +5,7 @@ import {
   Folder,
   GitBranchPlus,
   Inbox,
+  Loader2,
   Star,
   Tag as TagIcon,
   TreePine,
@@ -21,7 +22,7 @@ import type { Branch, Stash, Tag } from '@/types/git'
 const repo = useRepositoryStore()
 const query = ref('')
 const search = ref<InstanceType<typeof GkSearchInput>>()
-const openGroups = reactive<Record<string, boolean>>({ feature: true })
+const openGroups = reactive<Record<string, boolean>>({})
 
 defineExpose({
   focusSearch: () => search.value?.focus(),
@@ -55,7 +56,7 @@ const remoteBranches = computed(() =>
 )
 
 function isGroupOpen(group: string): boolean {
-  return openGroups[group] ?? false
+  return openGroups[group] ?? true
 }
 function toggleGroup(group: string): void {
   openGroups[group] = !isGroupOpen(group)
@@ -79,7 +80,17 @@ function stashMenu(stash: Stash): MenuItem[] {
 </script>
 
 <template>
-  <aside class="flex h-full flex-col bg-[var(--color-panel)]">
+  <aside class="relative flex h-full flex-col bg-[var(--color-panel)]">
+    <Transition name="sidebar-dim">
+      <div
+        v-if="repo.branchSwitching"
+        class="pointer-events-none absolute inset-0 z-10 flex items-center justify-center bg-black/30"
+        aria-hidden="true"
+      >
+        <Loader2 :size="22" class="animate-spin text-[var(--color-fg-muted)]" />
+      </div>
+    </Transition>
+
     <div class="space-y-2 border-b border-[var(--color-border)] p-2">
       <GkSearchInput
         ref="search"
@@ -194,3 +205,14 @@ function stashMenu(stash: Stash): MenuItem[] {
     </div>
   </aside>
 </template>
+
+<style scoped>
+.sidebar-dim-enter-active,
+.sidebar-dim-leave-active {
+  transition: opacity 0.15s ease;
+}
+.sidebar-dim-enter-from,
+.sidebar-dim-leave-to {
+  opacity: 0;
+}
+</style>

@@ -62,6 +62,10 @@ function reviveFile(w: WireWorkingTreeFile): WorkingTreeFile {
   return { ...w }
 }
 
+export function reviveWorkingTreeFile(w: WireWorkingTreeFile): WorkingTreeFile {
+  return reviveFile(w)
+}
+
 function reviveRepository(w: WireRepository): Repository {
   return {
     name: w.name,

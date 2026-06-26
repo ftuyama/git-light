@@ -1,3 +1,4 @@
+import { gravatarUrl, initialsFor } from '@shared/git/avatar'
 import { faker } from '@faker-js/faker'
 import type {
   Author,
@@ -24,22 +25,19 @@ const AVATAR_COLORS = [
 ]
 
 function initials(name: string): string {
-  return name
-    .split(' ')
-    .map((part) => part[0])
-    .filter(Boolean)
-    .slice(0, 2)
-    .join('')
-    .toUpperCase()
+  return initialsFor(name)
 }
 
 function makeAuthors(count: number): Author[] {
   return Array.from({ length: count }, (_, i) => {
     const name = faker.person.fullName()
+    const email = faker.internet.email({ firstName: name.split(' ')[0] }).toLowerCase()
     return {
       name,
-      email: faker.internet.email({ firstName: name.split(' ')[0] }).toLowerCase(),
-      avatarUrl: '',
+      email,
+      avatarUrl: faker.datatype.boolean({ probability: 0.35 })
+        ? faker.image.avatar()
+        : gravatarUrl(email),
       initials: initials(name),
       color: AVATAR_COLORS[i % AVATAR_COLORS.length],
     }

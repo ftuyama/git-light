@@ -8,11 +8,12 @@ import type {
   RepoChangeEvent,
   SearchQuery,
   SearchResults,
+  SnapshotOptions,
   SnapshotScope,
 } from '@shared/git/models'
 import type { ActionResult, GitAction, RepositoryData } from '@/types/git'
-import type { GitService } from './GitService'
-import { reviveCommits, wireSnapshotToRepositoryData } from './wireAdapter'
+import type { GitService, SnapshotRefreshOptions } from './GitService'
+import { wireSnapshotToRepositoryData, reviveWorkingTreeFile } from './wireAdapter'
 
 function envelopeToResult(envelope: {
   ok: boolean
@@ -25,6 +26,14 @@ function envelopeToResult(envelope: {
     return { ok: false, message: `${err.message}${detail}` }
   }
   return { ok: envelope.ok, message: envelope.message }
+}
+
+function toSnapshotOptions(
+  scopes?: SnapshotScope[],
+  options?: SnapshotRefreshOptions,
+): SnapshotOptions | undefined {
+  if (!scopes && !options) return undefined
+  return { scopes, ...options }
 }
 
 /**
@@ -45,8 +54,11 @@ export class IpcGitService implements GitService {
     return window.electron.git.removeRecent({ path })
   }
 
-  async openRepository(path: string): Promise<{ ok: boolean; data?: RepositoryData; message: string }> {
-    const result = await window.electron.git.openRepo({ path })
+  async openRepository(
+    path: string,
+    options?: SnapshotRefreshOptions,
+  ): Promise<{ ok: boolean; data?: RepositoryData; message: string }> {
+    const result = await window.electron.git.openRepo({ path, options })
     if (!result.ok || !result.snapshot) {
       const err = result.error
       return {
@@ -59,13 +71,15 @@ export class IpcGitService implements GitService {
     return { ok: true, data, message: `Opened ${data.repository.name}` }
   }
 
-  async pickAndOpenRepository(): Promise<{
+  async pickAndOpenRepository(
+    options?: SnapshotRefreshOptions,
+  ): Promise<{
     ok: boolean
     cancelled?: boolean
     data?: RepositoryData
     message: string
   }> {
-    const result = await window.electron.git.pickAndOpenRepo({})
+    const result = await window.electron.git.pickAndOpenRepo({ options })
     if ('cancelled' in result) {
       return { ok: false, cancelled: true, message: '' }
     }
@@ -86,9 +100,12 @@ export class IpcGitService implements GitService {
     this.page = { oldestSha: null, hasMore: false, total: null }
   }
 
-  async refreshSnapshot(scopes?: SnapshotScope[]): Promise<RepositoryData> {
+  async refreshSnapshot(
+    scopes?: SnapshotScope[],
+    options?: SnapshotRefreshOptions,
+  ): Promise<RepositoryData> {
     const snapshot = await window.electron.git.snapshot({
-      options: scopes ? { scopes } : undefined,
+      options: toSnapshotOptions(scopes, options),
     })
     const data = wireSnapshotToRepositoryData(snapshot)
     this.page = data.page
@@ -96,12 +113,7 @@ export class IpcGitService implements GitService {
   }
 
   async loadMoreCommits(): Promise<{ commits: RepositoryData['commits']; hasMore: boolean }> {
-    if (!this.page.oldestSha || !this.page.hasMore) {
-      return { commits: [], hasMore: false }
-    }
-    const result = await window.electron.git.commitPage({ beforeSha: this.page.oldestSha })
-    this.page = result.page
-    return { commits: reviveCommits(result.commits), hasMore: result.page.hasMore }
+    return { commits: [], hasMore: false }
   }
 
   /** @deprecated Use openRepository / refreshSnapshot instead. */
@@ -116,6 +128,11 @@ export class IpcGitService implements GitService {
 
   async getDiff(request: DiffRequest): Promise<DiffResult> {
     return window.electron.git.diff(request)
+  }
+
+  async getCommitFiles(sha: string): Promise<RepositoryData['workingTree']> {
+    const wire = await window.electron.git.commitFiles({ sha })
+    return wire.map(reviveWorkingTreeFile)
   }
 
   async search(query: SearchQuery): Promise<SearchResults> {

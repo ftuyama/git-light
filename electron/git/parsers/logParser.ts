@@ -1,3 +1,4 @@
+import { formatRefLabel } from '@shared/git/refLabel'
 import type { WireCommit, WireRef } from '@shared/git/models'
 import type { AuthorRegistry } from './authors'
 
@@ -23,30 +24,66 @@ export const LOG_FORMAT = [
 
 export const CHERRY_PICK_RE = /\(cherry picked from commit [0-9a-f]+\)/i
 
+function parseRefEntry(entry: string): WireRef | WireRef[] {
+  if (entry.startsWith('HEAD -> ')) {
+    const branch = entry.slice('HEAD -> '.length).trim()
+    return [
+      { type: 'head', name: 'HEAD', label: 'HEAD' },
+      {
+        type: 'localBranch',
+        name: branch,
+        label: formatRefLabel(branch, 'localBranch'),
+        isHead: true,
+      },
+    ]
+  }
+  if (entry === 'HEAD') {
+    return { type: 'head', name: 'HEAD', label: 'HEAD' }
+  }
+  if (entry.startsWith('tag: ')) {
+    const tag = entry.slice('tag: '.length).trim()
+    return { type: 'tag', name: tag, label: formatRefLabel(tag, 'tag') }
+  }
+  if (entry.startsWith('refs/heads/')) {
+    return {
+      type: 'localBranch',
+      name: entry,
+      label: formatRefLabel(entry, 'localBranch'),
+    }
+  }
+  if (entry.startsWith('refs/remotes/')) {
+    return {
+      type: 'remoteBranch',
+      name: entry,
+      label: formatRefLabel(entry, 'remoteBranch'),
+    }
+  }
+  if (entry.includes('/')) {
+    // Short decorate: origin/main, origin/ENG/bla, etc.
+    return {
+      type: 'remoteBranch',
+      name: entry,
+      label: formatRefLabel(entry, 'remoteBranch'),
+    }
+  }
+  return {
+    type: 'localBranch',
+    name: entry,
+    label: formatRefLabel(entry, 'localBranch'),
+  }
+}
+
 function parseDecorations(raw: string): WireRef[] {
   const refs: WireRef[] = []
   const trimmed = raw.trim()
   if (!trimmed) return refs
 
-  for (const entryRaw of trimmed.split(',')) {
+  for (const entryRaw of trimmed.split(/,\s*/)) {
     const entry = entryRaw.trim()
     if (!entry) continue
-
-    if (entry.startsWith('HEAD -> ')) {
-      const branch = entry.slice('HEAD -> '.length).trim()
-      refs.push({ type: 'head', name: 'HEAD', label: 'HEAD' })
-      refs.push({ type: 'localBranch', name: branch, label: branch, isHead: true })
-    } else if (entry === 'HEAD') {
-      refs.push({ type: 'head', name: 'HEAD', label: 'HEAD' })
-    } else if (entry.startsWith('tag: ')) {
-      const tag = entry.slice('tag: '.length).trim()
-      refs.push({ type: 'tag', name: tag, label: tag })
-    } else if (entry.includes('/')) {
-      // Heuristic: a slash implies a remote-tracking branch (origin/main).
-      refs.push({ type: 'remoteBranch', name: entry, label: entry })
-    } else {
-      refs.push({ type: 'localBranch', name: entry, label: entry })
-    }
+    const parsed = parseRefEntry(entry)
+    if (Array.isArray(parsed)) refs.push(...parsed)
+    else refs.push(parsed)
   }
   return refs
 }

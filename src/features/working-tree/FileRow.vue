@@ -10,33 +10,42 @@ import type { WorkingTreeFile } from '@/types/git'
 import { useRepositoryStore } from '@/stores/repository'
 import { useToastStore } from '@/stores/toast'
 
-const props = defineProps<{ file: WorkingTreeFile }>()
+const props = defineProps<{ file: WorkingTreeFile; readonly?: boolean }>()
 const repo = useRepositoryStore()
 const toast = useToastStore()
 
 const meta = computed(() => STATUS_META[props.file.status])
 const selected = computed(() => repo.selectedFilePath === props.file.path)
 
-const menu = computed<MenuItem[]>(() => [
-  {
-    label: props.file.staged ? 'Unstage Changes' : 'Stage Changes',
-    onSelect: () => repo.toggleStaged(props.file.id),
-  },
-  {
-    label: 'Discard Changes',
-    icon: FileX,
-    danger: true,
-    onSelect: () => void repo.runAction({ kind: 'discard-file', target: props.file.path }),
-  },
-  { separator: true },
-  { label: 'Reveal in Finder', icon: FolderOpen, onSelect: reveal },
-  { label: 'Copy Path', icon: Copy, onSelect: copyPath },
-  {
-    label: 'View Diff',
-    icon: ExternalLink,
-    onSelect: () => repo.selectFile(props.file.path),
-  },
-])
+const menu = computed<MenuItem[]>(() => {
+  if (props.readonly) {
+    return [
+      { label: 'Reveal in Finder', icon: FolderOpen, onSelect: reveal },
+      { label: 'Copy Path', icon: Copy, onSelect: copyPath },
+      { label: 'View Diff', icon: ExternalLink, onSelect: () => repo.selectFile(props.file.path) },
+    ]
+  }
+  return [
+    {
+      label: props.file.staged ? 'Unstage Changes' : 'Stage Changes',
+      onSelect: () => repo.toggleStaged(props.file.id),
+    },
+    {
+      label: 'Discard Changes',
+      icon: FileX,
+      danger: true,
+      onSelect: () => void repo.runAction({ kind: 'discard-file', target: props.file.path }),
+    },
+    { separator: true },
+    { label: 'Reveal in Finder', icon: FolderOpen, onSelect: reveal },
+    { label: 'Copy Path', icon: Copy, onSelect: copyPath },
+    {
+      label: 'View Diff',
+      icon: ExternalLink,
+      onSelect: () => repo.selectFile(props.file.path),
+    },
+  ]
+})
 
 function reveal(): void {
   if (!repo.repository) return
@@ -60,6 +69,7 @@ function copyPath(): void {
       @click="repo.selectFile(file.path)"
     >
       <Checkbox
+        v-if="!readonly"
         :model-value="file.staged"
         :aria-label="file.staged ? 'Unstage file' : 'Stage file'"
         @click.stop

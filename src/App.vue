@@ -14,6 +14,7 @@ import StartupView from '@/features/startup/StartupView.vue'
 import OperationBanner from '@/features/layout/OperationBanner.vue'
 import PromptHost from '@/features/layout/PromptHost.vue'
 import SearchOverlay from '@/features/search/SearchOverlay.vue'
+import AppSettingsDialog from '@/features/settings/AppSettingsDialog.vue'
 import { useUiStore } from '@/stores/ui'
 import { useSelectionStore } from '@/stores/selection'
 import { useRepositoryStore } from '@/stores/repository'
@@ -96,4 +97,6 @@ useKeyboardShortcuts([
     <PromptHost />
     <SearchOverlay />
   </TooltipProvider>
+
+  <AppSettingsDialog />
 </template>

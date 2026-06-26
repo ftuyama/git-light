@@ -1,7 +1,8 @@
 import type { CommitPageInfo, DiffRequest, DiffResult, RecentRepository, RepoChangeEvent, SearchQuery, SearchResults, SnapshotScope } from '@shared/git/models'
 import type { ActionResult, GitAction, GitActionKind, RepositoryData } from '@/types/git'
+import { DEFAULT_COMMIT_GRAPH_LIMIT } from '@/lib/preferences'
 import { generateAwesomeShop } from '@/data/generateAwesomeShop'
-import type { GitService } from './GitService'
+import type { GitService, SnapshotRefreshOptions } from './GitService'
 
 const ACTION_MESSAGES: Partial<Record<GitActionKind, (target?: string) => string>> = {
   fetch: () => 'Fetched from origin',
@@ -62,18 +63,23 @@ export class MockGitService implements GitService {
     return []
   }
 
-  async openRepository(_path: string): Promise<{ ok: boolean; data?: RepositoryData; message: string }> {
-    const data = await this.load()
+  async openRepository(
+    _path: string,
+    options?: SnapshotRefreshOptions,
+  ): Promise<{ ok: boolean; data?: RepositoryData; message: string }> {
+    const data = await this.load(options)
     return { ok: true, data, message: `Opened ${data.repository.name}` }
   }
 
-  async pickAndOpenRepository(): Promise<{
+  async pickAndOpenRepository(
+    options?: SnapshotRefreshOptions,
+  ): Promise<{
     ok: boolean
     cancelled?: boolean
     data?: RepositoryData
     message: string
   }> {
-    const data = await this.load()
+    const data = await this.load(options)
     return { ok: true, data, message: `Opened ${data.repository.name}` }
   }
 
@@ -81,8 +87,11 @@ export class MockGitService implements GitService {
     this.data = null
   }
 
-  async refreshSnapshot(_scopes?: SnapshotScope[]): Promise<RepositoryData> {
-    return this.load()
+  async refreshSnapshot(
+    _scopes?: SnapshotScope[],
+    options?: SnapshotRefreshOptions,
+  ): Promise<RepositoryData> {
+    return this.load(options)
   }
 
   async loadMoreCommits(): Promise<{ commits: RepositoryData['commits']; hasMore: boolean }> {
@@ -99,6 +108,17 @@ export class MockGitService implements GitService {
       additions: 0,
       deletions: 0,
     }
+  }
+
+  async getCommitFiles(sha: string): Promise<RepositoryData['workingTree']> {
+    const data = await this.load()
+    const commit = data.commits.find((c) => c.sha === sha)
+    if (!commit) return []
+    return data.workingTree.slice(0, Math.min(5, data.workingTree.length)).map((file, index) => ({
+      ...file,
+      id: `commit-${sha.slice(0, 7)}-${index}`,
+      staged: false,
+    }))
   }
 
   async search(query: SearchQuery): Promise<SearchResults> {
@@ -129,10 +149,18 @@ export class MockGitService implements GitService {
 
   async cancelActiveOperation(): Promise<void> {}
 
-  async load(): Promise<RepositoryData> {
+  async load(options?: SnapshotRefreshOptions): Promise<RepositoryData> {
     await delay(280)
     if (!this.data) this.data = generateAwesomeShop(400)
-    return this.data
+    const limit = options?.commitLimit ?? DEFAULT_COMMIT_GRAPH_LIMIT
+    const commits = this.data.commits.slice(0, limit)
+    const page: CommitPageInfo = {
+      oldestSha: commits.at(-1)?.sha ?? null,
+      hasMore: false,
+      total: commits.length,
+    }
+    this.page = page
+    return { ...this.data, commits }
   }
 
   async execute(action: GitAction): Promise<ActionResult> {

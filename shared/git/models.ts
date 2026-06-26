@@ -135,6 +135,9 @@ export interface WireRemote {
   pushUrl: string
 }
 
+/** Which commits to include in the commit graph. */
+export type GraphScope = 'head' | 'all'
+
 /** Commit-graph pagination metadata. */
 export interface CommitPageInfo {
   /** SHA of the oldest loaded commit; pass back to fetch the next page. */
@@ -156,8 +159,12 @@ export interface WireRepositorySnapshot {
 }
 
 export interface SnapshotOptions {
-  /** Max commits to load in the first page. */
+  /** Max commits to load in the graph window. */
   commitLimit?: number
+  /** HEAD-only or all branches (`--all`). Defaults to `'all'`. */
+  graphScope?: GraphScope
+  /** Bypass the commits cache and re-run `git log`. */
+  invalidateCommits?: boolean
   /** Which parts to (re)compute; omit for a full snapshot. */
   scopes?: SnapshotScope[]
 }
@@ -204,6 +211,10 @@ export interface DiffRequest {
   ignoreWhitespace?: boolean
 }
 
+export interface CommitFilesRequest {
+  sha: string
+}
+
 export interface DiffLine {
   type: 'context' | 'add' | 'del' | 'hunk' | 'meta'
   content: string
@@ -238,6 +249,7 @@ export interface SearchQuery {
   fields?: ('message' | 'author' | 'sha')[]
   regex?: boolean
   limit?: number
+  graphScope?: GraphScope
 }
 
 export interface SearchCommitHit {

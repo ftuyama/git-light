@@ -1,6 +1,7 @@
 import type { GitAction } from './actions'
 import type {
   ActionEnvelope,
+  CommitFilesRequest,
   CommitPageRequest,
   CommitPageResult,
   DiffRequest,
@@ -11,6 +12,7 @@ import type {
   SearchResults,
   SnapshotOptions,
   WireRepositorySnapshot,
+  WireWorkingTreeFile,
 } from './models'
 
 /** IPC channel identifiers. Grouped invoke (request/response) and push (events). */
@@ -22,6 +24,7 @@ export const IpcChannels = {
   commitPage: 'git:commit-page',
   action: 'git:action',
   diff: 'git:diff',
+  commitFiles: 'git:commit-files',
   search: 'git:search',
   cancel: 'git:cancel',
   recentRepos: 'git:recent-repos',
@@ -42,6 +45,7 @@ export interface IpcContract {
   [IpcChannels.commitPage]: [CommitPageRequest, CommitPageResult]
   [IpcChannels.action]: [GitAction, ActionEnvelope]
   [IpcChannels.diff]: [DiffRequest, DiffResult]
+  [IpcChannels.commitFiles]: [CommitFilesRequest, WireWorkingTreeFile[]]
   [IpcChannels.search]: [SearchQuery, SearchResults]
   [IpcChannels.cancel]: [void, void]
   [IpcChannels.recentRepos]: [void, RecentRepository[]]

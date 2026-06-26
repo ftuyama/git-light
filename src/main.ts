@@ -1,10 +1,34 @@
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
+import type { RecentRepository } from '@shared/git/models'
 import App from './App.vue'
 import { useUiStore } from './stores/ui'
 import { useRepositoryStore } from './stores/repository'
 import 'splitpanes/dist/splitpanes.css'
 import './assets/theme.css'
+
+function startupRepositoryCandidates(
+  lastPath: string | null,
+  recentRepos: RecentRepository[],
+): string[] {
+  const candidates: string[] = []
+  if (lastPath) candidates.push(lastPath)
+  for (const item of [...recentRepos].sort((a, b) => b.lastOpened - a.lastOpened)) {
+    if (!candidates.includes(item.path)) candidates.push(item.path)
+  }
+  return candidates
+}
+
+async function autoOpenRecentRepository(
+  lastPath: string | null,
+  recentRepos: RecentRepository[],
+  open: (path: string) => Promise<boolean>,
+): Promise<string | null> {
+  for (const path of startupRepositoryCandidates(lastPath, recentRepos)) {
+    if (await open(path)) return path
+  }
+  return null
+}
 
 async function bootstrap(): Promise<void> {
   const app = createApp(App)
@@ -22,10 +46,15 @@ async function bootstrap(): Promise<void> {
   if (useMock) {
     void repo.loadMock()
   } else {
-    const lastPath = ui.lastRepositoryPath
-    if (lastPath) {
-      const opened = await repo.openRepository(lastPath, { silent: true })
-      if (!opened) ui.setLastRepositoryPath(null)
+    const openedPath = await autoOpenRecentRepository(
+      ui.lastRepositoryPath,
+      repo.recentRepos,
+      (path) => repo.openRepository(path, { silent: true }),
+    )
+    if (openedPath) {
+      ui.setLastRepositoryPath(openedPath)
+    } else if (ui.lastRepositoryPath) {
+      ui.setLastRepositoryPath(null)
     }
   }
 

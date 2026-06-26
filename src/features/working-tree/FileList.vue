@@ -1,13 +1,14 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, nextTick, onMounted, ref, watch } from 'vue'
 import { useVirtualizer } from '@tanstack/vue-virtual'
 import FileRow from './FileRow.vue'
 import { STATUS_ORDER } from './fileStatus'
 import type { WorkingTreeFile } from '@/types/git'
 
-const props = defineProps<{ files: WorkingTreeFile[] }>()
+const props = defineProps<{ files: WorkingTreeFile[]; readonly?: boolean }>()
 
 const ROW_HEIGHT = 28
+const VIRTUAL_THRESHOLD = 100
 const scrollEl = ref<HTMLElement | null>(null)
 
 const sorted = computed(() =>
@@ -16,6 +17,8 @@ const sorted = computed(() =>
     return byStatus !== 0 ? byStatus : a.path.localeCompare(b.path)
   }),
 )
+
+const useVirtual = computed(() => sorted.value.length > VIRTUAL_THRESHOLD)
 
 const virtualizer = useVirtualizer(
   computed(() => ({
@@ -28,19 +31,40 @@ const virtualizer = useVirtualizer(
 
 const virtualItems = computed(() => virtualizer.value.getVirtualItems())
 const totalSize = computed(() => virtualizer.value.getTotalSize())
+
+async function remeasure(): Promise<void> {
+  if (!useVirtual.value) return
+  await nextTick()
+  virtualizer.value.measure()
+}
+
+watch(() => props.files, remeasure, { deep: true })
+onMounted(() => {
+  void remeasure()
+})
 </script>
 
 <template>
   <div ref="scrollEl" class="min-h-0 flex-1 overflow-y-auto px-1">
-    <div class="relative w-full" :style="{ height: `${totalSize}px` }">
-      <div
-        v-for="item in virtualItems"
-        :key="item.index"
-        class="absolute right-0 left-0"
-        :style="{ height: `${item.size}px`, transform: `translateY(${item.start}px)` }"
-      >
-        <FileRow :file="sorted[item.index]" />
+    <template v-if="useVirtual">
+      <div class="relative w-full" :style="{ height: `${totalSize}px` }">
+        <div
+          v-for="item in virtualItems"
+          :key="sorted[item.index]?.id ?? item.index"
+          class="absolute right-0 left-0"
+          :style="{ height: `${item.size}px`, transform: `translateY(${item.start}px)` }"
+        >
+          <FileRow :file="sorted[item.index]" :readonly="readonly" />
+        </div>
       </div>
-    </div>
+    </template>
+    <template v-else>
+      <FileRow
+        v-for="file in sorted"
+        :key="file.id"
+        :file="file"
+        :readonly="readonly"
+      />
+    </template>
   </div>
 </template>

@@ -36,6 +36,8 @@ Git Light is an Electron desktop app with a Vue 3 renderer. The UI depends on a 
 | `models.ts` | Wire types (ISO date strings, serializable snapshots) |
 | `actions.ts` | `GitActionKind` + `GitAction` — single source of truth |
 | `errors.ts` | `GitError`, `classifyGitError()`, serialized error payloads |
+| `refLabel.ts` | Branch/tag/ref display labels shared by renderer and parsers |
+| `avatar.ts` | Gravatar URL helpers for commit authors |
 
 ## Renderer git layer (`src/lib/git/`)
 
@@ -46,6 +48,7 @@ Git Light is an Electron desktop app with a Vue 3 renderer. The UI depends on a 
 | `MockGitService.ts` | Generated data; used when `VITE_USE_MOCK=true` or outside Electron |
 | `wireAdapter.ts` | Revives wire snapshots into domain types (`Date`, etc.) |
 | `destructive.ts` | Actions that require confirmation in the UI |
+| `refLabel.test.ts` | Ref label formatting |
 
 ## Main-process git layer (`electron/git/`)
 
@@ -72,7 +75,8 @@ App.vue
     │   └── WorkingTreePanel + DiffPanel
     ├── StatusBar        ahead/behind, progress, cancel
     ├── PromptHost       confirm / prompt dialogs
-    └── SearchOverlay    commit + file search
+    ├── SearchOverlay    commit + file search
+    └── AppSettingsDialog  layout, graph, sidebar preferences
 ```
 
 ## Data flow
@@ -86,14 +90,18 @@ App.vue
 
 | Key | Storage |
 |-----|---------|
-| `git-light:ui` | Panel sizes, collapsed state (electron-store / localStorage) |
+| `git-light:preferences` | Panel sizes, collapsed state, graph/sidebar prefs (localStorage) |
 | `recent-repos` | Recent repository list (electron-store, main) |
 | `branch-favorites:{path}` | Per-repo pinned branches |
 
 ## Testing
 
 - `src/lib/graph/computeGraphLayout.test.ts` — graph layout algorithm
-- `src/lib/git/statusParser.test.ts` — status porcelain parser
+- `src/lib/graph/graphEdgePath.test.ts` — SVG edge path generation
+- `src/lib/git/statusParser.test.ts` — status porcelain parser (renderer)
+- `src/lib/git/refLabel.test.ts` — ref label formatting
+- `electron/git/parsers/logParser.test.ts` — porcelain log parser
+- `electron/git/parsers/commitFilesParser.test.ts` — commit file list parser
 
 Run: `npm run test`
 

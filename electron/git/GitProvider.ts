@@ -9,6 +9,7 @@ import type {
   CommitPageResult,
   DiffRequest,
   DiffResult,
+  GraphScope,
   OpenRepoResult,
   OperationProgress,
   RecentRepository,
@@ -28,12 +29,13 @@ import { parseBranches, BRANCH_FORMAT, BRANCH_REFSPECS } from './parsers/branchP
 import { parseCommits, LOG_FORMAT } from './parsers/logParser'
 import { parseRemotes, parseTags, TAG_FORMAT } from './parsers/refParser'
 import { parseNumstat, parseStatus } from './parsers/statusParser'
+import { parseCommitFiles } from './parsers/commitFilesParser'
 import { parseStashes, STASH_FORMAT } from './parsers/stashParser'
 import { readRepoState } from './parsers/stateParser'
 import { parseWorktrees } from './parsers/worktreeParser'
 import { parseUnifiedDiff } from './parsers/diffParser'
 
-const DEFAULT_COMMIT_LIMIT = 500
+const DEFAULT_COMMIT_LIMIT = 100
 
 interface ActiveOperation {
   controller: AbortController
@@ -143,10 +145,17 @@ export class GitProvider {
 
     const need = (scope: SnapshotScope): boolean => !scopes || scopes.includes(scope)
 
+    const graphScope = options.graphScope ?? 'all'
+    const commitLimit = options.commitLimit ?? DEFAULT_COMMIT_LIMIT
+
+    if (need('commits') && options.invalidateCommits) {
+      this.cache.invalidate(['commits'])
+    }
+
     const [commitsBundle, branches, tags, stashes, worktrees, workingTree, remotes, branchName] =
       await Promise.all([
         need('commits')
-          ? this.loadCommits(cwd, options.commitLimit ?? DEFAULT_COMMIT_LIMIT, 0)
+          ? this.loadCommits(cwd, commitLimit, graphScope, headSha || 'empty')
           : Promise.resolve({ commits: [], page: { oldestSha: null, hasMore: false, total: null } }),
         need('branches') ? this.loadBranches(cwd, favorites) : Promise.resolve([]),
         need('tags') ? this.loadTags(cwd) : Promise.resolve([]),
@@ -206,47 +215,41 @@ export class GitProvider {
   async loadCommitPage(request: CommitPageRequest): Promise<CommitPageResult> {
     const cwd = this.requireRepo()
     const limit = request.limit ?? DEFAULT_COMMIT_LIMIT
-
-    const skipResult = await gitCli.run(
-      ['rev-list', '--count', `${request.beforeSha}^..HEAD`],
-      { cwd, allowFailure: true },
-    )
-    const skip = Number(skipResult.stdout.trim()) || 0
-
-    return this.loadCommits(cwd, limit, skip)
+    const headSha = (await gitCli.run(['rev-parse', 'HEAD'], { cwd, allowFailure: true })).stdout.trim()
+    return this.loadCommits(cwd, limit, 'head', headSha || 'empty')
   }
 
   private async loadCommits(
     cwd: string,
     limit: number,
-    skip: number,
+    graphScope: GraphScope,
+    headSha: string,
   ): Promise<{ commits: WireRepositorySnapshot['commits']; page: WireRepositorySnapshot['page'] }> {
+    const cached = this.cache.getCommits(headSha, graphScope, limit)
+    if (cached) return cached
+
     const authors = new AuthorRegistry()
-    const { stdout } = await gitCli.run(
-      [
-        'log',
-        '--date=iso-strict',
-        `--format=${LOG_FORMAT}`,
-        '--decorate=full',
-        '-n',
-        String(limit),
-        ...(skip > 0 ? ['--skip', String(skip)] : []),
-      ],
-      { cwd, timeout: 120_000 },
-    )
+    const args = [
+      'log',
+      '--date=iso-strict',
+      `--format=${LOG_FORMAT}`,
+      '--decorate=full',
+      '-n',
+      String(limit),
+    ]
+    if (graphScope === 'all') args.splice(1, 0, '--all')
+
+    const { stdout } = await gitCli.run(args, { cwd, timeout: 120_000 })
 
     const commits = parseCommits(stdout, authors)
     const oldestSha = commits.length > 0 ? commits[commits.length - 1].sha : null
 
-    const totalResult = await gitCli.run(['rev-list', '--count', 'HEAD'], { cwd, allowFailure: true })
-    const total = Number(totalResult.stdout.trim()) || null
-    const loaded = skip + commits.length
-    const hasMore = total != null ? loaded < total : commits.length >= limit
-
-    return {
+    const bundle = {
       commits,
-      page: { oldestSha, hasMore, total },
+      page: { oldestSha, hasMore: false, total: commits.length },
     }
+    this.cache.setCommits(headSha, graphScope, limit, bundle)
+    return bundle
   }
 
   private async loadBranches(cwd: string, favorites: Set<string>): Promise<WireRepositorySnapshot['branches']> {
@@ -317,9 +320,12 @@ export class GitProvider {
         onProgress: (phase) => emit(phase, null),
       })
 
-      if (result.ok && action.kind !== 'refresh') {
-        this.cache.invalidate()
-        this.hooks.onChanged?.({ path: cwd, scopes: scopesForAction(action.kind) })
+      if (result.ok) {
+        const scopes = scopesForAction(action.kind)
+        this.cache.invalidate(scopes)
+        if (action.kind !== 'refresh') {
+          this.hooks.onChanged?.({ path: cwd, scopes })
+        }
       }
 
       emit('Done', 100, true)
@@ -337,6 +343,21 @@ export class GitProvider {
     for (const op of this.operations.values()) {
       op.controller.abort()
     }
+  }
+
+  async getCommitFiles(sha: string): Promise<WireRepositorySnapshot['workingTree']> {
+    const cwd = this.requireRepo()
+    const [nameStatus, numstat] = await Promise.all([
+      gitCli.run(['diff-tree', '--no-commit-id', '--name-status', '-z', '-r', sha], {
+        cwd,
+        allowFailure: true,
+      }),
+      gitCli.run(['diff-tree', '--no-commit-id', '--numstat', '-z', '-r', sha], {
+        cwd,
+        allowFailure: true,
+      }),
+    ])
+    return parseCommitFiles(nameStatus.stdout, numstat.stdout)
   }
 
   async getDiff(request: DiffRequest): Promise<DiffResult> {
@@ -387,6 +408,7 @@ export class GitProvider {
     if (!text) return { commits: [], files: [] }
 
     const args = ['log', '--format=%H\x1f%s\x1f%an\x1f%at', '-n', String(query.limit ?? 50)]
+    if (query.graphScope === 'all') args.splice(1, 0, '--all')
     if (/^[0-9a-f]{4,40}$/i.test(text)) {
       args.push(text)
     } else if (query.regex) {
@@ -437,13 +459,19 @@ function scopesForAction(kind: string): SnapshotScope[] {
   if (kind.includes('branch') || kind === 'checkout' || kind === 'checkout-commit' || kind === 'checkout-tag') {
     return ['commits', 'branches', 'status']
   }
-  if (kind.includes('stage') || kind.includes('commit') || kind === 'stash' || kind.includes('discard')) {
+  if (kind === 'commit' || kind === 'commit-and-push') {
+    return ['commits', 'status']
+  }
+  if (kind.includes('stage') || kind === 'stash' || kind.includes('discard')) {
     return ['status']
   }
-  if (kind === 'fetch' || kind === 'pull' || kind === 'push' || kind === 'sync') {
+  if (kind === 'fetch' || kind === 'pull' || kind === 'push' || kind === 'sync' || kind === 'fetch-all') {
     return ['branches', 'commits', 'status']
   }
-  return ['status', 'branches', 'commits', 'tags', 'stashes']
+  if (kind === 'refresh') {
+    return ['commits', 'branches', 'status', 'tags', 'stashes', 'worktrees']
+  }
+  return ['status', 'branches']
 }
 
 function guessLanguage(path: string): string {

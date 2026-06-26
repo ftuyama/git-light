@@ -6,9 +6,11 @@ import { gitService } from '@/lib/git'
 import type { SearchCommitHit } from '@shared/git/models'
 import { useRepositoryStore } from '@/stores/repository'
 import { useSelectionStore } from '@/stores/selection'
+import { useUiStore } from '@/stores/ui'
 
 const repo = useRepositoryStore()
 const selection = useSelectionStore()
+const ui = useUiStore()
 
 const query = ref('')
 const loading = ref(false)
@@ -31,7 +33,7 @@ async function runSearch(): Promise<void> {
   if (!text) return
   loading.value = true
   try {
-    const results = await gitService.search({ text, limit: 40 })
+    const results = await gitService.search({ text, limit: 40, graphScope: ui.graphScope })
     commits.value = results.commits
     files.value = results.files
   } finally {
