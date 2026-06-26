@@ -143,6 +143,25 @@
 .splitpanes--dragging .splitpanes__splitter {
   background: var(--color-accent-strong);
 }
+.splitpanes--horizontal > .splitpanes__splitter {
+  height: 1px;
+  background: var(--color-border);
+  position: relative;
+  transition: background 0.15s ease;
+}
+.splitpanes--horizontal > .splitpanes__splitter::before {
+  content: '';
+  position: absolute;
+  inset: -3px 0;
+  z-index: 10;
+}
+.splitpanes--horizontal > .splitpanes__splitter:hover,
+.splitpanes--horizontal.splitpanes--dragging > .splitpanes__splitter {
+  background: var(--color-accent-strong);
+}
+.working-tree-split.splitpanes--horizontal {
+  min-height: 0;
+}
 .splitpanes__pane {
   transition: none;
 }
@@ -155,4 +174,80 @@
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
+}
+
+/* Diff viewer syntax highlighting — tuned for the dark app theme. */
+.diff-view .hljs {
+  background: transparent;
+  color: inherit;
+  padding: 0;
+}
+
+.diff-view .diff-code.hljs .hljs-keyword,
+.diff-view .diff-code.hljs .hljs-selector-tag,
+.diff-view .diff-code.hljs .hljs-built_in {
+  color: #ff7b72;
+}
+
+.diff-view .diff-code.hljs .hljs-string,
+.diff-view .diff-code.hljs .hljs-attr,
+.diff-view .diff-code.hljs .hljs-attribute {
+  color: #a5d6ff;
+}
+
+.diff-view .diff-code.hljs .hljs-number,
+.diff-view .diff-code.hljs .hljs-literal {
+  color: #79c0ff;
+}
+
+.diff-view .diff-code.hljs .hljs-comment,
+.diff-view .diff-code.hljs .hljs-quote {
+  color: #8b949e;
+  font-style: italic;
+}
+
+.diff-view .diff-code.hljs .hljs-title,
+.diff-view .diff-code.hljs .hljs-title.function_,
+.diff-view .diff-code.hljs .hljs-function .hljs-title {
+  color: #d2a8ff;
+}
+
+.diff-view .diff-code.hljs .hljs-type,
+.diff-view .diff-code.hljs .hljs-class .hljs-title {
+  color: #ffa657;
+}
+
+.diff-view .diff-code.hljs .hljs-variable,
+.diff-view .diff-code.hljs .hljs-template-variable,
+.diff-view .diff-code.hljs .hljs-name {
+  color: #ffa657;
+}
+
+.diff-view .diff-code.hljs .hljs-meta,
+.diff-view .diff-code.hljs .hljs-meta .hljs-keyword {
+  color: #79c0ff;
+}
+
+.diff-view .diff-code.hljs .hljs-regexp {
+  color: #a5d6ff;
+}
+
+.diff-view .diff-code.hljs .hljs-symbol,
+.diff-view .diff-code.hljs .hljs-bullet {
+  color: #79c0ff;
+}
+
+.diff-view .diff-code.hljs .hljs-section,
+.diff-view .diff-code.hljs .hljs-selector-id {
+  color: #d2a8ff;
+  font-weight: 600;
+}
+
+.diff-view .diff-code.hljs .hljs-tag,
+.diff-view .diff-code.hljs .hljs-name {
+  color: #7ee787;
+}
+
+.diff-view .diff-code.hljs .hljs-subst {
+  color: var(--color-fg-muted);
 }

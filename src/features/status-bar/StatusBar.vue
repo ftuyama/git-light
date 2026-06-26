@@ -1,40 +1,20 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { ArrowDown, ArrowUp, GitBranch, GitCommitHorizontal, FolderGit2, Loader2, Square } from '@lucide/vue'
+import { GitCommitHorizontal, Loader2, Square } from '@lucide/vue'
+import { appVersion } from '@/lib/appVersion'
 import { useRepositoryStore } from '@/stores/repository'
 
 const repo = useRepositoryStore()
 
-const ahead = computed(() => repo.repository?.ahead ?? 0)
-const behind = computed(() => repo.repository?.behind ?? 0)
 const stagedCount = computed(() => repo.stagedFiles.length)
 const changedCount = computed(() => repo.workingTree.length)
-const remoteUrl = computed(() => repo.repository?.remoteUrl)
 </script>
 
 <template>
   <footer
     class="flex h-6 shrink-0 items-center gap-3 border-t border-[var(--color-border)] bg-[var(--color-panel)] px-3 text-[11px] text-[var(--color-fg-muted)]"
   >
-    <span class="flex items-center gap-1.5">
-      <FolderGit2 :size="12" class="text-[var(--color-fg-subtle)]" />
-      {{ repo.repository?.name ?? '—' }}
-    </span>
-    <span class="text-[var(--color-fg-subtle)]">git {{ repo.repository?.gitVersion ?? '—' }}</span>
-    <span v-if="remoteUrl" class="hidden max-w-[200px] truncate text-[var(--color-fg-subtle)] xl:inline" :title="remoteUrl">
-      {{ remoteUrl }}
-    </span>
-
-    <span class="h-3 w-px bg-[var(--color-border)]" />
-
-    <span class="flex items-center gap-1.5">
-      <GitBranch :size="12" />
-      {{ repo.currentBranch?.name ?? '—' }}
-    </span>
-    <span class="flex items-center gap-1.5 font-mono">
-      <span class="flex items-center"><ArrowUp :size="11" />{{ ahead }}</span>
-      <span class="flex items-center"><ArrowDown :size="11" />{{ behind }}</span>
-    </span>
+    <span class="shrink-0 text-[var(--color-fg-subtle)]">v{{ appVersion }}</span>
 
     <div class="flex-1" />
 

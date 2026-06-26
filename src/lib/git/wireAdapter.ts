@@ -79,6 +79,10 @@ function reviveRepository(w: WireRepository): Repository {
     headSha: w.headSha,
     remotes: w.remotes,
     state: w.state,
+    canUndo: w.canUndo,
+    canRedo: w.canRedo,
+    undoLabel: w.undoLabel,
+    redoLabel: w.redoLabel,
   }
 }
 
@@ -94,6 +98,7 @@ export function wireSnapshotToRepositoryData(
     worktrees: snapshot.worktrees.map(reviveWorktree),
     workingTree: snapshot.workingTree.map(reviveFile),
     authors: snapshot.authors.map(reviveAuthor),
+    commitAuthor: reviveAuthor(snapshot.commitAuthor),
     page: snapshot.page,
   }
 }

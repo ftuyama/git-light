@@ -17,13 +17,76 @@ import type { MenuItem } from '@/components/ui/menu'
 import { cn, laneColor } from '@/lib/utils'
 import type { Branch } from '@/types/git'
 import { useRepositoryStore } from '@/stores/repository'
+import {
+  branchDragState,
+  pendingBranchIntegrate,
+  readBranchDragPayload,
+  setBranchDragPayload,
+} from './useBranchDragDrop'
 
 const props = defineProps<{ branch: Branch; depth?: number }>()
 const repo = useRepositoryStore()
 
+const dragEnabled = computed(
+  () => !repo.branchSwitching && !repo.busyAction && !repo.inProgressOperation,
+)
+const isDragging = computed(() => branchDragState.draggingId === props.branch.id)
+const isDropTarget = computed(() => branchDragState.dropTargetId === props.branch.id)
+const canAcceptDrop = computed(
+  () =>
+    dragEnabled.value &&
+    branchDragState.draggingId != null &&
+    branchDragState.draggingId !== props.branch.id,
+)
+
+function findBranch(branchId: string): Branch | undefined {
+  return repo.branches.find((branch) => branch.id === branchId)
+}
+
+function onDragStart(event: DragEvent): void {
+  if (!dragEnabled.value || !event.dataTransfer) return
+  setBranchDragPayload(event.dataTransfer, props.branch.id)
+  branchDragState.draggingId = props.branch.id
+}
+
+function onDragEnd(): void {
+  branchDragState.draggingId = null
+  branchDragState.dropTargetId = null
+}
+
+function onDragOver(event: DragEvent): void {
+  if (!canAcceptDrop.value) return
+  event.preventDefault()
+  if (event.dataTransfer) event.dataTransfer.dropEffect = 'move'
+  branchDragState.dropTargetId = props.branch.id
+}
+
+function onDragLeave(): void {
+  if (branchDragState.dropTargetId === props.branch.id) {
+    branchDragState.dropTargetId = null
+  }
+}
+
+function onDrop(event: DragEvent): void {
+  event.preventDefault()
+  const sourceId = event.dataTransfer ? readBranchDragPayload(event.dataTransfer) : null
+  branchDragState.draggingId = null
+  branchDragState.dropTargetId = null
+  if (!sourceId || sourceId === props.branch.id) return
+
+  const source = findBranch(sourceId)
+  if (!source) return
+
+  pendingBranchIntegrate.value = { source, target: props.branch }
+}
+
 const dotColor = computed(() => laneColor(props.branch.laneColorIndex))
 const indent = computed(() => `${(props.depth ?? 0) * 14 + 24}px`)
 const isRemote = computed(() => props.branch.kind === 'remote')
+const displayName = computed(() => {
+  if (isRemote.value || !props.depth) return props.branch.name
+  return props.branch.name.split('/').slice(1).join('/')
+})
 
 const menu = computed<MenuItem[]>(() => {
   if (isRemote.value) {
@@ -74,9 +137,21 @@ const menu = computed<MenuItem[]>(() => {
 <template>
   <ContextMenu :items="menu">
     <div
-      class="group/branch focus-ring flex h-7 cursor-pointer items-center gap-2 rounded-md pr-1.5 text-[13px] transition-colors hover:bg-[var(--color-hover)]"
-      :class="branch.isCurrent ? 'bg-[var(--color-accent-soft)]' : ''"
+      class="app-no-drag group/branch focus-ring flex h-7 items-center gap-2 rounded-md pr-1.5 text-[13px] transition-colors hover:bg-[var(--color-hover)]"
+      :class="[
+        branch.isCurrent ? 'bg-[var(--color-accent-soft)]' : '',
+        isDragging ? 'opacity-40' : '',
+        isDropTarget ? 'ring-2 ring-[var(--color-accent)] ring-inset' : '',
+        dragEnabled ? 'cursor-grab active:cursor-grabbing' : 'cursor-pointer',
+      ]"
       :style="{ paddingLeft: indent }"
+      :draggable="dragEnabled"
+      :title="dragEnabled ? 'Drag onto another branch to merge or rebase' : undefined"
+      @dragstart="onDragStart"
+      @dragend="onDragEnd"
+      @dragover="onDragOver"
+      @dragleave="onDragLeave"
+      @drop="onDrop"
       @dblclick="isRemote ? repo.checkoutRemoteBranch(branch) : repo.checkoutBranch(branch.name)"
     >
       <Cloud v-if="isRemote" :size="12" class="shrink-0 text-[var(--color-fg-subtle)]" />
@@ -85,7 +160,7 @@ const menu = computed<MenuItem[]>(() => {
         class="flex-1 truncate"
         :class="branch.isCurrent ? 'font-semibold text-[var(--color-fg)]' : 'text-[var(--color-fg-muted)]'"
       >
-        {{ depth ? branch.name.split('/').slice(1).join('/') : branch.name }}
+        {{ displayName }}
       </span>
 
       <Check

@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
-import type { CommitPageInfo, DiffResult, OperationProgress, RecentRepository, SnapshotOptions, SnapshotScope } from '@shared/git/models'
+import type { CommitPageInfo, ConflictResult, DiffResult, OperationProgress, RecentRepository, SnapshotOptions, SnapshotScope } from '@shared/git/models'
 import type {
+  Author,
   Branch,
   Commit,
   GitAction,
@@ -12,6 +13,7 @@ import type {
   Worktree,
 } from '@/types/git'
 import { computeGraphLayout, type GraphLayout } from '@/lib/graph/computeGraphLayout'
+import { remapHeadLaneToLeft } from '@/lib/graph/remapHeadLaneLeft'
 import type { SnapshotRefreshOptions } from '@/lib/git/GitService'
 import { gitService } from '@/lib/git'
 import { isDestructiveAction } from '@/lib/git/destructive'
@@ -44,17 +46,27 @@ interface RepositoryState {
   commitMessage: string
   commitDescription: string
   signOff: boolean
+  amend: boolean
   recentRepos: RecentRepository[]
   selectedFilePath: string | null
+  /** Whether the selected file row is from the staged section (index diff). */
+  selectedFileStaged: boolean | null
   commitFiles: WorkingTreeFile[]
   commitFilesLoading: boolean
   diff: DiffResult | null
   diffLoading: boolean
+  conflict: ConflictResult | null
+  conflictLoading: boolean
   searchOpen: boolean
+  commitAuthor: Author | null
 }
 
 const EMPTY_LAYOUT: GraphLayout = { nodes: [], bands: [], maxLanes: 1 }
 const EMPTY_PAGE: CommitPageInfo = { oldestSha: null, hasMore: false, total: null }
+
+function buildGraphLayout(commits: Commit[], headCommitIndex: number): GraphLayout {
+  return remapHeadLaneToLeft(computeGraphLayout(commits), headCommitIndex)
+}
 
 let changeUnsub: (() => void) | null = null
 let progressUnsub: (() => void) | null = null
@@ -96,13 +108,18 @@ export const useRepositoryStore = defineStore('repository', {
     commitMessage: '',
     commitDescription: '',
     signOff: false,
+    amend: false,
     recentRepos: [],
     selectedFilePath: null,
+    selectedFileStaged: null,
     commitFiles: [],
     commitFilesLoading: false,
     diff: null,
     diffLoading: false,
+    conflict: null,
+    conflictLoading: false,
     searchOpen: false,
+    commitAuthor: null,
   }),
   getters: {
     localBranches: (state): Branch[] => state.branches.filter((b) => b.kind === 'local'),
@@ -114,8 +131,33 @@ export const useRepositoryStore = defineStore('repository', {
       state.workingTree.filter((f) => !f.staged && f.status !== 'conflicted'),
     conflictedFiles: (state): WorkingTreeFile[] =>
       state.workingTree.filter((f) => f.status === 'conflicted'),
+    hasPendingChanges(): boolean {
+      return (
+        this.unstagedFiles.length > 0 ||
+        this.stagedFiles.length > 0 ||
+        this.conflictedFiles.length > 0
+      )
+    },
+    headCommitIndex(state): number {
+      const headSha = state.repository?.headSha
+      if (headSha) {
+        const bySha = state.commits.findIndex((c) => c.sha === headSha)
+        if (bySha >= 0) return bySha
+      }
+      return state.commits.findIndex((c) => c.refs.some((r) => r.isHead))
+    },
+    selectedFileIsConflicted(state): boolean {
+      if (!state.selectedFilePath) return false
+      const file = state.workingTree.find((f) => f.path === state.selectedFilePath)
+      return file?.status === 'conflicted'
+    },
+    hasUnresolvedConflicts(): boolean {
+      return this.conflictedFiles.length > 0
+    },
     canCommit(state): boolean {
-      return state.commitMessage.trim().length > 0 && this.stagedFiles.length > 0
+      const hasMessage = state.commitMessage.trim().length > 0
+      if (state.amend) return hasMessage
+      return hasMessage && this.stagedFiles.length > 0
     },
     hasOpenRepo: (state): boolean => state.repository != null,
     repoState: (state) => state.repository?.state,
@@ -123,6 +165,30 @@ export const useRepositoryStore = defineStore('repository', {
       const s = state.repository?.state
       if (!s) return false
       return s.merging || s.rebasing || s.cherryPicking || s.reverting
+    },
+    canUndo(state): boolean {
+      return !!(
+        state.repository?.canUndo &&
+        !state.busyAction &&
+        !state.refreshing &&
+        !this.inProgressOperation
+      )
+    },
+    canRedo(state): boolean {
+      return !!(
+        state.repository?.canRedo &&
+        !state.busyAction &&
+        !state.refreshing &&
+        !this.inProgressOperation
+      )
+    },
+    undoTooltip(state): string {
+      const label = state.repository?.undoLabel
+      return label ? `Undo ${label}` : 'Undo'
+    },
+    redoTooltip(state): string {
+      const label = state.repository?.redoLabel
+      return label ? `Redo ${label}` : 'Redo'
     },
   },
   actions: {
@@ -179,8 +245,9 @@ export const useRepositoryStore = defineStore('repository', {
       this.stashes = data.stashes
       this.worktrees = data.worktrees
       this.workingTree = data.workingTree
+      this.commitAuthor = data.commitAuthor
       this.commitPage = page ?? gitService.commitPage ?? { ...EMPTY_PAGE }
-      this.layout = computeGraphLayout(this.commits)
+      this.layout = buildGraphLayout(this.commits, this.headCommitIndex)
     },
 
     async openRepository(path: string, options?: { silent?: boolean }): Promise<boolean> {
@@ -232,8 +299,10 @@ export const useRepositoryStore = defineStore('repository', {
       this.workingTree = []
       this.layout = EMPTY_LAYOUT
       this.selectedFilePath = null
+      this.selectedFileStaged = null
       this.commitFiles = []
       this.diff = null
+      this.conflict = null
       this.screen = 'startup'
       this.recentRepos = await gitService.recentRepos()
     },
@@ -257,7 +326,7 @@ export const useRepositoryStore = defineStore('repository', {
           if (scopes.includes('commits')) {
             this.commits = data.commits
             this.commitPage = gitService.commitPage ?? { ...EMPTY_PAGE }
-            this.layout = computeGraphLayout(this.commits)
+            this.layout = buildGraphLayout(this.commits, this.headCommitIndex)
           }
           if (scopes.includes('branches')) this.branches = data.branches
           if (scopes.includes('tags')) this.tags = data.tags
@@ -265,14 +334,39 @@ export const useRepositoryStore = defineStore('repository', {
           if (scopes.includes('worktrees')) this.worktrees = data.worktrees
           if (scopes.includes('status')) this.workingTree = data.workingTree
         }
-        if (this.selectedFilePath) void this.loadDiff(this.selectedFilePath)
+        if (this.selectedFilePath) {
+          if (this.selectedFileIsConflicted) void this.loadConflict(this.selectedFilePath)
+          else void this.loadDiff(this.selectedFilePath)
+        }
       } catch {
         /* no repo open */
       }
     },
 
     async loadMoreCommits(): Promise<void> {
-      /* pagination removed — graph loads a fixed recent window */
+      const oldestSha = this.commitPage.oldestSha
+      if (!oldestSha || !this.commitPage.hasMore || this.loadingMoreCommits) return
+
+      this.loadingMoreCommits = true
+      try {
+        const ui = useUiStore()
+        const result = await gitService.loadMoreCommits({
+          beforeSha: oldestSha,
+          limit: ui.clampedCommitGraphLimit,
+          graphScope: ui.graphScope,
+        })
+        if (result.commits.length === 0) {
+          this.commitPage = { ...this.commitPage, hasMore: false }
+          return
+        }
+        const existing = new Set(this.commits.map((c) => c.sha))
+        const newCommits = result.commits.filter((c) => !existing.has(c.sha))
+        this.commits = [...this.commits, ...newCommits]
+        this.commitPage = result.page
+        this.layout = buildGraphLayout(this.commits, this.headCommitIndex)
+      } finally {
+        this.loadingMoreCommits = false
+      }
     },
 
     async removeRecent(path: string): Promise<void> {
@@ -333,7 +427,7 @@ export const useRepositoryStore = defineStore('repository', {
       this.busyAction = action.kind
       this.operation = labelForOperation(action)
       this.branchSwitching = switchingBranch
-      this.canCancel = ['fetch', 'pull', 'push', 'force-push', 'sync', 'fetch-all'].includes(action.kind)
+      this.canCancel = ['fetch', 'pull', 'push', 'force-push', 'commit-and-force-push', 'sync', 'fetch-all'].includes(action.kind)
 
       const result = await gitService.execute(action)
 
@@ -348,6 +442,7 @@ export const useRepositoryStore = defineStore('repository', {
         if (switchingBranch) {
           useSelectionStore().select(this.commits[0]?.sha ?? null)
           this.selectedFilePath = null
+          this.selectedFileStaged = null
           this.diff = null
         }
       } else if (this.inProgressOperation) {
@@ -414,6 +509,48 @@ export const useRepositoryStore = defineStore('repository', {
       })
       if (!target) return
       await this.runAction({ kind: 'rebase', target })
+    },
+
+    async integrateBranches(
+      source: Branch,
+      target: Branch,
+      mode: 'merge' | 'rebase',
+    ): Promise<void> {
+      if (source.id === target.id) return
+
+      if (this.busyAction || this.inProgressOperation) {
+        useToastStore().push('Finish the current operation first', 'error')
+        return
+      }
+
+      if (mode === 'merge') {
+        if (!target.isCurrent) {
+          const switched = await this.checkoutBranchForIntegrate(target)
+          if (!switched) return
+        }
+        await this.runAction({ kind: 'merge', target: source.name })
+        return
+      }
+
+      if (!source.isCurrent) {
+        const switched = await this.checkoutBranchForIntegrate(source)
+        if (!switched) return
+      }
+      await this.runAction({ kind: 'rebase', target: target.name })
+    },
+
+    async checkoutBranchForIntegrate(branch: Branch): Promise<boolean> {
+      if (branch.kind === 'remote') {
+        const localName = branch.name.includes('/')
+          ? branch.name.split('/').slice(1).join('/')
+          : branch.name
+        return this.runAction({
+          kind: 'checkout',
+          target: localName,
+          meta: { remote: branch.remote },
+        })
+      }
+      return this.runAction({ kind: 'checkout', target: branch.name })
     },
 
     async cherryPickCommit(sha?: string): Promise<void> {
@@ -483,6 +620,11 @@ export const useRepositoryStore = defineStore('repository', {
       else if (s?.reverting) await this.runAction({ kind: 'revert-abort' }, { skipConfirm: true })
     },
 
+    async skipRebaseOperation(): Promise<void> {
+      if (!this.repoState?.rebasing) return
+      await this.runAction({ kind: 'rebase-skip' }, { skipConfirm: true })
+    },
+
     toggleFavorite(branchId: string): void {
       const branch = this.branches.find((b) => b.id === branchId)
       if (!branch || !this.repository) return
@@ -507,15 +649,30 @@ export const useRepositoryStore = defineStore('repository', {
       void this.runAction({ kind: file.staged ? 'unstage' : 'stage', target: file.path })
     },
 
-    selectFile(path: string | null): void {
+    selectFile(path: string | null, options?: { staged?: boolean }): void {
       this.selectedFilePath = path
-      if (path) void this.loadDiff(path)
-      else this.diff = null
+      if (path == null) {
+        this.selectedFileStaged = null
+      } else if (options?.staged !== undefined) {
+        this.selectedFileStaged = options.staged
+      } else {
+        const file = this.workingTree.find((f) => f.path === path)
+        this.selectedFileStaged = file?.staged ?? false
+      }
+      this.diff = null
+      this.conflict = null
+      if (!path) return
+      if (this.workingTree.find((f) => f.path === path)?.status === 'conflicted') {
+        void this.loadConflict(path)
+      } else {
+        void this.loadDiff(path)
+      }
     },
 
     async loadCommitFiles(sha: string): Promise<void> {
       this.commitFilesLoading = true
       this.selectedFilePath = null
+      this.selectedFileStaged = null
       this.diff = null
       try {
         this.commitFiles = await gitService.getCommitFiles(sha)
@@ -532,26 +689,80 @@ export const useRepositoryStore = defineStore('repository', {
       this.commitFiles = []
       this.commitFilesLoading = false
       this.selectedFilePath = null
+      this.selectedFileStaged = null
       this.diff = null
     },
 
     async loadDiff(path: string): Promise<void> {
-      const file = this.workingTree.find((f) => f.path === path)
       const commitSha = useSelectionStore().selectedSha
+      const viewingCommitFile =
+        Boolean(commitSha) && this.commitFiles.some((f) => f.path === path)
+      const staged =
+        this.selectedFileStaged ??
+        this.workingTree.find((f) => f.path === path && f.staged)?.staged ??
+        false
       this.diffLoading = true
+      this.conflict = null
       try {
         this.diff = await gitService.getDiff(
-          commitSha
-            ? { path, source: 'commit', sha: commitSha }
+          viewingCommitFile
+            ? { path, source: 'commit', sha: commitSha! }
             : {
                 path,
-                source: file?.staged ? 'index' : 'worktree',
+                source: staged ? 'index' : 'worktree',
               },
         )
       } catch {
         this.diff = null
       } finally {
         this.diffLoading = false
+      }
+    },
+
+    async loadConflict(path: string): Promise<void> {
+      this.conflictLoading = true
+      this.diff = null
+      try {
+        this.conflict = await gitService.getConflict({ path })
+      } catch {
+        this.conflict = null
+      } finally {
+        this.conflictLoading = false
+      }
+    },
+
+    async resolveConflictOurs(path: string): Promise<void> {
+      await this.runAction({ kind: 'resolve-conflict-ours', target: path }, { skipConfirm: true })
+      await this.afterConflictAction(path)
+    },
+
+    async resolveConflictTheirs(path: string): Promise<void> {
+      await this.runAction({ kind: 'resolve-conflict-theirs', target: path }, { skipConfirm: true })
+      await this.afterConflictAction(path)
+    },
+
+    async resolveConflictBlock(path: string, blockIndex: number, side: 'ours' | 'theirs'): Promise<void> {
+      await this.runAction(
+        { kind: 'resolve-conflict-block', target: path, meta: { blockIndex, side } },
+        { skipConfirm: true },
+      )
+      await this.afterConflictAction(path)
+    },
+
+    async markConflictResolved(path: string): Promise<void> {
+      await this.runAction({ kind: 'mark-conflict-resolved', target: path }, { skipConfirm: true })
+      await this.afterConflictAction(path)
+    },
+
+    async afterConflictAction(path: string): Promise<void> {
+      const stillConflicted = this.workingTree.some(
+        (f) => f.path === path && f.status === 'conflicted',
+      )
+      if (stillConflicted) {
+        await this.loadConflict(path)
+      } else if (this.selectedFilePath === path) {
+        this.conflict = null
+        await this.loadDiff(path)
       }
     },
 
@@ -563,18 +774,31 @@ export const useRepositoryStore = defineStore('repository', {
       void this.runAction({ kind: 'unstage-all' })
     },
 
-    async commit(thenPush = false): Promise<void> {
+    async commit(options: { thenPush?: boolean; forcePush?: boolean } = {}): Promise<void> {
       if (!this.canCommit) return
+      const { thenPush = false, forcePush = false } = options
+
+      let kind: GitAction['kind']
+      if (thenPush && forcePush) {
+        kind = 'commit-and-force-push'
+      } else if (thenPush) {
+        kind = 'commit-and-push'
+      } else {
+        kind = this.amend ? 'amend' : 'commit'
+      }
+
       await this.runAction({
-        kind: thenPush ? 'commit-and-push' : 'commit',
+        kind,
         meta: {
           message: this.commitMessage,
           body: this.commitDescription,
           signOff: this.signOff,
+          amend: this.amend,
         },
       })
       this.commitMessage = ''
       this.commitDescription = ''
+      this.amend = false
     },
 
     openSearch(): void {
@@ -610,6 +834,8 @@ function labelForOperation(action: GitAction): string | null {
       return 'Syncing...'
     case 'commit-and-push':
       return 'Committing and pushing...'
+    case 'commit-and-force-push':
+      return 'Committing and force-pushing...'
     case 'rebase':
     case 'interactive-rebase':
     case 'rebase-from-here':
@@ -634,10 +860,10 @@ function scopesForAction(kind: GitAction['kind']): SnapshotScope[] | undefined {
   if (kind.includes('branch') || kind === 'checkout' || kind === 'checkout-commit' || kind === 'checkout-tag') {
     return ['commits', 'branches', 'status']
   }
-  if (kind === 'commit' || kind === 'commit-and-push') {
+  if (kind === 'commit' || kind === 'amend' || kind === 'commit-and-push' || kind === 'commit-and-force-push') {
     return ['commits', 'status']
   }
-  if (kind.includes('stage') || kind === 'stash' || kind.includes('discard')) {
+  if (kind.includes('stage') || kind === 'stash' || kind.includes('discard') || kind.includes('conflict')) {
     return ['status']
   }
   if (kind === 'fetch' || kind === 'pull' || kind === 'push' || kind === 'sync' || kind === 'fetch-all') {
@@ -646,5 +872,6 @@ function scopesForAction(kind: GitAction['kind']): SnapshotScope[] | undefined {
   if (kind === 'create-tag' || kind === 'delete-tag' || kind === 'tag') return ['tags', 'commits']
   if (kind.includes('stash')) return ['stashes', 'status']
   if (kind === 'refresh') return undefined
+  if (kind === 'undo' || kind === 'redo') return ['commits', 'branches', 'status']
   return ['status', 'branches']
 }

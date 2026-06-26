@@ -1,6 +1,9 @@
 import { GitError } from '@shared/git/errors'
 import type {
   CommitPageInfo,
+  CommitPageRequest,
+  ConflictRequest,
+  ConflictResult,
   DiffRequest,
   DiffResult,
   OperationProgress,
@@ -11,9 +14,10 @@ import type {
   SnapshotOptions,
   SnapshotScope,
 } from '@shared/git/models'
+import type { RebaseCommitsRequest, RebaseCommitsResult } from '@shared/git/rebase'
 import type { ActionResult, GitAction, RepositoryData } from '@/types/git'
 import type { GitService, SnapshotRefreshOptions } from './GitService'
-import { wireSnapshotToRepositoryData, reviveWorkingTreeFile } from './wireAdapter'
+import { wireSnapshotToRepositoryData, reviveWorkingTreeFile, reviveCommits } from './wireAdapter'
 
 function envelopeToResult(envelope: {
   ok: boolean
@@ -112,8 +116,13 @@ export class IpcGitService implements GitService {
     return data
   }
 
-  async loadMoreCommits(): Promise<{ commits: RepositoryData['commits']; hasMore: boolean }> {
-    return { commits: [], hasMore: false }
+  async loadMoreCommits(request: CommitPageRequest): Promise<{
+    commits: RepositoryData['commits']
+    page: CommitPageInfo
+  }> {
+    const result = await window.electron.git.commitPage(request)
+    this.page = result.page
+    return { commits: reviveCommits(result.commits), page: result.page }
   }
 
   /** @deprecated Use openRepository / refreshSnapshot instead. */
@@ -130,6 +139,10 @@ export class IpcGitService implements GitService {
     return window.electron.git.diff(request)
   }
 
+  async getConflict(request: ConflictRequest): Promise<ConflictResult> {
+    return window.electron.git.conflict(request)
+  }
+
   async getCommitFiles(sha: string): Promise<RepositoryData['workingTree']> {
     const wire = await window.electron.git.commitFiles({ sha })
     return wire.map(reviveWorkingTreeFile)
@@ -137,6 +150,10 @@ export class IpcGitService implements GitService {
 
   async search(query: SearchQuery): Promise<SearchResults> {
     return window.electron.git.search(query)
+  }
+
+  async getRebaseCommits(request: RebaseCommitsRequest): Promise<RebaseCommitsResult> {
+    return window.electron.git.rebaseCommits(request)
   }
 
   async openTerminal(path?: string): Promise<boolean> {

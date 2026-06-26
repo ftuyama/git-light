@@ -13,9 +13,11 @@ Git Light is an Electron app that recreates GitKraken's main repository view and
 ## Features
 
 - **Real Git backend** — native `git` CLI in the Electron main process (renderer never shells out)
-- Commit graph with colored lanes, refs, infinite scroll, and keyboard navigation
-- Branch sidebar — favorites, local/remote branches, tags, stashes, worktrees
-- Working tree — stage/unstage, commit, conflict section, unified diff panel
+- Commit graph with colored lanes, refs, pending-changes row, infinite scroll, and keyboard navigation
+- Branch sidebar — favorites, local/remote branches, tags, stashes, worktrees; drag-and-drop merge/rebase
+- Working tree — flat or tree file list, stage/unstage (including patch hunks), commit, conflict resolution
+- Diff viewer — unified and split views with syntax highlighting and per-hunk stage buttons
+- Interactive rebase — reorder, squash, fixup, drop, and edit commits before starting
 - Toolbar — fetch, pull, push, merge, rebase, stash, cherry-pick, undo/redo, search
 - App preferences — panel layout, graph columns, sidebar sections, commit history limit
 - Startup screen with recent repositories and open-folder dialog
@@ -57,18 +59,22 @@ VITE_USE_MOCK=true npm run dev
 | `npm run dev` | Start Electron + Vite dev server |
 | `npm run build` | Production build |
 | `npm run typecheck` | TypeScript check |
-| `npm run test` | Unit tests (graph layout, parsers, ref labels) |
+| `npm run test` | Unit tests (graph layout, parsers, rebase, conflicts, undo) |
 
 ## What works today
 
 | Area | Status |
 |------|--------|
 | Open local repositories | ✅ |
-| Commit graph + pagination | ✅ |
+| Commit graph + pagination + pending changes row | ✅ |
 | Stage / commit / branch ops | ✅ |
 | Fetch / pull / push / sync | ✅ |
-| Merge / rebase / cherry-pick (with continue/abort banner) | ✅ |
-| Diff viewer (unified) | ✅ |
+| Merge / rebase / interactive rebase / cherry-pick (with continue/abort banner) | ✅ |
+| Diff viewer (unified + split, patch staging, syntax highlighting) | ✅ |
+| Merge conflict resolution (ours/theirs/per-block) | ✅ |
+| Branch drag-and-drop merge/rebase | ✅ |
+| Undo / redo (reflog-backed) | ✅ |
+| Open on GitHub (from remote URL) | ✅ |
 | Commit & file search | ✅ |
 | App preferences (layout, graph, sidebar) | ✅ |
 | Clone / hosting auth UI | ❌ Not yet |

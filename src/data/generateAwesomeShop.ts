@@ -425,5 +425,6 @@ export function generateAwesomeShop(commitCount = 400): RepositoryData {
     worktrees,
     workingTree,
     authors,
+    commitAuthor: authors[0]!,
   }
 }

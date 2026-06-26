@@ -1,22 +1,39 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { ChevronDown, ShieldCheck } from '@lucide/vue'
+import { ChevronDown } from '@lucide/vue'
 import { storeToRefs } from 'pinia'
 import GkButton from '@/components/ui/GkButton.vue'
 import DropdownMenu from '@/components/ui/DropdownMenu.vue'
-import Avatar from '@/components/ui/Avatar.vue'
 import Checkbox from '@/components/ui/Checkbox.vue'
 import type { MenuItem } from '@/components/ui/menu'
 import { useRepositoryStore } from '@/stores/repository'
 
 const repo = useRepositoryStore()
-const { commitMessage, commitDescription, signOff } = storeToRefs(repo)
+const { commitMessage, commitDescription, amend } = storeToRefs(repo)
 
-const author = computed(() => repo.commits[0]?.author)
+const commitBusy = computed(
+  () =>
+    repo.busyAction === 'commit' ||
+    repo.busyAction === 'amend' ||
+    repo.busyAction === 'commit-and-push' ||
+    repo.busyAction === 'commit-and-force-push',
+)
+
+const stagedCount = computed(() => repo.stagedFiles.length)
+
+const commitButtonLabel = computed(() => {
+  const fileLabel = stagedCount.value === 1 ? 'File' : 'Files'
+  const prefix = amend.value ? 'Amend Changes to' : 'Commit Changes to'
+  return `${prefix} ${stagedCount.value} ${fileLabel}`
+})
 
 const pushMenu = computed<MenuItem[]>(() => [
-  { label: 'Commit & Push', onSelect: () => repo.commit(true) },
-  { label: 'Commit & Force Push', danger: true, onSelect: () => repo.commit(true) },
+  { label: 'Commit & Push', onSelect: () => repo.commit({ thenPush: true }) },
+  {
+    label: 'Commit & Force Push',
+    danger: true,
+    onSelect: () => repo.commit({ thenPush: true, forcePush: true }),
+  },
 ])
 </script>
 
@@ -37,28 +54,17 @@ const pushMenu = computed<MenuItem[]>(() => [
         placeholder="Description"
         rows="2"
         spellcheck="false"
-        class="w-full resize-none bg-transparent px-3 pb-2.5 text-[13px] text-[var(--color-fg-muted)] placeholder:text-[var(--color-fg-subtle)] focus:outline-none"
+        class="w-full resize-none bg-transparent px-3 pb-3 text-[13px] text-[var(--color-fg-muted)] placeholder:text-[var(--color-fg-subtle)] focus:outline-none"
       />
-    </div>
-
-    <div class="mt-2.5 flex items-center gap-2 text-[12px] text-[var(--color-fg-muted)]">
-      <Avatar v-if="author" :author="author" :size="18" />
-      <span class="truncate">{{ author?.name ?? 'You' }}</span>
-      <span
-        class="ml-auto flex items-center gap-1 rounded bg-[var(--color-success)]/15 px-1.5 py-0.5 text-[10px] font-semibold text-[var(--color-success)]"
-        title="GPG signature verified"
-      >
-        <ShieldCheck :size="12" /> GPG
-      </span>
     </div>
 
     <label class="mt-2 flex items-center gap-2 text-[12px] text-[var(--color-fg-muted)]">
       <Checkbox
-        :model-value="signOff"
-        aria-label="Add sign-off"
-        @update:model-value="(value) => (signOff = value)"
+        :model-value="amend"
+        aria-label="Amend previous commit"
+        @update:model-value="(value) => (amend = value)"
       />
-      Add Signed-off-by trailer
+      Amend previous commit
     </label>
 
     <div class="mt-2.5 flex gap-1.5">
@@ -66,10 +72,10 @@ const pushMenu = computed<MenuItem[]>(() => [
         variant="primary"
         block
         :disabled="!repo.canCommit"
-        :busy="repo.busyAction === 'commit'"
-        @click="repo.commit(false)"
+        :busy="commitBusy"
+        @click="repo.commit()"
       >
-        Commit to {{ repo.currentBranch?.name ?? 'branch' }}
+        {{ commitButtonLabel }}
       </GkButton>
       <DropdownMenu :items="pushMenu" align="end" side="top">
         <button

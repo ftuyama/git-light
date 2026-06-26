@@ -68,4 +68,13 @@ describe('parseCommitFiles', () => {
       deletions: 3,
     })
   })
+
+  it('deduplicates paths from merge -m output', () => {
+    const nameStatus = 'M\0src/foo.ts\0M\0src/foo.ts\0'
+    const numstat = '10\t5\tsrc/foo.ts\0' + '3\t1\tsrc/foo.ts\0'
+    const files = parseCommitFiles(nameStatus, numstat)
+
+    expect(files).toHaveLength(1)
+    expect(files[0]?.path).toBe('src/foo.ts')
+  })
 })

@@ -1,10 +1,12 @@
 import type { Commit } from '@/types/git'
 import { laneColor } from '@/lib/utils'
+import type { GraphEdgeKind } from './graphEdgePath'
 
 export interface GraphEdge {
   fromLane: number
   toLane: number
   color: string
+  kind: GraphEdgeKind
 }
 
 export interface GraphNode {
@@ -84,21 +86,46 @@ export function computeGraphLayout(commits: Commit[]): GraphLayout {
   const bands: GraphEdge[][] = Array.from({ length: n }, () => [])
   const seen: Set<string>[] = Array.from({ length: n }, () => new Set())
 
-  const pushEdge = (band: number, fromLane: number, toLane: number): void => {
+  const pushEdge = (
+    band: number,
+    fromLane: number,
+    toLane: number,
+    kind: GraphEdgeKind,
+  ): void => {
     const key = `${fromLane}>${toLane}`
     if (seen[band].has(key)) return
     seen[band].add(key)
-    bands[band].push({ fromLane, toLane, color: laneColor(toLane) })
+    bands[band].push({ fromLane, toLane, color: laneColor(toLane), kind })
   }
 
   for (let i = 0; i < n; i++) {
     const lc = nodes[i].lane
-    for (const parent of commits[i].parents) {
+    const commit = commits[i]
+    for (let pi = 0; pi < commit.parents.length; pi++) {
+      const parent = commit.parents[pi]
       const rp = rowOf.get(parent)
       if (rp === undefined) continue
       const lp = laneOf.get(parent)!
-      pushEdge(i, lc, lp)
-      for (let r = i + 1; r < rp; r++) pushEdge(r, lp, lp)
+
+      let kind: GraphEdgeKind = 'straight'
+      if (lc !== lp) {
+        if (commit.isMerge && pi > 0) {
+          kind = 'merge'
+        } else if (lp < lc) {
+          kind = 'converge'
+        } else {
+          kind = 'laneChange'
+        }
+      }
+
+      // Branch forks are straight vertical rails; only merge commits get a rectangular connector.
+      if (kind === 'laneChange') continue
+
+      pushEdge(i, lc, lp, kind)
+      if (kind === 'merge') {
+        pushEdge(i, lp, lp, 'straight')
+      }
+      for (let r = i + 1; r < rp; r++) pushEdge(r, lp, lp, 'straight')
     }
   }
 

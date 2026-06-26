@@ -12,6 +12,8 @@ export interface RunOptions {
   env?: Record<string, string>
   /** Max stdout buffer in bytes (default 200 MB for large logs/diffs). */
   maxBuffer?: number
+  /** UTF-8 payload written to stdin before the process closes. */
+  input?: string
 }
 
 export interface RunResult {
@@ -46,8 +48,19 @@ export class GitCliProvider {
 
   /** Buffered invocation. Throws a typed {@link GitError} on failure. */
   run(args: string[], options: RunOptions): Promise<RunResult> {
-    const { cwd, signal, allowFailure, timeout, env, maxBuffer } = options
+    const { cwd, signal, allowFailure, timeout, env, maxBuffer, input } = options
     const fullArgs = [...this.baseArgs(), ...args]
+
+    if (input !== undefined) {
+      return this.runWithStdin(fullArgs, input, {
+        cwd,
+        signal,
+        allowFailure,
+        timeout,
+        env,
+        maxBuffer,
+      })
+    }
 
     return new Promise<RunResult>((resolve, reject) => {
       execFile(
@@ -95,6 +108,73 @@ export class GitCliProvider {
           reject(classifyGitError(err || out, exitCode))
         },
       )
+    })
+  }
+
+  private runWithStdin(
+    fullArgs: string[],
+    stdin: string,
+    options: Omit<RunOptions, 'input'>,
+  ): Promise<RunResult> {
+    const { cwd, signal, allowFailure, timeout, env } = options
+
+    return new Promise<RunResult>((resolve, reject) => {
+      const child = spawn('git', fullArgs, {
+        cwd,
+        signal,
+        env: this.childEnv(env),
+        windowsHide: true,
+      })
+
+      let stdout = ''
+      let stderr = ''
+      let timedOut = false
+
+      const timer =
+        timeout === 0
+          ? null
+          : setTimeout(() => {
+              timedOut = true
+              child.kill()
+            }, timeout ?? DEFAULT_TIMEOUT)
+
+      child.stdout?.on('data', (chunk: Buffer) => {
+        stdout += chunk.toString('utf8')
+      })
+      child.stderr?.on('data', (chunk: Buffer) => {
+        stderr += chunk.toString('utf8')
+      })
+
+      child.on('error', (error: NodeJS.ErrnoException) => {
+        if (timer) clearTimeout(timer)
+        if (error.code === 'ABORT_ERR' || signal?.aborted) {
+          reject(new GitError('Cancelled', 'The operation was cancelled.'))
+        } else if (error.code === 'ENOENT') {
+          reject(new GitError('Unknown', 'Git is not installed or not on PATH.'))
+        } else {
+          reject(new GitError('Unknown', error.message))
+        }
+      })
+
+      child.on('close', (code) => {
+        if (timer) clearTimeout(timer)
+        if (signal?.aborted) {
+          reject(new GitError('Cancelled', 'The operation was cancelled.'))
+          return
+        }
+        if (timedOut) {
+          reject(new GitError('Unknown', 'Git command timed out.'))
+          return
+        }
+        if (code === 0 || allowFailure) {
+          resolve({ stdout, stderr, exitCode: code })
+        } else {
+          reject(classifyGitError(stderr || stdout, code))
+        }
+      })
+
+      child.stdin?.write(stdin)
+      child.stdin?.end()
     })
   }
 

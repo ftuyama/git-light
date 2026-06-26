@@ -7,6 +7,7 @@ import {
   ExternalLink,
   GitBranch,
   GitMerge,
+  ListTree,
   RotateCcw,
   Spline,
   Tag as TagIcon,
@@ -18,8 +19,10 @@ import RefChip from './RefChip.vue'
 import type { MenuItem } from '@/components/ui/menu'
 import { relativeTime } from '@/lib/format'
 import { formatRefLabel } from '@shared/git/refLabel'
+import { githubCommitUrl } from '@shared/git/githubUrl'
 import type { Commit, Ref } from '@/types/git'
 import { useRepositoryStore } from '@/stores/repository'
+import { useInteractiveRebaseStore } from '@/stores/interactiveRebase'
 import { useToastStore } from '@/stores/toast'
 import { useUiStore } from '@/stores/ui'
 import { storeToRefs } from 'pinia'
@@ -34,6 +37,7 @@ const props = defineProps<{
 }>()
 
 const repo = useRepositoryStore()
+const interactiveRebase = useInteractiveRebaseStore()
 const toast = useToastStore()
 const ui = useUiStore()
 const { columnWidths } = storeToRefs(ui)
@@ -89,7 +93,7 @@ const showConnector = computed(
     (primaryRef.value.type === 'localBranch' || primaryRef.value.type === 'remoteBranch'),
 )
 
-const connectorStyle = computed((): Record<string, string> | null => {
+const connectorColor = computed((): Record<string, string> | null => {
   if (!showConnector.value || !graphNode.value) return null
   return {
     backgroundColor: isCurrentBranchRef.value
@@ -98,19 +102,15 @@ const connectorStyle = computed((): Record<string, string> | null => {
   }
 })
 
-const graphConnectorWidth = computed(() =>
-  Math.max(0, Math.round(props.nodeX - props.nodeSize / 2)),
-)
+const REFS_RIGHT_PADDING = 8
 
-// Refs column uses gap-1 after the chip and px-2 right padding before the graph column.
-const REFS_CONNECTOR_OVERLAP = 12
-
-const fullConnectorStyle = computed((): Record<string, string> | null => {
-  if (!connectorStyle.value) return null
+const connectorStyle = computed((): Record<string, string> | null => {
+  if (!connectorColor.value) return null
+  const toNode = REFS_RIGHT_PADDING + props.nodeX - props.nodeSize / 2
+  const width = Math.max(0, Math.min(toNode, props.graphWidth + REFS_RIGHT_PADDING))
   return {
-    ...connectorStyle.value,
-    width: `${graphConnectorWidth.value + REFS_CONNECTOR_OVERLAP}px`,
-    marginLeft: `-${REFS_CONNECTOR_OVERLAP}px`,
+    ...connectorColor.value,
+    width: `${width}px`,
   }
 })
 
@@ -122,6 +122,7 @@ const menu = computed<MenuItem[]>(() => [
   { label: 'Cherry Pick', icon: Cherry, onSelect: () => act('cherry-pick') },
   { label: 'Merge into Current', icon: GitMerge, onSelect: () => act('merge') },
   { label: 'Rebase From Here', icon: Spline, onSelect: () => act('rebase-from-here') },
+  { label: 'Interactive Rebase From Here', icon: ListTree, onSelect: () => interactiveRebase.open(props.commit.sha) },
   {
     label: 'Reset Current Branch to Here',
     icon: RotateCcw,
@@ -146,9 +147,13 @@ function copySha(): void {
 }
 
 function openOnGithub(): void {
-  void window.electron?.openExternal(
-    `https://github.com/awesome-co/awesome-shop/commit/${props.commit.sha}`,
-  )
+  const remoteUrl = repo.repository?.remoteUrl ?? ''
+  const url = githubCommitUrl(remoteUrl, props.commit.sha)
+  if (!url) {
+    toast.push('No GitHub remote configured for this repository', 'error')
+    return
+  }
+  void window.electron?.openExternal(url)
   toast.push('Opening commit on GitHub', 'info')
 }
 </script>
@@ -161,7 +166,15 @@ function openOnGithub(): void {
         :style="{ width: `${columnWidths.refs}px` }"
       >
         <template v-if="primaryRef">
-          <RefChip class="min-w-0 flex-1 overflow-hidden" :ref-data="primaryRef" :color="chipColor" />
+          <div class="relative min-w-0 flex-1">
+            <RefChip class="min-w-0 overflow-hidden" :ref-data="primaryRef" :color="chipColor" />
+            <div
+              v-if="connectorStyle"
+              class="pointer-events-none absolute top-1/2 z-10 h-[2px] -translate-y-1/2"
+              :class="isCurrentBranchRef ? 'opacity-90' : 'opacity-40'"
+              :style="{ left: '100%', ...connectorStyle }"
+            />
+          </div>
           <span
             v-if="hiddenCount"
             class="absolute top-1/2 right-1 shrink-0 -translate-y-1/2 rounded px-0.5 text-[10px] text-[var(--color-fg-subtle)] group-hover/refs:text-[var(--color-fg-muted)]"
@@ -181,14 +194,7 @@ function openOnGithub(): void {
         class="relative z-0 flex shrink-0 items-center"
         :style="{ width: `${graphWidth}px`, height: `${rowHeight}px` }"
         aria-hidden="true"
-      >
-        <div
-          v-if="fullConnectorStyle"
-          class="relative z-0 h-[2px]"
-          :class="isCurrentBranchRef ? 'opacity-90' : 'opacity-40'"
-          :style="fullConnectorStyle"
-        />
-      </div>
+      />
 
       <div
         class="relative flex shrink-0 items-center gap-2 px-2"

@@ -1,9 +1,12 @@
 import type { GitAction } from './actions'
+import type { RebaseCommitsRequest, RebaseCommitsResult } from './rebase'
 import type {
   ActionEnvelope,
   CommitFilesRequest,
   CommitPageRequest,
   CommitPageResult,
+  ConflictRequest,
+  ConflictResult,
   DiffRequest,
   DiffResult,
   OpenRepoResult,
@@ -24,8 +27,10 @@ export const IpcChannels = {
   commitPage: 'git:commit-page',
   action: 'git:action',
   diff: 'git:diff',
+  conflict: 'git:conflict',
   commitFiles: 'git:commit-files',
   search: 'git:search',
+  rebaseCommits: 'git:rebase-commits',
   cancel: 'git:cancel',
   recentRepos: 'git:recent-repos',
   removeRecent: 'git:remove-recent',
@@ -45,8 +50,10 @@ export interface IpcContract {
   [IpcChannels.commitPage]: [CommitPageRequest, CommitPageResult]
   [IpcChannels.action]: [GitAction, ActionEnvelope]
   [IpcChannels.diff]: [DiffRequest, DiffResult]
+  [IpcChannels.conflict]: [ConflictRequest, ConflictResult]
   [IpcChannels.commitFiles]: [CommitFilesRequest, WireWorkingTreeFile[]]
   [IpcChannels.search]: [SearchQuery, SearchResults]
+  [IpcChannels.rebaseCommits]: [RebaseCommitsRequest, RebaseCommitsResult]
   [IpcChannels.cancel]: [void, void]
   [IpcChannels.recentRepos]: [void, RecentRepository[]]
   [IpcChannels.removeRecent]: [{ path: string }, RecentRepository[]]

@@ -69,10 +69,18 @@ export type GitActionKind =
   | 'unstage-all'
   | 'discard-file'
   | 'discard-all'
+  | 'stage-patch'
+  | 'unstage-patch'
+  // Merge conflicts
+  | 'resolve-conflict-ours'
+  | 'resolve-conflict-theirs'
+  | 'resolve-conflict-block'
+  | 'mark-conflict-resolved'
   // Commit
   | 'commit'
   | 'amend'
   | 'commit-and-push'
+  | 'commit-and-force-push'
 
 export interface GitAction {
   kind: GitActionKind

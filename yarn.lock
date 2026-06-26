@@ -1990,6 +1990,11 @@ hey-listen@^1.0.8:
   resolved "https://registry.npmjs.org/hey-listen/-/hey-listen-1.0.8.tgz"
   integrity sha512-COpmrF2NOg4TBWUJ5UVyaCU2A88wEMkUPK4hNqyCkqHbxT92BbvfjoSozkAIIm6XhicGlJHhFdullInrdhwU8Q==
 
+highlight.js@^11.11.1:
+  version "11.11.1"
+  resolved "https://registry.npmjs.org/highlight.js/-/highlight.js-11.11.1.tgz"
+  integrity sha512-Xwwo44whKBVCYoliBQwaPvtd/2tYFkRQtXDWj1nackaV2JPXx3L0+Jvd8/qCJ2p+ML0/XVkJ2q+Mr+UVdpJK5w==
+
 hookable@^5.5.3:
   version "5.5.3"
   resolved "https://registry.npmjs.org/hookable/-/hookable-5.5.3.tgz"

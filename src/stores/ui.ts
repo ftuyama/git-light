@@ -3,6 +3,7 @@ import type { GraphScope } from '@shared/git/models'
 import {
   clampCommitGraphLimit,
   clampColumnWidth,
+  clampWorkingTreeChangesSize,
   DEFAULT_COLUMNS,
   DEFAULT_COLUMN_WIDTHS,
   DEFAULT_SECTIONS,
@@ -11,6 +12,8 @@ import {
   PREFERENCES_KEY,
   type CommitColumnKey,
   type CommitColumnWidthKey,
+  type DiffViewMode,
+  type FileListView,
   type UserPreferences,
 } from '@/lib/preferences'
 
@@ -49,6 +52,7 @@ function writePersisted(state: UserPreferences): void {
 function snapshot(state: {
   leftSize: number
   rightSize: number
+  workingTreeChangesSize: number
   leftCollapsed: boolean
   rightCollapsed: boolean
   sections: Record<string, boolean>
@@ -56,11 +60,14 @@ function snapshot(state: {
   columnWidths: UserPreferences['columnWidths']
   graphScopeAll: boolean
   commitGraphLimit: number
+  fileListView: FileListView
   lastRepositoryPath: string | null
+  diffViewMode: DiffViewMode
 }): UserPreferences {
   return {
     leftSize: state.leftSize,
     rightSize: state.rightSize,
+    workingTreeChangesSize: state.workingTreeChangesSize,
     leftCollapsed: state.leftCollapsed,
     rightCollapsed: state.rightCollapsed,
     sections: state.sections,
@@ -68,7 +75,9 @@ function snapshot(state: {
     columnWidths: state.columnWidths,
     graphScopeAll: state.graphScopeAll,
     commitGraphLimit: state.commitGraphLimit,
+    fileListView: state.fileListView,
     lastRepositoryPath: state.lastRepositoryPath,
+    diffViewMode: state.diffViewMode,
   }
 }
 
@@ -76,6 +85,7 @@ export const useUiStore = defineStore('ui', {
   state: () => ({
     leftSize: 18,
     rightSize: 24,
+    workingTreeChangesSize: defaultPreferences().workingTreeChangesSize,
     leftCollapsed: false,
     rightCollapsed: false,
     sections: { ...DEFAULT_SECTIONS },
@@ -83,7 +93,9 @@ export const useUiStore = defineStore('ui', {
     columnWidths: { ...DEFAULT_COLUMN_WIDTHS },
     graphScopeAll: true,
     commitGraphLimit: defaultPreferences().commitGraphLimit,
+    fileListView: 'path' as FileListView,
     lastRepositoryPath: null as string | null,
+    diffViewMode: 'unified' as DiffViewMode,
     commandPaletteOpen: false,
     settingsOpen: false,
   }),
@@ -100,6 +112,7 @@ export const useUiStore = defineStore('ui', {
       const saved = mergePreferences(await readPersisted())
       this.leftSize = saved.leftSize
       this.rightSize = saved.rightSize
+      this.workingTreeChangesSize = saved.workingTreeChangesSize
       this.leftCollapsed = saved.leftCollapsed
       this.rightCollapsed = saved.rightCollapsed
       this.sections = saved.sections
@@ -107,7 +120,9 @@ export const useUiStore = defineStore('ui', {
       this.columnWidths = saved.columnWidths
       this.graphScopeAll = saved.graphScopeAll
       this.commitGraphLimit = saved.commitGraphLimit
+      this.fileListView = saved.fileListView
       this.lastRepositoryPath = saved.lastRepositoryPath
+      this.diffViewMode = saved.diffViewMode
       let timer: ReturnType<typeof setTimeout> | undefined
       this.$subscribe(() => {
         clearTimeout(timer)
@@ -116,6 +131,7 @@ export const useUiStore = defineStore('ui', {
             snapshot({
               leftSize: this.leftSize,
               rightSize: this.rightSize,
+              workingTreeChangesSize: this.workingTreeChangesSize,
               leftCollapsed: this.leftCollapsed,
               rightCollapsed: this.rightCollapsed,
               sections: this.sections,
@@ -123,7 +139,9 @@ export const useUiStore = defineStore('ui', {
               columnWidths: this.columnWidths,
               graphScopeAll: this.graphScopeAll,
               commitGraphLimit: this.clampedCommitGraphLimit,
+              fileListView: this.fileListView,
               lastRepositoryPath: this.lastRepositoryPath,
+              diffViewMode: this.diffViewMode,
             }),
           )
         }, 200)
@@ -134,6 +152,9 @@ export const useUiStore = defineStore('ui', {
     },
     setRightSize(size: number): void {
       this.rightSize = size
+    },
+    setWorkingTreeChangesSize(size: number): void {
+      this.workingTreeChangesSize = clampWorkingTreeChangesSize(size)
     },
     toggleLeft(): void {
       this.leftCollapsed = !this.leftCollapsed
@@ -183,10 +204,17 @@ export const useUiStore = defineStore('ui', {
     setLastRepositoryPath(path: string | null): void {
       this.lastRepositoryPath = path
     },
+    setDiffViewMode(mode: DiffViewMode): void {
+      this.diffViewMode = mode
+    },
+    setFileListView(view: FileListView): void {
+      this.fileListView = view
+    },
     resetLayout(): void {
       const d = defaultPreferences()
       this.leftSize = d.leftSize
       this.rightSize = d.rightSize
+      this.workingTreeChangesSize = d.workingTreeChangesSize
       this.leftCollapsed = d.leftCollapsed
       this.rightCollapsed = d.rightCollapsed
     },

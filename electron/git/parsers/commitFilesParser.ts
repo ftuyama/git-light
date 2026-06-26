@@ -50,6 +50,14 @@ export function parseCommitFiles(
 
     const { fileName, directory } = splitPath(path)
     const counts = numstat.get(path) ?? { additions: 0, deletions: 0 }
+    const existing = files.find((f) => f.path === path)
+    if (existing) {
+      existing.additions = Math.max(existing.additions, counts.additions)
+      existing.deletions = Math.max(existing.deletions, counts.deletions)
+      if (!existing.oldPath && oldPath) existing.oldPath = oldPath
+      continue
+    }
+
     files.push({
       id: `commit-${id++}`,
       path,

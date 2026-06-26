@@ -1,6 +1,6 @@
 {
   "name": "git-light",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "GitKraken-style Git client UI shell built with Electron, Vue 3, and TypeScript.",
   "author": "Git Light",
   "license": "MIT",
@@ -40,6 +40,7 @@
     "clsx": "^2.1.1",
     "date-fns": "^4.4.0",
     "electron-store": "^8.2.0",
+    "highlight.js": "^11.11.1",
     "motion-v": "^2.3.0",
     "pinia": "^3.0.4",
     "pinia-plugin-persistedstate": "^4.7.1",

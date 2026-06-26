@@ -1,5 +1,7 @@
 export type CommitColumnKey = 'author' | 'sha' | 'when'
 
+export type FileListView = 'path' | 'tree'
+
 export const COLUMN_LABELS: Record<CommitColumnKey, string> = {
   author: 'Author',
   sha: 'SHA',
@@ -40,9 +42,23 @@ export function clampCommitGraphLimit(value: number): number {
   return Math.min(COMMIT_GRAPH_LIMIT_MAX, Math.max(COMMIT_GRAPH_LIMIT_MIN, Math.round(value)))
 }
 
+export type DiffViewMode = 'unified' | 'split'
+
+export const WORKING_TREE_CHANGES_SIZE_MIN = 20
+export const WORKING_TREE_CHANGES_SIZE_MAX = 80
+export const DEFAULT_WORKING_TREE_CHANGES_SIZE = 62
+
+export function clampWorkingTreeChangesSize(value: number): number {
+  return Math.min(
+    WORKING_TREE_CHANGES_SIZE_MAX,
+    Math.max(WORKING_TREE_CHANGES_SIZE_MIN, Math.round(value)),
+  )
+}
+
 export interface UserPreferences {
   leftSize: number
   rightSize: number
+  workingTreeChangesSize: number
   leftCollapsed: boolean
   rightCollapsed: boolean
   sections: Record<string, boolean>
@@ -50,7 +66,9 @@ export interface UserPreferences {
   columnWidths: CommitColumnWidths
   graphScopeAll: boolean
   commitGraphLimit: number
+  fileListView: FileListView
   lastRepositoryPath: string | null
+  diffViewMode: DiffViewMode
 }
 
 export const PREFERENCES_KEY = 'git-light:preferences'
@@ -107,6 +125,7 @@ export function defaultPreferences(): UserPreferences {
   return {
     leftSize: 18,
     rightSize: 24,
+    workingTreeChangesSize: DEFAULT_WORKING_TREE_CHANGES_SIZE,
     leftCollapsed: false,
     rightCollapsed: false,
     sections: { ...DEFAULT_SECTIONS },
@@ -114,7 +133,9 @@ export function defaultPreferences(): UserPreferences {
     columnWidths: { ...DEFAULT_COLUMN_WIDTHS },
     graphScopeAll: true,
     commitGraphLimit: DEFAULT_COMMIT_GRAPH_LIMIT,
+    fileListView: 'path',
     lastRepositoryPath: null,
+    diffViewMode: 'unified',
   }
 }
 
@@ -124,6 +145,9 @@ export function mergePreferences(saved: Partial<UserPreferences> | null): UserPr
   return {
     leftSize: saved.leftSize ?? defaults.leftSize,
     rightSize: saved.rightSize ?? defaults.rightSize,
+    workingTreeChangesSize: clampWorkingTreeChangesSize(
+      saved.workingTreeChangesSize ?? defaults.workingTreeChangesSize,
+    ),
     leftCollapsed: saved.leftCollapsed ?? defaults.leftCollapsed,
     rightCollapsed: saved.rightCollapsed ?? defaults.rightCollapsed,
     sections: { ...DEFAULT_SECTIONS, ...(saved.sections ?? {}) },
@@ -131,6 +155,8 @@ export function mergePreferences(saved: Partial<UserPreferences> | null): UserPr
     columnWidths: { ...DEFAULT_COLUMN_WIDTHS, ...(saved.columnWidths ?? {}) },
     graphScopeAll: saved.graphScopeAll ?? defaults.graphScopeAll,
     commitGraphLimit: clampCommitGraphLimit(saved.commitGraphLimit ?? defaults.commitGraphLimit),
+    fileListView: saved.fileListView ?? defaults.fileListView,
     lastRepositoryPath: saved.lastRepositoryPath ?? defaults.lastRepositoryPath,
+    diffViewMode: saved.diffViewMode === 'split' ? 'split' : 'unified',
   }
 }

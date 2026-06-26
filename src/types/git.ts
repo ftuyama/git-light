@@ -121,6 +121,10 @@ export interface Repository {
   headSha?: string
   remotes?: Remote[]
   state?: RepoState
+  canUndo?: boolean
+  canRedo?: boolean
+  undoLabel?: string | null
+  redoLabel?: string | null
 }
 
 export interface RepositoryData {
@@ -132,6 +136,8 @@ export interface RepositoryData {
   worktrees: Worktree[]
   workingTree: WorkingTreeFile[]
   authors: Author[]
+  /** Git `user.name` / `user.email` for the next commit. */
+  commitAuthor: Author
 }
 
 /** Commit-graph pagination state surfaced to the store/UI. */

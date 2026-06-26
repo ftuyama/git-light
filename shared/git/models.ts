@@ -127,6 +127,10 @@ export interface WireRepository {
   remoteUrl: string
   remotes: WireRemote[]
   state: RepoState
+  canUndo: boolean
+  canRedo: boolean
+  undoLabel: string | null
+  redoLabel: string | null
 }
 
 export interface WireRemote {
@@ -156,6 +160,8 @@ export interface WireRepositorySnapshot {
   worktrees: WireWorktree[]
   workingTree: WireWorkingTreeFile[]
   authors: WireAuthor[]
+  /** Git `user.name` / `user.email` for the next commit. */
+  commitAuthor: WireAuthor
 }
 
 export interface SnapshotOptions {
@@ -175,6 +181,7 @@ export interface CommitPageRequest {
   /** Load commits older than this SHA (exclusive). */
   beforeSha: string
   limit?: number
+  graphScope?: GraphScope
 }
 
 export interface CommitPageResult {
@@ -240,6 +247,37 @@ export interface DiffResult {
   hunks: DiffHunk[]
   additions: number
   deletions: number
+}
+
+/* --------------------------- Conflict models --------------------------- */
+
+export interface ConflictRequest {
+  path: string
+}
+
+export interface ConflictBlock {
+  index: number
+  oursLabel: string
+  theirsLabel: string
+  ours: string
+  theirs: string
+  base?: string
+  startLine: number
+  endLine: number
+}
+
+export interface ConflictVersions {
+  base: string | null
+  ours: string | null
+  theirs: string | null
+}
+
+export interface ConflictResult {
+  path: string
+  binary: boolean
+  hasMarkers: boolean
+  blocks: ConflictBlock[]
+  versions: ConflictVersions
 }
 
 /* ---------------------------- Search models ---------------------------- */

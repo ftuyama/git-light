@@ -1,11 +1,17 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, ref, watch } from 'vue'
 import { useVirtualizer } from '@tanstack/vue-virtual'
+import { storeToRefs } from 'pinia'
 import FileRow from './FileRow.vue'
+import FileTreeList from './FileTreeList.vue'
 import { STATUS_ORDER } from './fileStatus'
 import type { WorkingTreeFile } from '@/types/git'
+import { useUiStore } from '@/stores/ui'
 
 const props = defineProps<{ files: WorkingTreeFile[]; readonly?: boolean }>()
+
+const ui = useUiStore()
+const { fileListView } = storeToRefs(ui)
 
 const ROW_HEIGHT = 28
 const VIRTUAL_THRESHOLD = 100
@@ -18,7 +24,9 @@ const sorted = computed(() =>
   }),
 )
 
-const useVirtual = computed(() => sorted.value.length > VIRTUAL_THRESHOLD)
+const useVirtual = computed(
+  () => fileListView.value === 'path' && sorted.value.length > VIRTUAL_THRESHOLD,
+)
 
 const virtualizer = useVirtualizer(
   computed(() => ({
@@ -45,7 +53,9 @@ onMounted(() => {
 </script>
 
 <template>
-  <div ref="scrollEl" class="min-h-0 flex-1 overflow-y-auto px-1">
+  <div class="flex min-h-0 flex-1 flex-col">
+    <FileTreeList v-if="fileListView === 'tree'" :files="files" :readonly="readonly" />
+    <div v-else ref="scrollEl" class="min-h-0 flex-1 overflow-y-auto px-1">
     <template v-if="useVirtual">
       <div class="relative w-full" :style="{ height: `${totalSize}px` }">
         <div
@@ -54,7 +64,7 @@ onMounted(() => {
           class="absolute right-0 left-0"
           :style="{ height: `${item.size}px`, transform: `translateY(${item.start}px)` }"
         >
-          <FileRow :file="sorted[item.index]" :readonly="readonly" />
+          <FileRow :file="sorted[item.index]" :readonly="readonly" view="path" />
         </div>
       </div>
     </template>
@@ -64,7 +74,9 @@ onMounted(() => {
         :key="file.id"
         :file="file"
         :readonly="readonly"
+        view="path"
       />
     </template>
+  </div>
   </div>
 </template>

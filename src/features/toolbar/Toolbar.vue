@@ -19,21 +19,23 @@ import {
   RotateCcw,
   RotateCw,
   Redo2,
+  Undo2,
   Search,
   Spline,
   Terminal,
-  Undo2,
 } from '@lucide/vue'
 import GkIconButton from '@/components/ui/GkIconButton.vue'
 import DropdownMenu from '@/components/ui/DropdownMenu.vue'
 import AppSettingsMenu from '@/features/settings/AppSettingsMenu.vue'
 import type { MenuItem } from '@/components/ui/menu'
 import { useRepositoryStore } from '@/stores/repository'
+import { useInteractiveRebaseStore } from '@/stores/interactiveRebase'
 import { useSelectionStore } from '@/stores/selection'
 import type { GitActionKind } from '@/types/git'
 
 const repo = useRepositoryStore()
 const selection = useSelectionStore()
+const interactiveRebase = useInteractiveRebaseStore()
 
 function run(kind: GitActionKind, target?: string): void {
   void repo.runAction({ kind, target })
@@ -118,20 +120,31 @@ const branchMenu = computed<MenuItem[]>(() =>
       <GkIconButton :icon="Cherry" label="Cherry Pick" @click="repo.cherryPickCommit(selection.selectedSha ?? undefined)" />
       <GkIconButton :icon="GitMerge" label="Merge" @click="repo.mergeBranch()" />
       <GkIconButton :icon="Spline" label="Rebase" @click="repo.rebaseOnto()" />
-      <GkIconButton :icon="ListTree" label="Interactive Rebase" @click="run('interactive-rebase', 'HEAD~5')" />
+      <GkIconButton :icon="ListTree" label="Interactive Rebase" @click="interactiveRebase.open()" />
       <GkIconButton :icon="RotateCcw" label="Reset" @click="repo.resetTo('reset-mixed')" />
     </div>
 
     <div class="mx-1 h-6 w-px bg-[var(--color-border)]" />
 
-    <div class="flex items-center gap-0.5">
-      <GkIconButton :icon="Undo2" label="Undo" shortcut="⌘Z" disabled />
-      <GkIconButton :icon="Redo2" label="Redo" shortcut="⌘⇧Z" disabled />
-    </div>
-
     <div class="app-drag flex-1" />
 
     <div class="flex items-center gap-0.5">
+      <GkIconButton
+        :icon="Undo2"
+        :label="repo.undoTooltip"
+        shortcut="⌘Z"
+        :disabled="!repo.canUndo"
+        :busy="isBusy('undo')"
+        @click="run('undo')"
+      />
+      <GkIconButton
+        :icon="Redo2"
+        :label="repo.redoTooltip"
+        shortcut="⌘⇧Z"
+        :disabled="!repo.canRedo"
+        :busy="isBusy('redo')"
+        @click="run('redo')"
+      />
       <GkIconButton :icon="Search" label="Search" shortcut="⌘⇧F" @click="repo.openSearch()" />
       <GkIconButton :icon="Terminal" label="Open Terminal" shortcut="⌘T" @click="run('open-terminal')" />
       <GkIconButton :icon="RotateCw" label="Refresh" shortcut="⌘R" :busy="isBusy('refresh')" @click="run('refresh')" />

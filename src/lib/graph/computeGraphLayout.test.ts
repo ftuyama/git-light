@@ -68,7 +68,7 @@ describe('computeGraphLayout', () => {
     expect(diagonal).toBeDefined()
   })
 
-  it('frees a lane after a branch converges', () => {
+  it('tags only merge fan-outs with a merge edge kind', () => {
     const commits = [
       makeCommit('m', ['d', 'f']),
       makeCommit('d', ['a']),
@@ -76,7 +76,20 @@ describe('computeGraphLayout', () => {
       makeCommit('a', []),
     ]
     const layout = computeGraphLayout(commits)
-    // After the merge resolves at `a`, everything collapses back to one lane.
+    const mergeBand = layout.bands[0]
+    const mergeFork = mergeBand.find((edge) => edge.fromLane !== edge.toLane)
+    expect(mergeFork?.kind).toBe('merge')
+    expect(mergeBand.some((edge) => edge.fromLane === 1 && edge.toLane === 1)).toBe(true)
+  })
+
+  it('frees a lane after a branch converges on the main line', () => {
+    const commits = [
+      makeCommit('m', ['d', 'f']),
+      makeCommit('d', ['a']),
+      makeCommit('f', ['a']),
+      makeCommit('a', []),
+    ]
+    const layout = computeGraphLayout(commits)
     expect(layout.nodes.find((node) => node.sha === 'a')!.lane).toBe(0)
   })
 

@@ -1,12 +1,14 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { GitMerge, RotateCcw, SkipForward } from '@lucide/vue'
+import { FastForward, GitMerge, RotateCcw, SkipForward, TriangleAlert } from '@lucide/vue'
 import GkButton from '@/components/ui/GkButton.vue'
 import { useRepositoryStore } from '@/stores/repository'
 
 const repo = useRepositoryStore()
 
 const label = computed(() => repo.repository?.state?.operationLabel)
+const conflictCount = computed(() => repo.conflictedFiles.length)
+const canContinue = computed(() => conflictCount.value === 0)
 const operation = computed(() => {
   const s = repo.repository?.state
   if (!s) return null
@@ -29,9 +31,31 @@ const operation = computed(() => {
         {{ operation }} in progress
       </div>
       <div v-if="label" class="truncate text-xs text-[var(--color-fg-muted)]">{{ label }}</div>
+      <div
+        v-if="conflictCount"
+        class="mt-0.5 flex items-center gap-1 text-xs text-[var(--color-danger)]"
+      >
+        <TriangleAlert :size="12" />
+        {{ conflictCount }} unresolved conflict{{ conflictCount === 1 ? '' : 's' }}
+      </div>
     </div>
     <div class="flex items-center gap-2">
-      <GkButton size="sm" variant="secondary" @click="repo.continueOperation()">
+      <GkButton
+        v-if="operation === 'rebase'"
+        size="sm"
+        variant="secondary"
+        title="Skip the current commit and continue the rebase"
+        @click="repo.skipRebaseOperation()"
+      >
+        <FastForward :size="13" /> Skip
+      </GkButton>
+      <GkButton
+        size="sm"
+        variant="secondary"
+        :disabled="!canContinue"
+        :title="canContinue ? undefined : 'Resolve all conflicts before continuing'"
+        @click="repo.continueOperation()"
+      >
         <SkipForward :size="13" /> Continue
       </GkButton>
       <GkButton size="sm" variant="ghost" @click="repo.abortOperation()">

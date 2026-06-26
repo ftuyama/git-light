@@ -112,8 +112,20 @@ function guessLanguage(path: string): string {
     jsx: 'javascript',
     vue: 'vue',
     css: 'css',
+    scss: 'css',
     json: 'json',
     md: 'markdown',
+    py: 'python',
+    rs: 'rust',
+    go: 'go',
+    java: 'java',
+    html: 'html',
+    htm: 'html',
+    xml: 'xml',
+    yml: 'yaml',
+    yaml: 'yaml',
+    sh: 'bash',
+    sql: 'sql',
   }
   return map[ext] ?? 'plaintext'
 }

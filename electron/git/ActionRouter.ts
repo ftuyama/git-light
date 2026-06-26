@@ -1,18 +1,28 @@
 import type { GitAction } from '@shared/git/actions'
-import type { ActionEnvelope } from '@shared/git/models'
+import type { ActionEnvelope, RepoState } from '@shared/git/models'
+import type { RebaseTodoLine } from '@shared/git/rebase'
 import { GitError } from '@shared/git/errors'
+import { readFileSync, writeFileSync } from 'node:fs'
+import { join } from 'node:path'
 import { gitCli } from './GitCliProvider'
 import { assertPathInsideRepo } from './pathUtils'
+import { applyConflictResolution, parseConflictMarkers } from './parsers/conflictParser'
+import { createRebaseEditorBundle } from './rebaseSequenceEditor'
+import type { ReflogJournal } from './ReflogJournal'
+import { isUndoRedoSafe } from './ReflogJournal'
 
 export interface ActionContext {
   cwd: string
   signal?: AbortSignal
   onProgress?: (phase: string, percent: number | null) => void
+  journal?: ReflogJournal
+  repoState?: RepoState
 }
 
 const DESTRUCTIVE = new Set([
   'reset-hard',
   'force-push',
+  'commit-and-force-push',
   'delete-branch',
   'delete-remote-branch',
   'drop-stash',
@@ -139,6 +149,52 @@ async function routeAction(action: GitAction, ctx: ActionContext): Promise<strin
       await gitCli.run(['checkout', '--', '.'], { cwd, signal })
       return 'Discarded all unstaged changes'
 
+    case 'stage-patch':
+    case 'unstage-patch': {
+      if (!target) throw new GitError('Unknown', 'No file specified.')
+      const patch = typeof meta.patch === 'string' ? meta.patch : ''
+      if (!patch.trim()) throw new GitError('Unknown', 'No patch specified.')
+      const safePath = assertPathInsideRepo(cwd, target)
+      if (meta.intentToAdd) {
+        await gitCli.run(['add', '-N', '--', safePath], { cwd, signal, allowFailure: true })
+      }
+      const applyArgs = ['apply', '--cached']
+      if (action.kind === 'unstage-patch') applyArgs.push('-R')
+      await gitCli.run(applyArgs, { cwd, signal, input: patch })
+      return action.kind === 'unstage-patch' ? `Unstaged hunk in ${target}` : `Staged hunk in ${target}`
+    }
+
+    case 'resolve-conflict-ours':
+    case 'resolve-conflict-theirs': {
+      if (!target) throw new GitError('Unknown', 'No file specified.')
+      const safePath = assertPathInsideRepo(cwd, target)
+      const side = action.kind === 'resolve-conflict-ours' ? '--ours' : '--theirs'
+      await gitCli.run(['checkout', side, '--', safePath], { cwd, signal })
+      await gitCli.run(['add', '--', safePath], { cwd, signal })
+      return `Resolved ${target} using ${action.kind === 'resolve-conflict-ours' ? 'ours' : 'theirs'}`
+    }
+    case 'resolve-conflict-block': {
+      if (!target) throw new GitError('Unknown', 'No file specified.')
+      const safePath = assertPathInsideRepo(cwd, target)
+      const blockIndex = Number(meta.blockIndex)
+      const side = meta.side === 'theirs' ? 'theirs' : 'ours'
+      if (!Number.isInteger(blockIndex) || blockIndex < 0) {
+        throw new GitError('Unknown', 'Invalid conflict block index.')
+      }
+      const fullPath = join(cwd, safePath)
+      const content = readFileSync(fullPath, 'utf8')
+      const updated = applyConflictResolution(content, blockIndex, side)
+      writeFileSync(fullPath, updated, 'utf8')
+      if (!parseConflictMarkers(updated).hasMarkers) {
+        await gitCli.run(['add', '--', safePath], { cwd, signal })
+      }
+      return `Resolved conflict block in ${target}`
+    }
+    case 'mark-conflict-resolved':
+      if (!target) throw new GitError('Unknown', 'No file specified.')
+      await gitCli.run(['add', '--', assertPathInsideRepo(cwd, target)], { cwd, signal })
+      return `Marked ${target} as resolved`
+
     case 'commit': {
       const title = String(meta.message ?? '').trim()
       if (!title) throw new GitError('NothingToCommit', 'Commit message is required.')
@@ -163,9 +219,16 @@ async function routeAction(action: GitAction, ctx: ActionContext): Promise<strin
       return 'Amended commit'
     }
     case 'commit-and-push': {
-      await routeAction({ kind: 'commit', meta }, ctx)
+      const commitKind = meta.amend ? 'amend' : 'commit'
+      await routeAction({ kind: commitKind, meta }, ctx)
       await routeAction({ kind: 'push' }, ctx)
-      return 'Committed and pushed'
+      return meta.amend ? 'Amended and pushed' : 'Committed and pushed'
+    }
+    case 'commit-and-force-push': {
+      const commitKind = meta.amend ? 'amend' : 'commit'
+      await routeAction({ kind: commitKind, meta }, ctx)
+      await routeAction({ kind: 'force-push' }, ctx)
+      return meta.amend ? 'Amended and force-pushed' : 'Committed and force-pushed'
     }
 
     case 'checkout':
@@ -240,10 +303,18 @@ async function routeAction(action: GitAction, ctx: ActionContext): Promise<strin
       if (!target) throw new GitError('Unknown', 'No commit specified.')
       await gitCli.run(['rebase', '--onto', target, 'HEAD~1'], { cwd, signal })
       return 'Rebased from commit'
-    case 'interactive-rebase':
+    case 'interactive-rebase': {
       if (!target) throw new GitError('Unknown', 'No base specified.')
-      await gitCli.run(['rebase', '-i', target], { cwd, signal, env: { GIT_EDITOR: 'true' } })
+      const entries = meta.entries as RebaseTodoLine[] | undefined
+      if (!entries?.length) throw new GitError('Unknown', 'No rebase plan specified.')
+      const bundle = createRebaseEditorBundle(entries)
+      try {
+        await gitCli.run(['rebase', '-i', target], { cwd, signal, env: bundle.env })
+      } finally {
+        bundle.cleanup()
+      }
       return 'Interactive rebase started'
+    }
     case 'rebase-continue':
       await gitCli.run(['rebase', '--continue'], { cwd, signal })
       return 'Rebase continued'
@@ -309,9 +380,20 @@ async function routeAction(action: GitAction, ctx: ActionContext): Promise<strin
 
     case 'refresh':
       return 'Repository refreshed'
-    case 'undo':
-    case 'redo':
-      return 'Undo/redo not yet available for this repository'
+    case 'undo': {
+      if (!ctx.journal) throw new GitError('Unknown', 'Undo is not available.')
+      if (ctx.repoState && !isUndoRedoSafe(ctx.repoState)) {
+        throw new GitError('Unknown', 'Cannot undo while an operation is in progress.')
+      }
+      return ctx.journal.undo(cwd, signal)
+    }
+    case 'redo': {
+      if (!ctx.journal) throw new GitError('Unknown', 'Redo is not available.')
+      if (ctx.repoState && !isUndoRedoSafe(ctx.repoState)) {
+        throw new GitError('Unknown', 'Cannot redo while an operation is in progress.')
+      }
+      return ctx.journal.redo(cwd, signal)
+    }
     case 'open-terminal':
     case 'reveal-in-finder':
     case 'open-remote':

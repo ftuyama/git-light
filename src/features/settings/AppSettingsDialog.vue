@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { onUnmounted, ref, watch } from 'vue'
-import { GitCommitHorizontal, LayoutPanelLeft, PanelLeft, X } from '@lucide/vue'
+import { GitCommitHorizontal, LayoutPanelLeft, PanelLeft, Rows3, X } from '@lucide/vue'
 import { storeToRefs } from 'pinia'
 import GkButton from '@/components/ui/GkButton.vue'
 import SettingsRow from './SettingsRow.vue'
@@ -18,10 +18,10 @@ import { useRepositoryStore } from '@/stores/repository'
 
 const ui = useUiStore()
 const repo = useRepositoryStore()
-const { leftCollapsed, rightCollapsed, settingsOpen, graphScopeAll, commitGraphLimit } =
+const { leftCollapsed, rightCollapsed, settingsOpen, graphScopeAll, commitGraphLimit, fileListView } =
   storeToRefs(ui)
 
-type SettingsCategory = 'layout' | 'commit-graph' | 'sidebar'
+type SettingsCategory = 'layout' | 'changes' | 'commit-graph' | 'sidebar'
 
 const activeCategory = ref<SettingsCategory>('layout')
 
@@ -29,6 +29,7 @@ const columnKeys = Object.keys(COLUMN_LABELS) as CommitColumnKey[]
 
 const categories: { id: SettingsCategory; label: string; icon: typeof LayoutPanelLeft }[] = [
   { id: 'layout', label: 'Layout', icon: LayoutPanelLeft },
+  { id: 'changes', label: 'Changes', icon: Rows3 },
   { id: 'commit-graph', label: 'Commit Graph', icon: GitCommitHorizontal },
   { id: 'sidebar', label: 'Sidebar', icon: PanelLeft },
 ]
@@ -166,6 +167,25 @@ onUnmounted(() => document.removeEventListener('keydown', onKeydown))
                 <GkButton variant="secondary" size="sm" @click="ui.resetLayout()">
                   Reset Panel Layout
                 </GkButton>
+              </section>
+            </template>
+
+            <template v-else-if="activeCategory === 'changes'">
+              <p class="mb-3 px-3 text-[12px] text-[var(--color-fg-muted)]">
+                Control how changed files are listed in the working tree and commit panels.
+              </p>
+              <section class="space-y-0.5">
+                <h3
+                  class="px-3 pb-1 text-[11px] font-semibold tracking-wide text-[var(--color-fg-subtle)] uppercase"
+                >
+                  File list
+                </h3>
+                <SettingsRow
+                  label="Tree view"
+                  description="Group changed files in a collapsible folder hierarchy."
+                  :model-value="fileListView === 'tree'"
+                  @update:model-value="ui.setFileListView($event ? 'tree' : 'path')"
+                />
               </section>
             </template>
 

@@ -1,5 +1,8 @@
 import type {
   CommitPageInfo,
+  CommitPageRequest,
+  ConflictRequest,
+  ConflictResult,
   DiffRequest,
   DiffResult,
   OperationProgress,
@@ -10,6 +13,7 @@ import type {
   SnapshotOptions,
   SnapshotScope,
 } from '@shared/git/models'
+import type { RebaseCommitsRequest, RebaseCommitsResult } from '@shared/git/rebase'
 import type { ActionResult, GitAction, RepositoryData } from '@/types/git'
 
 export type SnapshotRefreshOptions = Pick<
@@ -36,10 +40,15 @@ export interface GitService {
     message: string
   }>
   closeRepository(): Promise<void>
-  loadMoreCommits(): Promise<{ commits: RepositoryData['commits']; hasMore: boolean }>
+  loadMoreCommits(request: CommitPageRequest): Promise<{
+    commits: RepositoryData['commits']
+    page: CommitPageInfo
+  }>
   getDiff(request: DiffRequest): Promise<DiffResult>
+  getConflict(request: ConflictRequest): Promise<ConflictResult>
   getCommitFiles(sha: string): Promise<RepositoryData['workingTree']>
   search(query: SearchQuery): Promise<SearchResults>
+  getRebaseCommits(request: RebaseCommitsRequest): Promise<RebaseCommitsResult>
   openTerminal(path?: string): Promise<boolean>
   revealPath(path: string): Promise<void>
   cancelActiveOperation(): Promise<void>

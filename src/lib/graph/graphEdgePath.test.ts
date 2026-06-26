@@ -6,28 +6,27 @@ describe('graphEdgePath', () => {
     expect(graphEdgePath(10, 5, 10, 35)).toBe('M10 5 L10 35')
   })
 
-  it('uses orthogonal segments with rounded corners for lane changes', () => {
-    const d = graphEdgePath(10, 5, 30, 35, 5)
-    expect(d).toContain('M10 5')
-    expect(d).toContain('L10 15')
-    expect(d).toContain('Q10 20 15 20')
-    expect(d).toContain('L25 20')
-    expect(d).toContain('Q30 20 30 25')
-    expect(d).toContain('L30 35')
-    expect(d).not.toContain('C ')
+  it('draws a sharp merge rectangle into the branch column', () => {
+    const d = graphEdgePath(10, 5, 30, 35, 5, 'merge')
+    expect(d).toBe('M10 5 L10 6 L30 6 L30 35')
+    expect(d).not.toContain('A')
   })
 
-  it('mirrors corners when moving left', () => {
-    const d = graphEdgePath(30, 5, 10, 35, 5)
-    expect(d).toContain('Q30 20 25 20')
-    expect(d).toContain('L15 20')
-    expect(d).toContain('Q10 20 10 25')
+  it('anchors branch forks near the source row with sharp bends', () => {
+    const d = graphEdgePath(10, 5, 30, 35, 5, 'laneChange')
+    expect(d).toBe('M10 5 L10 15 L30 15 L30 35')
+    expect(d).not.toContain('A')
   })
 
-  it('clamps corner radius for tight bands', () => {
-    const d = graphEdgePath(10, 0, 30, 4, 5)
-    expect(d).toContain('Q10 2')
-    expect(d).toContain('Q30 2')
-    expect(d).not.toContain('C ')
+  it('anchors convergences near the target row with sharp bends', () => {
+    const d = graphEdgePath(30, 5, 10, 35, 5, 'converge')
+    expect(d).toBe('M30 5 L30 25 L10 25 L10 35')
+    expect(d).not.toContain('A')
+  })
+
+  it('mirrors the merge rectangle when lanes are flipped left', () => {
+    const d = graphEdgePath(30, 5, 10, 35, 5, 'merge')
+    expect(d).toBe('M30 5 L30 6 L10 6 L10 35')
+    expect(d).not.toContain('A')
   })
 })
