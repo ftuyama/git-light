@@ -28,7 +28,10 @@ Git Light is an Electron app that recreates GitKraken's main repository view and
 | Merge / rebase / interactive rebase / cherry-pick (continue/abort banner) | ✅ |
 | Merge conflict resolution (ours/theirs/per-block) | ✅ |
 | Undo / redo (reflog-backed) · stash · search | ✅ |
-| Open on GitHub · app preferences (layout, graph, sidebar, credits) | ✅ |
+| Integrated terminal (xterm + node-pty, ⌘T toggle in graph pane) | ✅ |
+| Themes — Default, Dracula, Light, Claude, System (settings) | ✅ |
+| Collapsible sidebars with expand rails · commit graph zoom | ✅ |
+| Open on GitHub · app preferences (appearance, layout, graph, sidebar, credits) | ✅ |
 | Credits & attribution (settings panel + native About dialog) | ✅ |
 | Resizable three-pane layout · file watcher auto-refresh | ✅ |
 | Auto-update check (packaged builds) · **Check for Updates…** menu | ✅ |

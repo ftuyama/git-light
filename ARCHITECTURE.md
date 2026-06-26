@@ -10,6 +10,7 @@ Git Light is an Electron desktop app with a Vue 3 renderer. The UI depends on a 
 | UI | Vue 3, Pinia, Tailwind v4, reka-ui |
 | Build | electron-vite, TypeScript |
 | Git | Native `git` CLI in main process |
+| Terminal | xterm.js + node-pty (in-app panel) |
 | File watch | chokidar (debounced 150ms) |
 
 ## Process model
@@ -37,7 +38,7 @@ Git Light is an Electron desktop app with a Vue 3 renderer. The UI depends on a 
 |--------|---------|
 | `metadata.ts` | App name, version, homepage, repository URL (from `package.json`) |
 | `credits.ts` | App links, third-party attribution list, `formatAboutCredits()` for native About panel |
-| `ipc.ts` | Non-git IPC channels (electron-store, open external, window focus/blur) |
+| `ipc.ts` | Non-git IPC channels (electron-store, open external, window focus/blur, terminal PTY) |
 
 ### Git layer (`shared/git/`)
 
@@ -73,15 +74,18 @@ Git Light is an Electron desktop app with a Vue 3 renderer. The UI depends on a 
 | `IpcGitService.ts` | Production implementation via `window.electron.git` |
 | `MockGitService.ts` | Generated data; used when `VITE_USE_MOCK=true` or outside Electron |
 | `wireAdapter.ts` | Revives wire snapshots into domain types (`Date`, etc.) |
+| `themes.ts` / `applyTheme.ts` | Theme catalog, system preference resolution, CSS variable application |
+| `avatarCache.ts` | Cached author avatar images for commit rows |
 
 ## Main process (`electron/`)
 
 | File | Role |
 |------|------|
-| `main.ts` | Window lifecycle, About panel options, app menu, startup update check (packaged builds) |
+| `main.ts` | Window lifecycle, About panel options, app menu, theme-aware window background, startup update check (packaged builds) |
 | `menu.ts` | Application menu (About, Check for Updates, Help links) |
 | `updateCheck.ts` | Compares semver against GitHub Releases; prompts to download |
 | `preload.ts` | Exposes typed `window.electron` bridge |
+| `terminal/registerTerminalIpc.ts` | node-pty sessions; create/write/resize/kill + data/exit push events |
 
 ### Git layer (`electron/git/`)
 
@@ -104,7 +108,7 @@ Git Light is an Electron desktop app with a Vue 3 renderer. The UI depends on a 
 | `repoDiff` | Selected file, diff/conflict loading, commit/compare file lists |
 | `selection` | Selected/hovered commit, shift-compare range |
 | `branchDrag` | Branch drag-and-drop state and integrate dialog payload |
-| `ui` | Layout prefs, graph columns, sidebar sections |
+| `ui` | Layout prefs, graph columns, sidebar sections, theme, terminal panel |
 | `interactiveRebase` | Interactive rebase dialog state |
 | `prompt` / `toast` | Modal and toast UI |
 
@@ -127,18 +131,19 @@ The `repository` store composes actions from `src/stores/repo/`:
 App.vue
 ├── StartupView          (no repo open)
 └── main view
-    ├── Toolbar          remote/history actions, repo switcher
+    ├── Toolbar          remote/history actions, repo switcher, terminal toggle
     ├── OperationBanner  merge/rebase/cherry-pick/revert in progress
+    ├── SidebarRail      expand affordance when left/right pane collapsed
     ├── Splitpanes
     │   ├── BranchSidebar       (drag-drop integrate dialog)
-    │   ├── CommitGraph         (virtualized + pending-changes row)
-    │   ├── CommitGraph (DiffPanel or ConflictPanel when a file is selected)
+    │   ├── CommitGraph         (virtualized graph + diff/conflict overlay)
+    │   │   └── optional TerminalPanel (resizable bottom split, xterm)
     │   └── WorkingTreePanel
     ├── StatusBar        ahead/behind, progress, cancel
     ├── PromptHost       confirm / prompt dialogs
     ├── SearchOverlay    commit + file search
     ├── InteractiveRebaseDialog
-    └── AppSettingsDialog  layout, graph, sidebar preferences, credits panel
+    └── AppSettingsDialog  appearance (theme), layout, graph, sidebar, credits
 ```
 
 ## Data flow
@@ -153,12 +158,13 @@ App.vue
 
 | Key | Storage |
 |-----|---------|
-| `git-light:preferences` | Panel sizes, collapsed state, graph/sidebar prefs (localStorage) |
+| `git-light:preferences` | Panel sizes, collapsed state, theme, graph/sidebar/terminal prefs (electron-store via preload; localStorage fallback in browser) |
 | `recent-repos` | Recent repository list (electron-store, main) |
 | `branch-favorites:{path}` | Per-repo pinned branches |
 
 ## Testing
 
+- `shared/git/avatar.test.ts` — Gravatar URL helpers
 - `shared/app/credits.test.ts` — About panel credits text and link lists
 - `electron/updateCheck.test.ts` — semver comparison for update checks
 - `electron/git/ActionRouter.test.ts` — action → git argv routing
@@ -182,6 +188,11 @@ App.vue
 - `src/lib/graph/pendingGraphRow.test.ts` — pending-changes graph row
 - `src/lib/graph/remapHeadLaneLeft.test.ts` — head lane remapping
 - `src/lib/graph/compareRange.test.ts` — shift-compare range normalization
+- `src/lib/graph/commitLaneBranchPreview.test.ts` — branch lane preview on hover
+- `src/lib/graph/syncBranchLaneColors.test.ts` — branch lane color sync
+- `src/lib/themes.test.ts` — theme preference resolution
+- `src/lib/sidebarLayout.test.ts` — sidebar collapse/expand layout
+- `src/lib/avatarCache.test.ts` — author avatar image cache
 - `src/lib/diff/buildSplitRows.test.ts` — split diff row builder
 - `src/lib/diff/highlight.test.ts` — syntax highlighting helpers
 - `src/features/branch-sidebar/sortBranches.test.ts` — branch sort order
