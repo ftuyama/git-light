@@ -1,6 +1,6 @@
 {
   "name": "git-light",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "GitKraken-style Git client UI shell built with Electron, Vue 3, and TypeScript.",
   "author": "Git Light",
   "license": "MIT",
