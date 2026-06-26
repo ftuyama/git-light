@@ -42,7 +42,7 @@ Git Light is an Electron app that recreates GitKraken's main repository view and
 Download the latest `.dmg` from **[GitHub Releases](https://github.com/ftuyama/git-light/releases)**.
 
 1. Open the DMG and drag **Git Light** into **Applications**.
-2. On first launch, macOS may block the app because it is not code-signed. **Right-click** the app → **Open** → **Open** again to confirm.
+2. Launch **Git Light** from Applications. Notarized releases open normally; ad-hoc signed builds may require **Right-click → Open → Open** on first launch.
 3. To check for updates later, use **Git Light → Check for Updates…** in the menu bar.
 
 ## Sponsor

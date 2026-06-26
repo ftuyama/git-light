@@ -19,7 +19,14 @@ jobs:
           cache: npm
 
       - run: npm ci
-      - run: npm run dist:mac
+
+      - name: Build signed DMG
+        run: npm run dist:mac
+        # No Apple secrets required — builds are ad-hoc signed automatically.
+        # To enable Developer ID + notarization later, add env vars here; see DEVELOPER.md.
+
+      - name: Verify macOS code signature
+        run: npm run verify:mac-signing
 
       - uses: softprops/action-gh-release@v2
         with:

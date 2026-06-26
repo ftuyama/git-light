@@ -141,8 +141,49 @@ Monitor the run under **Actions** on GitHub. When it succeeds, the DMG appears o
 ### 5. Verify the release
 
 1. Open the new release on GitHub and confirm the `.dmg` asset is attached.
-2. Download and install the DMG on a Mac (unsigned builds may require **Right-click → Open** on first launch).
+2. Download and install the DMG on a Mac. Notarized builds open normally; ad-hoc signed builds may require **Right-click → Open** on first launch.
 3. Launch the app and use **Git Light → Check for Updates…** — it should report you are on the latest version.
+
+### macOS code signing
+
+Release builds are packaged by [`scripts/dist-mac.mjs`](scripts/dist-mac.mjs):
+
+| CI secrets configured | Result |
+|------------------------|--------|
+| None | Ad-hoc signed DMG (valid bundle signature; first launch may need **Right-click → Open**) |
+| Apple certificate only | Developer ID signed DMG |
+| Apple certificate + notarization secrets | Developer ID signed + notarized DMG (opens normally for all users) |
+
+CI verifies every release with `npm run verify:mac-signing` so broken bundles cannot ship.
+
+#### Notarized releases (recommended)
+
+1. Enroll in the [Apple Developer Program](https://developer.apple.com/programs/).
+2. Create a **Developer ID Application** certificate and export it as a `.p12`.
+3. Add these GitHub repository secrets (Settings → Secrets and variables → Actions):
+
+| Secret | Value |
+|--------|--------|
+| `APPLE_CERTIFICATE_BASE64` | Base64-encoded `.p12` (`base64 -i cert.p12 \| pbcopy`) |
+| `APPLE_CERTIFICATE_PASSWORD` | Password for the `.p12` export |
+| `APPLE_ID` | Apple ID email used for notarization |
+| `APPLE_APP_SPECIFIC_PASSWORD` | App-specific password from [appleid.apple.com](https://appleid.apple.com) |
+| `APPLE_TEAM_ID` | Team ID from Apple Developer → Membership |
+
+4. Add the secrets to the **Build signed DMG** step in [`.github/workflows/release.yml`](.github/workflows/release.yml):
+
+```yaml
+env:
+  CSC_LINK: ${{ secrets.APPLE_CERTIFICATE_BASE64 }}
+  CSC_KEY_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+  APPLE_ID: ${{ secrets.APPLE_ID }}
+  APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+  APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+```
+
+5. Push a release tag — CI signs and notarizes automatically.
+
+To test notarized packaging locally, export the same env vars and run `npm run dist:mac`.
 
 ### Build a DMG locally (optional)
 
@@ -150,10 +191,11 @@ To test packaging before pushing a tag (requires macOS):
 
 ```bash
 npm run dist:mac
+npm run verify:mac-signing
 npm run dist:analyze
 ```
 
-Output lands in `dist/` (e.g. `dist/Git Light-0.1.3-arm64.dmg`). `dist:analyze` reports DMG size, installed `.app` size, ASAR contents, locale count, and renderer asset sizes. Builds are unsigned for now; code signing can be added later via `build.mac` in `package.json`.
+Output lands in `dist/` (e.g. `dist/Git Light-0.1.3-arm64.dmg`). `dist:analyze` reports DMG size, installed `.app` size, ASAR contents, locale count, and renderer asset sizes. Local builds use ad-hoc signing unless Apple certificate env vars are set.
 
 ### Cursor release command
 

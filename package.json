@@ -23,7 +23,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "dist": "npm run build && electron-builder --publish never",
-    "dist:mac": "npm run build && electron-builder --mac dmg --publish never",
+    "dist:mac": "npm run build && node scripts/dist-mac.mjs",
+    "verify:mac-signing": "node scripts/verify-mac-signing.mjs",
     "dist:analyze": "node scripts/dist-analyze.mjs"
   },
   "build": {
@@ -47,7 +48,10 @@
     },
     "mac": {
       "target": "dmg",
-      "icon": "build/icon.png"
+      "icon": "build/icon.png",
+      "entitlements": "build/entitlements.mac.plist",
+      "entitlementsInherit": "build/entitlements.mac.plist",
+      "gatekeeperAssess": false
     },
     "dmg": {
       "title": "Git Light ${version}"
