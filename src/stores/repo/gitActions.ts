@@ -7,6 +7,7 @@ import { usePromptStore } from '@/stores/prompt'
 import { useRepoDiffStore } from '@/stores/repoDiff'
 import { useSelectionStore } from '@/stores/selection'
 import { useToastStore } from '@/stores/toast'
+import { useUiStore } from '@/stores/ui'
 import {
   describeAction,
   isBranchSwitchAction,
@@ -43,9 +44,8 @@ export const gitActions = {
     }
 
     if (action.kind === 'open-terminal') {
-      const opened = await gitService.openTerminal(this.repository?.path)
-      useToastStore().push(opened ? 'Opened terminal' : 'Could not open terminal', opened ? 'success' : 'error')
-      return opened
+      useUiStore().toggleTerminal()
+      return true
     }
 
     if (action.kind === 'reveal-in-finder' && action.target && this.repository) {

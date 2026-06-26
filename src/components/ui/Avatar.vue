@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
+import { computed } from 'vue'
+import { useAvatarImage } from '@/composables/useAvatarImage'
 import { resolveTheme } from '@/lib/themes'
 import { useUiStore } from '@/stores/ui'
 import type { Author } from '@/types/git'
@@ -16,18 +17,13 @@ const props = withDefaults(
 
 const ui = useUiStore()
 
-const imageFailed = ref(false)
-
-watch(
+const { resolvedUrl, onImageError } = useAvatarImage(
+  () => props.author.email,
   () => props.author.avatarUrl,
-  () => {
-    imageFailed.value = false
-  },
+  () => props.size,
 )
 
-const showImage = computed(
-  () => !props.merge && Boolean(props.author.avatarUrl) && !imageFailed.value,
-)
+const showImage = computed(() => !props.merge && Boolean(resolvedUrl.value))
 
 const isLightTheme = computed(() => resolveTheme(ui.theme) === 'light')
 
@@ -97,11 +93,11 @@ const style = computed(() => {
   >
     <img
       v-if="showImage"
-      :src="author.avatarUrl"
+      :src="resolvedUrl!"
       :alt="author.name"
       class="h-full w-full object-cover"
       loading="lazy"
-      @error="imageFailed = true"
+      @error="onImageError"
     />
     <template v-else>{{ author.initials }}</template>
   </span>

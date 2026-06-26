@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="docs/icon.png" alt="Git Light" width="96" height="96" />
+</p>
+
 # Git Light
 
 A desktop Git client with a GitKraken-inspired interface — commit graph, branch sidebar, working tree panel, and real local repository operations.

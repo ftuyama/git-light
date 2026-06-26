@@ -1,4 +1,4 @@
-import { gravatarUrl, initialsFor } from '@shared/git/avatar'
+import { githubAvatarUrl, initialsFor } from '@shared/git/avatar'
 import type { WireAuthor } from '@shared/git/models'
 
 const AVATAR_COLORS = [
@@ -36,7 +36,7 @@ export class AuthorRegistry {
     const author: WireAuthor = {
       name: name || email,
       email,
-      avatarUrl: gravatarUrl(email),
+      avatarUrl: githubAvatarUrl(email),
       initials: initialsFor(name || email),
       color: AVATAR_COLORS[hashString(key) % AVATAR_COLORS.length],
     }

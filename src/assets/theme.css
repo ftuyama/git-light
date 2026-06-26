@@ -402,6 +402,9 @@
 .working-tree-split.splitpanes--horizontal {
   min-height: 0;
 }
+.graph-terminal-split.splitpanes--horizontal {
+  min-height: 0;
+}
 .splitpanes__pane {
   transition: none;
 }

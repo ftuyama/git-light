@@ -32,7 +32,7 @@ function removeRecent(path: string, event: Event): void {
           alt=""
           width="64"
           height="64"
-          class="mx-auto mb-4 h-16 w-16 rounded-2xl"
+          class="mx-auto mb-4 h-16 w-16"
         />
         <h1 class="text-2xl font-semibold tracking-tight text-[var(--color-fg)]">Git Light</h1>
         <p class="mt-2 text-sm text-[var(--color-fg-muted)]">

@@ -32,6 +32,7 @@ export const THIRD_PARTY_CREDITS: ThirdPartyCredit[] = [
   { name: 'date-fns', url: 'https://date-fns.org/', license: 'MIT' },
   { name: 'TanStack Virtual', url: 'https://tanstack.com/virtual', license: 'MIT' },
   { name: 'splitpanes', url: 'https://antoniandre.github.io/splitpanes/', license: 'MIT' },
+  { name: 'xterm.js', url: 'https://xtermjs.org/', license: 'MIT' },
   { name: 'Reka UI', url: 'https://reka-ui.com/', license: 'MIT' },
 ]
 

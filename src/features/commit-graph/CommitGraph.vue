@@ -1,11 +1,16 @@
 <script setup lang="ts">
+import { computed } from 'vue'
+import { storeToRefs } from 'pinia'
+import { Splitpanes, Pane, type SplitpanesResizedPayload } from 'splitpanes'
 import { Columns3, GitCommitHorizontal } from '@lucide/vue'
 import CommitRow from './CommitRow.vue'
 import PendingChangesRow from './PendingChangesRow.vue'
 import CommitGraphHeaderCell from './CommitGraphHeaderCell.vue'
 import Avatar from '@/components/ui/Avatar.vue'
 import DropdownMenu from '@/components/ui/DropdownMenu.vue'
+import TerminalPanel from '@/features/terminal/TerminalPanel.vue'
 import { useRepoDiffStore } from '@/stores/repoDiff'
+import { useUiStore } from '@/stores/ui'
 import ConflictPanel from '@/features/conflicts/ConflictPanel.vue'
 import DiffPanel from '@/features/diff/DiffPanel.vue'
 import { useCommitGraphColumns } from './composables/useCommitGraphColumns'
@@ -19,6 +24,15 @@ import { useCommitGraphVirtualList } from './composables/useCommitGraphVirtualLi
 import { useCommitGraphZoom } from './composables/useCommitGraphZoom'
 
 const diffStore = useRepoDiffStore()
+const ui = useUiStore()
+const { terminalOpen, terminalPanelSize } = storeToRefs(ui)
+const graphAreaSize = computed(() => (terminalOpen.value ? 100 - terminalPanelSize.value : 100))
+
+function onTerminalResized(payload: SplitpanesResizedPayload): void {
+  if (!terminalOpen.value) return
+  const terminalPane = payload.panes.at(-1)
+  if (terminalPane?.size != null) ui.setTerminalPanelSize(terminalPane.size)
+}
 const { repo, showLoading, hasPendingRow, headIndex, pendingRowSelected } = useCommitGraphState()
 const { selectedSha, selectRow, selectPendingRow, rowClasses, selection } =
   useCommitGraphSelection()
@@ -53,7 +67,14 @@ const { graphContentWidth, visibleEdges, visibleNodes, laneX } = useCommitGraphO
 
 <template>
   <div class="flex h-full min-w-0 flex-col bg-[var(--color-app)]">
-    <div v-show="!diffStore.selectedFilePath" class="flex min-h-0 flex-1 flex-col">
+    <Splitpanes
+      horizontal
+      class="graph-terminal-split min-h-0 flex-1"
+      @resized="onTerminalResized"
+    >
+      <Pane :size="graphAreaSize" :min-size="terminalOpen ? 30 : 100">
+        <div class="flex h-full min-w-0 flex-col bg-[var(--color-app)]">
+          <div v-show="!diffStore.selectedFilePath" class="flex min-h-0 flex-1 flex-col">
     <!-- Column header -->
     <div
       class="flex h-8 shrink-0 items-stretch border-b border-[var(--color-border)]"
@@ -286,7 +307,14 @@ const { graphContentWidth, visibleEdges, visibleNodes, laneX } = useCommitGraphO
     </div>
     </div>
 
-    <ConflictPanel v-if="diffStore.selectedFileIsConflicted" />
-    <DiffPanel v-else />
+          <ConflictPanel v-if="diffStore.selectedFileIsConflicted" />
+          <DiffPanel v-else />
+        </div>
+      </Pane>
+
+      <Pane v-if="terminalOpen" :size="terminalPanelSize" :min-size="15">
+        <TerminalPanel />
+      </Pane>
+    </Splitpanes>
   </div>
 </template>

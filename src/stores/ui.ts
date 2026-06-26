@@ -6,6 +6,7 @@ import {
   clampColumnWidth,
   clampLeftSidebarSize,
   clampRightSidebarSize,
+  clampTerminalPanelSize,
   clampWorkingTreeChangesSize,
   shouldCollapseLeftSidebar,
   shouldCollapseRightSidebar,
@@ -62,6 +63,7 @@ function snapshot(state: {
   leftSize: number
   rightSize: number
   workingTreeChangesSize: number
+  terminalPanelSize: number
   leftCollapsed: boolean
   rightCollapsed: boolean
   sections: Record<string, boolean>
@@ -78,6 +80,7 @@ function snapshot(state: {
     leftSize: state.leftSize,
     rightSize: state.rightSize,
     workingTreeChangesSize: state.workingTreeChangesSize,
+    terminalPanelSize: state.terminalPanelSize,
     leftCollapsed: state.leftCollapsed,
     rightCollapsed: state.rightCollapsed,
     sections: state.sections,
@@ -97,6 +100,7 @@ export const useUiStore = defineStore('ui', {
     leftSize: 18,
     rightSize: 24,
     workingTreeChangesSize: defaultPreferences().workingTreeChangesSize,
+    terminalPanelSize: defaultPreferences().terminalPanelSize,
     leftCollapsed: false,
     rightCollapsed: false,
     sections: { ...DEFAULT_SECTIONS } as Record<string, boolean>,
@@ -108,6 +112,7 @@ export const useUiStore = defineStore('ui', {
     lastRepositoryPath: null as string | null,
     diffViewMode: 'unified' as DiffViewMode,
     theme: defaultPreferences().theme,
+    terminalOpen: false,
     commandPaletteOpen: false,
     settingsOpen: false,
     leftCollapseHint: false,
@@ -127,6 +132,7 @@ export const useUiStore = defineStore('ui', {
       this.leftSize = saved.leftSize
       this.rightSize = saved.rightSize
       this.workingTreeChangesSize = saved.workingTreeChangesSize
+      this.terminalPanelSize = saved.terminalPanelSize
       this.leftCollapsed = saved.leftCollapsed
       this.rightCollapsed = saved.rightCollapsed
       this.sections = { ...saved.sections }
@@ -156,6 +162,7 @@ export const useUiStore = defineStore('ui', {
           leftSize: this.leftSize,
           rightSize: this.rightSize,
           workingTreeChangesSize: this.workingTreeChangesSize,
+          terminalPanelSize: this.terminalPanelSize,
           leftCollapsed: this.leftCollapsed,
           rightCollapsed: this.rightCollapsed,
           sections: this.sections,
@@ -196,6 +203,18 @@ export const useUiStore = defineStore('ui', {
     },
     setWorkingTreeChangesSize(size: number): void {
       this.workingTreeChangesSize = clampWorkingTreeChangesSize(size)
+    },
+    setTerminalPanelSize(size: number): void {
+      this.terminalPanelSize = clampTerminalPanelSize(size)
+    },
+    toggleTerminal(): void {
+      this.terminalOpen = !this.terminalOpen
+    },
+    openTerminal(): void {
+      this.terminalOpen = true
+    },
+    closeTerminal(): void {
+      this.terminalOpen = false
     },
     toggleLeft(): void {
       this.leftCollapsed = !this.leftCollapsed
@@ -262,6 +281,7 @@ export const useUiStore = defineStore('ui', {
       this.leftSize = d.leftSize
       this.rightSize = d.rightSize
       this.workingTreeChangesSize = d.workingTreeChangesSize
+      this.terminalPanelSize = d.terminalPanelSize
       this.leftCollapsed = d.leftCollapsed
       this.rightCollapsed = d.rightCollapsed
     },

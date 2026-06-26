@@ -1,4 +1,4 @@
-import { gravatarUrl, initialsFor } from '@shared/git/avatar'
+import { githubAvatarUrl, initialsFor } from '@shared/git/avatar'
 import { faker } from '@faker-js/faker'
 import type {
   Author,
@@ -37,7 +37,7 @@ function makeAuthors(count: number): Author[] {
       email,
       avatarUrl: faker.datatype.boolean({ probability: 0.35 })
         ? faker.image.avatar()
-        : gravatarUrl(email),
+        : githubAvatarUrl(email),
       initials: initials(name),
       color: AVATAR_COLORS[i % AVATAR_COLORS.length],
     }

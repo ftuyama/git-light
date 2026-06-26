@@ -6,6 +6,7 @@ import { syncThemePreference } from './lib/applyTheme'
 import { useUiStore } from './stores/ui'
 import { useRepositoryStore } from './stores/repository'
 import 'splitpanes/dist/splitpanes.css'
+import '@xterm/xterm/css/xterm.css'
 import './assets/theme.css'
 
 function startupRepositoryCandidates(

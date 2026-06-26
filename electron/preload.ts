@@ -56,6 +56,33 @@ const git = {
   },
 }
 
+const terminal = {
+  create(req: AppIpcContract[typeof AppIpcChannels.terminalCreate][0]) {
+    return invokeApp(AppIpcChannels.terminalCreate, req)
+  },
+  write(req: AppIpcContract[typeof AppIpcChannels.terminalWrite][0]) {
+    return invokeApp(AppIpcChannels.terminalWrite, req)
+  },
+  resize(req: AppIpcContract[typeof AppIpcChannels.terminalResize][0]) {
+    return invokeApp(AppIpcChannels.terminalResize, req)
+  },
+  kill(req: AppIpcContract[typeof AppIpcChannels.terminalKill][0]) {
+    return invokeApp(AppIpcChannels.terminalKill, req)
+  },
+  onData(cb: (payload: { id: string; data: string }) => void): () => void {
+    const handler = (_: Electron.IpcRendererEvent, payload: { id: string; data: string }) =>
+      cb(payload)
+    ipcRenderer.on(AppIpcChannels.terminalData, handler)
+    return () => ipcRenderer.off(AppIpcChannels.terminalData, handler)
+  },
+  onExit(cb: (payload: { id: string; exitCode: number }) => void): () => void {
+    const handler = (_: Electron.IpcRendererEvent, payload: { id: string; exitCode: number }) =>
+      cb(payload)
+    ipcRenderer.on(AppIpcChannels.terminalExit, handler)
+    return () => ipcRenderer.off(AppIpcChannels.terminalExit, handler)
+  },
+}
+
 const api = {
   store: {
     get<T>(key: string, fallback: T): Promise<T> {
@@ -66,6 +93,7 @@ const api = {
     },
   },
   git,
+  terminal,
   openExternal(url: string): Promise<void> {
     return invokeApp(AppIpcChannels.openExternal, { url })
   },

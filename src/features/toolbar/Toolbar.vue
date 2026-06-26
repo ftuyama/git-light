@@ -146,7 +146,7 @@ const branchMenu = computed<MenuItem[]>(() =>
         @click="run('redo')"
       />
       <IconButton :icon="Search" label="Search" shortcut="⌘⇧F" @click="repo.openSearch()" />
-      <IconButton :icon="Terminal" label="Open Terminal" shortcut="⌘T" @click="run('open-terminal')" />
+      <IconButton :icon="Terminal" label="Toggle Terminal" shortcut="⌘T" @click="run('open-terminal')" />
       <IconButton :icon="RotateCw" label="Refresh" shortcut="⌘R" :busy="isBusy('refresh')" @click="run('refresh')" />
       <AppSettingsMenu />
     </div>

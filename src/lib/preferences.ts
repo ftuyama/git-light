@@ -50,10 +50,21 @@ export const WORKING_TREE_CHANGES_SIZE_MIN = 20
 export const WORKING_TREE_CHANGES_SIZE_MAX = 80
 export const DEFAULT_WORKING_TREE_CHANGES_SIZE = 62
 
+export const TERMINAL_PANEL_SIZE_MIN = 15
+export const TERMINAL_PANEL_SIZE_MAX = 70
+export const DEFAULT_TERMINAL_PANEL_SIZE = 35
+
 export function clampWorkingTreeChangesSize(value: number): number {
   return Math.min(
     WORKING_TREE_CHANGES_SIZE_MAX,
     Math.max(WORKING_TREE_CHANGES_SIZE_MIN, Math.round(value)),
+  )
+}
+
+export function clampTerminalPanelSize(value: number): number {
+  return Math.min(
+    TERMINAL_PANEL_SIZE_MAX,
+    Math.max(TERMINAL_PANEL_SIZE_MIN, Math.round(value)),
   )
 }
 
@@ -115,6 +126,7 @@ export interface UserPreferences {
   leftSize: number
   rightSize: number
   workingTreeChangesSize: number
+  terminalPanelSize: number
   leftCollapsed: boolean
   rightCollapsed: boolean
   sections: Record<string, boolean>
@@ -184,6 +196,7 @@ export function defaultPreferences(): UserPreferences {
     leftSize: 18,
     rightSize: 24,
     workingTreeChangesSize: DEFAULT_WORKING_TREE_CHANGES_SIZE,
+    terminalPanelSize: DEFAULT_TERMINAL_PANEL_SIZE,
     leftCollapsed: false,
     rightCollapsed: false,
     sections: { ...DEFAULT_SECTIONS },
@@ -206,6 +219,9 @@ export function mergePreferences(saved: Partial<UserPreferences> | null): UserPr
     rightSize: clampRightSidebarSize(saved.rightSize ?? defaults.rightSize),
     workingTreeChangesSize: clampWorkingTreeChangesSize(
       saved.workingTreeChangesSize ?? defaults.workingTreeChangesSize,
+    ),
+    terminalPanelSize: clampTerminalPanelSize(
+      saved.terminalPanelSize ?? defaults.terminalPanelSize,
     ),
     leftCollapsed: saved.leftCollapsed ?? defaults.leftCollapsed,
     rightCollapsed: saved.rightCollapsed ?? defaults.rightCollapsed,

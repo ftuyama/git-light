@@ -12,6 +12,7 @@ import {
 import { formatAboutCredits } from '@shared/app/credits'
 import { registerGitIpc } from './git/registerIpc'
 import { buildApplicationMenu } from './menu'
+import { killAllTerminalSessions, registerTerminalIpc } from './terminal/registerTerminalIpc'
 import { checkForUpdates } from './updateCheck'
 
 app.setName(APP_NAME)
@@ -118,6 +119,7 @@ app.whenReady().then(() => {
 
   Menu.setApplicationMenu(buildApplicationMenu())
   registerGitIpc(() => mainWindow, store)
+  registerTerminalIpc(() => mainWindow)
   createWindow()
 
   if (app.isPackaged) {
@@ -132,5 +134,10 @@ app.whenReady().then(() => {
 })
 
 app.on('window-all-closed', () => {
+  killAllTerminalSessions()
   if (process.platform !== 'darwin') app.quit()
+})
+
+app.on('before-quit', () => {
+  killAllTerminalSessions()
 })
