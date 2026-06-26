@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
+import { resolveTheme } from '@/lib/themes'
+import { useUiStore } from '@/stores/ui'
 import type { Author } from '@/types/git'
 
 const props = withDefaults(
@@ -11,6 +13,8 @@ const props = withDefaults(
   }>(),
   { size: 20, merge: false },
 )
+
+const ui = useUiStore()
 
 const imageFailed = ref(false)
 
@@ -25,6 +29,16 @@ const showImage = computed(
   () => !props.merge && Boolean(props.author.avatarUrl) && !imageFailed.value,
 )
 
+const isLightTheme = computed(() => resolveTheme(ui.theme) === 'light')
+
+function contrastingTextColor(hex: string): string {
+  const r = parseInt(hex.slice(1, 3), 16)
+  const g = parseInt(hex.slice(3, 5), 16)
+  const b = parseInt(hex.slice(5, 7), 16)
+  const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255
+  return luminance > 0.62 ? '#1f2328' : '#ffffff'
+}
+
 const mergePointSize = computed(() => Math.max(6, Math.round(props.size * 0.5)))
 
 const mergeStyle = computed(() => ({
@@ -33,18 +47,39 @@ const mergeStyle = computed(() => ({
   backgroundColor: props.ringColor ?? props.author.color,
 }))
 
-const style = computed(() => ({
-  width: `${props.size}px`,
-  height: `${props.size}px`,
-  backgroundColor: showImage.value
-    ? 'transparent'
-    : props.ringColor
+const style = computed(() => {
+  if (showImage.value) {
+    return {
+      width: `${props.size}px`,
+      height: `${props.size}px`,
+      backgroundColor: 'transparent',
+      fontSize: `${Math.round(props.size * 0.42)}px`,
+      boxShadow: props.ringColor ? `0 0 0 2px ${props.ringColor}` : undefined,
+    }
+  }
+
+  if (isLightTheme.value) {
+    return {
+      width: `${props.size}px`,
+      height: `${props.size}px`,
+      backgroundColor: props.author.color,
+      color: contrastingTextColor(props.author.color),
+      fontSize: `${Math.round(props.size * 0.42)}px`,
+      boxShadow: props.ringColor ? `0 0 0 2px ${props.ringColor}` : undefined,
+    }
+  }
+
+  return {
+    width: `${props.size}px`,
+    height: `${props.size}px`,
+    backgroundColor: props.ringColor
       ? `color-mix(in srgb, ${props.author.color} 30%, var(--color-app))`
       : `color-mix(in srgb, ${props.author.color} 30%, transparent)`,
-  color: props.author.color,
-  fontSize: `${Math.round(props.size * 0.42)}px`,
-  boxShadow: props.ringColor ? `0 0 0 2px ${props.ringColor}` : undefined,
-}))
+    color: props.author.color,
+    fontSize: `${Math.round(props.size * 0.42)}px`,
+    boxShadow: props.ringColor ? `0 0 0 2px ${props.ringColor}` : undefined,
+  }
+})
 </script>
 
 <template>
@@ -56,7 +91,7 @@ const style = computed(() => ({
   />
   <span
     v-else
-    class="inline-flex shrink-0 items-center justify-center overflow-hidden rounded-full font-semibold ring-1 ring-inset ring-white/10"
+    class="inline-flex shrink-0 items-center justify-center overflow-hidden rounded-full font-semibold ring-1 ring-inset ring-[var(--color-border-strong)]"
     :style="style"
     :title="author.name"
   >

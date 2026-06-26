@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import type { GraphScope } from '@shared/git/models'
+import { syncThemePreference } from '@/lib/applyTheme'
 import {
   clampCommitGraphLimit,
   clampColumnWidth,
@@ -14,10 +15,14 @@ import {
   type CommitColumnWidthKey,
   type DiffViewMode,
   type FileListView,
+  type SectionKey,
   type UserPreferences,
 } from '@/lib/preferences'
+import type { ThemePreference } from '@/lib/themes'
 
 const LEGACY_STORE_KEY = 'git-light:ui'
+let persistTimer: ReturnType<typeof setTimeout> | undefined
+let persistenceBound = false
 
 async function readPersisted(): Promise<Partial<UserPreferences> | null> {
   if (window.electron?.store) {
@@ -63,6 +68,7 @@ function snapshot(state: {
   fileListView: FileListView
   lastRepositoryPath: string | null
   diffViewMode: DiffViewMode
+  theme: ThemePreference
 }): UserPreferences {
   return {
     leftSize: state.leftSize,
@@ -78,6 +84,7 @@ function snapshot(state: {
     fileListView: state.fileListView,
     lastRepositoryPath: state.lastRepositoryPath,
     diffViewMode: state.diffViewMode,
+    theme: state.theme,
   }
 }
 
@@ -88,7 +95,7 @@ export const useUiStore = defineStore('ui', {
     workingTreeChangesSize: defaultPreferences().workingTreeChangesSize,
     leftCollapsed: false,
     rightCollapsed: false,
-    sections: { ...DEFAULT_SECTIONS },
+    sections: { ...DEFAULT_SECTIONS } as Record<string, boolean>,
     columns: { ...DEFAULT_COLUMNS },
     columnWidths: { ...DEFAULT_COLUMN_WIDTHS },
     graphScopeAll: true,
@@ -96,6 +103,7 @@ export const useUiStore = defineStore('ui', {
     fileListView: 'path' as FileListView,
     lastRepositoryPath: null as string | null,
     diffViewMode: 'unified' as DiffViewMode,
+    theme: defaultPreferences().theme,
     commandPaletteOpen: false,
     settingsOpen: false,
   }),
@@ -115,7 +123,7 @@ export const useUiStore = defineStore('ui', {
       this.workingTreeChangesSize = saved.workingTreeChangesSize
       this.leftCollapsed = saved.leftCollapsed
       this.rightCollapsed = saved.rightCollapsed
-      this.sections = saved.sections
+      this.sections = { ...saved.sections }
       this.columns = saved.columns
       this.columnWidths = saved.columnWidths
       this.graphScopeAll = saved.graphScopeAll
@@ -123,29 +131,38 @@ export const useUiStore = defineStore('ui', {
       this.fileListView = saved.fileListView
       this.lastRepositoryPath = saved.lastRepositoryPath
       this.diffViewMode = saved.diffViewMode
-      let timer: ReturnType<typeof setTimeout> | undefined
+      this.theme = saved.theme
+      syncThemePreference(this.theme)
+      if (persistenceBound) return
+      persistenceBound = true
       this.$subscribe(() => {
-        clearTimeout(timer)
-        timer = setTimeout(() => {
-          writePersisted(
-            snapshot({
-              leftSize: this.leftSize,
-              rightSize: this.rightSize,
-              workingTreeChangesSize: this.workingTreeChangesSize,
-              leftCollapsed: this.leftCollapsed,
-              rightCollapsed: this.rightCollapsed,
-              sections: this.sections,
-              columns: this.columns,
-              columnWidths: this.columnWidths,
-              graphScopeAll: this.graphScopeAll,
-              commitGraphLimit: this.clampedCommitGraphLimit,
-              fileListView: this.fileListView,
-              lastRepositoryPath: this.lastRepositoryPath,
-              diffViewMode: this.diffViewMode,
-            }),
-          )
-        }, 200)
+        clearTimeout(persistTimer)
+        persistTimer = setTimeout(() => this.persistNow(), 200)
       })
+      window.addEventListener('beforeunload', () => this.persistNow())
+      window.electron?.onWindowBlur?.(() => this.persistNow())
+    },
+    persistNow(): void {
+      clearTimeout(persistTimer)
+      persistTimer = undefined
+      writePersisted(
+        snapshot({
+          leftSize: this.leftSize,
+          rightSize: this.rightSize,
+          workingTreeChangesSize: this.workingTreeChangesSize,
+          leftCollapsed: this.leftCollapsed,
+          rightCollapsed: this.rightCollapsed,
+          sections: this.sections,
+          columns: this.columns,
+          columnWidths: this.columnWidths,
+          graphScopeAll: this.graphScopeAll,
+          commitGraphLimit: this.clampedCommitGraphLimit,
+          fileListView: this.fileListView,
+          lastRepositoryPath: this.lastRepositoryPath,
+          diffViewMode: this.diffViewMode,
+          theme: this.theme,
+        }),
+      )
     },
     setLeftSize(size: number): void {
       this.leftSize = size
@@ -163,10 +180,12 @@ export const useUiStore = defineStore('ui', {
       this.rightCollapsed = !this.rightCollapsed
     },
     toggleSection(key: string): void {
-      this.sections[key] = !this.sections[key]
+      this.sections = { ...this.sections, [key]: !this.isSectionOpen(key) }
     },
     isSectionOpen(key: string): boolean {
-      return this.sections[key] ?? true
+      if (key in this.sections) return this.sections[key]!
+      if (key in DEFAULT_SECTIONS) return DEFAULT_SECTIONS[key as SectionKey]
+      return true
     },
     isColumnVisible(key: CommitColumnKey): boolean {
       return this.columns[key] ?? DEFAULT_COLUMNS[key]
@@ -181,7 +200,7 @@ export const useUiStore = defineStore('ui', {
       this.columnWidths[key] = clampColumnWidth(key, width)
     },
     setSectionOpen(key: string, open: boolean): void {
-      this.sections[key] = open
+      this.sections = { ...this.sections, [key]: open }
     },
     setLeftVisible(visible: boolean): void {
       this.leftCollapsed = !visible
@@ -209,6 +228,10 @@ export const useUiStore = defineStore('ui', {
     },
     setFileListView(view: FileListView): void {
       this.fileListView = view
+    },
+    setTheme(theme: ThemePreference): void {
+      this.theme = theme
+      syncThemePreference(theme)
     },
     resetLayout(): void {
       const d = defaultPreferences()

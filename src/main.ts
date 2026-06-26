@@ -2,6 +2,7 @@ import { createApp } from 'vue'
 import { createPinia } from 'pinia'
 import type { RecentRepository } from '@shared/git/models'
 import App from './App.vue'
+import { syncThemePreference } from './lib/applyTheme'
 import { useUiStore } from './stores/ui'
 import { useRepositoryStore } from './stores/repository'
 import 'splitpanes/dist/splitpanes.css'
@@ -37,6 +38,7 @@ async function bootstrap(): Promise<void> {
 
   const ui = useUiStore(pinia)
   await ui.hydrate()
+  syncThemePreference(ui.theme)
 
   const repo = useRepositoryStore(pinia)
   await repo.init()

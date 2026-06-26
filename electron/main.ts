@@ -1,5 +1,5 @@
 import { join } from 'node:path'
-import { app, BrowserWindow, ipcMain, Menu, nativeImage, shell } from 'electron'
+import { app, BrowserWindow, ipcMain, Menu, nativeImage, nativeTheme, shell } from 'electron'
 import Store from 'electron-store'
 import { AppIpcChannels } from '@shared/app/ipc'
 import {
@@ -33,6 +33,22 @@ app.setAboutPanelOptions({
 const store = new Store({ name: 'git-light-ui' })
 let mainWindow: BrowserWindow | null = null
 
+const THEME_APP_COLORS: Record<string, string> = {
+  default: '#12151a',
+  dracula: '#282a36',
+  light: '#ffffff',
+  claude: '#141413',
+}
+
+function startupBackgroundColor(): string {
+  const prefs = store.get('git-light:preferences', null) as { theme?: string } | null
+  const theme = prefs?.theme ?? 'default'
+  if (theme === 'system') {
+    return nativeTheme.shouldUseDarkColors ? THEME_APP_COLORS.default : THEME_APP_COLORS.light
+  }
+  return THEME_APP_COLORS[theme] ?? THEME_APP_COLORS.default
+}
+
 function createWindow(): BrowserWindow {
   const win = new BrowserWindow({
     width: 1440,
@@ -41,7 +57,7 @@ function createWindow(): BrowserWindow {
     minHeight: 640,
     show: false,
     title: APP_NAME,
-    backgroundColor: '#12151a',
+    backgroundColor: startupBackgroundColor(),
     titleBarStyle: process.platform === 'darwin' ? 'hiddenInset' : 'default',
     trafficLightPosition: { x: 16, y: 16 },
     webPreferences: {
@@ -86,6 +102,12 @@ ipcMain.handle(AppIpcChannels.storeSet, (_event, { key, value }: { key: string; 
 
 ipcMain.handle(AppIpcChannels.openExternal, (_event, { url }: { url: string }) => {
   return shell.openExternal(url)
+})
+
+ipcMain.handle(AppIpcChannels.setWindowBackgroundColor, (_event, { color }: { color: string }) => {
+  if (mainWindow && !mainWindow.isDestroyed()) {
+    mainWindow.setBackgroundColor(color)
+  }
 })
 
 app.whenReady().then(() => {

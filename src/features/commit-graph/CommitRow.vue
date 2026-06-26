@@ -55,28 +55,50 @@ function refPriority(ref: Ref): number {
   return 3
 }
 
-const displayRefs = computed(() => {
+interface DisplayRef {
+  ref: Ref
+  hasLocal: boolean
+  hasRemote: boolean
+}
+
+function branchPresence(refs: Ref[]): { hasLocal: boolean; hasRemote: boolean } {
+  return {
+    hasLocal: refs.some((r) => r.type === 'localBranch'),
+    hasRemote: refs.some((r) => r.type === 'remoteBranch'),
+  }
+}
+
+const displayRefs = computed((): DisplayRef[] => {
   const byLabel = new Map<string, Ref>()
+  const refsByLabel = new Map<string, Ref[]>()
   for (const ref of props.commit.refs) {
     if (ref.type === 'head') continue
     const label = refDisplayLabel(ref)
+    const group = refsByLabel.get(label) ?? []
+    group.push(ref)
+    refsByLabel.set(label, group)
     const existing = byLabel.get(label)
     if (!existing || refPriority(ref) < refPriority(existing)) {
       byLabel.set(label, ref)
     }
   }
-  return [...byLabel.values()].sort((a, b) => {
-    const byPriority = refPriority(a) - refPriority(b)
-    if (byPriority !== 0) return byPriority
-    return refDisplayLabel(a).localeCompare(refDisplayLabel(b))
-  })
+  return [...byLabel.entries()]
+    .map(([label, ref]) => ({
+      ref,
+      ...branchPresence(refsByLabel.get(label) ?? []),
+    }))
+    .sort((a, b) => {
+      const byPriority = refPriority(a.ref) - refPriority(b.ref)
+      if (byPriority !== 0) return byPriority
+      return refDisplayLabel(a.ref).localeCompare(refDisplayLabel(b.ref))
+    })
 })
 
 const primaryRef = computed(() => displayRefs.value[0] ?? null)
 const hiddenRefs = computed(() => displayRefs.value.slice(1))
 const hiddenCount = computed(() => hiddenRefs.value.length)
 
-const isCurrentBranchRef = computed(() => primaryRef.value?.isHead === true)
+const isCurrentBranchRef = computed(() => primaryRef.value?.ref.isHead === true)
 
 const chipColor = computed(() => {
   if (isCurrentBranchRef.value) return 'var(--color-accent)'
@@ -87,7 +109,7 @@ const showConnector = computed(
   () =>
     props.graphNode != null &&
     primaryRef.value != null &&
-    (primaryRef.value.type === 'localBranch' || primaryRef.value.type === 'remoteBranch'),
+    (primaryRef.value.ref.type === 'localBranch' || primaryRef.value.ref.type === 'remoteBranch'),
 )
 
 const connectorColor = computed((): Record<string, string> | null => {
@@ -164,7 +186,13 @@ function openOnGithub(): void {
       >
         <template v-if="primaryRef">
           <div class="relative min-w-0 flex-1">
-            <RefChip class="min-w-0 overflow-hidden" :ref-data="primaryRef" :color="chipColor" />
+            <RefChip
+              class="min-w-0 overflow-hidden"
+              :ref-data="primaryRef.ref"
+              :color="chipColor"
+              :has-local="primaryRef.hasLocal"
+              :has-remote="primaryRef.hasRemote"
+            />
             <div
               v-if="connectorStyle"
               class="pointer-events-none absolute top-1/2 z-10 h-[2px] -translate-y-1/2"
@@ -180,9 +208,16 @@ function openOnGithub(): void {
           </span>
           <div
             v-if="hiddenCount"
-            class="pointer-events-none absolute bottom-full left-1 z-20 mb-1 hidden min-w-max flex-col gap-1 rounded-md border border-[var(--color-border-strong)] bg-[var(--color-elevated)] px-2 py-1.5 shadow-lg shadow-black/40 group-hover/refs:flex"
+            class="pointer-events-none absolute top-full left-1 z-50 mt-1 hidden min-w-max flex-col gap-1 rounded-md border border-[var(--color-border-strong)] bg-[var(--color-elevated)] px-2 py-1.5 shadow-lg shadow-black/40 group-hover/refs:flex"
           >
-            <RefChip v-for="(ref, i) in hiddenRefs" :key="i" :ref-data="ref" :color="chipColor" />
+            <RefChip
+              v-for="(entry, i) in hiddenRefs"
+              :key="i"
+              :ref-data="entry.ref"
+              :color="chipColor"
+              :has-local="entry.hasLocal"
+              :has-remote="entry.hasRemote"
+            />
           </div>
         </template>
       </div>

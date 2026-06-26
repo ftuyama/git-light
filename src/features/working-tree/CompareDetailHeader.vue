@@ -1,6 +1,8 @@
 <script setup lang="ts">
-import { X } from '@lucide/vue'
+import { ChevronRight, X } from '@lucide/vue'
+import IconButton from '@/components/ui/IconButton.vue'
 import type { CompareRange } from '@/stores/selection'
+import { useUiStore } from '@/stores/ui'
 
 defineProps<{
   range: CompareRange
@@ -8,6 +10,7 @@ defineProps<{
 }>()
 
 const emit = defineEmits<{ close: [] }>()
+const ui = useUiStore()
 </script>
 
 <template>
@@ -27,14 +30,22 @@ const emit = defineEmits<{ close: [] }>()
           <span class="text-[var(--color-fg-subtle)]">· Shift+click another commit to compare</span>
         </p>
       </div>
-      <button
-        class="focus-ring shrink-0 rounded p-1 text-[var(--color-fg-subtle)] hover:bg-[var(--color-hover)] hover:text-[var(--color-fg)]"
-        title="Exit compare mode"
-        aria-label="Exit compare mode"
-        @click="emit('close')"
-      >
-        <X :size="14" />
-      </button>
+      <div class="flex shrink-0 items-center gap-1">
+        <IconButton
+          :icon="ChevronRight"
+          label="Hide right panel"
+          tooltip-side="left"
+          @click="ui.toggleRight()"
+        />
+        <button
+          class="focus-ring rounded p-1 text-[var(--color-fg-subtle)] hover:bg-[var(--color-hover)] hover:text-[var(--color-fg)]"
+          title="Exit compare mode"
+          aria-label="Exit compare mode"
+          @click="emit('close')"
+        >
+          <X :size="14" />
+        </button>
+      </div>
     </div>
   </div>
 </template>

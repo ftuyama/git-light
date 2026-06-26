@@ -232,7 +232,7 @@ const { graphContentWidth, visibleEdges, visibleNodes, laneX } = useCommitGraphO
         <div
           v-for="item in virtualItems"
           :key="item.index"
-          class="absolute right-0 left-0 z-0"
+          class="absolute right-0 left-0 z-0 hover:z-30"
           :style="{ height: `${item.size}px`, transform: `translateY(${item.start}px)` }"
         >
           <div

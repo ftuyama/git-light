@@ -1,3 +1,5 @@
+import { isThemePreference, type ThemePreference } from './themes'
+
 export type CommitColumnKey = 'author' | 'sha' | 'when'
 
 export type FileListView = 'path' | 'tree'
@@ -69,15 +71,17 @@ export interface UserPreferences {
   fileListView: FileListView
   lastRepositoryPath: string | null
   diffViewMode: DiffViewMode
+  theme: ThemePreference
 }
 
 export const PREFERENCES_KEY = 'git-light:preferences'
 
-export const DEFAULT_SECTIONS: Record<string, boolean> = {
+export const DEFAULT_SECTIONS: Record<SectionKey, boolean> = {
+  favorites: true,
   localBranches: true,
   remoteBranches: false,
   tags: false,
-  stashes: true,
+  stashes: false,
   worktrees: false,
 }
 
@@ -136,6 +140,7 @@ export function defaultPreferences(): UserPreferences {
     fileListView: 'path',
     lastRepositoryPath: null,
     diffViewMode: 'unified',
+    theme: 'default',
   }
 }
 
@@ -158,5 +163,6 @@ export function mergePreferences(saved: Partial<UserPreferences> | null): UserPr
     fileListView: saved.fileListView ?? defaults.fileListView,
     lastRepositoryPath: saved.lastRepositoryPath ?? defaults.lastRepositoryPath,
     diffViewMode: saved.diffViewMode === 'split' ? 'split' : 'unified',
+    theme: isThemePreference(saved.theme) ? saved.theme : defaults.theme,
   }
 }

@@ -4,7 +4,14 @@ import { Check, Cloud, Monitor } from '@lucide/vue'
 import { formatRefLabel } from '@shared/git/refLabel'
 import type { Ref } from '@/types/git'
 
-const props = defineProps<{ refData: Ref; color: string }>()
+const props = defineProps<{
+  refData: Ref
+  color: string
+  /** When set, overrides type-based local icon visibility (e.g. merged local+remote). */
+  hasLocal?: boolean
+  /** When set, overrides type-based remote icon visibility (e.g. merged local+remote). */
+  hasRemote?: boolean
+}>()
 
 const label = computed(() =>
   props.refData.label
@@ -13,8 +20,12 @@ const label = computed(() =>
 )
 
 const isCurrent = computed(() => props.refData.isHead === true)
-const isLocalBranch = computed(() => props.refData.type === 'localBranch')
-const isRemoteBranch = computed(() => props.refData.type === 'remoteBranch')
+const showLocalIcon = computed(
+  () => props.hasLocal ?? props.refData.type === 'localBranch',
+)
+const showRemoteIcon = computed(
+  () => props.hasRemote ?? props.refData.type === 'remoteBranch',
+)
 
 const resolvedColor = computed((): string => {
   if (isCurrent.value) return 'var(--color-accent)'
@@ -102,13 +113,15 @@ onUnmounted(() => {
       <Check v-if="isCurrent" :size="10" class="shrink-0" />
       <span
         ref="labelRef"
-        class="min-w-0 truncate"
+        class="min-w-0 flex-1 truncate"
         :class="isCurrent ? 'font-semibold' : 'font-medium'"
       >
         {{ label }}
       </span>
-      <Cloud v-if="isRemoteBranch" :size="10" class="shrink-0 opacity-90" />
-      <Monitor v-else-if="isLocalBranch" :size="10" class="shrink-0 opacity-90" />
+      <span v-if="showLocalIcon || showRemoteIcon" class="ml-auto flex shrink-0 items-center gap-0.5">
+        <Monitor v-if="showLocalIcon" :size="10" class="opacity-90" />
+        <Cloud v-if="showRemoteIcon" :size="10" class="opacity-90" />
+      </span>
     </span>
   </span>
 
@@ -127,8 +140,10 @@ onUnmounted(() => {
     >
       <Check v-if="isCurrent" :size="10" class="shrink-0" />
       <span :class="isCurrent ? 'font-semibold' : 'font-medium'">{{ label }}</span>
-      <Cloud v-if="isRemoteBranch" :size="10" class="shrink-0 opacity-90" />
-      <Monitor v-else-if="isLocalBranch" :size="10" class="shrink-0 opacity-90" />
+      <span v-if="showLocalIcon || showRemoteIcon" class="ml-auto flex shrink-0 items-center gap-0.5">
+        <Monitor v-if="showLocalIcon" :size="10" class="opacity-90" />
+        <Cloud v-if="showRemoteIcon" :size="10" class="opacity-90" />
+      </span>
     </span>
   </Teleport>
 </template>

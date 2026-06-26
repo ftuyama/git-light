@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import { ref } from 'vue'
-import { ChevronDown, Copy } from '@lucide/vue'
+import { ChevronRight, Copy } from '@lucide/vue'
 import Avatar from '@/components/ui/Avatar.vue'
 import Badge from '@/components/ui/Badge.vue'
+import IconButton from '@/components/ui/IconButton.vue'
 import { fullTimestamp, relativeTime } from '@/lib/format'
 import type { Commit } from '@/types/git'
 import { useToastStore } from '@/stores/toast'
+import { useUiStore } from '@/stores/ui'
 
 const props = defineProps<{
   commit: Commit
@@ -13,7 +14,7 @@ const props = defineProps<{
 }>()
 
 const toast = useToastStore()
-const bodyExpanded = ref(false)
+const ui = useUiStore()
 
 function copySha(): void {
   void navigator.clipboard?.writeText(props.commit.sha)
@@ -27,9 +28,25 @@ function shortParent(sha: string): string {
 
 <template>
   <div class="shrink-0 border-b border-[var(--color-border)] px-3 py-2.5">
-    <p class="text-[13px] font-medium leading-snug text-[var(--color-fg)]">
-      {{ commit.subject }}
-    </p>
+    <div class="flex items-start gap-2">
+      <div class="min-w-0 flex-1">
+        <p class="text-[13px] font-medium leading-snug text-[var(--color-fg)]">
+          {{ commit.subject }}
+        </p>
+        <p
+          v-if="commit.body?.trim()"
+          class="mt-1 whitespace-pre-wrap text-[12px] leading-relaxed text-[var(--color-fg-muted)]"
+        >
+          {{ commit.body.trim() }}
+        </p>
+      </div>
+      <IconButton
+        :icon="ChevronRight"
+        label="Hide right panel"
+        tooltip-side="left"
+        @click="ui.toggleRight()"
+      />
+    </div>
 
     <div v-if="commit.isMerge" class="mt-1.5 flex flex-wrap items-center gap-1.5">
       <Badge tone="info">merge</Badge>
@@ -68,21 +85,5 @@ function shortParent(sha: string): string {
       <span class="text-[var(--color-fg-muted)]">{{ fileCount }} {{ fileCount === 1 ? 'file' : 'files' }}</span>
     </div>
 
-    <button
-      v-if="commit.body?.trim()"
-      class="focus-ring mt-2 flex w-full items-center gap-1 text-left text-[11px] text-[var(--color-fg-muted)] hover:text-[var(--color-fg)]"
-      @click="bodyExpanded = !bodyExpanded"
-    >
-      <ChevronDown
-        :size="12"
-        class="shrink-0 transition-transform"
-        :class="bodyExpanded ? 'rotate-180' : ''"
-      />
-      {{ bodyExpanded ? 'Hide message' : 'Show message' }}
-    </button>
-    <pre
-      v-if="bodyExpanded && commit.body?.trim()"
-      class="mt-1.5 max-h-32 overflow-y-auto whitespace-pre-wrap text-[11px] leading-relaxed text-[var(--color-fg-muted)]"
-    >{{ commit.body.trim() }}</pre>
   </div>
 </template>

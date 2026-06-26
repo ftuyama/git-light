@@ -45,10 +45,10 @@ export const STATUS_META: Record<FileStatus, StatusMeta> = {
     bg: 'color-mix(in srgb, var(--color-info) 18%, transparent)',
   },
   untracked: {
-    letter: '?',
-    label: 'Untracked',
-    color: 'var(--color-fg-muted)',
-    bg: 'color-mix(in srgb, var(--color-fg-muted) 12%, transparent)',
+    letter: 'A',
+    label: 'Added',
+    color: 'var(--color-success)',
+    bg: 'color-mix(in srgb, var(--color-success) 18%, transparent)',
   },
   ignored: {
     letter: 'I',
@@ -58,4 +58,4 @@ export const STATUS_META: Record<FileStatus, StatusMeta> = {
   },
 }
 
-export const STATUS_ORDER: FileStatus[] = ['modified', 'added', 'deleted', 'renamed', 'conflicted']
+export const STATUS_ORDER: FileStatus[] = ['modified', 'added', 'untracked', 'deleted', 'renamed', 'conflicted']

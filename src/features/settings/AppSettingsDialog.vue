@@ -1,10 +1,11 @@
 <script setup lang="ts">
 import { onUnmounted, ref, watch } from 'vue'
-import { GitCommitHorizontal, Heart, LayoutPanelLeft, PanelLeft, Rows3, X } from '@lucide/vue'
+import { GitCommitHorizontal, Heart, LayoutPanelLeft, Palette, PanelLeft, Rows3, X } from '@lucide/vue'
 import { storeToRefs } from 'pinia'
 import Button from '@/components/ui/Button.vue'
 import SettingsCreditsPanel from './SettingsCreditsPanel.vue'
 import SettingsRow from './SettingsRow.vue'
+import ThemePicker from './ThemePicker.vue'
 import {
   COLUMN_LABELS,
   COMMIT_GRAPH_LIMIT_MAX,
@@ -19,17 +20,18 @@ import { useRepositoryStore } from '@/stores/repository'
 
 const ui = useUiStore()
 const repo = useRepositoryStore()
-const { leftCollapsed, rightCollapsed, settingsOpen, graphScopeAll, commitGraphLimit, fileListView } =
+const { leftCollapsed, rightCollapsed, settingsOpen, graphScopeAll, commitGraphLimit, fileListView, theme } =
   storeToRefs(ui)
 
-type SettingsCategory = 'layout' | 'changes' | 'commit-graph' | 'sidebar' | 'credits'
+type SettingsCategory = 'appearance' | 'layout' | 'changes' | 'commit-graph' | 'sidebar' | 'credits'
 
-const activeCategory = ref<SettingsCategory>('layout')
+const activeCategory = ref<SettingsCategory>('appearance')
 
 const columnKeys = Object.keys(COLUMN_LABELS) as CommitColumnKey[]
 
 const preferenceCategories: { id: SettingsCategory; label: string; icon: typeof LayoutPanelLeft }[] =
   [
+    { id: 'appearance', label: 'Appearance', icon: Palette },
     { id: 'layout', label: 'Layout', icon: LayoutPanelLeft },
     { id: 'changes', label: 'Changes', icon: Rows3 },
     { id: 'commit-graph', label: 'Commit Graph', icon: GitCommitHorizontal },
@@ -150,8 +152,18 @@ onUnmounted(() => document.removeEventListener('keydown', onKeydown))
           </header>
 
           <div class="min-h-0 flex-1 overflow-y-auto px-2 py-3">
+            <!-- Appearance -->
+            <template v-if="activeCategory === 'appearance'">
+              <p class="mb-3 px-3 text-[12px] text-[var(--color-fg-muted)]">
+                Choose a color palette for the application interface.
+              </p>
+              <section class="px-3">
+                <ThemePicker :model-value="theme" />
+              </section>
+            </template>
+
             <!-- Layout -->
-            <template v-if="activeCategory === 'layout'">
+            <template v-else-if="activeCategory === 'layout'">
               <p class="mb-3 px-3 text-[12px] text-[var(--color-fg-muted)]">
                 Control panel visibility and restore the default three-pane layout.
               </p>

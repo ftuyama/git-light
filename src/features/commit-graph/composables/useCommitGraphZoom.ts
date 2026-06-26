@@ -3,7 +3,7 @@ import { computed, ref, type Ref } from 'vue'
 export const BASE_ROW_HEIGHT = 30
 export const BASE_LANE_WIDTH = 16
 export const BASE_NODE_SIZE = 16
-export const LANE_LEFT_PAD = 32
+export const LANE_LEFT_PAD = 44
 export const LANE_RIGHT_PAD = 14
 const DEFAULT_ZOOM = 1.15
 

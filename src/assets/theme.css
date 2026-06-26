@@ -5,9 +5,16 @@
   Colors are tuned for a dense, professional developer tool: dark app surface,
   slightly raised panels, muted borders, and a saturated accent set reused for
   branch lanes.
+
+  Theme palettes are applied via html[data-theme="…"] overrides.
 */
 
 @theme {
+  --font-sans: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono: 'JetBrains Mono', 'SF Mono', ui-monospace, monospace;
+  --radius: 0.5rem;
+
+  /* Default palette — also used before JS sets data-theme. */
   --color-app: #12151a;
   --color-panel: #1b2028;
   --color-panel-raised: #21262e;
@@ -31,7 +38,6 @@
   --color-danger: #f85149;
   --color-info: #58a6ff;
 
-  /* Branch lane palette (8 rotating colors). */
   --color-lane-0: #a371f7;
   --color-lane-1: #3fb950;
   --color-lane-2: #58a6ff;
@@ -41,10 +47,222 @@
   --color-lane-6: #56d4dd;
   --color-lane-7: #ff7b72;
 
-  --font-sans: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
-  --font-mono: 'JetBrains Mono', 'SF Mono', ui-monospace, monospace;
+  --color-scrollbar-thumb: rgba(255, 255, 255, 0.1);
+  --color-scrollbar-thumb-hover: rgba(255, 255, 255, 0.2);
 
-  --radius: 0.5rem;
+  --hljs-keyword: #ff7b72;
+  --hljs-string: #a5d6ff;
+  --hljs-number: #79c0ff;
+  --hljs-comment: #8b949e;
+  --hljs-title: #d2a8ff;
+  --hljs-type: #ffa657;
+  --hljs-variable: #ffa657;
+  --hljs-meta: #79c0ff;
+  --hljs-regexp: #a5d6ff;
+  --hljs-symbol: #79c0ff;
+  --hljs-section: #d2a8ff;
+  --hljs-tag: #7ee787;
+}
+
+:root,
+[data-theme='default'] {
+  --color-app: #12151a;
+  --color-panel: #1b2028;
+  --color-panel-raised: #21262e;
+  --color-elevated: #262b33;
+  --color-hover: #2b313b;
+  --color-active: #323840;
+
+  --color-border: rgba(255, 255, 255, 0.06);
+  --color-border-strong: rgba(255, 255, 255, 0.12);
+
+  --color-fg: #e6edf3;
+  --color-fg-muted: #9198a1;
+  --color-fg-subtle: #6b7280;
+
+  --color-accent: #6e9fff;
+  --color-accent-strong: #4a82ff;
+  --color-accent-soft: rgba(110, 159, 255, 0.16);
+
+  --color-success: #3fb950;
+  --color-warning: #f0883e;
+  --color-danger: #f85149;
+  --color-info: #58a6ff;
+
+  --color-lane-0: #a371f7;
+  --color-lane-1: #3fb950;
+  --color-lane-2: #58a6ff;
+  --color-lane-3: #f0883e;
+  --color-lane-4: #db61a2;
+  --color-lane-5: #e3b341;
+  --color-lane-6: #56d4dd;
+  --color-lane-7: #ff7b72;
+
+  --color-scrollbar-thumb: rgba(255, 255, 255, 0.1);
+  --color-scrollbar-thumb-hover: rgba(255, 255, 255, 0.2);
+
+  --hljs-keyword: #ff7b72;
+  --hljs-string: #a5d6ff;
+  --hljs-number: #79c0ff;
+  --hljs-comment: #8b949e;
+  --hljs-title: #d2a8ff;
+  --hljs-type: #ffa657;
+  --hljs-variable: #ffa657;
+  --hljs-meta: #79c0ff;
+  --hljs-regexp: #a5d6ff;
+  --hljs-symbol: #79c0ff;
+  --hljs-section: #d2a8ff;
+  --hljs-tag: #7ee787;
+}
+
+[data-theme='dracula'] {
+  --color-app: #282a36;
+  --color-panel: #21222c;
+  --color-panel-raised: #343746;
+  --color-elevated: #3a3c4e;
+  --color-hover: #44475a;
+  --color-active: #4d5066;
+
+  --color-border: rgba(248, 248, 242, 0.08);
+  --color-border-strong: rgba(248, 248, 242, 0.16);
+
+  --color-fg: #f8f8f2;
+  --color-fg-muted: #b9bbbe;
+  --color-fg-subtle: #8b8d96;
+
+  --color-accent: #bd93f9;
+  --color-accent-strong: #a679e8;
+  --color-accent-soft: rgba(189, 147, 249, 0.18);
+
+  --color-success: #50fa7b;
+  --color-warning: #ffb86c;
+  --color-danger: #ff5555;
+  --color-info: #8be9fd;
+
+  --color-lane-0: #bd93f9;
+  --color-lane-1: #50fa7b;
+  --color-lane-2: #8be9fd;
+  --color-lane-3: #ffb86c;
+  --color-lane-4: #ff79c6;
+  --color-lane-5: #f1fa8c;
+  --color-lane-6: #6272a4;
+  --color-lane-7: #ff5555;
+
+  --color-scrollbar-thumb: rgba(248, 248, 242, 0.12);
+  --color-scrollbar-thumb-hover: rgba(248, 248, 242, 0.22);
+
+  --hljs-keyword: #ff79c6;
+  --hljs-string: #f1fa8c;
+  --hljs-number: #bd93f9;
+  --hljs-comment: #6272a4;
+  --hljs-title: #50fa7b;
+  --hljs-type: #8be9fd;
+  --hljs-variable: #ffb86c;
+  --hljs-meta: #8be9fd;
+  --hljs-regexp: #f1fa8c;
+  --hljs-symbol: #bd93f9;
+  --hljs-section: #50fa7b;
+  --hljs-tag: #ff79c6;
+}
+
+[data-theme='light'] {
+  --color-app: #ffffff;
+  --color-panel: #f6f8fa;
+  --color-panel-raised: #ffffff;
+  --color-elevated: #eef1f5;
+  --color-hover: #e8ecf0;
+  --color-active: #d8dee4;
+
+  --color-border: rgba(31, 35, 40, 0.12);
+  --color-border-strong: rgba(31, 35, 40, 0.2);
+
+  --color-fg: #1f2328;
+  --color-fg-muted: #59636e;
+  --color-fg-subtle: #818b98;
+
+  --color-accent: #0969da;
+  --color-accent-strong: #0550ae;
+  --color-accent-soft: rgba(9, 105, 218, 0.12);
+
+  --color-success: #1a7f37;
+  --color-warning: #bf5415;
+  --color-danger: #cf222e;
+  --color-info: #0969da;
+
+  --color-lane-0: #8250df;
+  --color-lane-1: #1a7f37;
+  --color-lane-2: #0969da;
+  --color-lane-3: #bf5415;
+  --color-lane-4: #bf3989;
+  --color-lane-5: #9a6700;
+  --color-lane-6: #0891b2;
+  --color-lane-7: #cf222e;
+
+  --color-scrollbar-thumb: rgba(31, 35, 40, 0.18);
+  --color-scrollbar-thumb-hover: rgba(31, 35, 40, 0.32);
+
+  --hljs-keyword: #cf222e;
+  --hljs-string: #0a3069;
+  --hljs-number: #0550ae;
+  --hljs-comment: #59636e;
+  --hljs-title: #8250df;
+  --hljs-type: #953800;
+  --hljs-variable: #953800;
+  --hljs-meta: #0550ae;
+  --hljs-regexp: #0a3069;
+  --hljs-symbol: #0550ae;
+  --hljs-section: #8250df;
+  --hljs-tag: #116329;
+}
+
+[data-theme='claude'] {
+  --color-app: #141413;
+  --color-panel: #1f1e1b;
+  --color-panel-raised: #252320;
+  --color-elevated: #30302e;
+  --color-hover: #3a3935;
+  --color-active: #44443f;
+
+  --color-border: rgba(250, 249, 245, 0.08);
+  --color-border-strong: rgba(250, 249, 245, 0.14);
+
+  --color-fg: #faf9f5;
+  --color-fg-muted: #b0aea5;
+  --color-fg-subtle: #87867f;
+
+  --color-accent: #d97757;
+  --color-accent-strong: #c96442;
+  --color-accent-soft: rgba(217, 119, 87, 0.18);
+
+  --color-success: #6abf8a;
+  --color-warning: #d4a054;
+  --color-danger: #e07070;
+  --color-info: #7eb8d4;
+
+  --color-lane-0: #c4a8e8;
+  --color-lane-1: #6abf8a;
+  --color-lane-2: #7eb8d4;
+  --color-lane-3: #d4a054;
+  --color-lane-4: #d48ab0;
+  --color-lane-5: #d4c068;
+  --color-lane-6: #68c4cc;
+  --color-lane-7: #e08888;
+
+  --color-scrollbar-thumb: rgba(250, 249, 245, 0.12);
+  --color-scrollbar-thumb-hover: rgba(250, 249, 245, 0.22);
+
+  --hljs-keyword: #e8927c;
+  --hljs-string: #c4b896;
+  --hljs-number: #a8c4d4;
+  --hljs-comment: #87867f;
+  --hljs-title: #c4a8e8;
+  --hljs-type: #d4a054;
+  --hljs-variable: #d4a054;
+  --hljs-meta: #a8c4d4;
+  --hljs-regexp: #c4b896;
+  --hljs-symbol: #a8c4d4;
+  --hljs-section: #c4a8e8;
+  --hljs-tag: #6abf8a;
 }
 
 @layer base {
@@ -75,19 +293,18 @@
     background: var(--color-accent-soft);
   }
 
-  /* Thin, unobtrusive scrollbars matching the dark theme. */
   ::-webkit-scrollbar {
     width: 10px;
     height: 10px;
   }
   ::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.1);
+    background: var(--color-scrollbar-thumb);
     border-radius: 999px;
     border: 2px solid transparent;
     background-clip: padding-box;
   }
   ::-webkit-scrollbar-thumb:hover {
-    background: rgba(255, 255, 255, 0.2);
+    background: var(--color-scrollbar-thumb-hover);
     background-clip: padding-box;
   }
   ::-webkit-scrollbar-corner {
@@ -126,7 +343,6 @@
   }
 }
 
-/* splitpanes divider styling to match GitKraken's subtle dividers. */
 .splitpanes--vertical > .splitpanes__splitter {
   width: 1px;
   background: var(--color-border);
@@ -176,7 +392,6 @@
   }
 }
 
-/* Diff viewer and conflict panel syntax highlighting — tuned for the dark app theme. */
 .diff-view .hljs,
 .conflict-view .hljs {
   background: transparent;
@@ -190,7 +405,7 @@
 .conflict-view code.hljs .hljs-keyword,
 .conflict-view code.hljs .hljs-selector-tag,
 .conflict-view code.hljs .hljs-built_in {
-  color: #ff7b72;
+  color: var(--hljs-keyword);
 }
 
 .diff-view .diff-code.hljs .hljs-string,
@@ -199,21 +414,21 @@
 .conflict-view code.hljs .hljs-string,
 .conflict-view code.hljs .hljs-attr,
 .conflict-view code.hljs .hljs-attribute {
-  color: #a5d6ff;
+  color: var(--hljs-string);
 }
 
 .diff-view .diff-code.hljs .hljs-number,
 .diff-view .diff-code.hljs .hljs-literal,
 .conflict-view code.hljs .hljs-number,
 .conflict-view code.hljs .hljs-literal {
-  color: #79c0ff;
+  color: var(--hljs-number);
 }
 
 .diff-view .diff-code.hljs .hljs-comment,
 .diff-view .diff-code.hljs .hljs-quote,
 .conflict-view code.hljs .hljs-comment,
 .conflict-view code.hljs .hljs-quote {
-  color: #8b949e;
+  color: var(--hljs-comment);
   font-style: italic;
 }
 
@@ -223,14 +438,14 @@
 .conflict-view code.hljs .hljs-title,
 .conflict-view code.hljs .hljs-title.function_,
 .conflict-view code.hljs .hljs-function .hljs-title {
-  color: #d2a8ff;
+  color: var(--hljs-title);
 }
 
 .diff-view .diff-code.hljs .hljs-type,
 .diff-view .diff-code.hljs .hljs-class .hljs-title,
 .conflict-view code.hljs .hljs-type,
 .conflict-view code.hljs .hljs-class .hljs-title {
-  color: #ffa657;
+  color: var(--hljs-type);
 }
 
 .diff-view .diff-code.hljs .hljs-variable,
@@ -239,33 +454,33 @@
 .conflict-view code.hljs .hljs-variable,
 .conflict-view code.hljs .hljs-template-variable,
 .conflict-view code.hljs .hljs-name {
-  color: #ffa657;
+  color: var(--hljs-variable);
 }
 
 .diff-view .diff-code.hljs .hljs-meta,
 .diff-view .diff-code.hljs .hljs-meta .hljs-keyword,
 .conflict-view code.hljs .hljs-meta,
 .conflict-view code.hljs .hljs-meta .hljs-keyword {
-  color: #79c0ff;
+  color: var(--hljs-meta);
 }
 
 .diff-view .diff-code.hljs .hljs-regexp,
 .conflict-view code.hljs .hljs-regexp {
-  color: #a5d6ff;
+  color: var(--hljs-regexp);
 }
 
 .diff-view .diff-code.hljs .hljs-symbol,
 .diff-view .diff-code.hljs .hljs-bullet,
 .conflict-view code.hljs .hljs-symbol,
 .conflict-view code.hljs .hljs-bullet {
-  color: #79c0ff;
+  color: var(--hljs-symbol);
 }
 
 .diff-view .diff-code.hljs .hljs-section,
 .diff-view .diff-code.hljs .hljs-selector-id,
 .conflict-view code.hljs .hljs-section,
 .conflict-view code.hljs .hljs-selector-id {
-  color: #d2a8ff;
+  color: var(--hljs-section);
   font-weight: 600;
 }
 
@@ -273,7 +488,7 @@
 .diff-view .diff-code.hljs .hljs-name,
 .conflict-view code.hljs .hljs-tag,
 .conflict-view code.hljs .hljs-name {
-  color: #7ee787;
+  color: var(--hljs-tag);
 }
 
 .diff-view .diff-code.hljs .hljs-subst,

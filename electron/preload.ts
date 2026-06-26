@@ -69,6 +69,9 @@ const api = {
   openExternal(url: string): Promise<void> {
     return invokeApp(AppIpcChannels.openExternal, { url })
   },
+  setWindowBackgroundColor(color: string): Promise<void> {
+    return invokeApp(AppIpcChannels.setWindowBackgroundColor, { color })
+  },
   onWindowFocus(cb: () => void): () => void {
     const handler = () => cb()
     ipcRenderer.on(AppIpcChannels.windowFocus, handler)

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, provide, ref } from 'vue'
-import { Loader2 } from '@lucide/vue'
+import { ChevronLeft, Loader2 } from '@lucide/vue'
+import IconButton from '@/components/ui/IconButton.vue'
 import SearchInput from '@/components/ui/SearchInput.vue'
 import SidebarSection from './SidebarSection.vue'
 import BranchSidebarSectionContent from './BranchSidebarSectionContent.vue'
@@ -82,13 +83,22 @@ async function confirmIntegrate(mode: 'merge' | 'rebase'): Promise<void> {
       </div>
     </Transition>
 
-    <div class="border-b border-[var(--color-border)] p-2">
-      <SearchInput
-        ref="search"
-        v-model="query"
-        placeholder="Search branches"
-        shortcut="⌘F"
+    <div class="flex items-center gap-1 border-b border-[var(--color-border)] p-2">
+      <IconButton
+        :icon="ChevronLeft"
+        label="Hide left sidebar"
+        shortcut="⌘B"
+        tooltip-side="right"
+        @click="ui.toggleLeft()"
       />
+      <div class="min-w-0 flex-1">
+        <SearchInput
+          ref="search"
+          v-model="query"
+          placeholder="Search branches"
+          shortcut="⌘F"
+        />
+      </div>
     </div>
 
     <div
