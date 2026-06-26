@@ -3,7 +3,7 @@ import { computed, watch } from 'vue'
 import { storeToRefs } from 'pinia'
 import { Splitpanes, Pane, type SplitpanesResizedPayload } from 'splitpanes'
 import { CheckCheck, ChevronRight, Loader2, Trash2, TriangleAlert, X } from '@lucide/vue'
-import GkIconButton from '@/components/ui/GkIconButton.vue'
+import IconButton from '@/components/ui/IconButton.vue'
 import FileList from './FileList.vue'
 import CommitDetailHeader from './CommitDetailHeader.vue'
 import CompareDetailHeader from './CompareDetailHeader.vue'
@@ -156,7 +156,7 @@ watch(compareRange, (range) => {
       <header
         class="flex h-9 shrink-0 items-center gap-2 border-b border-[var(--color-border)] px-2"
       >
-        <GkIconButton
+        <IconButton
           :icon="Trash2"
           label="Discard all changes"
           danger

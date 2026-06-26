@@ -17,6 +17,7 @@ export function remapHeadLaneToLeft(
 
   return {
     maxLanes: layout.maxLanes,
+    laneState: layout.laneState,
     nodes: layout.nodes.map((node) => ({
       ...node,
       lane: mapLane(node.lane),

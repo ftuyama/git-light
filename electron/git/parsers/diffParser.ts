@@ -1,3 +1,4 @@
+import { guessLanguage } from '@shared/diff/guessLanguage'
 import type { DiffHunk, DiffLine, DiffResult } from '@shared/git/models'
 
 /** Parses unified diff output into structured hunks for the diff viewer. */
@@ -103,29 +104,3 @@ function lineEntry(
   return { type, content, oldLine, newLine }
 }
 
-function guessLanguage(path: string): string {
-  const ext = path.split('.').pop()?.toLowerCase() ?? ''
-  const map: Record<string, string> = {
-    ts: 'typescript',
-    tsx: 'typescript',
-    js: 'javascript',
-    jsx: 'javascript',
-    vue: 'vue',
-    css: 'css',
-    scss: 'css',
-    json: 'json',
-    md: 'markdown',
-    py: 'python',
-    rs: 'rust',
-    go: 'go',
-    java: 'java',
-    html: 'html',
-    htm: 'html',
-    xml: 'xml',
-    yml: 'yaml',
-    yaml: 'yaml',
-    sh: 'bash',
-    sql: 'sql',
-  }
-  return map[ext] ?? 'plaintext'
-}

@@ -29,7 +29,16 @@ Git Light is an Electron desktop app with a Vue 3 renderer. The UI depends on a 
 └─────────────────────────────────────────────────────────────┘
 ```
 
-## Shared contracts (`shared/git/`)
+## Shared contracts
+
+### App shell (`shared/app/`)
+
+| Module | Purpose |
+|--------|---------|
+| `metadata.ts` | App name, version, homepage, repository URL (from `package.json`) |
+| `ipc.ts` | Non-git IPC channels (electron-store, open external, window focus/blur) |
+
+### Git layer (`shared/git/`)
 
 | Module | Purpose |
 |--------|---------|
@@ -42,10 +51,18 @@ Git Light is an Electron desktop app with a Vue 3 renderer. The UI depends on a 
 | `rebase.ts` | Interactive rebase entry types and sequence helpers |
 | `undoPolicy.ts` | Reflog-based undo/redo eligibility rules |
 | `destructive.ts` | Shared destructive-action set for UI + ActionRouter |
+| `snapshotScopes.ts` | Snapshot refresh scopes per `GitActionKind` |
 | `credentialHints.ts` | Recovery hints for authentication/network errors |
 | `githubUrl.ts` | Parse remotes and build GitHub browse URLs |
 
-`shared/diff/buildPatch.ts` builds unified patches for per-hunk stage/unstage.
+### Diff helpers (`shared/diff/`)
+
+| Module | Purpose |
+|--------|---------|
+| `buildPatch.ts` | Builds unified patches for per-hunk stage/unstage |
+| `guessLanguage.ts` | File-path → highlight.js language id for syntax highlighting |
+
+`shared/perf.ts` provides lightweight timing helpers for dev profiling.
 
 ## Renderer git layer (`src/lib/git/`)
 
@@ -55,11 +72,17 @@ Git Light is an Electron desktop app with a Vue 3 renderer. The UI depends on a 
 | `IpcGitService.ts` | Production implementation via `window.electron.git` |
 | `MockGitService.ts` | Generated data; used when `VITE_USE_MOCK=true` or outside Electron |
 | `wireAdapter.ts` | Revives wire snapshots into domain types (`Date`, etc.) |
-| `destructive.ts` | Actions that require confirmation in the UI |
-| `refLabel.test.ts` | Ref label formatting |
-| `statusParser.test.ts` | Status porcelain parser (renderer) |
 
-## Main-process git layer (`electron/git/`)
+## Main process (`electron/`)
+
+| File | Role |
+|------|------|
+| `main.ts` | Window lifecycle, app menu, startup update check (packaged builds) |
+| `menu.ts` | macOS application menu (About, Check for Updates, Help links) |
+| `updateCheck.ts` | Compares semver against GitHub Releases; prompts to download |
+| `preload.ts` | Exposes typed `window.electron` bridge |
+
+### Git layer (`electron/git/`)
 
 | File | Role |
 |------|------|
@@ -79,11 +102,23 @@ Git Light is an Electron desktop app with a Vue 3 renderer. The UI depends on a 
 | `repository` | Repo lifecycle, commits, branches, git actions, commit box |
 | `repoDiff` | Selected file, diff/conflict loading, commit/compare file lists |
 | `selection` | Selected/hovered commit, shift-compare range |
+| `branchDrag` | Branch drag-and-drop state and integrate dialog payload |
 | `ui` | Layout prefs, graph columns, sidebar sections |
 | `interactiveRebase` | Interactive rebase dialog state |
 | `prompt` / `toast` | Modal and toast UI |
 
-Helpers live under `src/stores/repo/` (`graphLayout.ts`, `actionHelpers.ts`).
+The `repository` store composes actions from `src/stores/repo/`:
+
+| Module | Role |
+|--------|------|
+| `lifecycle.ts` | Open/close repo, refresh, pagination |
+| `gitActions.ts` | Fetch, merge, rebase, stash, undo, etc. |
+| `commitBox.ts` | Commit message, amend, sign-off |
+| `getters.ts` | Derived repo state (HEAD, ahead/behind, etc.) |
+| `graphLayout.ts` | Runs `computeGraphLayout` on commit list |
+| `refreshScheduler.ts` | Debounced snapshot refresh after `git:changed` |
+| `diffReloadScheduler.ts` | Debounced diff reload when selection changes |
+| `actionHelpers.ts` | Shared action dispatch + error handling |
 
 ## UI layout
 
@@ -96,7 +131,8 @@ App.vue
     ├── Splitpanes
     │   ├── BranchSidebar       (drag-drop integrate dialog)
     │   ├── CommitGraph         (virtualized + pending-changes row)
-    │   └── WorkingTreePanel + DiffPanel + ConflictPanel
+    │   ├── CommitGraph (DiffPanel or ConflictPanel when a file is selected)
+    │   └── WorkingTreePanel
     ├── StatusBar        ahead/behind, progress, cancel
     ├── PromptHost       confirm / prompt dialogs
     ├── SearchOverlay    commit + file search
@@ -122,25 +158,32 @@ App.vue
 
 ## Testing
 
-- `src/lib/graph/computeGraphLayout.test.ts` — graph layout algorithm
-- `src/lib/graph/graphEdgePath.test.ts` — SVG edge path generation
-- `src/lib/graph/pendingGraphRow.test.ts` — pending-changes graph row
-- `src/lib/graph/remapHeadLaneLeft.test.ts` — head lane remapping
-- `src/lib/git/statusParser.test.ts` — status porcelain parser (renderer)
-- `src/lib/git/refLabel.test.ts` — ref label formatting
-- `src/lib/diff/buildSplitRows.test.ts` — split diff row builder
-- `src/features/branch-sidebar/sortBranches.test.ts` — branch sort order
-- `src/features/working-tree/buildFileTree.test.ts` — working-tree file tree
+- `electron/updateCheck.test.ts` — semver comparison for update checks
 - `electron/git/ActionRouter.test.ts` — action → git argv routing
 - `electron/git/ReflogJournal.test.ts` — undo/redo journal
 - `electron/git/rebaseSequenceEditor.test.ts` — interactive rebase todo writer
 - `electron/git/parsers/logParser.test.ts` — porcelain log parser
+- `electron/git/parsers/statusParser.test.ts` — status porcelain parser
 - `electron/git/parsers/commitFilesParser.test.ts` — commit file list parser
 - `electron/git/parsers/conflictParser.test.ts` — merge conflict markers
 - `electron/git/parsers/rebaseCommitsParser.test.ts` — rebase commit list
-- `shared/diff/buildPatch.test.ts` — patch builder for hunk staging
+- `shared/git/refLabel.test.ts` — ref label formatting
+- `shared/git/snapshotScopes.test.ts` — post-action snapshot refresh scopes
+- `shared/git/destructive.test.ts` — destructive action classification
+- `shared/git/credentialHints.test.ts` — auth/network error recovery hints
 - `shared/git/githubUrl.test.ts` — GitHub URL parsing
 - `shared/git/undoPolicy.test.ts` — undo/redo eligibility
+- `shared/diff/buildPatch.test.ts` — patch builder for hunk staging
+- `shared/diff/guessLanguage.test.ts` — syntax-highlight language detection
+- `src/lib/graph/computeGraphLayout.test.ts` — graph layout algorithm
+- `src/lib/graph/graphEdgePath.test.ts` — SVG edge path generation
+- `src/lib/graph/pendingGraphRow.test.ts` — pending-changes graph row
+- `src/lib/graph/remapHeadLaneLeft.test.ts` — head lane remapping
+- `src/lib/graph/compareRange.test.ts` — shift-compare range normalization
+- `src/lib/diff/buildSplitRows.test.ts` — split diff row builder
+- `src/lib/diff/highlight.test.ts` — syntax highlighting helpers
+- `src/features/branch-sidebar/sortBranches.test.ts` — branch sort order
+- `src/features/working-tree/buildFileTree.test.ts` — working-tree file tree
 
 Run: `npm run test`
 

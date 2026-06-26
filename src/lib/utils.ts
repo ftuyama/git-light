@@ -19,11 +19,3 @@ const LANE_COLORS = [
 export function laneColor(lane: number): string {
   return LANE_COLORS[((lane % LANE_COLORS.length) + LANE_COLORS.length) % LANE_COLORS.length]
 }
-
-export function laneColorIndexFor(name: string): number {
-  let hash = 0
-  for (let i = 0; i < name.length; i++) hash = (hash * 31 + name.charCodeAt(i)) | 0
-  return Math.abs(hash) % LANE_COLORS.length
-}
-
-export const LANE_COUNT = LANE_COLORS.length

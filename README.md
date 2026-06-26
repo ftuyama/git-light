@@ -26,43 +26,16 @@ Git Light is an Electron app that recreates GitKraken's main repository view and
 | Undo / redo (reflog-backed) · stash · search | ✅ |
 | Open on GitHub · app preferences (layout, graph, sidebar) | ✅ |
 | Resizable three-pane layout · file watcher auto-refresh | ✅ |
+| Auto-update check (packaged builds) · **Check for Updates…** menu | ✅ |
 | Clone / hosting auth UI | ❌ Not yet |
 
 ## Quick start
 
-**Requirements:** Node.js 20+, Git installed on your PATH
+Download the latest `.dmg` from **[GitHub Releases](https://github.com/ftuyama/git-light/releases)**.
 
-```bash
-git clone https://github.com/ftuyama/git-light.git
-cd git-light
-npm install
-npm run dev
-```
-
-### Running from Cursor or VS Code
-
-If the app window does not open, your terminal may have inherited `ELECTRON_RUN_AS_NODE=1` from the editor:
-
-```bash
-env -u ELECTRON_RUN_AS_NODE -u ELECTRON_NO_ATTACH_CONSOLE npm run dev
-```
-
-### Mock data mode (browser / UI-only)
-
-To run the generated AwesomeShop mock data without Electron Git:
-
-```bash
-VITE_USE_MOCK=true npm run dev
-```
-
-## Scripts
-
-| Command | Description |
-|---------|-------------|
-| `npm run dev` | Start Electron + Vite dev server |
-| `npm run build` | Production build |
-| `npm run typecheck` | TypeScript check |
-| `npm run test` | Unit tests (graph layout, parsers, rebase, conflicts, undo) |
+1. Open the DMG and drag **Git Light** into **Applications**.
+2. On first launch, macOS may block the app because it is not code-signed. **Right-click** the app → **Open** → **Open** again to confirm.
+3. To check for updates later, use **Git Light → Check for Updates…** in the menu bar.
 
 ## Sponsor
 
@@ -72,4 +45,4 @@ If Git Light is useful to you, consider supporting ongoing development:
 
 ## For developers
 
-Architecture, stack, and extension points are documented in **[ARCHITECTURE.md](ARCHITECTURE.md)**.
+See **[DEVELOPER.md](DEVELOPER.md)** for build instructions, scripts, and local development setup. Architecture, stack, and extension points are in **[ARCHITECTURE.md](ARCHITECTURE.md)**.

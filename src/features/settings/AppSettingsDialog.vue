@@ -2,7 +2,7 @@
 import { onUnmounted, ref, watch } from 'vue'
 import { GitCommitHorizontal, LayoutPanelLeft, PanelLeft, Rows3, X } from '@lucide/vue'
 import { storeToRefs } from 'pinia'
-import GkButton from '@/components/ui/GkButton.vue'
+import Button from '@/components/ui/Button.vue'
 import SettingsRow from './SettingsRow.vue'
 import {
   COLUMN_LABELS,
@@ -164,9 +164,9 @@ onUnmounted(() => document.removeEventListener('keydown', onKeydown))
                 <p class="text-[12px] text-[var(--color-fg-muted)]">
                   Restore default panel sizes and expand both side panels.
                 </p>
-                <GkButton variant="secondary" size="sm" @click="ui.resetLayout()">
+                <Button variant="secondary" size="sm" @click="ui.resetLayout()">
                   Reset Panel Layout
-                </GkButton>
+                </Button>
               </section>
             </template>
 

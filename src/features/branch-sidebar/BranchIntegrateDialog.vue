@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { GitMerge, Spline } from '@lucide/vue'
-import GkDialog from '@/components/ui/GkDialog.vue'
-import GkButton from '@/components/ui/GkButton.vue'
+import Dialog from '@/components/ui/Dialog.vue'
+import Button from '@/components/ui/Button.vue'
 import { branchIntegrateLabel } from './useBranchDragDrop'
 import type { Branch } from '@/types/git'
 
@@ -23,7 +23,7 @@ const targetLabel = computed(() => (props.target ? branchIntegrateLabel(props.ta
 </script>
 
 <template>
-  <GkDialog :open="open" title="Integrate branches" @cancel="emit('cancel')">
+  <Dialog :open="open" title="Integrate branches" @cancel="emit('cancel')">
     <p class="text-sm text-[var(--color-fg-muted)]">
       Choose how to integrate
       <span class="font-medium text-[var(--color-fg)]">{{ sourceLabel }}</span>
@@ -61,7 +61,7 @@ const targetLabel = computed(() => (props.target ? branchIntegrateLabel(props.ta
     </div>
 
     <template #footer>
-      <GkButton variant="ghost" @click="emit('cancel')">Cancel</GkButton>
+      <Button variant="ghost" @click="emit('cancel')">Cancel</Button>
     </template>
-  </GkDialog>
+  </Dialog>
 </template>

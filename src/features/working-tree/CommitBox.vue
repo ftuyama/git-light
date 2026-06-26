@@ -2,7 +2,7 @@
 import { computed } from 'vue'
 import { ChevronDown } from '@lucide/vue'
 import { storeToRefs } from 'pinia'
-import GkButton from '@/components/ui/GkButton.vue'
+import Button from '@/components/ui/Button.vue'
 import DropdownMenu from '@/components/ui/DropdownMenu.vue'
 import Checkbox from '@/components/ui/Checkbox.vue'
 import type { MenuItem } from '@/components/ui/menu'
@@ -68,7 +68,7 @@ const pushMenu = computed<MenuItem[]>(() => [
     </label>
 
     <div class="mt-2.5 flex gap-1.5">
-      <GkButton
+      <Button
         variant="primary"
         block
         :disabled="!repo.canCommit"
@@ -76,7 +76,7 @@ const pushMenu = computed<MenuItem[]>(() => [
         @click="repo.commit()"
       >
         {{ commitButtonLabel }}
-      </GkButton>
+      </Button>
       <DropdownMenu :items="pushMenu" align="end" side="top">
         <button
           class="focus-ring flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-[var(--color-accent-strong)] text-white transition-colors hover:bg-[var(--color-accent)] disabled:opacity-40"

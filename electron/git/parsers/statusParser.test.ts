@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { parseNumstat, parseStatus } from '../../../electron/git/parsers/statusParser'
+import { parseNumstat, parseStatus } from './statusParser'
 
 describe('parseNumstat', () => {
   it('parses simple numstat lines', () => {

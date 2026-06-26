@@ -1,9 +1,12 @@
 <script setup lang="ts">
 import { computed } from 'vue'
+import { useMemoize } from '@vueuse/core'
 import { Check, Loader2, X } from '@lucide/vue'
-import GkButton from '@/components/ui/GkButton.vue'
+import Button from '@/components/ui/Button.vue'
 import { useRepositoryStore } from '@/stores/repository'
 import { useRepoDiffStore } from '@/stores/repoDiff'
+import { guessLanguage } from '@shared/diff/guessLanguage'
+import { highlightLine } from '@/lib/diff/highlight'
 
 const repo = useRepositoryStore()
 const diffStore = useRepoDiffStore()
@@ -11,6 +14,11 @@ const diffStore = useRepoDiffStore()
 const path = computed(() => diffStore.selectedFilePath)
 const conflict = computed(() => diffStore.conflict)
 const blockCount = computed(() => conflict.value?.blocks.length ?? 0)
+const language = computed(() => guessLanguage(path.value ?? ''))
+
+const highlight = useMemoize((content: string, lang: string) =>
+  highlightLine(content, lang),
+)
 
 function lineRows(text: string): string[] {
   if (!text) return ['']
@@ -54,20 +62,20 @@ function lineRows(text: string): string[] {
 
     <template v-else-if="conflict">
       <div class="flex shrink-0 items-center gap-2 border-b border-[var(--color-border)] px-3 py-2">
-        <GkButton size="sm" variant="secondary" @click="repo.resolveConflictOurs(path!)">
+        <Button size="sm" variant="secondary" @click="repo.resolveConflictOurs(path!)">
           Use Ours
-        </GkButton>
-        <GkButton size="sm" variant="secondary" @click="repo.resolveConflictTheirs(path!)">
+        </Button>
+        <Button size="sm" variant="secondary" @click="repo.resolveConflictTheirs(path!)">
           Use Theirs
-        </GkButton>
-        <GkButton
+        </Button>
+        <Button
           v-if="!conflict.hasMarkers"
           size="sm"
           variant="primary"
           @click="repo.markConflictResolved(path!)"
         >
           <Check :size="13" /> Mark Resolved
-        </GkButton>
+        </Button>
       </div>
 
       <div
@@ -77,7 +85,7 @@ function lineRows(text: string): string[] {
         No conflict markers remain. Mark this file as resolved to stage it.
       </div>
 
-      <div v-else class="min-h-0 flex-1 overflow-y-auto p-2 space-y-3">
+      <div v-else class="conflict-view min-h-0 flex-1 overflow-y-auto p-2 space-y-3">
         <article
           v-for="block in conflict.blocks"
           :key="block.index"
@@ -88,20 +96,20 @@ function lineRows(text: string): string[] {
           >
             <span>Conflict {{ block.index + 1 }}</span>
             <div class="flex items-center gap-1 normal-case">
-              <GkButton
+              <Button
                 size="sm"
                 variant="ghost"
                 @click="repo.resolveConflictBlock(path!, block.index, 'ours')"
               >
                 Use Ours
-              </GkButton>
-              <GkButton
+              </Button>
+              <Button
                 size="sm"
                 variant="ghost"
                 @click="repo.resolveConflictBlock(path!, block.index, 'theirs')"
               >
                 Use Theirs
-              </GkButton>
+              </Button>
             </div>
           </header>
 
@@ -115,8 +123,9 @@ function lineRows(text: string): string[] {
               <pre class="max-h-32 overflow-auto p-2 font-mono text-[11px] leading-5 text-[var(--color-fg)]"><code
                 v-for="(line, i) in lineRows(block.ours)"
                 :key="`ours-${block.index}-${i}`"
-                class="block whitespace-pre-wrap break-all"
-              >{{ line }}</code></pre>
+                class="hljs block whitespace-pre-wrap break-all"
+                v-html="highlight(line, language)"
+              /></pre>
             </div>
             <div class="min-w-0">
               <div
@@ -127,8 +136,9 @@ function lineRows(text: string): string[] {
               <pre class="max-h-32 overflow-auto p-2 font-mono text-[11px] leading-5 text-[var(--color-fg)]"><code
                 v-for="(line, i) in lineRows(block.theirs)"
                 :key="`theirs-${block.index}-${i}`"
-                class="block whitespace-pre-wrap break-all"
-              >{{ line }}</code></pre>
+                class="hljs block whitespace-pre-wrap break-all"
+                v-html="highlight(line, language)"
+              /></pre>
             </div>
           </div>
 
@@ -142,8 +152,9 @@ function lineRows(text: string): string[] {
             <pre class="max-h-20 overflow-auto px-2 pb-2 font-mono text-[11px] leading-5 text-[var(--color-fg-muted)]"><code
               v-for="(line, i) in lineRows(block.base)"
               :key="`base-${block.index}-${i}`"
-              class="block whitespace-pre-wrap break-all"
-            >{{ line }}</code></pre>
+              class="hljs block whitespace-pre-wrap break-all"
+              v-html="highlight(line, language)"
+            /></pre>
           </div>
         </article>
       </div>

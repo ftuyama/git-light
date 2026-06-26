@@ -2,8 +2,8 @@
 import { onUnmounted, watch } from 'vue'
 import { AlertTriangle, ListTree, Loader2, X } from '@lucide/vue'
 import { storeToRefs } from 'pinia'
-import GkButton from '@/components/ui/GkButton.vue'
-import GkSearchInput from '@/components/ui/GkSearchInput.vue'
+import Button from '@/components/ui/Button.vue'
+import SearchInput from '@/components/ui/SearchInput.vue'
 import RebaseCommitRow from './RebaseCommitRow.vue'
 import { useInteractiveRebaseStore } from '@/stores/interactiveRebase'
 
@@ -55,13 +55,13 @@ onUnmounted(() => document.removeEventListener('keydown', onKeydown))
           <div class="space-y-2">
             <label class="text-xs font-medium text-[var(--color-fg-muted)]">Rebase onto</label>
             <div class="flex gap-2" @keydown.enter.prevent="rebase.loadCommits()">
-              <GkSearchInput
+              <SearchInput
                 :model-value="base"
                 class="flex-1"
                 placeholder="HEAD~5, main, or commit SHA"
                 @update:model-value="rebase.setBase($event)"
               />
-              <GkButton variant="secondary" :busy="loading" @click="rebase.loadCommits()">Load</GkButton>
+              <Button variant="secondary" :busy="loading" @click="rebase.loadCommits()">Load</Button>
             </div>
             <p v-if="baseShortSha" class="text-[11px] text-[var(--color-fg-subtle)]">
               {{ entries.length }} commit{{ entries.length === 1 ? '' : 's' }} after
@@ -99,15 +99,15 @@ onUnmounted(() => document.removeEventListener('keydown', onKeydown))
         </div>
 
         <footer class="flex justify-end gap-2 border-t border-[var(--color-border)] px-4 py-3">
-          <GkButton variant="ghost" :disabled="starting" @click="rebase.close()">Cancel</GkButton>
-          <GkButton
+          <Button variant="ghost" :disabled="starting" @click="rebase.close()">Cancel</Button>
+          <Button
             variant="primary"
             :disabled="entries.length === 0 || loading"
             :busy="starting"
             @click="rebase.start()"
           >
             Start Rebase
-          </GkButton>
+          </Button>
         </footer>
       </div>
     </div>

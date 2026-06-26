@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { formatRefLabel } from '@shared/git/refLabel'
+import { formatRefLabel } from './refLabel'
 
 describe('formatRefLabel', () => {
   it('strips refs/heads/', () => {

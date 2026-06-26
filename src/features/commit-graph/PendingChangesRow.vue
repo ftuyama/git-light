@@ -1,10 +1,8 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { storeToRefs } from 'pinia'
-import RefChip from './RefChip.vue'
 import { useRepositoryStore } from '@/stores/repository'
 import { useUiStore } from '@/stores/ui'
-import type { Ref } from '@/types/git'
 
 defineProps<{
   graphWidth: number
@@ -22,17 +20,6 @@ const changedCount = computed(() => repo.workingTree.length)
 const stagedCount = computed(() => repo.stagedFiles.length)
 const unstagedCount = computed(() => repo.unstagedFiles.length)
 
-const branchRef = computed((): Ref | null => {
-  const branch = repo.currentBranch
-  if (!branch) return null
-  return {
-    type: branch.kind === 'remote' ? 'remoteBranch' : 'localBranch',
-    name: branch.name,
-    label: branch.name,
-    isHead: true,
-  }
-})
-
 const summary = computed(() => {
   const parts: string[] = []
   if (unstagedCount.value) parts.push(`${unstagedCount.value} changed`)
@@ -49,14 +36,7 @@ const summary = computed(() => {
     <div
       class="relative z-20 flex min-w-0 items-center gap-1 px-2"
       :style="{ width: `${columnWidths.refs}px` }"
-    >
-      <RefChip
-        v-if="branchRef"
-        class="min-w-0 overflow-hidden"
-        :ref-data="branchRef"
-        color="var(--color-accent)"
-      />
-    </div>
+    />
 
     <div
       class="relative z-0 flex shrink-0 items-center"

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { computeGraphLayout } from './computeGraphLayout'
+import { computeGraphLayout, extendGraphLayout } from './computeGraphLayout'
 import type { Commit } from '@/types/git'
 
 function makeCommit(sha: string, parents: string[]): Commit {
@@ -110,5 +110,19 @@ describe('computeGraphLayout', () => {
     const layout = computeGraphLayout(commits)
     expect(layout.nodes).toHaveLength(1)
     expect(layout.bands[0]).toHaveLength(0)
+  })
+
+  it('extendGraphLayout matches full layout when appending older commits', () => {
+    const firstPage = [
+      makeCommit('m', ['d', 'f']),
+      makeCommit('d', ['a']),
+    ]
+    const secondPage = [makeCommit('f', ['a']), makeCommit('a', [])]
+    const partial = computeGraphLayout(firstPage)
+    const extended = extendGraphLayout(firstPage, secondPage, partial)
+    const full = computeGraphLayout([...firstPage, ...secondPage])
+    expect(extended.nodes.map((n) => n.lane)).toEqual(full.nodes.map((n) => n.lane))
+    expect(extended.maxLanes).toBe(full.maxLanes)
+    expect(extended.bands.length).toBe(full.bands.length)
   })
 })

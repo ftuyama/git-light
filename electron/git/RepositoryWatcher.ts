@@ -1,5 +1,4 @@
 import { join, relative } from 'node:path'
-import type { BrowserWindow } from 'electron'
 import type { RepoChangeEvent, SnapshotScope } from '@shared/git/models'
 
 type ChokidarModule = typeof import('chokidar')
@@ -124,11 +123,4 @@ export function scopesForPath(repoPath: string, filePath: string): SnapshotScope
     return ['status']
   }
   return ['status']
-}
-
-export function attachFocusRefresh(win: BrowserWindow, refresh: () => void): void {
-  win.webContents.on('did-finish-load', () => {
-    /* noop */
-  })
-  win.on('focus', refresh)
 }

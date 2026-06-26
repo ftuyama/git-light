@@ -16,50 +16,81 @@ export interface GraphNode {
   color: string
 }
 
+/** Lane expectations after the last processed row — used to extend layout incrementally. */
+export interface GraphLaneState {
+  lanes: (string | null)[]
+}
+
 export interface GraphLayout {
   /** Indexed by row (commits are newest-first). */
   nodes: GraphNode[]
   /** bands[i] holds the edge segments drawn in the band below row i. */
   bands: GraphEdge[][]
   maxLanes: number
+  laneState?: GraphLaneState
 }
 
-/**
- * Assigns commits to lanes (columns) and produces per-band edge segments for a
- * GitKraken-style graph. Commits must be topologically sorted newest-first.
- *
- * The algorithm walks rows top-to-bottom maintaining an array of "expected"
- * SHAs per lane. A commit claims the leftmost lane expecting it (or a fresh
- * lane if it is a branch tip). Its first parent continues in the same lane;
- * additional (merge) parents reserve new lanes. Edges fan out directly below a
- * commit and then run vertically down their parent's lane.
- */
-export function computeGraphLayout(commits: Commit[]): GraphLayout {
-  const n = commits.length
-  const rowOf = new Map<string, number>()
-  for (let i = 0; i < n; i++) rowOf.set(commits[i].sha, i)
+interface LaneContext {
+  lanes: (string | null)[]
+  waitingShas: Set<string>
+  setLane: (index: number, sha: string | null) => void
+  laneWaitingFor: (sha: string) => number
+  firstFree: () => number
+}
 
-  const laneOf = new Map<string, number>()
-  const nodes: GraphNode[] = new Array(n)
-  const lanes: (string | null)[] = []
-  let maxLanes = 0
+function createLaneContext(initialLanes?: (string | null)[]): LaneContext {
+  const lanes = initialLanes ? [...initialLanes] : []
+  const waitingShas = new Set<string>()
+  for (const sha of lanes) {
+    if (sha != null) waitingShas.add(sha)
+  }
+
+  const setLane = (index: number, sha: string | null): void => {
+    const prev = lanes[index]
+    if (prev != null) waitingShas.delete(prev)
+    lanes[index] = sha
+    if (sha != null) waitingShas.add(sha)
+  }
+
+  const laneWaitingFor = (sha: string): number => {
+    for (let j = 0; j < lanes.length; j++) {
+      if (lanes[j] === sha) return j
+    }
+    return -1
+  }
 
   const firstFree = (): number => {
     const idx = lanes.indexOf(null)
     return idx === -1 ? lanes.length : idx
   }
 
-  for (let i = 0; i < n; i++) {
+  return { lanes, waitingShas, setLane, laneWaitingFor, firstFree }
+}
+
+function assignNodes(
+  commits: Commit[],
+  startRow: number,
+  ctx: LaneContext,
+  nodes: GraphNode[],
+  laneOf: Map<string, number>,
+): number {
+  let maxLanes = 0
+  for (let i = 0; i < startRow; i++) {
+    const node = nodes[i]
+    if (node) maxLanes = Math.max(maxLanes, node.lane + 1)
+  }
+
+  for (let i = startRow; i < commits.length; i++) {
     const commit = commits[i]
-    let myLane = lanes.indexOf(commit.sha)
+    let myLane = ctx.laneWaitingFor(commit.sha)
     if (myLane === -1) {
-      myLane = firstFree()
-      lanes[myLane] = commit.sha
+      myLane = ctx.firstFree()
+      if (myLane === ctx.lanes.length) ctx.lanes.push(null)
+      ctx.setLane(myLane, commit.sha)
     }
 
-    // Converging branches: free any other lane that was waiting for this commit.
-    for (let j = 0; j < lanes.length; j++) {
-      if (j !== myLane && lanes[j] === commit.sha) lanes[j] = null
+    for (let j = 0; j < ctx.lanes.length; j++) {
+      if (j !== myLane && ctx.lanes[j] === commit.sha) ctx.setLane(j, null)
     }
 
     laneOf.set(commit.sha, myLane)
@@ -67,25 +98,35 @@ export function computeGraphLayout(commits: Commit[]): GraphLayout {
 
     const parents = commit.parents
     if (parents.length === 0) {
-      lanes[myLane] = null
+      ctx.setLane(myLane, null)
     } else {
-      lanes[myLane] = parents[0]
+      ctx.setLane(myLane, parents[0])
       for (let p = 1; p < parents.length; p++) {
         const parent = parents[p]
-        if (lanes.indexOf(parent) === -1) {
-          lanes[firstFree()] = parent
+        if (!ctx.waitingShas.has(parent)) {
+          const lane = ctx.firstFree()
+          if (lane === ctx.lanes.length) ctx.lanes.push(null)
+          ctx.setLane(lane, parent)
         }
       }
     }
 
-    // Trim trailing free lanes to keep the graph compact.
-    while (lanes.length > 0 && lanes[lanes.length - 1] === null) lanes.pop()
-    maxLanes = Math.max(maxLanes, lanes.length)
+    while (ctx.lanes.length > 0 && ctx.lanes[ctx.lanes.length - 1] === null) ctx.lanes.pop()
+    maxLanes = Math.max(maxLanes, ctx.lanes.length)
   }
 
-  const bands: GraphEdge[][] = Array.from({ length: n }, () => [])
-  const seen: Set<string>[] = Array.from({ length: n }, () => new Set())
+  return Math.max(maxLanes, 1)
+}
 
+function assignEdges(
+  commits: Commit[],
+  nodes: GraphNode[],
+  laneOf: Map<string, number>,
+  rowOf: Map<string, number>,
+  bands: GraphEdge[][],
+  seen: Set<string>[],
+  startRow: number,
+): void {
   const pushEdge = (
     band: number,
     fromLane: number,
@@ -98,7 +139,7 @@ export function computeGraphLayout(commits: Commit[]): GraphLayout {
     bands[band].push({ fromLane, toLane, color: laneColor(toLane), kind })
   }
 
-  for (let i = 0; i < n; i++) {
+  for (let i = startRow; i < commits.length; i++) {
     const lc = nodes[i].lane
     const commit = commits[i]
     for (let pi = 0; pi < commit.parents.length; pi++) {
@@ -118,7 +159,6 @@ export function computeGraphLayout(commits: Commit[]): GraphLayout {
         }
       }
 
-      // Branch forks are straight vertical rails; only merge commits get a rectangular connector.
       if (kind === 'laneChange') continue
 
       pushEdge(i, lc, lp, kind)
@@ -128,6 +168,95 @@ export function computeGraphLayout(commits: Commit[]): GraphLayout {
       for (let r = i + 1; r < rp; r++) pushEdge(r, lp, lp, 'straight')
     }
   }
+}
 
-  return { nodes, bands, maxLanes: Math.max(maxLanes, 1) }
+function seedEdgeSeen(bands: GraphEdge[][]): Set<string>[] {
+  return bands.map((band) => {
+    const set = new Set<string>()
+    for (const edge of band) {
+      set.add(`${edge.fromLane}>${edge.toLane}`)
+    }
+    return set
+  })
+}
+
+/**
+ * Assigns commits to lanes (columns) and produces per-band edge segments for a
+ * GitKraken-style graph. Commits must be topologically sorted newest-first.
+ */
+export function computeGraphLayout(commits: Commit[]): GraphLayout {
+  const n = commits.length
+  if (n === 0) {
+    return { nodes: [], bands: [], maxLanes: 1, laneState: { lanes: [] } }
+  }
+
+  const rowOf = new Map<string, number>()
+  for (let i = 0; i < n; i++) rowOf.set(commits[i].sha, i)
+
+  const laneOf = new Map<string, number>()
+  const nodes: GraphNode[] = new Array(n)
+  const ctx = createLaneContext()
+  const maxLanes = assignNodes(commits, 0, ctx, nodes, laneOf)
+
+  const bands: GraphEdge[][] = Array.from({ length: n }, () => [])
+  const seen = seedEdgeSeen(bands)
+  assignEdges(commits, nodes, laneOf, rowOf, bands, seen, 0)
+
+  return {
+    nodes,
+    bands,
+    maxLanes,
+    laneState: { lanes: [...ctx.lanes] },
+  }
+}
+
+/**
+ * Extends an existing layout with newly paginated commits without recomputing
+ * earlier rows. Falls back to a full layout when lane state is unavailable.
+ */
+export function extendGraphLayout(
+  existingCommits: Commit[],
+  newCommits: Commit[],
+  prevLayout: GraphLayout,
+): GraphLayout {
+  if (newCommits.length === 0) return prevLayout
+
+  const oldN = existingCommits.length
+  if (
+    !prevLayout.laneState ||
+    prevLayout.nodes.length !== oldN ||
+    prevLayout.bands.length !== oldN
+  ) {
+    return computeGraphLayout([...existingCommits, ...newCommits])
+  }
+
+  const commits = [...existingCommits, ...newCommits]
+  const n = commits.length
+  const rowOf = new Map<string, number>()
+  for (let i = 0; i < n; i++) rowOf.set(commits[i].sha, i)
+
+  const laneOf = new Map<string, number>()
+  for (let i = 0; i < oldN; i++) {
+    laneOf.set(prevLayout.nodes[i].sha, prevLayout.nodes[i].lane)
+  }
+
+  const nodes = [...prevLayout.nodes]
+  nodes.length = n
+  const ctx = createLaneContext(prevLayout.laneState.lanes)
+  const maxLanes = Math.max(
+    prevLayout.maxLanes,
+    assignNodes(commits, oldN, ctx, nodes, laneOf),
+  )
+
+  const bands = prevLayout.bands.map((band) => [...band])
+  while (bands.length < n) bands.push([])
+  const seen = seedEdgeSeen(bands)
+  assignEdges(commits, nodes, laneOf, rowOf, bands, seen, oldN)
+
+  return {
+    nodes,
+    bands,
+    maxLanes,
+    laneState: { lanes: [...ctx.lanes] },
+  }
 }

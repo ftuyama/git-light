@@ -7,6 +7,7 @@ import javascript from 'highlight.js/lib/languages/javascript'
 import json from 'highlight.js/lib/languages/json'
 import markdown from 'highlight.js/lib/languages/markdown'
 import python from 'highlight.js/lib/languages/python'
+import ruby from 'highlight.js/lib/languages/ruby'
 import rust from 'highlight.js/lib/languages/rust'
 import sql from 'highlight.js/lib/languages/sql'
 import typescript from 'highlight.js/lib/languages/typescript'
@@ -30,6 +31,7 @@ registerLanguage('javascript', javascript)
 registerLanguage('json', json)
 registerLanguage('markdown', markdown)
 registerLanguage('python', python)
+registerLanguage('ruby', ruby)
 registerLanguage('rust', rust)
 registerLanguage('sql', sql)
 registerLanguage('typescript', typescript)
@@ -48,6 +50,7 @@ const aliasMap: Record<string, string> = {
   yml: 'yaml',
   sh: 'bash',
   shell: 'bash',
+  rb: 'ruby',
   vue: 'xml',
 }
 

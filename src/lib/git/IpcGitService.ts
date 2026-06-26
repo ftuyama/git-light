@@ -17,6 +17,7 @@ import type {
 import type { RebaseCommitsRequest, RebaseCommitsResult } from '@shared/git/rebase'
 import type { ActionResult, GitAction, RepositoryData } from '@/types/git'
 import type { GitService, SnapshotRefreshOptions } from './GitService'
+import { perfAsync } from '@shared/perf'
 import { wireSnapshotToRepositoryData, reviveWorkingTreeFile, reviveCommits } from './wireAdapter'
 
 function envelopeToResult(envelope: {
@@ -108,12 +109,14 @@ export class IpcGitService implements GitService {
     scopes?: SnapshotScope[],
     options?: SnapshotRefreshOptions,
   ): Promise<RepositoryData> {
-    const snapshot = await window.electron.git.snapshot({
-      options: toSnapshotOptions(scopes, options),
+    return perfAsync(`ipc refreshSnapshot(${scopes?.join(',') ?? 'full'})`, async () => {
+      const snapshot = await window.electron.git.snapshot({
+        options: toSnapshotOptions(scopes, options),
+      })
+      const data = wireSnapshotToRepositoryData(snapshot)
+      this.page = data.page
+      return data
     })
-    const data = wireSnapshotToRepositoryData(snapshot)
-    this.page = data.page
-    return data
   }
 
   async loadMoreCommits(request: CommitPageRequest): Promise<{

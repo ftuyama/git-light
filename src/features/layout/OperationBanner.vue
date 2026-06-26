@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { FastForward, GitMerge, RotateCcw, SkipForward, TriangleAlert } from '@lucide/vue'
-import GkButton from '@/components/ui/GkButton.vue'
+import Button from '@/components/ui/Button.vue'
 import { useRepositoryStore } from '@/stores/repository'
 
 const repo = useRepositoryStore()
@@ -40,7 +40,7 @@ const operation = computed(() => {
       </div>
     </div>
     <div class="flex items-center gap-2">
-      <GkButton
+      <Button
         v-if="operation === 'rebase'"
         size="sm"
         variant="secondary"
@@ -48,8 +48,8 @@ const operation = computed(() => {
         @click="repo.skipRebaseOperation()"
       >
         <FastForward :size="13" /> Skip
-      </GkButton>
-      <GkButton
+      </Button>
+      <Button
         size="sm"
         variant="secondary"
         :disabled="!canContinue"
@@ -57,10 +57,10 @@ const operation = computed(() => {
         @click="repo.continueOperation()"
       >
         <SkipForward :size="13" /> Continue
-      </GkButton>
-      <GkButton size="sm" variant="ghost" @click="repo.abortOperation()">
+      </Button>
+      <Button size="sm" variant="ghost" @click="repo.abortOperation()">
         <RotateCcw :size="13" /> Abort
-      </GkButton>
+      </Button>
     </div>
   </div>
 </template>

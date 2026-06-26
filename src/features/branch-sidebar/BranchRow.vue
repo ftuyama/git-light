@@ -17,26 +17,26 @@ import type { MenuItem } from '@/components/ui/menu'
 import { cn, laneColor } from '@/lib/utils'
 import type { Branch } from '@/types/git'
 import { useRepositoryStore } from '@/stores/repository'
+import { useBranchDragStore } from '@/stores/branchDrag'
 import {
-  branchDragState,
-  pendingBranchIntegrate,
   readBranchDragPayload,
   setBranchDragPayload,
 } from './useBranchDragDrop'
 
 const props = defineProps<{ branch: Branch; depth?: number }>()
 const repo = useRepositoryStore()
+const branchDrag = useBranchDragStore()
 
 const dragEnabled = computed(
   () => !repo.branchSwitching && !repo.busyAction && !repo.inProgressOperation,
 )
-const isDragging = computed(() => branchDragState.draggingId === props.branch.id)
-const isDropTarget = computed(() => branchDragState.dropTargetId === props.branch.id)
+const isDragging = computed(() => branchDrag.draggingId === props.branch.id)
+const isDropTarget = computed(() => branchDrag.dropTargetId === props.branch.id)
 const canAcceptDrop = computed(
   () =>
     dragEnabled.value &&
-    branchDragState.draggingId != null &&
-    branchDragState.draggingId !== props.branch.id,
+    branchDrag.draggingId != null &&
+    branchDrag.draggingId !== props.branch.id,
 )
 
 function findBranch(branchId: string): Branch | undefined {
@@ -46,38 +46,36 @@ function findBranch(branchId: string): Branch | undefined {
 function onDragStart(event: DragEvent): void {
   if (!dragEnabled.value || !event.dataTransfer) return
   setBranchDragPayload(event.dataTransfer, props.branch.id)
-  branchDragState.draggingId = props.branch.id
+  branchDrag.startDrag(props.branch.id)
 }
 
 function onDragEnd(): void {
-  branchDragState.draggingId = null
-  branchDragState.dropTargetId = null
+  branchDrag.clearDrag()
 }
 
 function onDragOver(event: DragEvent): void {
   if (!canAcceptDrop.value) return
   event.preventDefault()
   if (event.dataTransfer) event.dataTransfer.dropEffect = 'move'
-  branchDragState.dropTargetId = props.branch.id
+  branchDrag.setDropTarget(props.branch.id)
 }
 
 function onDragLeave(): void {
-  if (branchDragState.dropTargetId === props.branch.id) {
-    branchDragState.dropTargetId = null
+  if (branchDrag.dropTargetId === props.branch.id) {
+    branchDrag.setDropTarget(null)
   }
 }
 
 function onDrop(event: DragEvent): void {
   event.preventDefault()
   const sourceId = event.dataTransfer ? readBranchDragPayload(event.dataTransfer) : null
-  branchDragState.draggingId = null
-  branchDragState.dropTargetId = null
+  branchDrag.clearDrag()
   if (!sourceId || sourceId === props.branch.id) return
 
   const source = findBranch(sourceId)
   if (!source) return
 
-  pendingBranchIntegrate.value = { source, target: props.branch }
+  branchDrag.pendingIntegrate = { source, target: props.branch }
 }
 
 const dotColor = computed(() => laneColor(props.branch.laneColorIndex))

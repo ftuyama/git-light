@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
 import { FileText, GitCommitHorizontal, Loader2, Search, X } from '@lucide/vue'
-import GkSearchInput from '@/components/ui/GkSearchInput.vue'
+import SearchInput from '@/components/ui/SearchInput.vue'
 import { gitService } from '@/lib/git'
 import type { SearchCommitHit } from '@shared/git/models'
 import { useRepositoryStore } from '@/stores/repository'
@@ -74,7 +74,7 @@ function onKeydown(event: KeyboardEvent): void {
       >
         <div class="flex items-center gap-2 border-b border-[var(--color-border)] p-3">
           <Search :size="18" class="shrink-0 text-[var(--color-fg-subtle)]" />
-          <GkSearchInput
+          <SearchInput
             v-model="query"
             class="flex-1"
             placeholder="Search commits and files…"

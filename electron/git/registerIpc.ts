@@ -3,8 +3,7 @@ import type { BrowserWindow } from 'electron'
 import { dialog, ipcMain, shell } from 'electron'
 import Store from 'electron-store'
 import { IpcChannels } from '@shared/git/ipc'
-import { GitError } from '@shared/git/errors'
-import type { RecentRepository } from '@shared/git/models'
+import type { RecentRepository, RepoChangeEvent } from '@shared/git/models'
 import { gitProvider } from './GitProvider'
 import { RepositoryWatcher } from './RepositoryWatcher'
 
@@ -14,14 +13,16 @@ const FAVORITES_PREFIX = 'branch-favorites:'
 export function registerGitIpc(getWindow: () => BrowserWindow | null, store: Store): void {
   const watcher = new RepositoryWatcher()
 
+  function notifyChanged(event: RepoChangeEvent): void {
+    gitProvider.invalidateCache(event.scopes)
+    getWindow()?.webContents.send(IpcChannels.changed, event)
+  }
+
   gitProvider.setHooks({
     getRecent: () => store.get(RECENT_KEY, []) as RecentRepository[],
     setRecent: (list) => store.set(RECENT_KEY, list),
     getFavorites: (repoPath) => new Set(store.get(`${FAVORITES_PREFIX}${repoPath}`, []) as string[]),
-    onChanged: (event) => {
-      gitProvider.invalidateCache(event.scopes)
-      getWindow()?.webContents.send(IpcChannels.changed, event)
-    },
+    onChanged: notifyChanged,
     onProgress: (progress) => {
       getWindow()?.webContents.send(IpcChannels.progress, progress)
     },
@@ -35,10 +36,7 @@ export function registerGitIpc(getWindow: () => BrowserWindow | null, store: Sto
     await watcher.stop()
     const result = await gitProvider.open(path, options)
     if (result.ok && result.snapshot) {
-      await watcher.watch(result.snapshot.repository.path, (event) => {
-        gitProvider.invalidateCache(event.scopes)
-        getWindow()?.webContents.send(IpcChannels.changed, event)
-      })
+      await watcher.watch(result.snapshot.repository.path, notifyChanged)
     }
     return result
   })
@@ -58,10 +56,7 @@ export function registerGitIpc(getWindow: () => BrowserWindow | null, store: Sto
     await watcher.stop()
     const openResult = await gitProvider.open(result.filePaths[0], options)
     if (openResult.ok && openResult.snapshot) {
-      await watcher.watch(openResult.snapshot.repository.path, (event) => {
-        gitProvider.invalidateCache(event.scopes)
-        getWindow()?.webContents.send(IpcChannels.changed, event)
-      })
+      await watcher.watch(openResult.snapshot.repository.path, notifyChanged)
     }
     return openResult
   })
@@ -145,9 +140,4 @@ function openTerminal(cwd: string): void {
     detached: true,
     stdio: 'ignore',
   }).unref()
-}
-
-export function serializeError(error: unknown): ReturnType<GitError['serialize']> | undefined {
-  if (error instanceof GitError) return error.serialize()
-  return undefined
 }

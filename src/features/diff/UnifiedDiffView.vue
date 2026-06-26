@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import { computed, toRef } from 'vue'
+import { computed, onMounted, toRef } from 'vue'
 import { useMemoize } from '@vueuse/core'
 import type { DiffResult } from '@shared/git/models'
 import { useDiffStaging } from '@/composables/useDiffStaging'
 import { buildUnifiedLines } from '@/lib/diff/buildUnifiedLines'
 import { lineClass } from '@/lib/diff/diffLineStyles'
 import { highlightLine } from '@/lib/diff/highlight'
+import { useDiffLineVirtualizer } from './composables/useDiffLineVirtualizer'
 import DiffStageButton from './DiffStageButton.vue'
 
 const props = defineProps<{
@@ -13,6 +14,10 @@ const props = defineProps<{
 }>()
 
 const lines = computed(() => buildUnifiedLines(props.diff.hunks))
+const lineCount = computed(() => lines.value.length)
+const diffVirtualizer = useDiffLineVirtualizer(lineCount)
+const { virtualItems, totalSize, scrollEl } = diffVirtualizer
+onMounted(() => void scrollEl.value)
 const diffRef = toRef(props, 'diff')
 const { canStage, canPartialStage, stageHunk, unstageHunk, stageLines, unstageLines } =
   useDiffStaging(diffRef)
@@ -47,43 +52,46 @@ function onLineAction(hunkIndex: number, lineIndex: number): void {
 </script>
 
 <template>
-  <div class="diff-view min-h-0 flex-1 overflow-auto select-text">
-    <div
-      v-for="line in lines"
-      :key="line.key"
-      class="diff-row group/diff-row flex font-mono text-[11px] leading-5"
-      :class="lineClass(line.type)"
-    >
-      <span
-        class="diff-gutter w-10 shrink-0 pr-2 text-right tabular-nums select-none"
-        :class="gutterClass(line.type)"
-      >{{ line.oldLine ?? '' }}</span>
-      <span
-        class="diff-gutter w-10 shrink-0 pr-2 text-right tabular-nums select-none"
-        :class="gutterClass(line.type)"
-      >{{ line.newLine ?? '' }}</span>
-      <span class="diff-prefix w-4 shrink-0 select-none opacity-70">{{ prefix(line.type) }}</span>
-      <code
-        v-if="line.type === 'hunk'"
-        class="diff-code min-w-0 flex-1 whitespace-pre-wrap break-all px-1"
-      >{{ line.content }}</code>
-      <code
-        v-else
-        class="diff-code hljs min-w-0 flex-1 whitespace-pre-wrap break-all px-1"
-        v-html="highlight(line.content, diff.language)"
-      />
-      <DiffStageButton
-        v-if="line.type === 'hunk' && canPartialStage"
-        :mode="canStage ? 'stage' : 'unstage'"
-        scope="hunk"
-        @action="onHunkAction(line.hunkIndex)"
-      />
-      <DiffStageButton
-        v-else-if="(line.type === 'add' || line.type === 'del') && line.lineIndex != null && canPartialStage"
-        :mode="canStage ? 'stage' : 'unstage'"
-        scope="line"
-        @action="onLineAction(line.hunkIndex, line.lineIndex)"
-      />
+  <div ref="scrollEl" class="diff-view min-h-0 flex-1 overflow-auto select-text">
+    <div class="relative w-full" :style="{ height: `${totalSize}px` }">
+      <div
+        v-for="item in virtualItems"
+        :key="lines[item.index].key"
+        class="diff-row group/diff-row absolute right-0 left-0 flex font-mono text-[11px] leading-5"
+        :class="lineClass(lines[item.index].type)"
+        :style="{ height: `${item.size}px`, transform: `translateY(${item.start}px)` }"
+      >
+        <span
+          class="diff-gutter w-10 shrink-0 pr-2 text-right tabular-nums select-none"
+          :class="gutterClass(lines[item.index].type)"
+        >{{ lines[item.index].oldLine ?? '' }}</span>
+        <span
+          class="diff-gutter w-10 shrink-0 pr-2 text-right tabular-nums select-none"
+          :class="gutterClass(lines[item.index].type)"
+        >{{ lines[item.index].newLine ?? '' }}</span>
+        <span class="diff-prefix w-4 shrink-0 select-none opacity-70">{{ prefix(lines[item.index].type) }}</span>
+        <code
+          v-if="lines[item.index].type === 'hunk'"
+          class="diff-code min-w-0 flex-1 whitespace-pre-wrap break-all px-1"
+        >{{ lines[item.index].content }}</code>
+        <code
+          v-else
+          class="diff-code hljs min-w-0 flex-1 whitespace-pre-wrap break-all px-1"
+          v-html="highlight(lines[item.index].content, diff.language)"
+        />
+        <DiffStageButton
+          v-if="lines[item.index].type === 'hunk' && canPartialStage"
+          :mode="canStage ? 'stage' : 'unstage'"
+          scope="hunk"
+          @action="onHunkAction(lines[item.index].hunkIndex)"
+        />
+        <DiffStageButton
+          v-else-if="(lines[item.index].type === 'add' || lines[item.index].type === 'del') && lines[item.index].lineIndex != null && canPartialStage"
+          :mode="canStage ? 'stage' : 'unstage'"
+          scope="line"
+          @action="onLineAction(lines[item.index].hunkIndex, lines[item.index].lineIndex!)"
+        />
+      </div>
     </div>
   </div>
 </template>

@@ -1,5 +1,6 @@
 import { execFile, spawn } from 'node:child_process'
 import { classifyGitError, GitError } from '@shared/git/errors'
+import { perfEnabled } from '@shared/perf'
 
 export interface RunOptions {
   cwd: string
@@ -47,7 +48,19 @@ export class GitCliProvider {
   }
 
   /** Buffered invocation. Throws a typed {@link GitError} on failure. */
-  run(args: string[], options: RunOptions): Promise<RunResult> {
+  async run(args: string[], options: RunOptions): Promise<RunResult> {
+    const label = `git ${args.slice(0, 4).join(' ')}`
+    const start = perfEnabled() ? performance.now() : 0
+    try {
+      return await this.runInner(args, options)
+    } finally {
+      if (perfEnabled()) {
+        console.log(`[git-light perf] ${label}: ${(performance.now() - start).toFixed(1)}ms`)
+      }
+    }
+  }
+
+  private runInner(args: string[], options: RunOptions): Promise<RunResult> {
     const { cwd, signal, allowFailure, timeout, env, maxBuffer, input } = options
     const fullArgs = [...this.baseArgs(), ...args]
 

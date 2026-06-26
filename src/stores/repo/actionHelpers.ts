@@ -1,5 +1,6 @@
 import type { GitAction } from '@/types/git'
-import type { SnapshotScope } from '@shared/git/models'
+
+export { scopesForAction } from '@shared/git/snapshotScopes'
 
 export function describeAction(action: GitAction): string {
   const target = action.target ? ` "${action.target}"` : ''
@@ -41,27 +42,4 @@ export function labelForOperation(action: GitAction): string | null {
     default:
       return null
   }
-}
-
-export function scopesForAction(kind: GitAction['kind']): SnapshotScope[] | undefined {
-  if (kind.startsWith('reset') || kind.includes('rebase') || kind.includes('merge') || kind.includes('cherry')) {
-    return ['commits', 'branches', 'status']
-  }
-  if (kind.includes('branch') || kind === 'checkout' || kind === 'checkout-commit' || kind === 'checkout-tag') {
-    return ['commits', 'branches', 'status']
-  }
-  if (kind === 'commit' || kind === 'amend' || kind === 'commit-and-push' || kind === 'commit-and-force-push') {
-    return ['commits', 'status']
-  }
-  if (kind.includes('stage') || kind === 'stash' || kind.includes('discard') || kind.includes('conflict')) {
-    return ['status']
-  }
-  if (kind === 'fetch' || kind === 'pull' || kind === 'push' || kind === 'sync' || kind === 'fetch-all') {
-    return ['branches', 'commits', 'status']
-  }
-  if (kind === 'create-tag' || kind === 'delete-tag' || kind === 'tag') return ['tags', 'commits']
-  if (kind.includes('stash')) return ['stashes', 'status']
-  if (kind === 'refresh') return undefined
-  if (kind === 'undo' || kind === 'redo') return ['commits', 'branches', 'status']
-  return ['status', 'branches']
 }

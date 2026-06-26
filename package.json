@@ -1,9 +1,14 @@
 {
   "name": "git-light",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "GitKraken-style Git client UI shell built with Electron, Vue 3, and TypeScript.",
   "author": "Git Light",
   "license": "MIT",
+  "productName": "Git Light",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ftuyama/git-light.git"
+  },
   "main": "out/main/main.js",
   "resolutions": {
     "vite": "^7.3.6"
@@ -14,10 +19,28 @@
     "preview": "electron-vite preview",
     "typecheck": "vue-tsc --noEmit -p tsconfig.json --composite false",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "dist": "npm run build && electron-builder",
+    "dist:mac": "npm run build && electron-builder --mac dmg"
+  },
+  "build": {
+    "appId": "com.gitlight.app",
+    "productName": "Git Light",
+    "files": [
+      "out/**/*"
+    ],
+    "directories": {
+      "output": "dist"
+    },
+    "mac": {
+      "target": "dmg",
+      "icon": "build/icon.png"
+    },
+    "dmg": {
+      "title": "Git Light ${version}"
+    }
   },
   "devDependencies": {
-    "@tailwindcss/postcss": "^4.3.1",
     "@tailwindcss/vite": "^4.3.1",
     "@types/node": "^26.0.1",
     "@vitejs/plugin-vue": "^6.0.7",
@@ -36,14 +59,12 @@
     "@tanstack/vue-virtual": "^3.13.29",
     "@vueuse/core": "^14.2.1",
     "chokidar": "^5.0.0",
-    "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "date-fns": "^4.4.0",
     "electron-store": "^8.2.0",
     "highlight.js": "^11.11.1",
     "motion-v": "^2.3.0",
     "pinia": "^3.0.4",
-    "pinia-plugin-persistedstate": "^4.7.1",
     "reka-ui": "^2.10.0",
     "splitpanes": "^4.1.2",
     "tailwind-merge": "^3.6.0",

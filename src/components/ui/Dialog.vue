@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted, onUnmounted, ref, watch } from 'vue'
 import { X } from '@lucide/vue'
-import GkButton from './GkButton.vue'
+import Button from './Button.vue'
 
 const props = defineProps<{
   open: boolean
@@ -61,8 +61,8 @@ onUnmounted(() => document.removeEventListener('keydown', onKeydown))
 
         <footer class="flex justify-end gap-2 border-t border-[var(--color-border)] px-4 py-3">
           <slot name="footer">
-            <GkButton variant="ghost" @click="emit('cancel')">Cancel</GkButton>
-            <GkButton :variant="danger ? 'danger' : 'primary'" @click="emit('confirm')">OK</GkButton>
+            <Button variant="ghost" @click="emit('cancel')">Cancel</Button>
+            <Button :variant="danger ? 'danger' : 'primary'" @click="emit('confirm')">OK</Button>
           </slot>
         </footer>
       </div>

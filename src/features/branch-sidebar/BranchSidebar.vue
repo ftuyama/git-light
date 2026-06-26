@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { computed, provide, ref } from 'vue'
 import { Loader2 } from '@lucide/vue'
-import GkSearchInput from '@/components/ui/GkSearchInput.vue'
+import SearchInput from '@/components/ui/SearchInput.vue'
 import SidebarSection from './SidebarSection.vue'
 import BranchSidebarSectionContent from './BranchSidebarSectionContent.vue'
 import BranchIntegrateDialog from './BranchIntegrateDialog.vue'
-import { pendingBranchIntegrate } from './useBranchDragDrop'
+import { useBranchDragStore } from '@/stores/branchDrag'
 import { useBranchSidebarData } from './useBranchSidebarData'
 import { useRepositoryStore } from '@/stores/repository'
 import { useUiStore } from '@/stores/ui'
@@ -13,8 +13,9 @@ import { SECTION_KEYS, SECTION_LABELS, type SectionKey } from '@/lib/preferences
 
 const repo = useRepositoryStore()
 const ui = useUiStore()
+const branchDrag = useBranchDragStore()
 const query = ref('')
-const search = ref<InstanceType<typeof GkSearchInput>>()
+const search = ref<InstanceType<typeof SearchInput>>()
 
 const sidebarData = useBranchSidebarData(query)
 provide('branchSidebarData', sidebarData)
@@ -53,18 +54,18 @@ function sectionCount(key: SectionKey): number {
   }
 }
 
-const integrateOpen = computed(() => pendingBranchIntegrate.value != null)
-const integrateSource = computed(() => pendingBranchIntegrate.value?.source ?? null)
-const integrateTarget = computed(() => pendingBranchIntegrate.value?.target ?? null)
+const integrateOpen = computed(() => branchDrag.pendingIntegrate != null)
+const integrateSource = computed(() => branchDrag.pendingIntegrate?.source ?? null)
+const integrateTarget = computed(() => branchDrag.pendingIntegrate?.target ?? null)
 
 function closeIntegrateDialog(): void {
-  pendingBranchIntegrate.value = null
+  branchDrag.pendingIntegrate = null
 }
 
 async function confirmIntegrate(mode: 'merge' | 'rebase'): Promise<void> {
-  const request = pendingBranchIntegrate.value
+  const request = branchDrag.pendingIntegrate
   if (!request) return
-  pendingBranchIntegrate.value = null
+  branchDrag.pendingIntegrate = null
   await repo.integrateBranches(request.source, request.target, mode)
 }
 </script>
@@ -82,7 +83,7 @@ async function confirmIntegrate(mode: 'merge' | 'rebase'): Promise<void> {
     </Transition>
 
     <div class="border-b border-[var(--color-border)] p-2">
-      <GkSearchInput
+      <SearchInput
         ref="search"
         v-model="query"
         placeholder="Search branches"

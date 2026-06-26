@@ -24,7 +24,7 @@ import {
   Spline,
   Terminal,
 } from '@lucide/vue'
-import GkIconButton from '@/components/ui/GkIconButton.vue'
+import IconButton from '@/components/ui/IconButton.vue'
 import DropdownMenu from '@/components/ui/DropdownMenu.vue'
 import AppSettingsMenu from '@/features/settings/AppSettingsMenu.vue'
 import type { MenuItem } from '@/components/ui/menu'
@@ -101,27 +101,27 @@ const branchMenu = computed<MenuItem[]>(() =>
     <div class="mx-1 h-6 w-px bg-[var(--color-border)]" />
 
     <div class="flex items-center gap-0.5">
-      <GkIconButton :icon="CloudDownload" label="Fetch" :busy="isBusy('fetch')" @click="run('fetch')" />
-      <GkIconButton :icon="ArrowDown" label="Pull" shortcut="⌘⇧L" :busy="isBusy('pull')" @click="run('pull')" />
-      <GkIconButton :icon="ArrowUp" label="Push" shortcut="⌘⇧P" :busy="isBusy('push')" @click="run('push')" />
-      <GkIconButton :icon="ArrowDownUp" label="Sync" :busy="isBusy('sync')" @click="run('sync')" />
+      <IconButton :icon="CloudDownload" label="Fetch" :busy="isBusy('fetch')" @click="run('fetch')" />
+      <IconButton :icon="ArrowDown" label="Pull" shortcut="⌘⇧L" :busy="isBusy('pull')" @click="run('pull')" />
+      <IconButton :icon="ArrowUp" label="Push" shortcut="⌘⇧P" :busy="isBusy('push')" @click="run('push')" />
+      <IconButton :icon="ArrowDownUp" label="Sync" :busy="isBusy('sync')" @click="run('sync')" />
     </div>
 
     <div class="mx-1 h-6 w-px bg-[var(--color-border)]" />
 
     <div class="flex items-center gap-0.5">
-      <GkIconButton :icon="Inbox" label="Stash" @click="repo.stashChanges()" />
-      <GkIconButton :icon="ArchiveRestore" label="Pop Stash" @click="run('pop-stash')" />
+      <IconButton :icon="Inbox" label="Stash" @click="repo.stashChanges()" />
+      <IconButton :icon="ArchiveRestore" label="Pop Stash" @click="run('pop-stash')" />
     </div>
 
     <div class="mx-1 h-6 w-px bg-[var(--color-border)]" />
 
     <div class="flex items-center gap-0.5">
-      <GkIconButton :icon="Cherry" label="Cherry Pick" @click="repo.cherryPickCommit(selection.selectedSha ?? undefined)" />
-      <GkIconButton :icon="GitMerge" label="Merge" @click="repo.mergeBranch()" />
-      <GkIconButton :icon="Spline" label="Rebase" @click="repo.rebaseOnto()" />
-      <GkIconButton :icon="ListTree" label="Interactive Rebase" @click="interactiveRebase.open()" />
-      <GkIconButton :icon="RotateCcw" label="Reset" @click="repo.resetTo('reset-mixed')" />
+      <IconButton :icon="Cherry" label="Cherry Pick" @click="repo.cherryPickCommit(selection.selectedSha ?? undefined)" />
+      <IconButton :icon="GitMerge" label="Merge" @click="repo.mergeBranch()" />
+      <IconButton :icon="Spline" label="Rebase" @click="repo.rebaseOnto()" />
+      <IconButton :icon="ListTree" label="Interactive Rebase" @click="interactiveRebase.open()" />
+      <IconButton :icon="RotateCcw" label="Reset" @click="repo.resetTo('reset-mixed')" />
     </div>
 
     <div class="mx-1 h-6 w-px bg-[var(--color-border)]" />
@@ -129,7 +129,7 @@ const branchMenu = computed<MenuItem[]>(() =>
     <div class="app-drag flex-1" />
 
     <div class="flex items-center gap-0.5">
-      <GkIconButton
+      <IconButton
         :icon="Undo2"
         :label="repo.undoTooltip"
         shortcut="⌘Z"
@@ -137,7 +137,7 @@ const branchMenu = computed<MenuItem[]>(() =>
         :busy="isBusy('undo')"
         @click="run('undo')"
       />
-      <GkIconButton
+      <IconButton
         :icon="Redo2"
         :label="repo.redoTooltip"
         shortcut="⌘⇧Z"
@@ -145,9 +145,9 @@ const branchMenu = computed<MenuItem[]>(() =>
         :busy="isBusy('redo')"
         @click="run('redo')"
       />
-      <GkIconButton :icon="Search" label="Search" shortcut="⌘⇧F" @click="repo.openSearch()" />
-      <GkIconButton :icon="Terminal" label="Open Terminal" shortcut="⌘T" @click="run('open-terminal')" />
-      <GkIconButton :icon="RotateCw" label="Refresh" shortcut="⌘R" :busy="isBusy('refresh')" @click="run('refresh')" />
+      <IconButton :icon="Search" label="Search" shortcut="⌘⇧F" @click="repo.openSearch()" />
+      <IconButton :icon="Terminal" label="Open Terminal" shortcut="⌘T" @click="run('open-terminal')" />
+      <IconButton :icon="RotateCw" label="Refresh" shortcut="⌘R" :busy="isBusy('refresh')" @click="run('refresh')" />
       <AppSettingsMenu />
     </div>
   </header>

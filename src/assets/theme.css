@@ -2,18 +2,18 @@
 
 /*
   GitKraken-inspired dark-first design system.
-  Colors are tuned for a dense, professional developer tool: near-black app
-  surface, slightly raised panels, muted borders, and a saturated accent set
-  reused for branch lanes.
+  Colors are tuned for a dense, professional developer tool: dark app surface,
+  slightly raised panels, muted borders, and a saturated accent set reused for
+  branch lanes.
 */
 
 @theme {
-  --color-app: #0d0f14;
-  --color-panel: #161b22;
-  --color-panel-raised: #1c2128;
-  --color-elevated: #21262d;
-  --color-hover: #262c36;
-  --color-active: #2d333b;
+  --color-app: #12151a;
+  --color-panel: #1b2028;
+  --color-panel-raised: #21262e;
+  --color-elevated: #262b33;
+  --color-hover: #2b313b;
+  --color-active: #323840;
 
   --color-border: rgba(255, 255, 255, 0.06);
   --color-border-strong: rgba(255, 255, 255, 0.12);
@@ -176,8 +176,9 @@
   }
 }
 
-/* Diff viewer syntax highlighting — tuned for the dark app theme. */
-.diff-view .hljs {
+/* Diff viewer and conflict panel syntax highlighting — tuned for the dark app theme. */
+.diff-view .hljs,
+.conflict-view .hljs {
   background: transparent;
   color: inherit;
   padding: 0;
@@ -185,69 +186,97 @@
 
 .diff-view .diff-code.hljs .hljs-keyword,
 .diff-view .diff-code.hljs .hljs-selector-tag,
-.diff-view .diff-code.hljs .hljs-built_in {
+.diff-view .diff-code.hljs .hljs-built_in,
+.conflict-view code.hljs .hljs-keyword,
+.conflict-view code.hljs .hljs-selector-tag,
+.conflict-view code.hljs .hljs-built_in {
   color: #ff7b72;
 }
 
 .diff-view .diff-code.hljs .hljs-string,
 .diff-view .diff-code.hljs .hljs-attr,
-.diff-view .diff-code.hljs .hljs-attribute {
+.diff-view .diff-code.hljs .hljs-attribute,
+.conflict-view code.hljs .hljs-string,
+.conflict-view code.hljs .hljs-attr,
+.conflict-view code.hljs .hljs-attribute {
   color: #a5d6ff;
 }
 
 .diff-view .diff-code.hljs .hljs-number,
-.diff-view .diff-code.hljs .hljs-literal {
+.diff-view .diff-code.hljs .hljs-literal,
+.conflict-view code.hljs .hljs-number,
+.conflict-view code.hljs .hljs-literal {
   color: #79c0ff;
 }
 
 .diff-view .diff-code.hljs .hljs-comment,
-.diff-view .diff-code.hljs .hljs-quote {
+.diff-view .diff-code.hljs .hljs-quote,
+.conflict-view code.hljs .hljs-comment,
+.conflict-view code.hljs .hljs-quote {
   color: #8b949e;
   font-style: italic;
 }
 
 .diff-view .diff-code.hljs .hljs-title,
 .diff-view .diff-code.hljs .hljs-title.function_,
-.diff-view .diff-code.hljs .hljs-function .hljs-title {
+.diff-view .diff-code.hljs .hljs-function .hljs-title,
+.conflict-view code.hljs .hljs-title,
+.conflict-view code.hljs .hljs-title.function_,
+.conflict-view code.hljs .hljs-function .hljs-title {
   color: #d2a8ff;
 }
 
 .diff-view .diff-code.hljs .hljs-type,
-.diff-view .diff-code.hljs .hljs-class .hljs-title {
+.diff-view .diff-code.hljs .hljs-class .hljs-title,
+.conflict-view code.hljs .hljs-type,
+.conflict-view code.hljs .hljs-class .hljs-title {
   color: #ffa657;
 }
 
 .diff-view .diff-code.hljs .hljs-variable,
 .diff-view .diff-code.hljs .hljs-template-variable,
-.diff-view .diff-code.hljs .hljs-name {
+.diff-view .diff-code.hljs .hljs-name,
+.conflict-view code.hljs .hljs-variable,
+.conflict-view code.hljs .hljs-template-variable,
+.conflict-view code.hljs .hljs-name {
   color: #ffa657;
 }
 
 .diff-view .diff-code.hljs .hljs-meta,
-.diff-view .diff-code.hljs .hljs-meta .hljs-keyword {
+.diff-view .diff-code.hljs .hljs-meta .hljs-keyword,
+.conflict-view code.hljs .hljs-meta,
+.conflict-view code.hljs .hljs-meta .hljs-keyword {
   color: #79c0ff;
 }
 
-.diff-view .diff-code.hljs .hljs-regexp {
+.diff-view .diff-code.hljs .hljs-regexp,
+.conflict-view code.hljs .hljs-regexp {
   color: #a5d6ff;
 }
 
 .diff-view .diff-code.hljs .hljs-symbol,
-.diff-view .diff-code.hljs .hljs-bullet {
+.diff-view .diff-code.hljs .hljs-bullet,
+.conflict-view code.hljs .hljs-symbol,
+.conflict-view code.hljs .hljs-bullet {
   color: #79c0ff;
 }
 
 .diff-view .diff-code.hljs .hljs-section,
-.diff-view .diff-code.hljs .hljs-selector-id {
+.diff-view .diff-code.hljs .hljs-selector-id,
+.conflict-view code.hljs .hljs-section,
+.conflict-view code.hljs .hljs-selector-id {
   color: #d2a8ff;
   font-weight: 600;
 }
 
 .diff-view .diff-code.hljs .hljs-tag,
-.diff-view .diff-code.hljs .hljs-name {
+.diff-view .diff-code.hljs .hljs-name,
+.conflict-view code.hljs .hljs-tag,
+.conflict-view code.hljs .hljs-name {
   color: #7ee787;
 }
 
-.diff-view .diff-code.hljs .hljs-subst {
+.diff-view .diff-code.hljs .hljs-subst,
+.conflict-view code.hljs .hljs-subst {
   color: var(--color-fg-muted);
 }

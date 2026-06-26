@@ -1,7 +1,6 @@
 import type { RepoState } from '@shared/git/models'
 
 export type { GitAction, GitActionKind, ActionResult } from '@shared/git/actions'
-export type { RepoState } from '@shared/git/models'
 
 export interface Author {
   name: string
@@ -140,4 +139,3 @@ export interface RepositoryData {
   commitAuthor: Author
 }
 
-export type { CommitPageInfo } from '@shared/git/models'

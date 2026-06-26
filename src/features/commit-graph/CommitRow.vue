@@ -21,6 +21,7 @@ import { relativeTime } from '@/lib/format'
 import { formatRefLabel } from '@shared/git/refLabel'
 import { githubCommitUrl } from '@shared/git/githubUrl'
 import type { Commit, Ref } from '@/types/git'
+import type { GraphNode } from '@/lib/graph/computeGraphLayout'
 import { useRepositoryStore } from '@/stores/repository'
 import { useInteractiveRebaseStore } from '@/stores/interactiveRebase'
 import { useToastStore } from '@/stores/toast'
@@ -29,6 +30,7 @@ import { storeToRefs } from 'pinia'
 
 const props = defineProps<{
   commit: Commit
+  graphNode: GraphNode | null
   graphWidth: number
   nodeX: number
   nodeSize: number
@@ -74,31 +76,26 @@ const primaryRef = computed(() => displayRefs.value[0] ?? null)
 const hiddenRefs = computed(() => displayRefs.value.slice(1))
 const hiddenCount = computed(() => hiddenRefs.value.length)
 
-const graphNode = computed(() => {
-  const index = repo.commits.findIndex((c) => c.sha === props.commit.sha)
-  return index >= 0 ? repo.layout.nodes[index] : null
-})
-
 const isCurrentBranchRef = computed(() => primaryRef.value?.isHead === true)
 
 const chipColor = computed(() => {
   if (isCurrentBranchRef.value) return 'var(--color-accent)'
-  return graphNode.value?.color ?? 'var(--color-fg-muted)'
+  return props.graphNode?.color ?? 'var(--color-fg-muted)'
 })
 
 const showConnector = computed(
   () =>
-    graphNode.value != null &&
+    props.graphNode != null &&
     primaryRef.value != null &&
     (primaryRef.value.type === 'localBranch' || primaryRef.value.type === 'remoteBranch'),
 )
 
 const connectorColor = computed((): Record<string, string> | null => {
-  if (!showConnector.value || !graphNode.value) return null
+  if (!showConnector.value || !props.graphNode) return null
   return {
     backgroundColor: isCurrentBranchRef.value
       ? 'var(--color-accent)'
-      : graphNode.value.color,
+      : props.graphNode.color,
   }
 })
 

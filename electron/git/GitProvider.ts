@@ -27,18 +27,21 @@ import { gitCli } from './GitCliProvider'
 import { executeGitAction } from './ActionRouter'
 import { ReflogJournal } from './ReflogJournal'
 import { isJournalableAction, journalCaptureFor, journalLabel } from '@shared/git/undoPolicy'
+import { scopesForAction } from '@shared/git/snapshotScopes'
+import { perfAsync } from '@shared/perf'
 import { RepoCache } from './RepoCache'
 import { repoNameFromPath, resolveRepoPath, assertPathInsideRepo } from './pathUtils'
 import { AuthorRegistry } from './parsers/authors'
 import { parseBranches, BRANCH_FORMAT, BRANCH_REFSPECS } from './parsers/branchParser'
 import { parseCommits, LOG_FORMAT } from './parsers/logParser'
 import { parseRemotes, parseTags, TAG_FORMAT } from './parsers/refParser'
-import { parseNumstat, parseStatus } from './parsers/statusParser'
+import { parseStatus } from './parsers/statusParser'
 import { parseCommitFiles } from './parsers/commitFilesParser'
 import { parseStashes, STASH_FORMAT } from './parsers/stashParser'
 import { readRepoState } from './parsers/stateParser'
 import { parseWorktrees } from './parsers/worktreeParser'
 import { parseUnifiedDiff } from './parsers/diffParser'
+import { guessLanguage } from '@shared/diff/guessLanguage'
 import { parseConflictMarkers } from './parsers/conflictParser'
 import { parseRebaseCommits, REBASE_LOG_FORMAT } from './parsers/rebaseCommitsParser'
 
@@ -146,6 +149,12 @@ export class GitProvider {
   }
 
   async snapshot(options: SnapshotOptions = {}): Promise<WireRepositorySnapshot> {
+    return perfAsync(`snapshot(${options.scopes?.join(',') ?? 'full'})`, () =>
+      this.snapshotInner(options),
+    )
+  }
+
+  private async snapshotInner(options: SnapshotOptions = {}): Promise<WireRepositorySnapshot> {
     const cwd = this.requireRepo()
     const scopes = options.scopes
     const favorites = this.hooks.getFavorites?.(cwd) ?? new Set<string>()
@@ -344,16 +353,14 @@ export class GitProvider {
     const cached = this.cache.getStatus()
     if (cached) return cached
 
-    const [statusResult, stagedNumstat, unstagedNumstat] = await Promise.all([
+    const [statusResult] = await Promise.all([
       gitCli.run(['status', '--porcelain=v2', '-z', '-uall'], { cwd }),
-      gitCli.run(['diff', '--cached', '--numstat', '-z'], { cwd, allowFailure: true }),
-      gitCli.run(['diff', '--numstat', '-z'], { cwd, allowFailure: true }),
     ])
 
     const files = parseStatus({
       porcelain: statusResult.stdout,
-      staged: parseNumstat(stagedNumstat.stdout),
-      unstaged: parseNumstat(unstagedNumstat.stdout),
+      staged: new Map(),
+      unstaged: new Map(),
     })
     this.cache.setStatus(files)
     return files
@@ -396,9 +403,8 @@ export class GitProvider {
       if (result.ok) {
         const scopes = scopesForAction(action.kind)
         this.cache.invalidate(scopes)
-        if (action.kind !== 'refresh') {
-          this.hooks.onChanged?.({ path: cwd, scopes })
-        }
+        // Renderer refreshes via runAction → refreshSnapshot; onChanged is for
+        // external edits (file watcher) only — calling it here caused a double refresh.
       }
 
       emit('Done', 100, true)
@@ -599,18 +605,51 @@ export class GitProvider {
         return { sha, shortSha: sha.slice(0, 7), subject, author, date: new Date(Number(at) * 1000).toISOString() }
       })
 
-    const filesResult = await gitCli.run(['ls-files'], { cwd, allowFailure: true })
-    const needle = text.toLowerCase()
-    const files = filesResult.stdout
-      .split('\n')
-      .filter((f) => f.toLowerCase().includes(needle))
-      .slice(0, query.limit ?? 50)
+    const files = await this.searchFiles(cwd, text, query)
 
     return { commits, files }
   }
 
   invalidateCache(scopes?: SnapshotScope[]): void {
     this.cache.invalidate(scopes)
+  }
+
+  private async loadTrackedFileList(cwd: string): Promise<string[]> {
+    const cached = this.cache.getFileList()
+    if (cached) return cached
+    const { stdout } = await gitCli.run(['ls-files', '-z'], { cwd, allowFailure: true })
+    const files = stdout.split('\0').filter(Boolean)
+    this.cache.setFileList(files)
+    return files
+  }
+
+  private async searchFiles(cwd: string, text: string, query: SearchQuery): Promise<string[]> {
+    const limit = query.limit ?? 50
+    const needle = text.toLowerCase()
+
+    if (query.regex) {
+      const args = ['grep', '-l', '-E', '--full-name', '-e', text, 'HEAD']
+      const { stdout } = await gitCli.run(args, { cwd, allowFailure: true })
+      return stdout.split('\n').filter(Boolean).slice(0, limit)
+    }
+
+    const grepArgs = ['grep', '-l', '-i', '-F', '-e', text, 'HEAD']
+    const grepResult = await gitCli.run(grepArgs, { cwd, allowFailure: true })
+    const fromContent = grepResult.stdout.split('\n').filter(Boolean)
+
+    const fromPaths = (await this.loadTrackedFileList(cwd)).filter((f) =>
+      f.toLowerCase().includes(needle),
+    )
+
+    const merged: string[] = []
+    const seen = new Set<string>()
+    for (const path of [...fromPaths, ...fromContent]) {
+      if (seen.has(path)) continue
+      seen.add(path)
+      merged.push(path)
+      if (merged.length >= limit) break
+    }
+    return merged
   }
 
   private requireRepo(): string {
@@ -632,49 +671,6 @@ export class GitProvider {
     if (tracked.exitCode === 0) return
     await gitCli.run(['add', '-N', '--', path], { cwd, allowFailure: true })
   }
-}
-
-function scopesForAction(kind: string): SnapshotScope[] {
-  if (kind.startsWith('reset') || kind.includes('rebase') || kind.includes('merge') || kind.includes('cherry')) {
-    return ['commits', 'branches', 'status']
-  }
-  if (kind.includes('branch') || kind === 'checkout' || kind === 'checkout-commit' || kind === 'checkout-tag') {
-    return ['commits', 'branches', 'status']
-  }
-  if (kind === 'commit' || kind === 'amend' || kind === 'commit-and-push' || kind === 'commit-and-force-push') {
-    return ['commits', 'status']
-  }
-  if (kind.includes('stage') || kind === 'stash' || kind.includes('discard') || kind.includes('conflict')) {
-    return ['status']
-  }
-  if (kind === 'fetch' || kind === 'pull' || kind === 'push' || kind === 'sync' || kind === 'fetch-all') {
-    return ['branches', 'commits', 'status']
-  }
-  if (kind === 'refresh') {
-    return ['commits', 'branches', 'status', 'tags', 'stashes', 'worktrees']
-  }
-  if (kind === 'undo' || kind === 'redo') {
-    return ['commits', 'branches', 'status']
-  }
-  return ['status', 'branches']
-}
-
-function guessLanguage(path: string): string {
-  const ext = path.split('.').pop()?.toLowerCase() ?? ''
-  const map: Record<string, string> = {
-    ts: 'typescript',
-    tsx: 'typescript',
-    js: 'javascript',
-    jsx: 'javascript',
-    vue: 'vue',
-    css: 'css',
-    json: 'json',
-    md: 'markdown',
-    py: 'python',
-    go: 'go',
-    rs: 'rust',
-  }
-  return map[ext] ?? 'plaintext'
 }
 
 async function readStageVersion(cwd: string, stage: number, path: string): Promise<string | null> {

@@ -26,6 +26,7 @@ export class RepoCache {
   private branches: CacheEntry<WireRepositorySnapshot['branches']> | null = null
   private commitsKey = ''
   private commits: CommitsCacheValue | null = null
+  private fileList: CacheEntry<string[]> | null = null
   private ttlMs: number
 
   constructor(ttlMs = 2_000) {
@@ -44,6 +45,7 @@ export class RepoCache {
     this.branches = null
     this.commitsKey = ''
     this.commits = null
+    this.fileList = null
   }
 
   invalidate(scopes?: SnapshotScope[]): void {
@@ -52,6 +54,7 @@ export class RepoCache {
     if (!scopes || scopes.includes('commits')) {
       this.commitsKey = ''
       this.commits = null
+      this.fileList = null
     }
   }
 
@@ -85,6 +88,14 @@ export class RepoCache {
   ): void {
     this.commitsKey = commitsCacheKey(headSha, graphScope, limit)
     this.commits = value
+  }
+
+  getFileList(): string[] | null {
+    return this.read(this.fileList)
+  }
+
+  setFileList(value: string[]): void {
+    this.fileList = this.write(value)
   }
 
   private write<T>(value: T): CacheEntry<T> {

@@ -50,14 +50,6 @@ export class GitError extends Error {
       files: this.files,
     }
   }
-
-  static is(value: unknown): value is SerializedGitError {
-    return (
-      typeof value === 'object' &&
-      value !== null &&
-      (value as { __gitError?: unknown }).__gitError === true
-    )
-  }
 }
 
 const DEFAULT_MESSAGES: Record<GitErrorCode, string> = {

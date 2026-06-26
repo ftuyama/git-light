@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { storeToRefs } from 'pinia'
-import GkDialog from '@/components/ui/GkDialog.vue'
-import GkButton from '@/components/ui/GkButton.vue'
+import Dialog from '@/components/ui/Dialog.vue'
+import Button from '@/components/ui/Button.vue'
 import { usePromptStore } from '@/stores/prompt'
 
 const prompt = usePromptStore()
@@ -10,7 +10,7 @@ const { open, mode, title, message, placeholder, value, confirmLabel, cancelLabe
 </script>
 
 <template>
-  <GkDialog
+  <Dialog
     :open="open"
     :title="title"
     :danger="danger"
@@ -28,10 +28,10 @@ const { open, mode, title, message, placeholder, value, confirmLabel, cancelLabe
     />
 
     <template #footer>
-      <GkButton variant="ghost" @click="prompt.cancel()">{{ cancelLabel }}</GkButton>
-      <GkButton :variant="danger ? 'danger' : 'primary'" @click="prompt.submit()">
+      <Button variant="ghost" @click="prompt.cancel()">{{ cancelLabel }}</Button>
+      <Button :variant="danger ? 'danger' : 'primary'" @click="prompt.submit()">
         {{ confirmLabel }}
-      </GkButton>
+      </Button>
     </template>
-  </GkDialog>
+  </Dialog>
 </template>

@@ -1,304 +1,54 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
-import { useVirtualizer } from '@tanstack/vue-virtual'
 import { Columns3, GitCommitHorizontal } from '@lucide/vue'
-import { storeToRefs } from 'pinia'
 import CommitRow from './CommitRow.vue'
 import PendingChangesRow from './PendingChangesRow.vue'
 import CommitGraphHeaderCell from './CommitGraphHeaderCell.vue'
 import Avatar from '@/components/ui/Avatar.vue'
 import DropdownMenu from '@/components/ui/DropdownMenu.vue'
-import type { MenuItem } from '@/components/ui/menu'
-import { graphEdgePath } from '@/lib/graph/graphEdgePath'
-import {
-  commitIndexForVirtual,
-  PENDING_ROW_VIRTUAL_INDEX,
-  virtualIndexForCommit,
-  virtualRowCount,
-} from '@/lib/graph/pendingGraphRow'
-import { useRepositoryStore } from '@/stores/repository'
 import { useRepoDiffStore } from '@/stores/repoDiff'
-import { useSelectionStore } from '@/stores/selection'
-import { useUiStore } from '@/stores/ui'
+import ConflictPanel from '@/features/conflicts/ConflictPanel.vue'
 import DiffPanel from '@/features/diff/DiffPanel.vue'
-import type { CommitColumnWidthKey } from '@/lib/preferences'
-import type { Author } from '@/types/git'
+import { useCommitGraphColumns } from './composables/useCommitGraphColumns'
+import { useCommitGraphOverlay } from './composables/useCommitGraphOverlay'
+import { useCommitGraphScroll } from './composables/useCommitGraphScroll'
+import {
+  useCommitGraphSelection,
+  useCommitGraphState,
+} from './composables/useCommitGraphSelection'
+import { useCommitGraphVirtualList } from './composables/useCommitGraphVirtualList'
+import { useCommitGraphZoom } from './composables/useCommitGraphZoom'
 
-const repo = useRepositoryStore()
 const diffStore = useRepoDiffStore()
-const selection = useSelectionStore()
-const ui = useUiStore()
-const { selectedSha, hoveredSha, compareRange } = storeToRefs(selection)
-const { columns, columnWidths } = storeToRefs(ui)
-
-const columnMenu = computed<MenuItem[]>(() => [
-  {
-    label: 'Author',
-    checked: ui.isColumnVisible('author'),
-    onSelect: () => ui.toggleColumn('author'),
-  },
-  {
-    label: 'SHA',
-    checked: ui.isColumnVisible('sha'),
-    onSelect: () => ui.toggleColumn('sha'),
-  },
-  {
-    label: 'When',
-    checked: ui.isColumnVisible('when'),
-    onSelect: () => ui.toggleColumn('when'),
-  },
-])
-
-const BASE_ROW_HEIGHT = 30
-const BASE_LANE_WIDTH = 16
-const LANE_LEFT_PAD = 32
-const LANE_RIGHT_PAD = 14
-const BASE_NODE_SIZE = 16
-const DEFAULT_ZOOM = 1.15
-
-const refsColumnWidth = computed(() => columnWidths.value.refs)
-
-const showLoading = computed(() => repo.loading || repo.branchSwitching)
-const hasPendingRow = computed(() => repo.hasPendingChanges && repo.headCommitIndex >= 0)
-const headIndex = computed(() => repo.headCommitIndex)
-const pendingRowSelected = computed(() => hasPendingRow.value && !selectedSha.value)
-const zoom = ref(DEFAULT_ZOOM)
-const rowHeight = computed(() => Math.round(BASE_ROW_HEIGHT * zoom.value))
-const laneWidth = computed(() => Math.round(BASE_LANE_WIDTH * zoom.value))
-const nodeSize = computed(() => Math.round(BASE_NODE_SIZE * zoom.value))
-const selectionRingRadius = computed(
-  () => nodeSize.value / 2 + 3.5 * (nodeSize.value / BASE_NODE_SIZE),
-)
-const graphContentWidth = computed(
-  () =>
-    LANE_LEFT_PAD +
-    LANE_RIGHT_PAD +
-    Math.max(1, repo.layout.maxLanes) * laneWidth.value,
-)
-const graphColumnWidth = computed(() => columnWidths.value.graph)
-
-const ROW_HORIZONTAL_PADDING = 24
-
-const rowContentWidth = computed(() => {
-  let width =
-    refsColumnWidth.value + graphColumnWidth.value + columnWidths.value.commit
-  if (columns.value.author) width += columnWidths.value.author
-  if (columns.value.sha) width += columnWidths.value.sha
-  if (columns.value.when) width += columnWidths.value.when
-  return width + ROW_HORIZONTAL_PADDING
+const { repo, showLoading, hasPendingRow, headIndex, pendingRowSelected } = useCommitGraphState()
+const { selectedSha, selectRow, selectPendingRow, rowClasses, selection } =
+  useCommitGraphSelection()
+const {
+  columns,
+  columnWidths,
+  refsColumnWidth,
+  graphColumnWidth,
+  columnMenu,
+  rowContentWidth,
+  resizeColumn,
+} = useCommitGraphColumns()
+const { rowHeight, laneWidth, nodeSize, selectionRingRadius, onWheel } = useCommitGraphZoom()
+const graphScroll = useCommitGraphScroll()
+const { scrollEl, headerScrollEl, syncHorizontalScroll, onBodyScroll } = graphScroll
+void headerScrollEl
+const { virtualItems, totalSize, resolveCommitIndex } = useCommitGraphVirtualList({
+  scrollEl,
+  rowHeight,
+  hasPendingRow,
 })
-
-const scrollEl = ref<HTMLElement | null>(null)
-const headerScrollEl = ref<HTMLElement | null>(null)
-let syncingHorizontalScroll = false
-
-function syncHorizontalScroll(source: 'header' | 'body'): void {
-  if (syncingHorizontalScroll || !headerScrollEl.value || !scrollEl.value) return
-  syncingHorizontalScroll = true
-  const scrollLeft =
-    source === 'body' ? scrollEl.value.scrollLeft : headerScrollEl.value.scrollLeft
-  headerScrollEl.value.scrollLeft = scrollLeft
-  scrollEl.value.scrollLeft = scrollLeft
-  syncingHorizontalScroll = false
-}
-
-const virtualizer = useVirtualizer(
-  computed(() => ({
-    count: virtualRowCount(repo.commits.length, hasPendingRow.value),
-    getScrollElement: () => scrollEl.value,
-    estimateSize: () => rowHeight.value,
-    overscan: 14,
-  })),
-)
-
-function rowCenterY(virtualIndex: number): number {
-  return virtualIndex * rowHeight.value + rowHeight.value / 2
-}
-
-function resolveCommitIndex(virtualIndex: number): number | null {
-  return commitIndexForVirtual(virtualIndex, hasPendingRow.value)
-}
-
-const virtualItems = computed(() => virtualizer.value.getVirtualItems())
-const totalSize = computed(() => virtualizer.value.getTotalSize())
-
-function laneX(lane: number): number {
-  return LANE_LEFT_PAD + lane * laneWidth.value + laneWidth.value / 2
-}
-
-interface VisibleEdge {
-  key: string
-  d: string
-  color: string
-  dashed?: boolean
-}
-
-const visibleEdges = computed<VisibleEdge[]>(() => {
-  const items = virtualItems.value
-  if (items.length === 0) return []
-  const firstVirtual = items[0].index
-  const lastVirtual = items[items.length - 1].index
-  const edges: VisibleEdge[] = []
-
-  const visibleCommitIndices = items
-    .map((item) => resolveCommitIndex(item.index))
-    .filter((index): index is number => index !== null)
-
-  if (visibleCommitIndices.length > 0) {
-    const minCommit = Math.min(...visibleCommitIndices)
-    const maxCommit = Math.max(...visibleCommitIndices)
-    for (let band = minCommit; band <= maxCommit; band++) {
-      const segments = repo.layout.bands[band]
-      if (!segments) continue
-      const y1 = rowCenterY(virtualIndexForCommit(band, hasPendingRow.value))
-      const y2 = rowCenterY(virtualIndexForCommit(band + 1, hasPendingRow.value))
-      for (let i = 0; i < segments.length; i++) {
-        const seg = segments[i]
-        const x1 = laneX(seg.fromLane)
-        const x2 = laneX(seg.toLane)
-        const cornerRadius = Math.min(6, laneWidth.value * 0.35)
-        const d = graphEdgePath(x1, y1, x2, y2, cornerRadius, seg.kind)
-        edges.push({ key: `${band}-${i}`, d, color: seg.color })
-      }
-    }
-  }
-
-  if (hasPendingRow.value && firstVirtual <= PENDING_ROW_VIRTUAL_INDEX) {
-    const headVirtual = virtualIndexForCommit(headIndex.value, true)
-    if (lastVirtual >= headVirtual) {
-      const headNode = repo.layout.nodes[headIndex.value]
-      if (headNode) {
-        const x = laneX(headNode.lane)
-        const y1 = rowCenterY(PENDING_ROW_VIRTUAL_INDEX)
-        const y2 = rowCenterY(headVirtual)
-        edges.push({
-          key: 'pending-head',
-          d: graphEdgePath(x, y1, x, y2),
-          color: headNode.color,
-          dashed: true,
-        })
-      }
-    }
-  }
-
-  return edges
+const { graphContentWidth, visibleEdges, visibleNodes, laneX } = useCommitGraphOverlay({
+  virtualItems,
+  hasPendingRow,
+  headIndex,
+  pendingRowSelected,
+  rowHeight,
+  laneWidth,
+  resolveCommitIndex,
 })
-
-interface VisibleNode {
-  key: string
-  cx: number
-  cy: number
-  color: string
-  selected: boolean
-  merge: boolean
-  author?: Author
-  pending?: boolean
-}
-
-const visibleNodes = computed<VisibleNode[]>(() => {
-  const nodes: VisibleNode[] = []
-
-  if (hasPendingRow.value) {
-    const visible = virtualItems.value.some(
-      (item) => item.index === PENDING_ROW_VIRTUAL_INDEX,
-    )
-    const headNode = repo.layout.nodes[headIndex.value]
-    if (visible && headNode) {
-      nodes.push({
-        key: 'pending',
-        cx: laneX(headNode.lane),
-        cy: rowCenterY(PENDING_ROW_VIRTUAL_INDEX),
-        color: headNode.color,
-        selected: pendingRowSelected.value,
-        merge: false,
-        pending: true,
-      })
-    }
-  }
-
-  for (const item of virtualItems.value) {
-    const commitIndex = resolveCommitIndex(item.index)
-    if (commitIndex === null) continue
-    const node = repo.layout.nodes[commitIndex]
-    const commit = repo.commits[commitIndex]
-    if (!node || !commit) continue
-    nodes.push({
-      key: node.sha,
-      cx: laneX(node.lane),
-      cy: rowCenterY(item.index),
-      color: node.color,
-      selected: node.sha === selectedSha.value,
-      merge: commit.isMerge,
-      author: commit.author,
-    })
-  }
-
-  return nodes
-})
-
-function onWheel(event: WheelEvent): void {
-  if (!event.ctrlKey && !event.metaKey) return
-  event.preventDefault()
-  const next = zoom.value * (1 - event.deltaY * 0.0015)
-  zoom.value = Math.min(1.6, Math.max(0.75, next))
-}
-
-watch(rowHeight, () => virtualizer.value.measure())
-
-watch(selectedSha, (sha) => {
-  if (sha) {
-    const index = repo.commits.findIndex((c) => c.sha === sha)
-    if (index >= 0) {
-      virtualizer.value.scrollToIndex(
-        virtualIndexForCommit(index, hasPendingRow.value),
-        { align: 'auto' },
-      )
-    }
-    return
-  }
-  if (hasPendingRow.value) {
-    virtualizer.value.scrollToIndex(PENDING_ROW_VIRTUAL_INDEX, { align: 'auto' })
-  }
-})
-
-function resizeColumn(key: CommitColumnWidthKey, deltaX: number): void {
-  ui.setColumnWidth(key, columnWidths.value[key] + deltaX)
-}
-
-function selectRow(sha: string, event?: MouseEvent): void {
-  if (event?.shiftKey && selectedSha.value && selectedSha.value !== sha) {
-    selection.selectWithShift(sha)
-    return
-  }
-  selection.select(selectedSha.value === sha ? null : sha)
-}
-
-function selectPendingRow(): void {
-  selection.select(null)
-}
-
-function rowClasses(commitIndex: number): string {
-  const sha = repo.commits[commitIndex]?.sha
-  const isSelected = selectedSha.value === sha
-  const isHovered = hoveredSha.value === sha
-  const range = compareRange.value
-  const inCompare = range && (sha === range.fromSha || sha === range.toSha)
-
-  if (isSelected) return 'border-[var(--color-accent)] bg-[var(--color-accent-soft)]'
-  if (inCompare) return 'border-[var(--color-info)] bg-[var(--color-info)]/10'
-  if (isHovered) return 'border-transparent bg-[var(--color-hover)]/80'
-  return 'border-transparent hover:bg-[var(--color-hover)]/60'
-}
-
-function onBodyScroll(): void {
-  syncHorizontalScroll('body')
-  if (!scrollEl.value || repo.loadingMoreCommits || !repo.commitPage.hasMore) return
-  const el = scrollEl.value
-  const threshold = 200
-  if (el.scrollTop + el.clientHeight >= el.scrollHeight - threshold) {
-    void repo.loadMoreCommits()
-  }
-}
 </script>
 
 <template>
@@ -517,6 +267,7 @@ function onBodyScroll(): void {
           >
             <CommitRow
               :commit="repo.commits[resolveCommitIndex(item.index)!]"
+              :graph-node="repo.layout.nodes[resolveCommitIndex(item.index)!] ?? null"
               :graph-width="graphColumnWidth"
               :node-x="laneX(repo.layout.nodes[resolveCommitIndex(item.index)!]?.lane ?? 0)"
               :node-size="nodeSize"
@@ -535,6 +286,7 @@ function onBodyScroll(): void {
     </div>
     </div>
 
-    <DiffPanel />
+    <ConflictPanel v-if="diffStore.selectedFileIsConflicted" />
+    <DiffPanel v-else />
   </div>
 </template>
