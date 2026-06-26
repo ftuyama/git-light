@@ -1,12 +1,10 @@
 <script setup lang="ts">
-import { ChevronRight, Copy } from '@lucide/vue'
+import { Copy } from '@lucide/vue'
 import Avatar from '@/components/ui/Avatar.vue'
 import Badge from '@/components/ui/Badge.vue'
-import IconButton from '@/components/ui/IconButton.vue'
 import { fullTimestamp, relativeTime } from '@/lib/format'
 import type { Commit } from '@/types/git'
 import { useToastStore } from '@/stores/toast'
-import { useUiStore } from '@/stores/ui'
 
 const props = defineProps<{
   commit: Commit
@@ -14,7 +12,6 @@ const props = defineProps<{
 }>()
 
 const toast = useToastStore()
-const ui = useUiStore()
 
 function copySha(): void {
   void navigator.clipboard?.writeText(props.commit.sha)
@@ -28,25 +25,15 @@ function shortParent(sha: string): string {
 
 <template>
   <div class="shrink-0 border-b border-[var(--color-border)] px-3 py-2.5">
-    <div class="flex items-start gap-2">
-      <div class="min-w-0 flex-1">
-        <p class="text-[13px] font-medium leading-snug text-[var(--color-fg)]">
-          {{ commit.subject }}
-        </p>
-        <p
-          v-if="commit.body?.trim()"
-          class="mt-1 whitespace-pre-wrap text-[12px] leading-relaxed text-[var(--color-fg-muted)]"
-        >
-          {{ commit.body.trim() }}
-        </p>
-      </div>
-      <IconButton
-        :icon="ChevronRight"
-        label="Hide right panel"
-        tooltip-side="left"
-        @click="ui.toggleRight()"
-      />
-    </div>
+    <p class="text-[13px] font-medium leading-snug text-[var(--color-fg)]">
+      {{ commit.subject }}
+    </p>
+    <p
+      v-if="commit.body?.trim()"
+      class="mt-1 max-h-20 overflow-y-auto whitespace-pre-wrap text-[12px] leading-relaxed text-[var(--color-fg-muted)]"
+    >
+      {{ commit.body.trim() }}
+    </p>
 
     <div v-if="commit.isMerge" class="mt-1.5 flex flex-wrap items-center gap-1.5">
       <Badge tone="info">merge</Badge>

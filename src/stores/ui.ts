@@ -4,7 +4,11 @@ import { syncThemePreference } from '@/lib/applyTheme'
 import {
   clampCommitGraphLimit,
   clampColumnWidth,
+  clampLeftSidebarSize,
+  clampRightSidebarSize,
   clampWorkingTreeChangesSize,
+  shouldCollapseLeftSidebar,
+  shouldCollapseRightSidebar,
   DEFAULT_COLUMNS,
   DEFAULT_COLUMN_WIDTHS,
   DEFAULT_SECTIONS,
@@ -106,6 +110,8 @@ export const useUiStore = defineStore('ui', {
     theme: defaultPreferences().theme,
     commandPaletteOpen: false,
     settingsOpen: false,
+    leftCollapseHint: false,
+    rightCollapseHint: false,
   }),
   getters: {
     graphScope(state): GraphScope {
@@ -165,10 +171,28 @@ export const useUiStore = defineStore('ui', {
       )
     },
     setLeftSize(size: number): void {
-      this.leftSize = size
+      if (shouldCollapseLeftSidebar(size)) {
+        this.leftCollapsed = true
+        return
+      }
+      this.leftSize = clampLeftSidebarSize(size)
     },
     setRightSize(size: number): void {
-      this.rightSize = size
+      if (shouldCollapseRightSidebar(size)) {
+        this.rightCollapsed = true
+        return
+      }
+      this.rightSize = clampRightSidebarSize(size)
+    },
+    setLeftCollapseHint(active: boolean): void {
+      this.leftCollapseHint = active
+    },
+    setRightCollapseHint(active: boolean): void {
+      this.rightCollapseHint = active
+    },
+    clearSidebarCollapseHints(): void {
+      this.leftCollapseHint = false
+      this.rightCollapseHint = false
     },
     setWorkingTreeChangesSize(size: number): void {
       this.workingTreeChangesSize = clampWorkingTreeChangesSize(size)

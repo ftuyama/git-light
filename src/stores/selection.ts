@@ -7,6 +7,7 @@ export type { CompareRange }
 export const useSelectionStore = defineStore('selection', {
   state: () => ({
     selectedSha: null as string | null,
+    selectedBranchId: null as string | null,
     hoveredSha: null as string | null,
     compareRange: null as CompareRange | null,
   }),
@@ -20,6 +21,14 @@ export const useSelectionStore = defineStore('selection', {
   actions: {
     select(sha: string | null): void {
       this.selectedSha = sha
+      this.selectedBranchId = null
+      this.compareRange = null
+    },
+
+    /** Sidebar branch click: highlight the branch and jump to its tip commit. */
+    selectBranch(branchId: string, tipSha: string): void {
+      this.selectedBranchId = branchId
+      this.selectedSha = tipSha
       this.compareRange = null
     },
 
@@ -36,6 +45,7 @@ export const useSelectionStore = defineStore('selection', {
       }
       this.compareRange = normalizeCompareRange(this.selectedSha, sha, repo.commits)
       this.selectedSha = sha
+      this.selectedBranchId = null
     },
 
     clearCompare(): void {

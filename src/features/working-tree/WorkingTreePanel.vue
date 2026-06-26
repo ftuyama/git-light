@@ -168,12 +168,6 @@ watch(compareRange, (range) => {
         <p class="min-w-0 flex-1 truncate text-[12px] text-[var(--color-fg-muted)]">
           {{ changesSummary }}
         </p>
-        <IconButton
-          :icon="ChevronRight"
-          label="Hide right panel"
-          tooltip-side="left"
-          @click="ui.toggleRight()"
-        />
       </header>
 
       <Splitpanes

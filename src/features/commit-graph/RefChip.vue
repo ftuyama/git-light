@@ -11,6 +11,8 @@ const props = defineProps<{
   hasLocal?: boolean
   /** When set, overrides type-based remote icon visibility (e.g. merged local+remote). */
   hasRemote?: boolean
+  /** Reduced opacity for hover preview chips that are not branch tips. */
+  muted?: boolean
 }>()
 
 const label = computed(() =>
@@ -27,10 +29,9 @@ const showRemoteIcon = computed(
   () => props.hasRemote ?? props.refData.type === 'remoteBranch',
 )
 
-const resolvedColor = computed((): string => {
-  if (isCurrent.value) return 'var(--color-accent)'
-  return props.refData.type === 'tag' ? 'var(--color-warning)' : props.color
-})
+const resolvedColor = computed((): string =>
+  props.refData.type === 'tag' ? 'var(--color-warning)' : props.color,
+)
 
 const chipStyle = computed(() => {
   const mix = isCurrent.value ? 44 : 38
@@ -106,7 +107,7 @@ onUnmounted(() => {
     <span
       ref="anchorRef"
       class="relative z-20 inline-flex h-[18px] w-full max-w-full min-w-0 items-center gap-0.5 overflow-hidden rounded px-1.5 text-[11px] font-medium"
-      :class="expanded ? 'invisible' : ''"
+      :class="[expanded ? 'invisible' : '', muted ? 'opacity-45' : '']"
       :style="chipStyle"
       @mouseenter="expand"
     >

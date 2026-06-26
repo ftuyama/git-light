@@ -182,6 +182,8 @@ export interface CommitPageRequest {
   beforeSha: string
   limit?: number
   graphScope?: GraphScope
+  /** Commits already loaded; used with `graphScope: 'all'` (`git log --skip`). */
+  skip?: number
 }
 
 export interface CommitPageResult {

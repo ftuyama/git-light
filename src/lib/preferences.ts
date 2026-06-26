@@ -57,6 +57,60 @@ export function clampWorkingTreeChangesSize(value: number): number {
   )
 }
 
+export const LEFT_SIDEBAR_SIZE_MIN = 14
+export const LEFT_SIDEBAR_SIZE_MAX = 36
+export const LEFT_SIDEBAR_COLLAPSE_SIZE = 12
+export const LEFT_SIDEBAR_COLLAPSE_HINT_SIZE = LEFT_SIDEBAR_COLLAPSE_SIZE + 6
+
+export const RIGHT_SIDEBAR_SIZE_MIN = 16
+export const RIGHT_SIDEBAR_SIZE_MAX = 44
+export const RIGHT_SIDEBAR_COLLAPSE_SIZE = 14
+export const RIGHT_SIDEBAR_COLLAPSE_HINT_SIZE = RIGHT_SIDEBAR_COLLAPSE_SIZE + 6
+
+export function clampLeftSidebarSize(value: number): number {
+  return Math.min(
+    LEFT_SIDEBAR_SIZE_MAX,
+    Math.max(LEFT_SIDEBAR_SIZE_MIN, Math.round(value)),
+  )
+}
+
+export function clampRightSidebarSize(value: number): number {
+  return Math.min(
+    RIGHT_SIDEBAR_SIZE_MAX,
+    Math.max(RIGHT_SIDEBAR_SIZE_MIN, Math.round(value)),
+  )
+}
+
+export function shouldCollapseLeftSidebar(size: number): boolean {
+  return size <= LEFT_SIDEBAR_COLLAPSE_SIZE
+}
+
+export function shouldCollapseRightSidebar(size: number): boolean {
+  return size <= RIGHT_SIDEBAR_COLLAPSE_SIZE
+}
+
+export function isInLeftSidebarCollapseHintZone(size: number): boolean {
+  return size <= LEFT_SIDEBAR_COLLAPSE_HINT_SIZE
+}
+
+export function isInRightSidebarCollapseHintZone(size: number): boolean {
+  return size <= RIGHT_SIDEBAR_COLLAPSE_HINT_SIZE
+}
+
+export function shouldShowLeftSidebarCollapseHint(
+  liveSize: number,
+  storedSize: number,
+): boolean {
+  return liveSize < storedSize && isInLeftSidebarCollapseHintZone(liveSize)
+}
+
+export function shouldShowRightSidebarCollapseHint(
+  liveSize: number,
+  storedSize: number,
+): boolean {
+  return liveSize < storedSize && isInRightSidebarCollapseHintZone(liveSize)
+}
+
 export interface UserPreferences {
   leftSize: number
   rightSize: number
@@ -104,7 +158,7 @@ export interface CommitColumnWidths {
 
 export const DEFAULT_COLUMN_WIDTHS: CommitColumnWidths = {
   refs: 140,
-  graph: 120,
+  graph: 300,
   commit: 240,
   author: 96,
   sha: 56,
@@ -148,8 +202,8 @@ export function mergePreferences(saved: Partial<UserPreferences> | null): UserPr
   const defaults = defaultPreferences()
   if (!saved) return defaults
   return {
-    leftSize: saved.leftSize ?? defaults.leftSize,
-    rightSize: saved.rightSize ?? defaults.rightSize,
+    leftSize: clampLeftSidebarSize(saved.leftSize ?? defaults.leftSize),
+    rightSize: clampRightSidebarSize(saved.rightSize ?? defaults.rightSize),
     workingTreeChangesSize: clampWorkingTreeChangesSize(
       saved.workingTreeChangesSize ?? defaults.workingTreeChangesSize,
     ),

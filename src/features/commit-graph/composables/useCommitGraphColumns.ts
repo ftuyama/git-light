@@ -4,7 +4,9 @@ import type { MenuItem } from '@/components/ui/menu'
 import type { CommitColumnWidthKey } from '@/lib/preferences'
 import { useUiStore } from '@/stores/ui'
 
-const ROW_HORIZONTAL_PADDING = 24
+export const ROW_HORIZONTAL_PADDING = 24
+/** Matches Tailwind `pl-3` on commit graph rows. */
+export const ROW_LEFT_PADDING = ROW_HORIZONTAL_PADDING / 2
 
 export function useCommitGraphColumns() {
   const ui = useUiStore()

@@ -29,8 +29,8 @@ export function useCommitGraphSelection() {
 
     if (isSelected) return 'border-[var(--color-accent)] bg-[var(--color-accent-soft)]'
     if (inCompare) return 'border-[var(--color-info)] bg-[var(--color-info)]/10'
-    if (isHovered) return 'border-transparent bg-[var(--color-hover)]/80'
-    return 'border-transparent hover:bg-[var(--color-hover)]/60'
+    if (isHovered) return 'border-transparent bg-[var(--color-hover)]/35'
+    return 'border-transparent hover:bg-[var(--color-hover)]/25'
   }
 
   return { selectedSha, selectRow, selectPendingRow, rowClasses, selection }

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import { Splitpanes, Pane, type SplitpanesResizedPayload } from 'splitpanes'
+import { Splitpanes, Pane, type SplitpanesResizePayload, type SplitpanesResizedPayload } from 'splitpanes'
 import { TooltipProvider } from 'reka-ui'
 import { storeToRefs } from 'pinia'
 import Toolbar from '@/features/toolbar/Toolbar.vue'
@@ -16,6 +16,14 @@ import PromptHost from '@/features/layout/PromptHost.vue'
 import SearchOverlay from '@/features/search/SearchOverlay.vue'
 import InteractiveRebaseDialog from '@/features/rebase/InteractiveRebaseDialog.vue'
 import AppSettingsDialog from '@/features/settings/AppSettingsDialog.vue'
+import {
+  LEFT_SIDEBAR_COLLAPSE_SIZE,
+  LEFT_SIDEBAR_SIZE_MAX,
+  RIGHT_SIDEBAR_COLLAPSE_SIZE,
+  RIGHT_SIDEBAR_SIZE_MAX,
+  shouldShowLeftSidebarCollapseHint,
+  shouldShowRightSidebarCollapseHint,
+} from '@/lib/preferences'
 import { useUiStore } from '@/stores/ui'
 import { useSelectionStore } from '@/stores/selection'
 import { useRepositoryStore } from '@/stores/repository'
@@ -24,7 +32,8 @@ import { useKeyboardShortcuts } from '@/composables/useKeyboardShortcuts'
 const ui = useUiStore()
 const repo = useRepositoryStore()
 const selection = useSelectionStore()
-const { leftSize, rightSize, leftCollapsed, rightCollapsed } = storeToRefs(ui)
+const { leftSize, rightSize, leftCollapsed, rightCollapsed, leftCollapseHint, rightCollapseHint } =
+  storeToRefs(ui)
 const { screen } = storeToRefs(repo)
 
 const branchSidebar = ref<InstanceType<typeof BranchSidebar>>()
@@ -44,7 +53,21 @@ const centerSize = computed(
     (rightCollapsed.value ? 0 : rightSize.value),
 )
 
+function onResize(payload: SplitpanesResizePayload): void {
+  presentPanes.value.forEach((key, index) => {
+    const size = payload.panes[index]?.size
+    if (size == null) return
+    if (key === 'left') {
+      ui.setLeftCollapseHint(shouldShowLeftSidebarCollapseHint(size, leftSize.value))
+    }
+    if (key === 'right') {
+      ui.setRightCollapseHint(shouldShowRightSidebarCollapseHint(size, rightSize.value))
+    }
+  })
+}
+
 function onResized(payload: SplitpanesResizedPayload): void {
+  ui.clearSidebarCollapseHints()
   presentPanes.value.forEach((key, index) => {
     const size = payload.panes[index]?.size
     if (size == null) return
@@ -79,14 +102,32 @@ useKeyboardShortcuts([
       <div class="flex min-h-0 flex-1">
         <SidebarRail v-if="leftCollapsed" side="left" @expand="ui.toggleLeft()" />
 
-        <Splitpanes class="min-w-0 flex-1" @resized="onResized">
-          <Pane v-if="!leftCollapsed" :size="leftSize" :min-size="14" :max-size="36">
+        <Splitpanes
+          class="min-w-0 flex-1"
+          :class="{
+            'splitpanes--collapse-hint-left': leftCollapseHint,
+            'splitpanes--collapse-hint-right': rightCollapseHint,
+          }"
+          @resize="onResize"
+          @resized="onResized"
+        >
+          <Pane
+            v-if="!leftCollapsed"
+            :size="leftSize"
+            :min-size="LEFT_SIDEBAR_COLLAPSE_SIZE"
+            :max-size="LEFT_SIDEBAR_SIZE_MAX"
+          >
             <BranchSidebar ref="branchSidebar" />
           </Pane>
           <Pane :size="centerSize" :min-size="30">
             <CommitGraph />
           </Pane>
-          <Pane v-if="!rightCollapsed" :size="rightSize" :min-size="16" :max-size="44">
+          <Pane
+            v-if="!rightCollapsed"
+            :size="rightSize"
+            :min-size="RIGHT_SIDEBAR_COLLAPSE_SIZE"
+            :max-size="RIGHT_SIDEBAR_SIZE_MAX"
+          >
             <WorkingTreePanel />
           </Pane>
         </Splitpanes>

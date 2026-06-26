@@ -254,7 +254,7 @@ export class GitProvider {
     const cwd = this.requireRepo()
     const limit = request.limit ?? DEFAULT_COMMIT_LIMIT
     const graphScope = request.graphScope ?? 'all'
-    return this.loadCommitsOlderThan(cwd, limit, graphScope, request.beforeSha)
+    return this.loadCommitsOlderThan(cwd, limit, graphScope, request.beforeSha, request.skip)
   }
 
   private async loadCommitsOlderThan(
@@ -262,8 +262,13 @@ export class GitProvider {
     limit: number,
     graphScope: GraphScope,
     beforeSha: string,
+    skip?: number,
   ): Promise<{ commits: WireRepositorySnapshot['commits']; page: WireRepositorySnapshot['page'] }> {
-    const { commits, hasMore } = await this.fetchCommitLog(cwd, limit, graphScope, `${beforeSha}^`)
+    // `git log --all <rev>` walks from branch tips, not older than <rev>. Use --skip instead.
+    const { commits, hasMore } =
+      graphScope === 'all'
+        ? await this.fetchCommitLog(cwd, limit, graphScope, undefined, skip ?? 0)
+        : await this.fetchCommitLog(cwd, limit, graphScope, `${beforeSha}^`)
     const oldestSha = commits.length > 0 ? commits[commits.length - 1].sha : null
     return {
       commits,
@@ -296,6 +301,7 @@ export class GitProvider {
     limit: number,
     graphScope: GraphScope,
     endRev?: string,
+    skip = 0,
   ): Promise<{ commits: WireRepositorySnapshot['commits']; hasMore: boolean }> {
     const authors = new AuthorRegistry()
     const fetchLimit = limit + 1
@@ -308,7 +314,8 @@ export class GitProvider {
       String(fetchLimit),
     ]
     if (graphScope === 'all') args.splice(1, 0, '--all')
-    if (endRev) args.push(endRev)
+    if (skip > 0) args.push('--skip', String(skip))
+    else if (endRev) args.push(endRev)
 
     const { stdout } = await gitCli.run(args, { cwd, timeout: 120_000, allowFailure: !!endRev })
 

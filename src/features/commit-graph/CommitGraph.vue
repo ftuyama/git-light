@@ -241,7 +241,7 @@ const { graphContentWidth, visibleEdges, visibleNodes, laneX } = useCommitGraphO
             :class="
               pendingRowSelected
                 ? 'border-[var(--color-accent)] bg-[var(--color-accent-soft)]'
-                : 'border-transparent hover:bg-[var(--color-hover)]/60'
+                : 'border-transparent hover:bg-[var(--color-hover)]/25'
             "
             role="row"
             :aria-selected="pendingRowSelected"

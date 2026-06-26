@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
+import { storeToRefs } from 'pinia'
 import {
   ArrowDown,
   ArrowUp,
@@ -17,6 +18,7 @@ import type { MenuItem } from '@/components/ui/menu'
 import { cn, laneColor } from '@/lib/utils'
 import type { Branch } from '@/types/git'
 import { useRepositoryStore } from '@/stores/repository'
+import { useSelectionStore } from '@/stores/selection'
 import { useBranchDragStore } from '@/stores/branchDrag'
 import {
   readBranchDragPayload,
@@ -25,7 +27,9 @@ import {
 
 const props = defineProps<{ branch: Branch; depth?: number }>()
 const repo = useRepositoryStore()
+const selection = useSelectionStore()
 const branchDrag = useBranchDragStore()
+const { selectedBranchId } = storeToRefs(selection)
 
 const dragEnabled = computed(
   () => !repo.branchSwitching && !repo.busyAction && !repo.inProgressOperation,
@@ -66,6 +70,11 @@ function onDragLeave(): void {
   }
 }
 
+function onClick(): void {
+  if (isRemote.value) return
+  selection.selectBranch(props.branch.id, props.branch.tipSha)
+}
+
 function onDrop(event: DragEvent): void {
   event.preventDefault()
   const sourceId = event.dataTransfer ? readBranchDragPayload(event.dataTransfer) : null
@@ -81,6 +90,7 @@ function onDrop(event: DragEvent): void {
 const dotColor = computed(() => laneColor(props.branch.laneColorIndex))
 const indent = computed(() => `${(props.depth ?? 0) * 14 + 24}px`)
 const isRemote = computed(() => props.branch.kind === 'remote')
+const isSidebarSelected = computed(() => selectedBranchId.value === props.branch.id)
 const displayName = computed(() => {
   if (isRemote.value || !props.depth) return props.branch.name
   return props.branch.name.split('/').slice(1).join('/')
@@ -138,10 +148,12 @@ const menu = computed<MenuItem[]>(() => {
       class="app-no-drag group/branch focus-ring flex h-7 items-center gap-2 rounded-md pr-1.5 text-[13px] transition-colors hover:bg-[var(--color-hover)]"
       :class="[
         branch.isCurrent ? 'bg-[var(--color-accent-soft)]' : '',
+        isSidebarSelected && !branch.isCurrent ? 'bg-[var(--color-accent-soft)]/50 ring-1 ring-[var(--color-accent)] ring-inset' : '',
         isDragging ? 'opacity-40' : '',
         isDropTarget ? 'ring-2 ring-[var(--color-accent)] ring-inset' : '',
         dragEnabled ? 'cursor-grab active:cursor-grabbing' : 'cursor-pointer',
       ]"
+      :aria-selected="isSidebarSelected"
       :style="{ paddingLeft: indent }"
       :draggable="dragEnabled"
       :title="dragEnabled ? 'Drag onto another branch to merge or rebase' : undefined"
@@ -150,6 +162,7 @@ const menu = computed<MenuItem[]>(() => {
       @dragover="onDragOver"
       @dragleave="onDragLeave"
       @drop="onDrop"
+      @click="onClick"
       @dblclick="isRemote ? repo.checkoutRemoteBranch(branch) : repo.checkoutBranch(branch.name)"
     >
       <Cloud v-if="isRemote" :size="12" class="shrink-0 text-[var(--color-fg-subtle)]" />

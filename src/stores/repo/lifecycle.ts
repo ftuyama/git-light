@@ -4,6 +4,7 @@ import { gitService } from '@/lib/git'
 import { useRepoDiffStore } from '@/stores/repoDiff'
 import { useToastStore } from '@/stores/toast'
 import { useUiStore } from '@/stores/ui'
+import { syncBranchLaneColors } from '@/lib/graph/syncBranchLaneColors'
 import { buildGraphLayout, appendGraphLayout, EMPTY_LAYOUT, EMPTY_PAGE } from './graphLayout'
 import { graphSnapshotOptions, scheduleSnapshotRefresh } from './refreshScheduler'
 import { resetDiffReloadScheduler, scheduleDiffReload } from './diffReloadScheduler'
@@ -64,6 +65,7 @@ export const lifecycleActions = {
     this.commitAuthor = data.commitAuthor
     this.commitPage = page ?? gitService.commitPage ?? { ...EMPTY_PAGE }
     this.layout = buildGraphLayout(this.commits, this.headCommitIndex)
+    this.branches = syncBranchLaneColors(this.branches, this.commits, this.layout)
   },
 
   async openRepository(this: LifecycleStore, path: string, options?: { silent?: boolean }): Promise<boolean> {
@@ -141,8 +143,11 @@ export const lifecycleActions = {
           this.commits = data.commits
           this.commitPage = gitService.commitPage ?? { ...EMPTY_PAGE }
           this.layout = buildGraphLayout(this.commits, this.headCommitIndex)
+          this.branches = syncBranchLaneColors(this.branches, this.commits, this.layout)
         }
-        if (scopes.includes('branches')) this.branches = data.branches
+        if (scopes.includes('branches')) {
+          this.branches = syncBranchLaneColors(data.branches, this.commits, this.layout)
+        }
         if (scopes.includes('tags')) this.tags = data.tags
         if (scopes.includes('stashes')) this.stashes = data.stashes
         if (scopes.includes('worktrees')) this.worktrees = data.worktrees
@@ -165,6 +170,7 @@ export const lifecycleActions = {
         beforeSha: oldestSha,
         limit: ui.clampedCommitGraphLimit,
         graphScope: ui.graphScope,
+        skip: ui.graphScope === 'all' ? this.commits.length : undefined,
       })
       if (result.commits.length === 0) {
         this.commitPage = { ...this.commitPage, hasMore: false }
@@ -172,10 +178,15 @@ export const lifecycleActions = {
       }
       const existing = new Set(this.commits.map((c) => c.sha))
       const newCommits = result.commits.filter((c) => !existing.has(c.sha))
+      if (newCommits.length === 0) {
+        this.commitPage = { ...this.commitPage, hasMore: false }
+        return
+      }
       const prevCommits = this.commits
       this.commits = [...prevCommits, ...newCommits]
       this.commitPage = result.page
       this.layout = appendGraphLayout(prevCommits, newCommits, this.layout, this.headCommitIndex)
+      this.branches = syncBranchLaneColors(this.branches, this.commits, this.layout)
     } finally {
       this.loadingMoreCommits = false
     }

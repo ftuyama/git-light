@@ -359,6 +359,30 @@
 .splitpanes--dragging .splitpanes__splitter {
   background: var(--color-accent-strong);
 }
+
+.splitpanes--vertical.splitpanes--collapse-hint-left
+  > .splitpanes__pane:first-child
+  + .splitpanes__splitter,
+.splitpanes--vertical.splitpanes--collapse-hint-left.splitpanes--dragging
+  > .splitpanes__pane:first-child
+  + .splitpanes__splitter {
+  background: var(--color-success);
+}
+
+.splitpanes--vertical.splitpanes--collapse-hint-left > .splitpanes__pane:first-child {
+  box-shadow: inset -2px 0 0 var(--color-success);
+}
+
+.splitpanes--vertical.splitpanes--collapse-hint-right
+  > .splitpanes__splitter:has(+ .splitpanes__pane:last-child),
+.splitpanes--vertical.splitpanes--collapse-hint-right.splitpanes--dragging
+  > .splitpanes__splitter:has(+ .splitpanes__pane:last-child) {
+  background: var(--color-success);
+}
+
+.splitpanes--vertical.splitpanes--collapse-hint-right > .splitpanes__pane:last-child {
+  box-shadow: inset 2px 0 0 var(--color-success);
+}
 .splitpanes--horizontal > .splitpanes__splitter {
   height: 1px;
   background: var(--color-border);

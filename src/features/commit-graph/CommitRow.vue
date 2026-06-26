@@ -22,11 +22,14 @@ import { formatRefLabel } from '@shared/git/refLabel'
 import { githubCommitUrl } from '@shared/git/githubUrl'
 import type { Commit, Ref } from '@/types/git'
 import type { GraphNode } from '@/lib/graph/computeGraphLayout'
+import { findLaneBranchPreview } from '@/lib/graph/commitLaneBranchPreview'
 import { useRepositoryStore } from '@/stores/repository'
 import { useInteractiveRebaseStore } from '@/stores/interactiveRebase'
+import { useSelectionStore } from '@/stores/selection'
 import { useToastStore } from '@/stores/toast'
 import { useUiStore } from '@/stores/ui'
 import { storeToRefs } from 'pinia'
+import { ROW_LEFT_PADDING } from './composables/useCommitGraphColumns'
 
 const props = defineProps<{
   commit: Commit
@@ -39,10 +42,12 @@ const props = defineProps<{
 }>()
 
 const repo = useRepositoryStore()
+const selection = useSelectionStore()
 const interactiveRebase = useInteractiveRebaseStore()
 const toast = useToastStore()
 const ui = useUiStore()
 const { columnWidths } = storeToRefs(ui)
+const { hoveredSha } = storeToRefs(selection)
 
 function refDisplayLabel(ref: Ref): string {
   return ref.label || formatRefLabel(ref.name, ref.type)
@@ -98,12 +103,24 @@ const primaryRef = computed(() => displayRefs.value[0] ?? null)
 const hiddenRefs = computed(() => displayRefs.value.slice(1))
 const hiddenCount = computed(() => hiddenRefs.value.length)
 
+const hasBranchRef = computed(() =>
+  props.commit.refs.some((r) => r.type === 'localBranch' || r.type === 'remoteBranch'),
+)
+
+const isHovered = computed(() => hoveredSha.value === props.commit.sha)
+
+const commitIndex = computed(() => repo.commits.findIndex((c) => c.sha === props.commit.sha))
+
+const previewBranch = computed(() => {
+  if (!isHovered.value || hasBranchRef.value) return null
+  const index = commitIndex.value
+  if (index < 0) return null
+  return findLaneBranchPreview(index, repo.commits, repo.layout, repo.branches)
+})
+
 const isCurrentBranchRef = computed(() => primaryRef.value?.ref.isHead === true)
 
-const chipColor = computed(() => {
-  if (isCurrentBranchRef.value) return 'var(--color-accent)'
-  return props.graphNode?.color ?? 'var(--color-fg-muted)'
-})
+const chipColor = computed(() => props.graphNode?.color ?? 'var(--color-fg-muted)')
 
 const showConnector = computed(
   () =>
@@ -115,9 +132,7 @@ const showConnector = computed(
 const connectorColor = computed((): Record<string, string> | null => {
   if (!showConnector.value || !props.graphNode) return null
   return {
-    backgroundColor: isCurrentBranchRef.value
-      ? 'var(--color-accent)'
-      : props.graphNode.color,
+    backgroundColor: props.graphNode.color,
   }
 })
 
@@ -125,10 +140,32 @@ const REFS_RIGHT_PADDING = 8
 
 const connectorStyle = computed((): Record<string, string> | null => {
   if (!connectorColor.value) return null
-  const toNode = REFS_RIGHT_PADDING + props.nodeX - props.nodeSize / 2
-  const width = Math.max(0, Math.min(toNode, props.graphWidth + REFS_RIGHT_PADDING))
+  const toNode =
+    REFS_RIGHT_PADDING + props.nodeX - props.nodeSize / 2 - ROW_LEFT_PADDING
+  const width = Math.max(
+    0,
+    Math.min(toNode, props.graphWidth + REFS_RIGHT_PADDING - ROW_LEFT_PADDING),
+  )
   return {
     ...connectorColor.value,
+    width: `${width}px`,
+  }
+})
+
+const showPreviewConnector = computed(
+  () => props.graphNode != null && previewBranch.value != null,
+)
+
+const previewConnectorStyle = computed((): Record<string, string> | null => {
+  if (!showPreviewConnector.value || !props.graphNode) return null
+  const toNode =
+    REFS_RIGHT_PADDING + props.nodeX - props.nodeSize / 2 - ROW_LEFT_PADDING
+  const width = Math.max(
+    0,
+    Math.min(toNode, props.graphWidth + REFS_RIGHT_PADDING - ROW_LEFT_PADDING),
+  )
+  return {
+    backgroundColor: props.graphNode.color,
     width: `${width}px`,
   }
 })
@@ -184,7 +221,30 @@ function openOnGithub(): void {
         class="group/refs relative z-20 flex min-w-0 items-center gap-1 px-2"
         :style="{ width: `${columnWidths.refs}px` }"
       >
-        <template v-if="primaryRef">
+        <RefChip
+          v-if="primaryRef && !hasBranchRef"
+          class="shrink-0 overflow-hidden"
+          :ref-data="primaryRef.ref"
+          :color="chipColor"
+          :has-local="primaryRef.hasLocal"
+          :has-remote="primaryRef.hasRemote"
+        />
+        <div v-if="previewBranch" class="relative min-w-0 flex-1">
+          <RefChip
+            class="min-w-0 overflow-hidden"
+            :ref-data="previewBranch.ref"
+            :color="chipColor"
+            :has-local="previewBranch.hasLocal"
+            :has-remote="previewBranch.hasRemote"
+            muted
+          />
+          <div
+            v-if="previewConnectorStyle"
+            class="pointer-events-none absolute top-1/2 z-10 h-[2px] -translate-y-1/2 opacity-25"
+            :style="{ left: '100%', ...previewConnectorStyle }"
+          />
+        </div>
+        <template v-if="hasBranchRef && primaryRef">
           <div class="relative min-w-0 flex-1">
             <RefChip
               class="min-w-0 overflow-hidden"
