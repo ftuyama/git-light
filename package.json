@@ -20,8 +20,8 @@
     "typecheck": "vue-tsc --noEmit -p tsconfig.json --composite false",
     "test": "vitest run",
     "test:watch": "vitest",
-    "dist": "npm run build && electron-builder",
-    "dist:mac": "npm run build && electron-builder --mac dmg"
+    "dist": "npm run build && electron-builder --publish never",
+    "dist:mac": "npm run build && electron-builder --mac dmg --publish never"
   },
   "build": {
     "appId": "com.gitlight.app",
