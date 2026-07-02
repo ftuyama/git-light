@@ -154,6 +154,7 @@ export interface UserPreferences {
   theme: ThemePreference
   uiMode: UiMode
   ignoreWhitespace: boolean
+  blameWordWrap: boolean
 }
 
 export const PREFERENCES_KEY = 'git-light:preferences'
@@ -227,6 +228,7 @@ export function defaultPreferences(): UserPreferences {
     theme: 'default',
     uiMode: 'advanced',
     ignoreWhitespace: false,
+    blameWordWrap: false,
   }
 }
 
@@ -264,5 +266,6 @@ export function mergePreferences(saved: Partial<UserPreferences> | null): UserPr
     theme: isThemePreference(saved.theme) ? saved.theme : defaults.theme,
     uiMode: isUiMode(saved.uiMode) ? saved.uiMode : defaults.uiMode,
     ignoreWhitespace: saved.ignoreWhitespace ?? defaults.ignoreWhitespace,
+    blameWordWrap: saved.blameWordWrap ?? defaults.blameWordWrap,
   }
 }

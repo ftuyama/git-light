@@ -3,14 +3,24 @@ import { computed } from 'vue'
 import { Loader2, Rows3, UserSearch } from '@lucide/vue'
 import { Splitpanes, Pane } from 'splitpanes'
 import { useRepoDiffStore } from '@/stores/repoDiff'
+import { useUiStore } from '@/stores/ui'
+import Checkbox from '@/components/ui/Checkbox.vue'
 import Tooltip from '@/components/ui/Tooltip.vue'
 import BlameView from './BlameView.vue'
 import BlameHistoryPanel from './BlameHistoryPanel.vue'
 
 const diffStore = useRepoDiffStore()
+const ui = useUiStore()
 
 const blame = computed(() => diffStore.blame)
 const loading = computed(() => diffStore.blameLoading)
+
+const revisionLabel = computed(() => {
+  const sha = diffStore.blameRevisionSha
+  if (!sha) return null
+  const entry = diffStore.fileHistoryEntries.find((item) => item.sha === sha)
+  return entry?.shortSha ?? sha.slice(0, 7)
+})
 </script>
 
 <template>
@@ -23,7 +33,15 @@ const loading = computed(() => diffStore.blameLoading)
     <header
       class="flex h-8 shrink-0 items-center gap-2 border-b border-[var(--color-border)] px-3 text-[11px] font-semibold tracking-wide text-[var(--color-fg-muted)] uppercase"
     >
-      <span class="flex-1 truncate normal-case">{{ diffStore.selectedFilePath }}</span>
+      <span class="flex min-w-0 flex-1 items-center gap-2 truncate normal-case">
+        <span class="truncate">{{ diffStore.selectedFilePath }}</span>
+        <span
+          v-if="revisionLabel"
+          class="shrink-0 rounded bg-[var(--color-accent-soft)] px-1.5 py-0.5 font-mono text-[10px] text-[var(--color-accent)]"
+        >
+          @ {{ revisionLabel }}
+        </span>
+      </span>
       <div class="flex items-center rounded border border-[var(--color-border)] p-0.5 normal-case">
         <Tooltip label="Diff view">
           <button
@@ -49,6 +67,16 @@ const loading = computed(() => diffStore.blameLoading)
           </button>
         </Tooltip>
       </div>
+      <label
+        class="flex items-center gap-1.5 text-[10px] font-normal normal-case text-[var(--color-fg-subtle)]"
+      >
+        <Checkbox
+          :model-value="ui.blameWordWrap"
+          aria-label="Word wrap in blame view"
+          @update:model-value="ui.setBlameWordWrap"
+        />
+        Word wrap
+      </label>
       <Tooltip label="Close file">
         <button
           type="button"

@@ -80,6 +80,7 @@ function snapshot(state: {
   theme: ThemePreference
   uiMode: UiMode
   ignoreWhitespace: boolean
+  blameWordWrap: boolean
 }): UserPreferences {
   return {
     leftSize: state.leftSize,
@@ -100,6 +101,7 @@ function snapshot(state: {
     theme: state.theme,
     uiMode: state.uiMode,
     ignoreWhitespace: state.ignoreWhitespace,
+    blameWordWrap: state.blameWordWrap,
   }
 }
 
@@ -123,6 +125,7 @@ export const useUiStore = defineStore('ui', {
     theme: defaultPreferences().theme,
     uiMode: defaultPreferences().uiMode,
     ignoreWhitespace: false,
+    blameWordWrap: false,
     terminalOpen: false,
     commandPaletteOpen: false,
     settingsOpen: false,
@@ -161,6 +164,7 @@ export const useUiStore = defineStore('ui', {
       this.theme = saved.theme
       this.uiMode = saved.uiMode
       this.ignoreWhitespace = saved.ignoreWhitespace
+      this.blameWordWrap = saved.blameWordWrap
       syncThemePreference(this.theme)
       if (persistenceBound) return
       persistenceBound = true
@@ -194,6 +198,7 @@ export const useUiStore = defineStore('ui', {
           theme: this.theme,
           uiMode: this.uiMode,
           ignoreWhitespace: this.ignoreWhitespace,
+          blameWordWrap: this.blameWordWrap,
         }),
       )
     },
@@ -295,6 +300,9 @@ export const useUiStore = defineStore('ui', {
     },
     setIgnoreWhitespace(value: boolean): void {
       this.ignoreWhitespace = value
+    },
+    setBlameWordWrap(value: boolean): void {
+      this.blameWordWrap = value
     },
     setFileListView(view: FileListView): void {
       this.fileListView = view

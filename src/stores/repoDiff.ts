@@ -257,10 +257,10 @@ export const useRepoDiffStore = defineStore('repoDiff', {
     },
 
     async selectBlameHistoryEntry(sha: string): Promise<void> {
-      if (!this.selectedFilePath) return
+      const path = this.selectedFilePath
+      if (!path) return
       this.blameRevisionSha = sha
-      useSelectionStore().select(sha)
-      await this.loadBlame(this.selectedFilePath)
+      await this.loadBlame(path)
     },
 
     async reloadCurrentFile(): Promise<void> {
