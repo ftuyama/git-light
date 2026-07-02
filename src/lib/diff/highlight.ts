@@ -71,6 +71,29 @@ export function highlightLine(content: string, language: string): string {
   }
 }
 
+/** Highlight an entire blame buffer, then split back into per-line HTML. */
+export function highlightBlameLines(contents: string[], language: string): string[] {
+  if (contents.length === 0) return []
+
+  const lang = resolveHighlightLanguage(language)
+  if (lang === 'plaintext' || !hljs.getLanguage(lang)) {
+    return contents.map(escapeHtml)
+  }
+
+  try {
+    const highlighted = hljs.highlight(contents.join('\n'), {
+      language: lang,
+      ignoreIllegals: true,
+    }).value
+    const parts = highlighted.split('\n')
+    if (parts.length === contents.length) return parts
+  } catch {
+    // fall through to per-line highlighting
+  }
+
+  return contents.map((line) => highlightLine(line, language))
+}
+
 function escapeHtml(text: string): string {
   return text
     .replace(/&/g, '&amp;')

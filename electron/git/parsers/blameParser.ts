@@ -26,6 +26,7 @@ export function parseBlamePorcelain(stdout: string): WireBlameLine[] {
     let author = ''
     let authorEmail = ''
     let authorTime = 0
+    let summary: string | undefined
     let content = ''
 
     while (i < rawLines.length) {
@@ -38,6 +39,7 @@ export function parseBlamePorcelain(stdout: string): WireBlameLine[] {
       if (line.startsWith('author ')) author = line.slice('author '.length)
       else if (line.startsWith('author-mail ')) authorEmail = line.slice('author-mail '.length)
       else if (line.startsWith('author-time ')) authorTime = Number(line.slice('author-time '.length))
+      else if (line.startsWith('summary ')) summary = line.slice('summary '.length)
       i++
     }
 
@@ -48,6 +50,7 @@ export function parseBlamePorcelain(stdout: string): WireBlameLine[] {
       author,
       authorEmail,
       authorTime,
+      summary,
       content,
     })
   }

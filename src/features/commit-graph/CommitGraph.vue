@@ -308,7 +308,7 @@ const { graphContentWidth, visibleEdges, visibleNodes, laneX } = useCommitGraphO
     </div>
 
           <ConflictPanel v-if="diffStore.selectedFileIsConflicted" />
-          <DiffPanel v-else />
+          <DiffPanel v-else-if="diffStore.panelMode === 'diff'" />
         </div>
       </Pane>
 

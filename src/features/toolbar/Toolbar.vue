@@ -10,7 +10,6 @@ import {
   Cherry,
   CloudDownload,
   FolderGit2,
-  FolderOpen,
   GitBranch,
   GitMerge,
   Inbox,
@@ -28,6 +27,7 @@ import {
 import IconButton from '@/components/ui/IconButton.vue'
 import DropdownMenu from '@/components/ui/DropdownMenu.vue'
 import AppSettingsMenu from '@/features/settings/AppSettingsMenu.vue'
+import { useRepoMenu } from '@/features/toolbar/useRepoMenu'
 import type { MenuItem } from '@/components/ui/menu'
 import { useRepositoryStore } from '@/stores/repository'
 import { useInteractiveRebaseStore } from '@/stores/interactiveRebase'
@@ -36,6 +36,7 @@ import { useUiStore } from '@/stores/ui'
 import type { GitActionKind } from '@/types/git'
 
 const repo = useRepositoryStore()
+const { repoMenu } = useRepoMenu()
 const selection = useSelectionStore()
 const interactiveRebase = useInteractiveRebaseStore()
 const ui = useUiStore()
@@ -47,20 +48,6 @@ function run(kind: GitActionKind, target?: string): void {
 const isBusy = (kind: GitActionKind): boolean => repo.busyAction === kind
 
 const branchSwitching = computed(() => repo.branchSwitching)
-
-const repoMenu = computed<MenuItem[]>(() => {
-  const items: MenuItem[] = repo.recentRepos.slice(0, 8).map((r) => ({
-    label: r.name,
-    icon: FolderGit2,
-    onSelect: () => void repo.openRepository(r.path),
-  }))
-  if (items.length > 0) items.push({ separator: true })
-  items.push(
-    { label: 'Open Repository…', icon: FolderOpen, onSelect: () => void repo.pickAndOpenRepository() },
-    { label: 'Close Repository', onSelect: () => void repo.closeRepository() },
-  )
-  return items
-})
 
 const branchMenu = computed<MenuItem[]>(() =>
   repo.localBranches.slice(0, 8).map((branch) => ({
@@ -79,58 +66,60 @@ const remoteMenu = computed<MenuItem[]>(() => [
 
 <template>
   <header
-    class="app-drag flex h-12 shrink-0 items-center gap-1 border-b border-[var(--color-border)] bg-[var(--color-panel)] px-2"
+    class="app-drag flex h-12 shrink-0 items-center gap-1 border-b border-[var(--color-border)] bg-[var(--color-panel)] pl-2 pr-2"
   >
-    <div class="w-[68px] shrink-0" />
+    <div class="app-no-drag flex shrink-0 items-center gap-2">
+      <DropdownMenu :items="repoMenu" align="start">
+        <button
+          class="focus-ring flex h-8 max-w-[200px] items-center gap-1.5 rounded-md px-2 text-[13px] text-[var(--color-fg-muted)] transition-colors hover:bg-[var(--color-hover)] hover:text-[var(--color-fg)]"
+          :title="repo.repository?.path"
+        >
+          <FolderGit2 :size="15" class="shrink-0 text-[var(--color-accent)]" />
+          <span class="truncate font-medium text-[var(--color-fg)]">
+            {{ repo.repository?.name ?? 'Repository' }}
+          </span>
+          <ChevronDown :size="14" class="shrink-0 text-[var(--color-fg-subtle)]" />
+        </button>
+      </DropdownMenu>
 
-    <DropdownMenu :items="repoMenu" align="start">
-      <button
-        class="app-no-drag focus-ring flex h-8 items-center gap-2 rounded-md border border-[var(--color-border-strong)] bg-[var(--color-panel-raised)] px-2.5 text-[13px] font-medium text-[var(--color-fg)] transition-colors hover:bg-[var(--color-hover)]"
-      >
-        <FolderGit2 :size="15" class="text-[var(--color-accent)]" />
-        {{ repo.repository?.name ?? 'Repository' }}
-        <ChevronDown :size="14" class="text-[var(--color-fg-subtle)]" />
-      </button>
-    </DropdownMenu>
+      <div class="h-5 w-px bg-[var(--color-border)]" />
 
-    <DropdownMenu :items="branchMenu" align="start">
-      <button
-        class="app-no-drag focus-ring flex h-8 items-center gap-2 rounded-md px-2.5 text-[13px] text-[var(--color-fg-muted)] transition-colors hover:bg-[var(--color-hover)] hover:text-[var(--color-fg)]"
-        :disabled="branchSwitching"
-      >
-        <Loader2 v-if="branchSwitching" :size="15" class="animate-spin" />
-        <GitBranch v-else :size="15" />
-        <span class="font-medium text-[var(--color-fg)]">
-          {{ repo.currentBranch?.name ?? '—' }}
-        </span>
-        <ChevronDown :size="14" class="text-[var(--color-fg-subtle)]" />
-      </button>
-    </DropdownMenu>
-
-    <div class="mx-1 h-6 w-px bg-[var(--color-border)]" />
-
-    <div class="flex items-center gap-0.5">
-      <IconButton :icon="CloudDownload" label="Fetch" :busy="isBusy('fetch')" @click="run('fetch')" />
-      <IconButton :icon="ArrowDown" label="Pull" shortcut="⌘⇧L" :busy="isBusy('pull')" @click="run('pull')" />
-      <IconButton :icon="ArrowUp" label="Push" shortcut="⌘⇧P" :busy="isBusy('push')" @click="run('push')" />
-      <IconButton :icon="ArrowDownUp" label="Sync" :busy="isBusy('sync')" @click="run('sync')" />
-      <DropdownMenu :items="remoteMenu" align="start">
-        <IconButton :icon="MoreHorizontal" label="More remote actions" />
+      <DropdownMenu :items="branchMenu" align="start">
+        <button
+          class="focus-ring flex h-8 items-center gap-2 rounded-md px-2 text-[13px] text-[var(--color-fg-muted)] transition-colors hover:bg-[var(--color-hover)] hover:text-[var(--color-fg)]"
+          :disabled="branchSwitching"
+        >
+          <Loader2 v-if="branchSwitching" :size="15" class="animate-spin" />
+          <GitBranch v-else :size="15" />
+          <span class="font-medium text-[var(--color-fg)]">
+            {{ repo.currentBranch?.name ?? '—' }}
+          </span>
+          <ChevronDown :size="14" class="text-[var(--color-fg-subtle)]" />
+        </button>
       </DropdownMenu>
     </div>
 
-    <div class="mx-1 h-6 w-px bg-[var(--color-border)]" />
+    <div class="app-drag min-w-2 flex-1" />
 
-    <template v-if="ui.isAdvanced">
-      <div class="flex items-center gap-0.5">
-        <IconButton :icon="Inbox" label="Stash" @click="repo.stashChanges()" />
-        <IconButton :icon="ArchiveRestore" label="Pop Stash" @click="run('pop-stash')" />
-      </div>
+    <div class="app-no-drag flex shrink-0 items-center gap-0.5">
+      <IconButton :icon="CloudDownload" label="Fetch" :busy="isBusy('fetch')" @click="run('fetch')" />
+      <IconButton :icon="ArrowDown" label="Pull" shortcut="⌘⇧L" :busy="isBusy('pull')" @click="run('pull')" />
+      <IconButton :icon="ArrowUp" label="Push" shortcut="⌘⇧P" :busy="isBusy('push')" @click="run('push')" />
+      <template v-if="ui.isAdvanced">
+        <IconButton :icon="ArrowDownUp" label="Sync" :busy="isBusy('sync')" @click="run('sync')" />
+        <DropdownMenu :items="remoteMenu" align="start">
+          <IconButton :icon="MoreHorizontal" label="More remote actions" />
+        </DropdownMenu>
+      </template>
 
       <div class="mx-1 h-6 w-px bg-[var(--color-border)]" />
-    </template>
 
-    <div class="flex items-center gap-0.5">
+      <template v-if="ui.isAdvanced">
+        <IconButton :icon="Inbox" label="Stash" @click="repo.stashChanges()" />
+        <IconButton :icon="ArchiveRestore" label="Pop Stash" @click="run('pop-stash')" />
+        <div class="mx-1 h-6 w-px bg-[var(--color-border)]" />
+      </template>
+
       <IconButton
         v-if="ui.isAdvanced"
         :icon="Cherry"
@@ -145,11 +134,9 @@ const remoteMenu = computed<MenuItem[]>(() => [
       <IconButton :icon="RotateCcw" label="Reset" @click="repo.resetTo('reset-mixed')" />
     </div>
 
-    <div class="mx-1 h-6 w-px bg-[var(--color-border)]" />
+    <div class="app-drag min-w-2 flex-1" />
 
-    <div class="app-drag flex-1" />
-
-    <div class="flex items-center gap-0.5">
+    <div class="app-no-drag flex shrink-0 items-center gap-0.5">
       <IconButton
         :icon="Undo2"
         :label="repo.undoTooltip"

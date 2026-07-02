@@ -22,6 +22,7 @@ export const useRepoDiffStore = defineStore('repoDiff', {
     diffLoading: false,
     blame: null as BlameResult | null,
     blameLoading: false,
+    blameRevisionSha: null as string | null,
     fileHistoryOpen: false,
     fileHistoryPath: null as string | null,
     fileHistoryEntries: [] as FileHistoryEntry[],
@@ -42,6 +43,9 @@ export const useRepoDiffStore = defineStore('repoDiff', {
   actions: {
     setPanelMode(mode: FilePanelMode): void {
       this.panelMode = mode
+      if (mode === 'diff') {
+        this.blameRevisionSha = null
+      }
       if (!this.selectedFilePath) return
       if (mode === 'blame') {
         void this.loadBlame(this.selectedFilePath)
@@ -52,6 +56,7 @@ export const useRepoDiffStore = defineStore('repoDiff', {
 
     selectFile(path: string | null, options?: { staged?: boolean }): void {
       this.selectedFilePath = path
+      this.blameRevisionSha = null
       const repo = useRepositoryStore()
       if (path == null) {
         this.selectedFileStaged = null
@@ -123,6 +128,10 @@ export const useRepoDiffStore = defineStore('repoDiff', {
     },
 
     blameRequestForPath(path: string) {
+      if (this.blameRevisionSha) {
+        return { path, source: 'commit' as const, sha: this.blameRevisionSha }
+      }
+
       const selection = useSelectionStore()
       const compare = selection.compareRange
       const viewingCompareFile = Boolean(compare) && this.compareFiles.some((f) => f.path === path)
@@ -200,6 +209,7 @@ export const useRepoDiffStore = defineStore('repoDiff', {
       this.blameLoading = true
       this.conflict = null
       this.diff = null
+      void this.loadFileHistory(path)
       try {
         this.blame = await gitService.getBlame(this.blameRequestForPath(path))
       } catch {
@@ -209,8 +219,7 @@ export const useRepoDiffStore = defineStore('repoDiff', {
       }
     },
 
-    async openFileHistory(path: string): Promise<void> {
-      this.fileHistoryOpen = true
+    async loadFileHistory(path: string): Promise<void> {
       this.fileHistoryPath = path
       this.fileHistoryLoading = true
       this.fileHistoryEntries = []
@@ -219,18 +228,22 @@ export const useRepoDiffStore = defineStore('repoDiff', {
         this.fileHistoryEntries = result.entries
       } catch (error) {
         this.fileHistoryEntries = []
-        const detail = error instanceof Error ? error.message : String(error)
-        useToastStore().push(`Could not load file history: ${detail}`, 'error')
+        if (this.fileHistoryOpen) {
+          const detail = error instanceof Error ? error.message : String(error)
+          useToastStore().push(`Could not load file history: ${detail}`, 'error')
+        }
       } finally {
         this.fileHistoryLoading = false
       }
     },
 
+    async openFileHistory(path: string): Promise<void> {
+      this.fileHistoryOpen = true
+      await this.loadFileHistory(path)
+    },
+
     closeFileHistory(): void {
       this.fileHistoryOpen = false
-      this.fileHistoryPath = null
-      this.fileHistoryEntries = []
-      this.fileHistoryLoading = false
     },
 
     async selectFileHistoryEntry(sha: string): Promise<void> {
@@ -241,6 +254,13 @@ export const useRepoDiffStore = defineStore('repoDiff', {
       await this.loadCommitFiles(sha)
       this.selectFile(path, { staged: false })
       this.closeFileHistory()
+    },
+
+    async selectBlameHistoryEntry(sha: string): Promise<void> {
+      if (!this.selectedFilePath) return
+      this.blameRevisionSha = sha
+      useSelectionStore().select(sha)
+      await this.loadBlame(this.selectedFilePath)
     },
 
     async reloadCurrentFile(): Promise<void> {
@@ -292,6 +312,7 @@ export const useRepoDiffStore = defineStore('repoDiff', {
       this.diffLoading = false
       this.blame = null
       this.blameLoading = false
+      this.blameRevisionSha = null
       this.fileHistoryOpen = false
       this.fileHistoryPath = null
       this.fileHistoryEntries = []

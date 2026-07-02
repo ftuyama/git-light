@@ -147,6 +147,7 @@ export class MockGitService implements GitService {
     const commit = data.commits[0]
     return {
       path: request.path,
+      language: 'plaintext',
       lines: [
         {
           lineNumber: 1,

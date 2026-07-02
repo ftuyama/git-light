@@ -39,6 +39,7 @@ describe('parseBlamePorcelain', () => {
       author: 'Alice',
       authorEmail: '<alice@example.com>',
       authorTime: 1700000000,
+      summary: 'Initial commit',
       content: 'Hello',
     })
     expect(lines[1]?.content).toBe('World')

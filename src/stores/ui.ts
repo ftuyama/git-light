@@ -20,6 +20,7 @@ import {
   type CommitColumnWidthKey,
   type DiffViewMode,
   type FileListView,
+  type RepoTabPref,
   type SectionKey,
   type UiMode,
   type UserPreferences,
@@ -74,6 +75,7 @@ function snapshot(state: {
   commitGraphLimit: number
   fileListView: FileListView
   lastRepositoryPath: string | null
+  openRepoTabs: RepoTabPref[]
   diffViewMode: DiffViewMode
   theme: ThemePreference
   uiMode: UiMode
@@ -93,6 +95,7 @@ function snapshot(state: {
     commitGraphLimit: state.commitGraphLimit,
     fileListView: state.fileListView,
     lastRepositoryPath: state.lastRepositoryPath,
+    openRepoTabs: state.openRepoTabs,
     diffViewMode: state.diffViewMode,
     theme: state.theme,
     uiMode: state.uiMode,
@@ -115,6 +118,7 @@ export const useUiStore = defineStore('ui', {
     commitGraphLimit: defaultPreferences().commitGraphLimit,
     fileListView: 'path' as FileListView,
     lastRepositoryPath: null as string | null,
+    openRepoTabs: [] as RepoTabPref[],
     diffViewMode: 'unified' as DiffViewMode,
     theme: defaultPreferences().theme,
     uiMode: defaultPreferences().uiMode,
@@ -152,6 +156,7 @@ export const useUiStore = defineStore('ui', {
       this.commitGraphLimit = saved.commitGraphLimit
       this.fileListView = saved.fileListView
       this.lastRepositoryPath = saved.lastRepositoryPath
+      this.openRepoTabs = saved.openRepoTabs.map((tab) => ({ ...tab }))
       this.diffViewMode = saved.diffViewMode
       this.theme = saved.theme
       this.uiMode = saved.uiMode
@@ -184,6 +189,7 @@ export const useUiStore = defineStore('ui', {
           commitGraphLimit: this.clampedCommitGraphLimit,
           fileListView: this.fileListView,
           lastRepositoryPath: this.lastRepositoryPath,
+          openRepoTabs: this.openRepoTabs,
           diffViewMode: this.diffViewMode,
           theme: this.theme,
           uiMode: this.uiMode,
@@ -279,6 +285,10 @@ export const useUiStore = defineStore('ui', {
     },
     setLastRepositoryPath(path: string | null): void {
       this.lastRepositoryPath = path
+    },
+    setOpenRepoTabs(tabs: RepoTabPref[], activePath: string | null): void {
+      this.openRepoTabs = tabs.map((tab) => ({ ...tab }))
+      this.lastRepositoryPath = activePath
     },
     setDiffViewMode(mode: DiffViewMode): void {
       this.diffViewMode = mode

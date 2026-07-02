@@ -550,7 +550,7 @@ export class GitProvider {
     }
 
     const { stdout } = await gitCli.run(args, { cwd, allowFailure: true })
-    return { path, lines: parseBlamePorcelain(stdout) }
+    return { path, language: guessLanguage(path), lines: parseBlamePorcelain(stdout) }
   }
 
   async getFileHistory(request: FileHistoryRequest): Promise<FileHistoryResult> {

@@ -4,6 +4,7 @@ import { Splitpanes, Pane, type SplitpanesResizePayload, type SplitpanesResizedP
 import { TooltipProvider } from 'reka-ui'
 import { storeToRefs } from 'pinia'
 import Toolbar from '@/features/toolbar/Toolbar.vue'
+import RepoTabs from '@/features/toolbar/RepoTabs.vue'
 import BranchSidebar from '@/features/branch-sidebar/BranchSidebar.vue'
 import CommitGraph from '@/features/commit-graph/CommitGraph.vue'
 import WorkingTreePanel from '@/features/working-tree/WorkingTreePanel.vue'
@@ -17,6 +18,7 @@ import SearchOverlay from '@/features/search/SearchOverlay.vue'
 import FileHistoryDialog from '@/features/working-tree/FileHistoryDialog.vue'
 import InteractiveRebaseDialog from '@/features/rebase/InteractiveRebaseDialog.vue'
 import AppSettingsDialog from '@/features/settings/AppSettingsDialog.vue'
+import BlameOverlay from '@/features/diff/BlameOverlay.vue'
 import {
   LEFT_SIDEBAR_COLLAPSE_SIZE,
   LEFT_SIDEBAR_SIZE_MAX,
@@ -28,11 +30,13 @@ import {
 import { useUiStore } from '@/stores/ui'
 import { useSelectionStore } from '@/stores/selection'
 import { useRepositoryStore } from '@/stores/repository'
+import { useRepoDiffStore } from '@/stores/repoDiff'
 import { useKeyboardShortcuts } from '@/composables/useKeyboardShortcuts'
 
 const ui = useUiStore()
 const repo = useRepositoryStore()
 const selection = useSelectionStore()
+const diffStore = useRepoDiffStore()
 const { leftSize, rightSize, leftCollapsed, rightCollapsed, leftCollapseHint, rightCollapseHint } =
   storeToRefs(ui)
 const { screen } = storeToRefs(repo)
@@ -52,6 +56,13 @@ const centerSize = computed(
     100 -
     (leftCollapsed.value ? 0 : leftSize.value) -
     (rightCollapsed.value ? 0 : rightSize.value),
+)
+
+const showBlameOverlay = computed(
+  () =>
+    diffStore.panelMode === 'blame' &&
+    Boolean(diffStore.selectedFilePath) &&
+    !diffStore.selectedFileIsConflicted,
 )
 
 function onResize(payload: SplitpanesResizePayload): void {
@@ -99,10 +110,11 @@ useKeyboardShortcuts([
 
   <TooltipProvider v-else :delay-duration="320" :skip-delay-duration="120">
     <div class="flex h-screen w-screen flex-col overflow-hidden bg-[var(--color-app)]">
+      <RepoTabs />
       <Toolbar />
       <OperationBanner />
 
-      <div class="flex min-h-0 flex-1">
+      <div class="relative flex min-h-0 flex-1">
         <SidebarRail v-if="leftCollapsed" side="left" @expand="ui.toggleLeft()" />
 
         <Splitpanes
@@ -136,6 +148,8 @@ useKeyboardShortcuts([
         </Splitpanes>
 
         <SidebarRail v-if="rightCollapsed" side="right" @expand="ui.toggleRight()" />
+
+        <BlameOverlay v-if="showBlameOverlay" />
       </div>
 
       <StatusBar />

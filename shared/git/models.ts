@@ -272,11 +272,13 @@ export interface WireBlameLine {
   author: string
   authorEmail: string
   authorTime: number
+  summary?: string
   content: string
 }
 
 export interface BlameResult {
   path: string
+  language: string
   lines: WireBlameLine[]
 }
 

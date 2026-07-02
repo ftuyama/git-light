@@ -130,6 +130,11 @@ export function shouldShowRightSidebarCollapseHint(
   return liveSize < storedSize && isInRightSidebarCollapseHintZone(liveSize)
 }
 
+export interface RepoTabPref {
+  path: string
+  name: string
+}
+
 export interface UserPreferences {
   leftSize: number
   rightSize: number
@@ -144,6 +149,7 @@ export interface UserPreferences {
   commitGraphLimit: number
   fileListView: FileListView
   lastRepositoryPath: string | null
+  openRepoTabs: RepoTabPref[]
   diffViewMode: DiffViewMode
   theme: ThemePreference
   uiMode: UiMode
@@ -216,6 +222,7 @@ export function defaultPreferences(): UserPreferences {
     commitGraphLimit: DEFAULT_COMMIT_GRAPH_LIMIT,
     fileListView: 'path',
     lastRepositoryPath: null,
+    openRepoTabs: [],
     diffViewMode: 'unified',
     theme: 'default',
     uiMode: 'advanced',
@@ -244,6 +251,15 @@ export function mergePreferences(saved: Partial<UserPreferences> | null): UserPr
     commitGraphLimit: clampCommitGraphLimit(saved.commitGraphLimit ?? defaults.commitGraphLimit),
     fileListView: saved.fileListView ?? defaults.fileListView,
     lastRepositoryPath: saved.lastRepositoryPath ?? defaults.lastRepositoryPath,
+    openRepoTabs: Array.isArray(saved.openRepoTabs)
+      ? saved.openRepoTabs.filter(
+          (tab): tab is RepoTabPref =>
+            typeof tab === 'object' &&
+            tab != null &&
+            typeof tab.path === 'string' &&
+            typeof tab.name === 'string',
+        )
+      : defaults.openRepoTabs,
     diffViewMode: saved.diffViewMode === 'split' ? 'split' : 'unified',
     theme: isThemePreference(saved.theme) ? saved.theme : defaults.theme,
     uiMode: isUiMode(saved.uiMode) ? saved.uiMode : defaults.uiMode,

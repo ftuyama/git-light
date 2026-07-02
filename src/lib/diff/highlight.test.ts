@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { highlightLine } from './highlight'
+import { highlightBlameLines, highlightLine } from './highlight'
 
 describe('highlightLine', () => {
   it('highlights Ruby code', () => {
@@ -34,5 +34,25 @@ describe('highlightLine', () => {
 
   it('returns empty string for empty content', () => {
     expect(highlightLine('', 'ruby')).toBe('')
+  })
+})
+
+describe('highlightBlameLines', () => {
+  it('highlights each line with file-level context', () => {
+    const lines = ['const foo = 1', 'const bar = 2']
+    const result = highlightBlameLines(lines, 'javascript')
+    expect(result).toHaveLength(2)
+    expect(result[0]).toContain('hljs-keyword')
+    expect(result[1]).toContain('hljs-keyword')
+  })
+
+  it('falls back to per-line highlighting when split counts differ', () => {
+    const result = highlightBlameLines(['let x = 1'], 'javascript')
+    expect(result[0]).toContain('hljs-keyword')
+  })
+
+  it('escapes plaintext lines', () => {
+    const result = highlightBlameLines(['a < b'], 'plaintext')
+    expect(result[0]).toBe('a &lt; b')
   })
 })

@@ -4,21 +4,18 @@ import { Columns2, Loader2, Rows3, UserSearch } from '@lucide/vue'
 import { useRepoDiffStore } from '@/stores/repoDiff'
 import { useUiStore } from '@/stores/ui'
 import Checkbox from '@/components/ui/Checkbox.vue'
+import Tooltip from '@/components/ui/Tooltip.vue'
 import SplitDiffView from './SplitDiffView.vue'
 import UnifiedDiffView from './UnifiedDiffView.vue'
-import BlameView from './BlameView.vue'
 
 const diffStore = useRepoDiffStore()
 const ui = useUiStore()
 
 const diff = computed(() => diffStore.diff)
-const blame = computed(() => diffStore.blame)
-const showDiffContent = computed(() => diffStore.panelMode === 'diff')
-const showBlameContent = computed(() => diffStore.panelMode === 'blame')
 
 function toggleIgnoreWhitespace(value: boolean): void {
   ui.setIgnoreWhitespace(value)
-  if (diffStore.selectedFilePath && diffStore.panelMode === 'diff') {
+  if (diffStore.selectedFilePath) {
     void diffStore.loadDiff(diffStore.selectedFilePath)
   }
 }
@@ -33,62 +30,68 @@ function toggleIgnoreWhitespace(value: boolean): void {
       class="flex h-8 shrink-0 items-center gap-2 border-b border-[var(--color-border)] px-3 text-[11px] font-semibold tracking-wide text-[var(--color-fg-muted)] uppercase"
     >
       <span class="flex-1 truncate normal-case">{{ diffStore.selectedFilePath }}</span>
-      <span v-if="diff && showDiffContent" class="font-mono text-[10px] normal-case">
+      <span v-if="diff" class="font-mono text-[10px] normal-case">
         +{{ diff.additions }} −{{ diff.deletions }}
       </span>
       <div class="flex items-center rounded border border-[var(--color-border)] p-0.5 normal-case">
-        <button
-          type="button"
-          class="focus-ring rounded px-1.5 py-0.5 text-[10px] transition-colors"
-          :class="showDiffContent
-            ? 'bg-[var(--color-active)] text-[var(--color-fg)]'
-            : 'text-[var(--color-fg-subtle)] hover:bg-[var(--color-hover)]'"
-          title="Diff view"
-          @click="diffStore.setPanelMode('diff')"
-        >
-          <Rows3 :size="12" class="inline" />
-        </button>
-        <button
-          type="button"
-          class="focus-ring rounded px-1.5 py-0.5 text-[10px] transition-colors"
-          :class="showBlameContent
-            ? 'bg-[var(--color-active)] text-[var(--color-fg)]'
-            : 'text-[var(--color-fg-subtle)] hover:bg-[var(--color-hover)]'"
-          title="Blame view"
-          @click="diffStore.setPanelMode('blame')"
-        >
-          <UserSearch :size="12" class="inline" />
-        </button>
+        <Tooltip label="Diff view">
+          <button
+            type="button"
+            class="focus-ring flex items-center gap-1 rounded bg-[var(--color-active)] px-1.5 py-0.5 text-[10px] text-[var(--color-fg)] transition-colors"
+            aria-label="Diff view"
+            :aria-pressed="true"
+          >
+            <Rows3 :size="12" class="shrink-0" />
+            Diff
+          </button>
+        </Tooltip>
+        <Tooltip label="Blame view">
+          <button
+            type="button"
+            class="focus-ring flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px] transition-colors text-[var(--color-fg-subtle)] hover:bg-[var(--color-hover)]"
+            aria-label="Blame view"
+            :aria-pressed="false"
+            @click="diffStore.setPanelMode('blame')"
+          >
+            <UserSearch :size="12" class="shrink-0" />
+            Blame
+          </button>
+        </Tooltip>
       </div>
       <div
-        v-if="diff && showDiffContent && !diff.binary && !diff.tooLarge"
+        v-if="diff && !diff.binary && !diff.tooLarge"
         class="flex items-center rounded border border-[var(--color-border)] p-0.5 normal-case"
       >
-        <button
-          type="button"
-          class="focus-ring rounded px-1.5 py-0.5 text-[10px] transition-colors"
-          :class="ui.diffViewMode === 'unified'
-            ? 'bg-[var(--color-active)] text-[var(--color-fg)]'
-            : 'text-[var(--color-fg-subtle)] hover:bg-[var(--color-hover)]'"
-          title="Unified diff"
-          @click="ui.setDiffViewMode('unified')"
-        >
-          <Rows3 :size="12" class="inline" />
-        </button>
-        <button
-          type="button"
-          class="focus-ring rounded px-1.5 py-0.5 text-[10px] transition-colors"
-          :class="ui.diffViewMode === 'split'
-            ? 'bg-[var(--color-active)] text-[var(--color-fg)]'
-            : 'text-[var(--color-fg-subtle)] hover:bg-[var(--color-hover)]'"
-          title="Split diff"
-          @click="ui.setDiffViewMode('split')"
-        >
-          <Columns2 :size="12" class="inline" />
-        </button>
+        <Tooltip label="Unified diff">
+          <button
+            type="button"
+            class="focus-ring rounded px-1.5 py-0.5 text-[10px] transition-colors"
+            :class="ui.diffViewMode === 'unified'
+              ? 'bg-[var(--color-active)] text-[var(--color-fg)]'
+              : 'text-[var(--color-fg-subtle)] hover:bg-[var(--color-hover)]'"
+            aria-label="Unified diff"
+            :aria-pressed="ui.diffViewMode === 'unified'"
+            @click="ui.setDiffViewMode('unified')"
+          >
+            <Rows3 :size="12" class="inline" />
+          </button>
+        </Tooltip>
+        <Tooltip label="Split diff">
+          <button
+            type="button"
+            class="focus-ring rounded px-1.5 py-0.5 text-[10px] transition-colors"
+            :class="ui.diffViewMode === 'split'
+              ? 'bg-[var(--color-active)] text-[var(--color-fg)]'
+              : 'text-[var(--color-fg-subtle)] hover:bg-[var(--color-hover)]'"
+            aria-label="Split diff"
+            :aria-pressed="ui.diffViewMode === 'split'"
+            @click="ui.setDiffViewMode('split')"
+          >
+            <Columns2 :size="12" class="inline" />
+          </button>
+        </Tooltip>
       </div>
       <label
-        v-if="showDiffContent"
         class="flex items-center gap-1.5 text-[10px] font-normal normal-case text-[var(--color-fg-subtle)]"
       >
         <Checkbox
@@ -98,24 +101,27 @@ function toggleIgnoreWhitespace(value: boolean): void {
         />
         Ignore WS
       </label>
-      <button
-        type="button"
-        class="focus-ring rounded px-1.5 py-0.5 text-[10px] normal-case text-[var(--color-fg-subtle)] hover:bg-[var(--color-hover)]"
-        @click="diffStore.selectFile(null)"
-      >
-        Close
-      </button>
+      <Tooltip label="Close file">
+        <button
+          type="button"
+          class="focus-ring rounded px-1.5 py-0.5 text-[10px] normal-case text-[var(--color-fg-subtle)] hover:bg-[var(--color-hover)]"
+          aria-label="Close file"
+          @click="diffStore.selectFile(null)"
+        >
+          Close
+        </button>
+      </Tooltip>
     </header>
 
     <div
-      v-if="(showDiffContent && diffStore.diffLoading) || (showBlameContent && diffStore.blameLoading)"
+      v-if="diffStore.diffLoading"
       class="flex flex-1 items-center justify-center text-xs text-[var(--color-fg-subtle)]"
     >
       <Loader2 :size="16" class="mr-2 animate-spin" />
-      {{ showBlameContent ? 'Loading blame…' : 'Loading diff…' }}
+      Loading diff…
     </div>
 
-    <template v-else-if="showDiffContent">
+    <template v-else>
       <div
         v-if="diff?.tooLarge"
         class="flex flex-1 items-center justify-center px-4 text-center text-xs text-[var(--color-fg-subtle)]"
@@ -132,16 +138,6 @@ function toggleIgnoreWhitespace(value: boolean): void {
 
       <UnifiedDiffView v-else-if="diff && ui.diffViewMode === 'unified'" :diff="diff" />
       <SplitDiffView v-else-if="diff" :diff="diff" />
-    </template>
-
-    <template v-else-if="showBlameContent">
-      <div
-        v-if="blame && blame.lines.length === 0"
-        class="flex flex-1 items-center justify-center px-4 text-center text-xs text-[var(--color-fg-subtle)]"
-      >
-        No blame information available for this file.
-      </div>
-      <BlameView v-else-if="blame" :blame="blame" />
     </template>
   </section>
 </template>

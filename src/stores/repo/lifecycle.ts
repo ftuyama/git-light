@@ -1,14 +1,15 @@
 import type { CommitPageInfo, OperationProgress, SnapshotOptions, SnapshotScope } from '@shared/git/models'
 import type { RepositoryData } from '@/types/git'
 import { gitService } from '@/lib/git'
-import { useRepoDiffStore } from '@/stores/repoDiff'
-import { useSelectionStore } from '@/stores/selection'
 import { useToastStore } from '@/stores/toast'
 import { useUiStore } from '@/stores/ui'
 import { syncBranchLaneColors } from '@/lib/graph/syncBranchLaneColors'
 import { buildGraphLayout, appendGraphLayout, EMPTY_LAYOUT, EMPTY_PAGE } from './graphLayout'
 import { graphSnapshotOptions, scheduleSnapshotRefresh } from './refreshScheduler'
-import { resetDiffReloadScheduler, scheduleDiffReload } from './diffReloadScheduler'
+import { scheduleDiffReload } from './diffReloadScheduler'
+import { resetPerRepoUiState } from './resetPerRepoUi'
+import { useRepoTabsStore } from '@/stores/repoTabs'
+import { applyCachedTabState, useRepoTabCacheStore } from '@/stores/repoTabCache'
 import type { RepositoryState } from './types'
 
 type LifecycleStore = RepositoryState & {
@@ -19,6 +20,9 @@ type LifecycleStore = RepositoryState & {
     scopes?: SnapshotScope[],
     extra?: Pick<SnapshotOptions, 'invalidateCommits'>,
   ): Promise<void>
+  resetCommitBox(): void
+  switchRepository(path: string): Promise<boolean>
+  openRepository(path: string, options?: { silent?: boolean }): Promise<boolean>
 }
 
 let changeUnsub: (() => void) | null = null
@@ -69,8 +73,57 @@ export const lifecycleActions = {
     this.branches = syncBranchLaneColors(this.branches, this.commits, this.layout)
   },
 
+  resetCommitBox(this: LifecycleStore): void {
+    this.commitMessage = ''
+    this.commitDescription = ''
+    this.signOff = false
+    this.amend = false
+  },
+
+  async switchRepository(this: LifecycleStore, path: string): Promise<boolean> {
+    if (this.repository?.path === path) {
+      useRepoTabsStore().setActive(path)
+      return true
+    }
+
+    const cache = useRepoTabCacheStore()
+    cache.save(this)
+
+    resetPerRepoUiState()
+    this.resetCommitBox()
+    this.searchOpen = false
+
+    const cached = cache.get(path)
+    if (cached) {
+      applyCachedTabState(this, cached)
+      this.screen = 'main'
+      useRepoTabsStore().setActive(path)
+      useUiStore().setLastRepositoryPath(path)
+
+      void gitService.openRepository(path, graphSnapshotOptions()).then((result) => {
+        if (result.ok && result.data) {
+          this.applySnapshot(result.data)
+          cache.save(this)
+          return
+        }
+        cache.remove(path)
+        void this.openRepository(path, { silent: true })
+      })
+      return true
+    }
+
+    return this.openRepository(path, { silent: true })
+  },
+
   async openRepository(this: LifecycleStore, path: string, options?: { silent?: boolean }): Promise<boolean> {
     const toast = useToastStore()
+    const previousPath = this.repository?.path
+    if (previousPath && previousPath !== path) {
+      useRepoTabCacheStore().save(this)
+      resetPerRepoUiState()
+      this.resetCommitBox()
+      this.searchOpen = false
+    }
     this.loading = true
     const result = await gitService.openRepository(path, graphSnapshotOptions())
     this.loading = false
@@ -80,7 +133,11 @@ export const lifecycleActions = {
     }
     this.applySnapshot(result.data)
     this.screen = 'main'
+    const name = result.data.repository?.name ?? path
+    useRepoTabsStore().addTab(path, name)
+    useRepoTabCacheStore().save(this)
     this.recentRepos = await gitService.recentRepos()
+    useRepoTabsStore().syncFromRecent(this.recentRepos)
     useUiStore().setLastRepositoryPath(path)
     if (!options?.silent) toast.push(result.message, 'success')
     return true
@@ -88,6 +145,7 @@ export const lifecycleActions = {
 
   async pickAndOpenRepository(this: LifecycleStore): Promise<boolean> {
     const toast = useToastStore()
+    const previousPath = this.repository?.path
     this.loading = true
     const result = await gitService.pickAndOpenRepository(graphSnapshotOptions())
     this.loading = false
@@ -96,12 +154,21 @@ export const lifecycleActions = {
       if (result.message) toast.push(result.message, 'error')
       return false
     }
+    const repoPath = result.data.repository?.path
+    if (previousPath && repoPath && previousPath !== repoPath) {
+      resetPerRepoUiState()
+      this.resetCommitBox()
+      this.searchOpen = false
+    }
     this.applySnapshot(result.data)
     this.screen = 'main'
-    this.recentRepos = await gitService.recentRepos()
-    if (result.data.repository?.path) {
-      useUiStore().setLastRepositoryPath(result.data.repository.path)
+    if (repoPath) {
+      useRepoTabsStore().addTab(repoPath, result.data.repository?.name ?? repoPath)
+      useRepoTabCacheStore().save(this)
+      useUiStore().setLastRepositoryPath(repoPath)
     }
+    this.recentRepos = await gitService.recentRepos()
+    useRepoTabsStore().syncFromRecent(this.recentRepos)
     toast.push(result.message, 'success')
     return true
   },
@@ -117,9 +184,10 @@ export const lifecycleActions = {
     this.worktrees = []
     this.workingTree = []
     this.layout = EMPTY_LAYOUT
-    useRepoDiffStore().resetOnRepoClose()
-    useSelectionStore().cancelBranchCreation()
-    resetDiffReloadScheduler()
+    resetPerRepoUiState()
+    this.resetCommitBox()
+    this.searchOpen = false
+    useRepoTabsStore().clear()
     this.screen = 'startup'
     this.recentRepos = await gitService.recentRepos()
   },
