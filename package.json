@@ -2,7 +2,7 @@
   "name": "git-light",
   "version": "0.1.7",
   "description": "Desktop Git client built with Electron, Vue 3, and TypeScript.",
-  "author": "Git Light",
+  "author": "Git Light <ftuyama@users.noreply.github.com>",
   "license": "MIT",
   "productName": "Git Light",
   "repository": {
