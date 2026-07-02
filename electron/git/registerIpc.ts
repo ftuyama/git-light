@@ -82,6 +82,14 @@ export function registerGitIpc(getWindow: () => BrowserWindow | null, store: Sto
     return gitProvider.getDiff(request)
   })
 
+  ipcMain.handle(IpcChannels.blame, async (_e, request) => {
+    return gitProvider.getBlame(request)
+  })
+
+  ipcMain.handle(IpcChannels.fileHistory, async (_e, request) => {
+    return gitProvider.getFileHistory(request)
+  })
+
   ipcMain.handle(IpcChannels.conflict, async (_e, request) => {
     return gitProvider.getConflict(request)
   })

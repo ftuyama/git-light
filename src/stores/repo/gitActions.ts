@@ -5,15 +5,17 @@ import { isDestructiveAction } from '@shared/git/destructive'
 import { gitService } from '@/lib/git'
 import { usePromptStore } from '@/stores/prompt'
 import { useRepoDiffStore } from '@/stores/repoDiff'
-import { useSelectionStore } from '@/stores/selection'
+import { useSelectionStore, PENDING_BRANCH_ROW } from '@/stores/selection'
 import { useToastStore } from '@/stores/toast'
 import { useUiStore } from '@/stores/ui'
+import { mergeMetaForMode, type MergeMode } from '@/lib/mergeMode'
 import {
   describeAction,
   isBranchSwitchAction,
   labelForOperation,
   scopesForAction,
 } from './actionHelpers'
+import { headCommitIndex as computeHeadCommitIndex } from '@/lib/graph/pendingGraphRow'
 import { suppressWatcherRefresh } from './refreshScheduler'
 import type { RepositoryState } from './types'
 
@@ -25,6 +27,8 @@ type GitActionsStore = RepositoryState & {
   ) => Promise<void>
   runAction(action: GitAction, options?: { skipConfirm?: boolean }): Promise<boolean>
   checkoutBranchForIntegrate(branch: Branch): Promise<boolean>
+  beginCreateBranch(options?: { startPoint?: string; sha?: string }): void
+  submitBranchCreation(name: string): Promise<void>
 }
 
 export const gitActions = {
@@ -34,6 +38,12 @@ export const gitActions = {
     options?: { skipConfirm?: boolean },
   ): Promise<boolean> {
     if (!options?.skipConfirm && isDestructiveAction(action.kind)) {
+      // Defer until after context menus restore focus to their trigger.
+      await new Promise<void>((resolve) => {
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => resolve())
+        })
+      })
       const ok = await usePromptStore().confirm({
         title: 'Confirm destructive action',
         message: describeAction(action),
@@ -44,7 +54,9 @@ export const gitActions = {
     }
 
     if (action.kind === 'open-terminal') {
-      useUiStore().toggleTerminal()
+      const ui = useUiStore()
+      if (!ui.isAdvanced) return true
+      ui.toggleTerminal()
       return true
     }
 
@@ -107,14 +119,81 @@ export const gitActions = {
     return result.ok
   },
 
-  async createBranch(this: GitActionsStore, startPoint?: string): Promise<void> {
-    const name = await usePromptStore().prompt({
-      title: 'Create Branch',
-      message: startPoint ? `Branch from ${startPoint}` : 'Enter a name for the new branch',
-      placeholder: 'feature/my-branch',
+  beginCreateBranch(
+    this: GitActionsStore,
+    options?: { startPoint?: string; sha?: string },
+  ): void {
+    const selection = useSelectionStore()
+    let startPoint = options?.startPoint
+    let sourceSha = options?.sha
+
+    if (startPoint && !sourceSha) {
+      const branch = this.branches.find((b) => b.name === startPoint)
+      sourceSha = branch?.tipSha
+    }
+
+    if (!sourceSha) {
+      const headCommit = this.commits.find((c) => c.refs.some((r) => r.isHead))
+      sourceSha = headCommit?.sha ?? this.commits[0]?.sha
+    }
+
+    if (!sourceSha) {
+      useToastStore().push('No commit to create branch from', 'error')
+      return
+    }
+
+    const headIndex = computeHeadCommitIndex(this.commits, this.repository?.headSha)
+    const headSha = this.commits[headIndex]?.sha
+    const hasPendingChanges =
+      this.workingTree.some((f) => f.staged) ||
+      this.workingTree.some((f) => !f.staged && f.status !== 'conflicted') ||
+      this.workingTree.some((f) => f.status === 'conflicted')
+    const usePendingRow =
+      hasPendingChanges &&
+      headIndex >= 0 &&
+      sourceSha === headSha
+
+    const creation = {
+      display: usePendingRow ? PENDING_BRANCH_ROW : sourceSha,
+      startPoint: startPoint ?? (usePendingRow ? undefined : sourceSha),
+    } as const
+
+    // Defer until after context menus restore focus to their trigger.
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        selection.beginBranchCreation(creation)
+      })
     })
-    if (!name) return
-    await this.runAction({ kind: 'create-branch', meta: { name, startPoint } })
+  },
+
+  async submitBranchCreation(this: GitActionsStore, name: string): Promise<void> {
+    const selection = useSelectionStore()
+    const pending = selection.branchCreation
+    if (!pending) return
+
+    const trimmed = name.trim()
+    if (!trimmed) return
+
+    const { startPoint } = pending
+    selection.cancelBranchCreation()
+
+    const created = await this.runAction({
+      kind: 'create-branch',
+      target: trimmed,
+      meta: { name: trimmed, ...(startPoint ? { startPoint } : {}) },
+    })
+    if (!created) return
+
+    const onNewBranch =
+      this.branches.some((b) => b.isCurrent && b.name === trimmed) ||
+      this.repository?.currentBranch === trimmed
+    if (!onNewBranch) {
+      await this.runAction({ kind: 'checkout', target: trimmed }, { skipConfirm: true })
+    }
+  },
+
+  createBranch(this: GitActionsStore, startPoint?: string): void {
+    this.beginCreateBranch({ startPoint })
   },
 
   async renameBranch(this: GitActionsStore, branchName: string): Promise<void> {
@@ -141,14 +220,14 @@ export const gitActions = {
     await this.runAction({ kind: 'set-upstream', target: upstream })
   },
 
-  async mergeBranch(this: GitActionsStore): Promise<void> {
+  async mergeBranch(this: GitActionsStore, mergeMode: MergeMode = 'default'): Promise<void> {
     const target = await usePromptStore().prompt({
       title: 'Merge Branch',
       message: 'Branch to merge into the current branch',
       placeholder: 'feature/my-branch',
     })
     if (!target) return
-    await this.runAction({ kind: 'merge', target })
+    await this.runAction({ kind: 'merge', target, meta: mergeMetaForMode(mergeMode) })
   },
 
   async rebaseOnto(this: GitActionsStore): Promise<void> {
@@ -166,6 +245,7 @@ export const gitActions = {
     source: Branch,
     target: Branch,
     mode: 'merge' | 'rebase',
+    mergeMode: MergeMode = 'default',
   ): Promise<void> {
     if (source.id === target.id) return
 
@@ -179,7 +259,11 @@ export const gitActions = {
         const switched = await this.checkoutBranchForIntegrate(target)
         if (!switched) return
       }
-      await this.runAction({ kind: 'merge', target: source.name })
+      await this.runAction({
+        kind: 'merge',
+        target: source.name,
+        meta: mergeMetaForMode(mergeMode),
+      })
       return
     }
 
@@ -253,6 +337,28 @@ export const gitActions = {
       kind: 'create-tag',
       meta: { name, message: message ?? name, annotated: Boolean(message) },
     })
+  },
+
+  async addWorktree(this: GitActionsStore): Promise<void> {
+    const path = await usePromptStore().prompt({
+      title: 'Add Worktree',
+      message: 'Path for the new worktree',
+      placeholder: '../my-repo-feature',
+    })
+    if (!path) return
+    const branch = await usePromptStore().prompt({
+      title: 'Branch (optional)',
+      message: 'Branch to check out (leave empty for detached HEAD)',
+      placeholder: 'feature/my-branch',
+    })
+    await this.runAction({
+      kind: 'worktree-add',
+      meta: { path, ...(branch ? { branch } : {}) },
+    })
+  },
+
+  async removeWorktree(this: GitActionsStore, worktreePath: string): Promise<void> {
+    await this.runAction({ kind: 'worktree-remove', target: worktreePath })
   },
 
   async continueOperation(this: GitActionsStore): Promise<void> {

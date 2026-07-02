@@ -182,7 +182,7 @@ function seedEdgeSeen(bands: GraphEdge[][]): Set<string>[] {
 
 /**
  * Assigns commits to lanes (columns) and produces per-band edge segments for a
- * GitKraken-style graph. Commits must be topologically sorted newest-first.
+ * Multi-lane commit graph. Commits must be topologically sorted newest-first.
  */
 export function computeGraphLayout(commits: Commit[]): GraphLayout {
   const n = commits.length

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, onUnmounted, ref, useTemplateRef } from 'vue'
-import { Check, Cloud, Monitor } from '@lucide/vue'
+import { Check, Cloud, Monitor, Tag as TagIcon } from '@lucide/vue'
 import { formatRefLabel } from '@shared/git/refLabel'
 import type { Ref } from '@/types/git'
 
@@ -28,6 +28,7 @@ const showLocalIcon = computed(
 const showRemoteIcon = computed(
   () => props.hasRemote ?? props.refData.type === 'remoteBranch',
 )
+const showTagIcon = computed(() => props.refData.type === 'tag')
 
 const resolvedColor = computed((): string =>
   props.refData.type === 'tag' ? 'var(--color-warning)' : props.color,
@@ -112,6 +113,7 @@ onUnmounted(() => {
       @mouseenter="expand"
     >
       <Check v-if="isCurrent" :size="10" class="shrink-0" />
+      <TagIcon v-if="showTagIcon" :size="10" class="shrink-0 opacity-90" />
       <span
         ref="labelRef"
         class="min-w-0 flex-1 truncate"
@@ -140,6 +142,7 @@ onUnmounted(() => {
       @mouseleave="scheduleCollapse"
     >
       <Check v-if="isCurrent" :size="10" class="shrink-0" />
+      <TagIcon v-if="showTagIcon" :size="10" class="shrink-0 opacity-90" />
       <span :class="isCurrent ? 'font-semibold' : 'font-medium'">{{ label }}</span>
       <span v-if="showLocalIcon || showRemoteIcon" class="ml-auto flex shrink-0 items-center gap-0.5">
         <Monitor v-if="showLocalIcon" :size="10" class="opacity-90" />

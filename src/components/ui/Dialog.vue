@@ -24,7 +24,8 @@ watch(
 )
 
 function onKeydown(event: KeyboardEvent): void {
-  if (event.key === 'Escape') emit('cancel')
+  if (!props.open || event.key !== 'Escape') return
+  emit('cancel')
 }
 
 onMounted(() => document.addEventListener('keydown', onKeydown))

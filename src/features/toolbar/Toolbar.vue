@@ -16,6 +16,7 @@ import {
   Inbox,
   ListTree,
   Loader2,
+  MoreHorizontal,
   RotateCcw,
   RotateCw,
   Redo2,
@@ -31,11 +32,13 @@ import type { MenuItem } from '@/components/ui/menu'
 import { useRepositoryStore } from '@/stores/repository'
 import { useInteractiveRebaseStore } from '@/stores/interactiveRebase'
 import { useSelectionStore } from '@/stores/selection'
+import { useUiStore } from '@/stores/ui'
 import type { GitActionKind } from '@/types/git'
 
 const repo = useRepositoryStore()
 const selection = useSelectionStore()
 const interactiveRebase = useInteractiveRebaseStore()
+const ui = useUiStore()
 
 function run(kind: GitActionKind, target?: string): void {
   void repo.runAction({ kind, target })
@@ -66,6 +69,12 @@ const branchMenu = computed<MenuItem[]>(() =>
     onSelect: () => repo.checkoutBranch(branch.name),
   })),
 )
+
+const remoteMenu = computed<MenuItem[]>(() => [
+  { label: 'Fetch All', icon: CloudDownload, onSelect: () => run('fetch-all') },
+  { label: 'Prune Stale Remotes', onSelect: () => run('prune') },
+  { label: 'Push Tags', onSelect: () => run('push-tags') },
+])
 </script>
 
 <template>
@@ -105,22 +114,34 @@ const branchMenu = computed<MenuItem[]>(() =>
       <IconButton :icon="ArrowDown" label="Pull" shortcut="⌘⇧L" :busy="isBusy('pull')" @click="run('pull')" />
       <IconButton :icon="ArrowUp" label="Push" shortcut="⌘⇧P" :busy="isBusy('push')" @click="run('push')" />
       <IconButton :icon="ArrowDownUp" label="Sync" :busy="isBusy('sync')" @click="run('sync')" />
+      <DropdownMenu :items="remoteMenu" align="start">
+        <IconButton :icon="MoreHorizontal" label="More remote actions" />
+      </DropdownMenu>
     </div>
 
     <div class="mx-1 h-6 w-px bg-[var(--color-border)]" />
 
-    <div class="flex items-center gap-0.5">
-      <IconButton :icon="Inbox" label="Stash" @click="repo.stashChanges()" />
-      <IconButton :icon="ArchiveRestore" label="Pop Stash" @click="run('pop-stash')" />
-    </div>
+    <template v-if="ui.isAdvanced">
+      <div class="flex items-center gap-0.5">
+        <IconButton :icon="Inbox" label="Stash" @click="repo.stashChanges()" />
+        <IconButton :icon="ArchiveRestore" label="Pop Stash" @click="run('pop-stash')" />
+      </div>
 
-    <div class="mx-1 h-6 w-px bg-[var(--color-border)]" />
+      <div class="mx-1 h-6 w-px bg-[var(--color-border)]" />
+    </template>
 
     <div class="flex items-center gap-0.5">
-      <IconButton :icon="Cherry" label="Cherry Pick" @click="repo.cherryPickCommit(selection.selectedSha ?? undefined)" />
+      <IconButton
+        v-if="ui.isAdvanced"
+        :icon="Cherry"
+        label="Cherry Pick"
+        @click="repo.cherryPickCommit(selection.selectedSha ?? undefined)"
+      />
       <IconButton :icon="GitMerge" label="Merge" @click="repo.mergeBranch()" />
-      <IconButton :icon="Spline" label="Rebase" @click="repo.rebaseOnto()" />
-      <IconButton :icon="ListTree" label="Interactive Rebase" @click="interactiveRebase.open()" />
+      <template v-if="ui.isAdvanced">
+        <IconButton :icon="Spline" label="Rebase" @click="repo.rebaseOnto()" />
+        <IconButton :icon="ListTree" label="Interactive Rebase" @click="interactiveRebase.open()" />
+      </template>
       <IconButton :icon="RotateCcw" label="Reset" @click="repo.resetTo('reset-mixed')" />
     </div>
 
@@ -146,7 +167,13 @@ const branchMenu = computed<MenuItem[]>(() =>
         @click="run('redo')"
       />
       <IconButton :icon="Search" label="Search" shortcut="⌘⇧F" @click="repo.openSearch()" />
-      <IconButton :icon="Terminal" label="Toggle Terminal" shortcut="⌘T" @click="run('open-terminal')" />
+      <IconButton
+        v-if="ui.isAdvanced"
+        :icon="Terminal"
+        label="Toggle Terminal"
+        shortcut="⌘T"
+        @click="run('open-terminal')"
+      />
       <IconButton :icon="RotateCw" label="Refresh" shortcut="⌘R" :busy="isBusy('refresh')" @click="run('refresh')" />
       <AppSettingsMenu />
     </div>

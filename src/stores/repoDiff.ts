@@ -1,21 +1,31 @@
 import { defineStore } from 'pinia'
-import type { ConflictResult, DiffResult } from '@shared/git/models'
+import type { BlameResult, ConflictResult, DiffResult, FileHistoryEntry } from '@shared/git/models'
 import type { WorkingTreeFile } from '@/types/git'
 import { gitService } from '@/lib/git'
 import { useRepositoryStore } from './repository'
 import { useSelectionStore } from './selection'
 import { useToastStore } from './toast'
+import { useUiStore } from './ui'
+
+export type FilePanelMode = 'diff' | 'blame'
 
 export const useRepoDiffStore = defineStore('repoDiff', {
   state: () => ({
     selectedFilePath: null as string | null,
     selectedFileStaged: null as boolean | null,
+    panelMode: 'diff' as FilePanelMode,
     commitFiles: [] as WorkingTreeFile[],
     commitFilesLoading: false,
     compareFiles: [] as WorkingTreeFile[],
     compareFilesLoading: false,
     diff: null as DiffResult | null,
     diffLoading: false,
+    blame: null as BlameResult | null,
+    blameLoading: false,
+    fileHistoryOpen: false,
+    fileHistoryPath: null as string | null,
+    fileHistoryEntries: [] as FileHistoryEntry[],
+    fileHistoryLoading: false,
     conflict: null as ConflictResult | null,
     conflictLoading: false,
   }),
@@ -30,6 +40,16 @@ export const useRepoDiffStore = defineStore('repoDiff', {
   },
 
   actions: {
+    setPanelMode(mode: FilePanelMode): void {
+      this.panelMode = mode
+      if (!this.selectedFilePath) return
+      if (mode === 'blame') {
+        void this.loadBlame(this.selectedFilePath)
+      } else if (!this.selectedFileIsConflicted) {
+        void this.loadDiff(this.selectedFilePath)
+      }
+    },
+
     selectFile(path: string | null, options?: { staged?: boolean }): void {
       this.selectedFilePath = path
       const repo = useRepositoryStore()
@@ -42,10 +62,14 @@ export const useRepoDiffStore = defineStore('repoDiff', {
         this.selectedFileStaged = file?.staged ?? false
       }
       this.diff = null
+      this.blame = null
       this.conflict = null
       if (!path) return
       if (repo.workingTree.find((f) => f.path === path)?.status === 'conflicted') {
+        this.panelMode = 'diff'
         void this.loadConflict(path)
+      } else if (this.panelMode === 'blame') {
+        void this.loadBlame(path)
       } else {
         void this.loadDiff(path)
       }
@@ -56,6 +80,7 @@ export const useRepoDiffStore = defineStore('repoDiff', {
       this.selectedFilePath = null
       this.selectedFileStaged = null
       this.diff = null
+      this.blame = null
       this.compareFiles = []
       try {
         this.commitFiles = await gitService.getCommitFiles(sha)
@@ -74,6 +99,7 @@ export const useRepoDiffStore = defineStore('repoDiff', {
       this.selectedFilePath = null
       this.selectedFileStaged = null
       this.diff = null
+      this.blame = null
       try {
         this.compareFiles = await gitService.getCompareFiles(fromSha, toSha)
       } catch (error) {
@@ -93,11 +119,11 @@ export const useRepoDiffStore = defineStore('repoDiff', {
       this.selectedFilePath = null
       this.selectedFileStaged = null
       this.diff = null
+      this.blame = null
     },
 
-    async loadDiff(path: string): Promise<void> {
+    blameRequestForPath(path: string) {
       const selection = useSelectionStore()
-      const repo = useRepositoryStore()
       const compare = selection.compareRange
       const viewingCompareFile = Boolean(compare) && this.compareFiles.some((f) => f.path === path)
       const commitSha = selection.selectedSha
@@ -105,28 +131,64 @@ export const useRepoDiffStore = defineStore('repoDiff', {
         Boolean(commitSha) && !compare && this.commitFiles.some((f) => f.path === path)
       const staged =
         this.selectedFileStaged ??
-        repo.workingTree.find((f) => f.path === path && f.staged)?.staged ??
+        useRepositoryStore().workingTree.find((f) => f.path === path && f.staged)?.staged ??
         false
+
+      if (viewingCompareFile && compare) {
+        return {
+          path,
+          source: 'range' as const,
+          sha: compare.fromSha,
+          toSha: compare.toSha,
+        }
+      }
+      if (viewingCommitFile) {
+        return { path, source: 'commit' as const, sha: commitSha! }
+      }
+      return {
+        path,
+        source: staged ? ('index' as const) : ('worktree' as const),
+      }
+    },
+
+    diffRequestForPath(path: string) {
+      const selection = useSelectionStore()
+      const compare = selection.compareRange
+      const viewingCompareFile = Boolean(compare) && this.compareFiles.some((f) => f.path === path)
+      const commitSha = selection.selectedSha
+      const viewingCommitFile =
+        Boolean(commitSha) && !compare && this.commitFiles.some((f) => f.path === path)
+      const staged =
+        this.selectedFileStaged ??
+        useRepositoryStore().workingTree.find((f) => f.path === path && f.staged)?.staged ??
+        false
+      const ignoreWhitespace = useUiStore().ignoreWhitespace
+
+      if (viewingCompareFile && compare) {
+        return {
+          path,
+          source: 'range' as const,
+          sha: compare.fromSha,
+          toSha: compare.toSha,
+          ignoreWhitespace,
+        }
+      }
+      if (viewingCommitFile) {
+        return { path, source: 'commit' as const, sha: commitSha!, ignoreWhitespace }
+      }
+      return {
+        path,
+        source: staged ? ('index' as const) : ('worktree' as const),
+        ignoreWhitespace,
+      }
+    },
+
+    async loadDiff(path: string): Promise<void> {
       this.diffLoading = true
       this.conflict = null
+      this.blame = null
       try {
-        if (viewingCompareFile && compare) {
-          this.diff = await gitService.getDiff({
-            path,
-            source: 'range',
-            sha: compare.fromSha,
-            toSha: compare.toSha,
-          })
-        } else {
-          this.diff = await gitService.getDiff(
-            viewingCommitFile
-              ? { path, source: 'commit', sha: commitSha! }
-              : {
-                  path,
-                  source: staged ? 'index' : 'worktree',
-                },
-          )
-        }
+        this.diff = await gitService.getDiff(this.diffRequestForPath(path))
       } catch {
         this.diff = null
       } finally {
@@ -134,9 +196,68 @@ export const useRepoDiffStore = defineStore('repoDiff', {
       }
     },
 
+    async loadBlame(path: string): Promise<void> {
+      this.blameLoading = true
+      this.conflict = null
+      this.diff = null
+      try {
+        this.blame = await gitService.getBlame(this.blameRequestForPath(path))
+      } catch {
+        this.blame = null
+      } finally {
+        this.blameLoading = false
+      }
+    },
+
+    async openFileHistory(path: string): Promise<void> {
+      this.fileHistoryOpen = true
+      this.fileHistoryPath = path
+      this.fileHistoryLoading = true
+      this.fileHistoryEntries = []
+      try {
+        const result = await gitService.getFileHistory({ path, limit: 50 })
+        this.fileHistoryEntries = result.entries
+      } catch (error) {
+        this.fileHistoryEntries = []
+        const detail = error instanceof Error ? error.message : String(error)
+        useToastStore().push(`Could not load file history: ${detail}`, 'error')
+      } finally {
+        this.fileHistoryLoading = false
+      }
+    },
+
+    closeFileHistory(): void {
+      this.fileHistoryOpen = false
+      this.fileHistoryPath = null
+      this.fileHistoryEntries = []
+      this.fileHistoryLoading = false
+    },
+
+    async selectFileHistoryEntry(sha: string): Promise<void> {
+      const path = this.fileHistoryPath
+      if (!path) return
+      const selection = useSelectionStore()
+      selection.select(sha)
+      await this.loadCommitFiles(sha)
+      this.selectFile(path, { staged: false })
+      this.closeFileHistory()
+    },
+
+    async reloadCurrentFile(): Promise<void> {
+      if (!this.selectedFilePath) return
+      if (this.selectedFileIsConflicted) {
+        await this.loadConflict(this.selectedFilePath)
+      } else if (this.panelMode === 'blame') {
+        await this.loadBlame(this.selectedFilePath)
+      } else {
+        await this.loadDiff(this.selectedFilePath)
+      }
+    },
+
     async loadConflict(path: string): Promise<void> {
       this.conflictLoading = true
       this.diff = null
+      this.blame = null
       try {
         this.conflict = await gitService.getConflict({ path })
       } catch {
@@ -162,12 +283,19 @@ export const useRepoDiffStore = defineStore('repoDiff', {
     resetOnRepoClose(): void {
       this.selectedFilePath = null
       this.selectedFileStaged = null
+      this.panelMode = 'diff'
       this.commitFiles = []
       this.compareFiles = []
       this.commitFilesLoading = false
       this.compareFilesLoading = false
       this.diff = null
       this.diffLoading = false
+      this.blame = null
+      this.blameLoading = false
+      this.fileHistoryOpen = false
+      this.fileHistoryPath = null
+      this.fileHistoryEntries = []
+      this.fileHistoryLoading = false
       this.conflict = null
       this.conflictLoading = false
     },

@@ -67,6 +67,9 @@ describe('isDestructiveAction', () => {
     'drop-stash',
     'discard-file',
     'discard-all',
+    'discard-patch',
+    'restore-file',
+    'worktree-remove',
   ])('returns true for %s', (kind) => {
     expect(isDestructiveAction(kind)).toBe(true)
   })
@@ -291,10 +294,67 @@ describe('executeGitAction', () => {
       })
     })
 
+    it('reverses worktree patch for discard-patch', async () => {
+      const patch = 'diff --git a/file.ts b/file.ts\n'
+      const result = await executeGitAction(
+        { kind: 'discard-patch', target: 'file.ts', meta: { patch } },
+        ctx(),
+      )
+
+      expect(result.ok).toBe(true)
+      expect(mockRun).toHaveBeenCalledWith(['apply', '-R'], {
+        cwd: CWD,
+        signal: undefined,
+        input: patch,
+      })
+      expect(result.message).toBe('Discarded hunk in file.ts')
+    })
+
+    it('applies discard-patch with intentToAdd for untracked files', async () => {
+      const patch = 'diff --git a/new.ts b/new.ts\n'
+      await executeGitAction(
+        { kind: 'discard-patch', target: 'new.ts', meta: { patch, intentToAdd: true } },
+        ctx(),
+      )
+
+      expect(mockRun).toHaveBeenNthCalledWith(1, ['add', '-N', '--', 'new.ts'], {
+        cwd: CWD,
+        signal: undefined,
+        allowFailure: true,
+      })
+      expect(mockRun).toHaveBeenNthCalledWith(2, ['apply', '-R'], {
+        cwd: CWD,
+        signal: undefined,
+        input: patch,
+      })
+    })
+
+    it('rejects discard-patch without patch content', async () => {
+      const result = await executeGitAction(
+        { kind: 'discard-patch', target: 'src/file.ts', meta: { patch: '  ' } },
+        ctx(),
+      )
+
+      expect(result.ok).toBe(false)
+      expect(result.message).toBe('No patch specified.')
+    })
+
     it('discard-all checks out the whole tree', async () => {
       await executeGitAction({ kind: 'discard-all' }, ctx())
 
       expect(mockRun).toHaveBeenCalledWith(['checkout', '--', '.'], { cwd: CWD, signal: undefined })
+    })
+
+    it('restore-file restores from a specific commit', async () => {
+      await executeGitAction(
+        { kind: 'restore-file', target: 'src/file.ts', meta: { sha: 'abc1234' } },
+        ctx(),
+      )
+
+      expect(mockRun).toHaveBeenCalledWith(
+        ['restore', '--source', 'abc1234', '--', 'src/file.ts'],
+        { cwd: CWD, signal: undefined },
+      )
     })
   })
 
@@ -381,6 +441,32 @@ theirs
   })
 
   describe('branches and merge', () => {
+    it('create-branch creates and checks out the branch', async () => {
+      const result = await executeGitAction(
+        { kind: 'create-branch', target: 'feature/new', meta: { name: 'feature/new' } },
+        ctx(),
+      )
+
+      expect(result.ok).toBe(true)
+      expect(mockRun).toHaveBeenCalledWith(['checkout', '-b', 'feature/new'], {
+        cwd: CWD,
+        signal: undefined,
+      })
+      expect(result.message).toBe('Created and checked out feature/new')
+    })
+
+    it('create-branch can start from a ref', async () => {
+      await executeGitAction(
+        { kind: 'create-branch', meta: { name: 'feature/new', startPoint: 'main' } },
+        ctx(),
+      )
+
+      expect(mockRun).toHaveBeenCalledWith(['checkout', '-b', 'feature/new', 'main'], {
+        cwd: CWD,
+        signal: undefined,
+      })
+    })
+
     it('checkout tracks a remote branch', async () => {
       await executeGitAction(
         { kind: 'checkout', target: 'feature', meta: { remote: 'origin' } },
@@ -424,6 +510,27 @@ theirs
         allowFailure: true,
       })
       expect(result.message).toBe('2 commits in feature not in main')
+    })
+
+    it('worktree-add creates a worktree with optional branch', async () => {
+      await executeGitAction(
+        { kind: 'worktree-add', meta: { path: '../feature-wt', branch: 'feature' } },
+        ctx(),
+      )
+
+      expect(mockRun).toHaveBeenCalledWith(
+        ['worktree', 'add', '../feature-wt', 'feature'],
+        { cwd: CWD, signal: undefined },
+      )
+    })
+
+    it('worktree-remove removes a worktree path', async () => {
+      await executeGitAction({ kind: 'worktree-remove', target: '../feature-wt' }, ctx())
+
+      expect(mockRun).toHaveBeenCalledWith(['worktree', 'remove', '../feature-wt'], {
+        cwd: CWD,
+        signal: undefined,
+      })
     })
   })
 

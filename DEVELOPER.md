@@ -36,6 +36,8 @@ VITE_USE_MOCK=true npm run dev
 | `npm run preview` | Preview production build |
 | `npm run dist` | Build installer for current platform |
 | `npm run dist:mac` | Build a macOS `.dmg` installer (requires macOS) |
+| `npm run dist:win` | Build a Windows `.exe` installer (requires Windows or cross-compile) |
+| `npm run dist:linux` | Build Linux `.AppImage` and `.deb` packages |
 | `npm run dist:analyze` | Print DMG / `.app` / ASAR size breakdown (run after `dist:mac`) |
 | `npm run typecheck` | TypeScript check |
 | `npm run test` | Unit tests (graph layout, parsers, rebase, conflicts, undo) |
@@ -47,7 +49,7 @@ Architecture, stack, and extension points are documented in **[ARCHITECTURE.md](
 
 ## Creating a release
 
-Releases are versioned with git tags (`v*`). Pushing a tag triggers GitHub Actions to build a macOS `.dmg` and attach it to a [GitHub Release](https://github.com/ftuyama/git-light/releases).
+Releases are versioned with git tags (`v*`). Pushing a tag triggers GitHub Actions to build installers for **macOS, Windows, and Linux** and attach them to a [GitHub Release](https://github.com/ftuyama/git-light/releases).
 
 ### Overview
 
@@ -55,7 +57,7 @@ Releases are versioned with git tags (`v*`). Pushing a tag triggers GitHub Actio
 1. Update docs & bump version in package.json
 2. Run tests
 3. Commit → tag vX.Y.Z → push commit + tag
-4. CI builds dist/*.dmg and publishes the release
+4. CI builds macOS .dmg, Windows .exe, Linux .AppImage + .deb and publishes the release
 ```
 
 The packaged app checks for updates by comparing its version against the latest GitHub release tag. Users can also check manually via **Git Light → Check for Updates…** in the menu bar.
@@ -68,6 +70,7 @@ Before bumping the version:
    - [README.md](README.md) — feature table, install notes
    - [ARCHITECTURE.md](ARCHITECTURE.md) — stack versions, file layout
    - [docs/index.html](docs/index.html) — landing page copy and install section
+   - [docs/llms.txt](docs/llms.txt) — AI-readable site summary (version synced automatically)
 2. **Refresh the screenshot** if the UI changed. Run mock mode, capture the main view at 1440×900, and overwrite [docs/screenshot.png](docs/screenshot.png):
 
    ```bash
@@ -93,13 +96,13 @@ Use [semver](https://semver.org/):
 | Minor | `0.1.2` → `0.2.0` |
 | Major | `0.1.2` → `1.0.0` |
 
-Then sync the landing page version markers:
+Then sync version markers across docs:
 
 ```bash
 npm run sync-version
 ```
 
-The app reads `package.json` at build time (`shared/app/metadata.ts`); only `docs/index.html` needs this extra step.
+The app reads `package.json` at build time (`shared/app/metadata.ts`); `docs/index.html` and `docs/llms.txt` are updated by `sync-version`.
 
 Confirm the tag does not already exist:
 

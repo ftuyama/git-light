@@ -1,12 +1,15 @@
 <script setup lang="ts">
-import { onUnmounted, ref, watch } from 'vue'
-import { GitCommitHorizontal, Heart, LayoutPanelLeft, Palette, PanelLeft, Rows3, X } from '@lucide/vue'
+import { computed, onUnmounted, ref, watch } from 'vue'
+import { GitCommitHorizontal, Heart, Keyboard, LayoutPanelLeft, Palette, PanelLeft, Rows3, X } from '@lucide/vue'
 import { storeToRefs } from 'pinia'
 import Button from '@/components/ui/Button.vue'
 import SettingsCreditsPanel from './SettingsCreditsPanel.vue'
 import SettingsRow from './SettingsRow.vue'
 import ThemePicker from './ThemePicker.vue'
+import UiModePicker from './UiModePicker.vue'
+import { KEYBOARD_SHORTCUTS } from '@/lib/keyboardShortcuts'
 import {
+  ADVANCED_SECTION_KEYS,
   COLUMN_LABELS,
   COMMIT_GRAPH_LIMIT_MAX,
   COMMIT_GRAPH_LIMIT_MIN,
@@ -20,14 +23,20 @@ import { useRepositoryStore } from '@/stores/repository'
 
 const ui = useUiStore()
 const repo = useRepositoryStore()
-const { leftCollapsed, rightCollapsed, settingsOpen, graphScopeAll, commitGraphLimit, fileListView, theme } =
+const { leftCollapsed, rightCollapsed, settingsOpen, graphScopeAll, commitGraphLimit, fileListView, theme, uiMode } =
   storeToRefs(ui)
 
-type SettingsCategory = 'appearance' | 'layout' | 'changes' | 'commit-graph' | 'sidebar' | 'credits'
+type SettingsCategory = 'appearance' | 'layout' | 'changes' | 'commit-graph' | 'sidebar' | 'shortcuts' | 'credits'
 
 const activeCategory = ref<SettingsCategory>('appearance')
 
 const columnKeys = Object.keys(COLUMN_LABELS) as CommitColumnKey[]
+
+const sidebarSectionKeys = computed(() =>
+  ui.isAdvanced
+    ? [...SECTION_KEYS]
+    : SECTION_KEYS.filter((key) => !ADVANCED_SECTION_KEYS.includes(key as (typeof ADVANCED_SECTION_KEYS)[number])),
+)
 
 const preferenceCategories: { id: SettingsCategory; label: string; icon: typeof LayoutPanelLeft }[] =
   [
@@ -36,11 +45,16 @@ const preferenceCategories: { id: SettingsCategory; label: string; icon: typeof 
     { id: 'changes', label: 'Changes', icon: Rows3 },
     { id: 'commit-graph', label: 'Commit Graph', icon: GitCommitHorizontal },
     { id: 'sidebar', label: 'Sidebar', icon: PanelLeft },
+    { id: 'shortcuts', label: 'Shortcuts', icon: Keyboard },
   ]
 
 const creditsCategory = { id: 'credits' as const, label: 'Credits', icon: Heart }
 
 const categories = [...preferenceCategories, creditsCategory]
+
+const visibleShortcuts = computed(() =>
+  KEYBOARD_SHORTCUTS.filter((entry) => !entry.advanced || ui.isAdvanced),
+)
 
 const columnDescriptions: Record<CommitColumnKey, string> = {
   author: 'Show the commit author avatar and name in each row.',
@@ -154,6 +168,18 @@ onUnmounted(() => document.removeEventListener('keydown', onKeydown))
           <div class="min-h-0 flex-1 overflow-y-auto px-2 py-3">
             <!-- Appearance -->
             <template v-if="activeCategory === 'appearance'">
+              <section class="mb-6 px-3">
+                <h3
+                  class="pb-1 text-[11px] font-semibold tracking-wide text-[var(--color-fg-subtle)] uppercase"
+                >
+                  Interface
+                </h3>
+                <p class="mb-3 text-[12px] text-[var(--color-fg-muted)]">
+                  Basic hides advanced actions like stash, rebase, and terminal. Advanced shows
+                  everything.
+                </p>
+                <UiModePicker :model-value="uiMode" />
+              </section>
               <p class="mb-3 px-3 text-[12px] text-[var(--color-fg-muted)]">
                 Choose a color palette for the application interface.
               </p>
@@ -290,13 +316,33 @@ onUnmounted(() => document.removeEventListener('keydown', onKeydown))
                   Sections
                 </h3>
                 <SettingsRow
-                  v-for="key in SECTION_KEYS"
+                  v-for="key in sidebarSectionKeys"
                   :key="key"
                   :label="SECTION_LABELS[key]"
                   :description="sectionDescriptions[key]"
                   :model-value="ui.isSectionOpen(key)"
                   @update:model-value="ui.setSectionOpen(key, $event)"
                 />
+              </section>
+            </template>
+
+            <template v-else-if="activeCategory === 'shortcuts'">
+              <p class="mb-3 px-3 text-[12px] text-[var(--color-fg-muted)]">
+                Keyboard shortcuts available in the repository view.
+              </p>
+              <section class="space-y-0.5">
+                <div
+                  v-for="shortcut in visibleShortcuts"
+                  :key="shortcut.keys"
+                  class="flex items-center justify-between gap-4 rounded-lg px-3 py-2.5 transition-colors hover:bg-[var(--color-hover)]"
+                >
+                  <span class="text-[13px] text-[var(--color-fg)]">{{ shortcut.description }}</span>
+                  <kbd
+                    class="shrink-0 rounded border border-[var(--color-border)] bg-[var(--color-app)] px-2 py-0.5 font-mono text-[11px] text-[var(--color-fg-muted)]"
+                  >
+                    {{ shortcut.keys }}
+                  </kbd>
+                </div>
               </section>
             </template>
 

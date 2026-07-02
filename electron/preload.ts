@@ -30,6 +30,9 @@ const git = {
     invokeGit(IpcChannels.commitPage, req),
   action: (req: IpcContract[typeof IpcChannels.action][0]) => invokeGit(IpcChannels.action, req),
   diff: (req: IpcContract[typeof IpcChannels.diff][0]) => invokeGit(IpcChannels.diff, req),
+  blame: (req: IpcContract[typeof IpcChannels.blame][0]) => invokeGit(IpcChannels.blame, req),
+  fileHistory: (req: IpcContract[typeof IpcChannels.fileHistory][0]) =>
+    invokeGit(IpcChannels.fileHistory, req),
   conflict: (req: IpcContract[typeof IpcChannels.conflict][0]) =>
     invokeGit(IpcChannels.conflict, req),
   commitFiles: (req: IpcContract[typeof IpcChannels.commitFiles][0]) =>

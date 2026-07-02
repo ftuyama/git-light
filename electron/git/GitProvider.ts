@@ -5,12 +5,16 @@ import type { GitAction } from '@shared/git/actions'
 import { GitError } from '@shared/git/errors'
 import type {
   ActionEnvelope,
+  BlameRequest,
+  BlameResult,
   CommitPageRequest,
   CommitPageResult,
   ConflictRequest,
   ConflictResult,
   DiffRequest,
   DiffResult,
+  FileHistoryRequest,
+  FileHistoryResult,
   GraphScope,
   OpenRepoResult,
   OperationProgress,
@@ -44,6 +48,8 @@ import { parseUnifiedDiff } from './parsers/diffParser'
 import { guessLanguage } from '@shared/diff/guessLanguage'
 import { parseConflictMarkers } from './parsers/conflictParser'
 import { parseRebaseCommits, REBASE_LOG_FORMAT } from './parsers/rebaseCommitsParser'
+import { parseBlamePorcelain } from './parsers/blameParser'
+import { parseFileHistory } from './parsers/fileHistoryParser'
 
 const DEFAULT_COMMIT_LIMIT = 100
 
@@ -518,6 +524,44 @@ export class GitProvider {
 
     const { stdout } = await gitCli.run(args, { cwd, allowFailure: true })
     return parseUnifiedDiff(path, stdout)
+  }
+
+  async getBlame(request: BlameRequest): Promise<BlameResult> {
+    const cwd = this.requireRepo()
+    const path = request.path
+    let args: string[]
+
+    switch (request.source) {
+      case 'index':
+        args = ['blame', '--line-porcelain', '--cached', '--', path]
+        break
+      case 'commit': {
+        const sha = request.sha ?? 'HEAD'
+        args = ['blame', '--line-porcelain', sha, '--', path]
+        break
+      }
+      case 'range': {
+        const sha = request.toSha ?? request.sha ?? 'HEAD'
+        args = ['blame', '--line-porcelain', sha, '--', path]
+        break
+      }
+      default:
+        args = ['blame', '--line-porcelain', '--', path]
+    }
+
+    const { stdout } = await gitCli.run(args, { cwd, allowFailure: true })
+    return { path, lines: parseBlamePorcelain(stdout) }
+  }
+
+  async getFileHistory(request: FileHistoryRequest): Promise<FileHistoryResult> {
+    const cwd = this.requireRepo()
+    const path = assertPathInsideRepo(cwd, request.path)
+    const limit = request.limit ?? 50
+    const { stdout } = await gitCli.run(
+      ['log', '--follow', '--format=%H\x1f%s\x1f%an\x1f%at', '-n', String(limit), '--', path],
+      { cwd, allowFailure: true },
+    )
+    return { path, entries: parseFileHistory(stdout) }
   }
 
   async getConflict(request: ConflictRequest): Promise<ConflictResult> {

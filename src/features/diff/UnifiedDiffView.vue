@@ -4,10 +4,12 @@ import { useMemoize } from '@vueuse/core'
 import type { DiffResult } from '@shared/git/models'
 import { useDiffStaging } from '@/composables/useDiffStaging'
 import { buildUnifiedLines } from '@/lib/diff/buildUnifiedLines'
+import { pairedLineIndices } from '@/lib/diff/pairedLineIndices'
 import { lineClass } from '@/lib/diff/diffLineStyles'
 import { highlightLine } from '@/lib/diff/highlight'
 import { useDiffLineVirtualizer } from './composables/useDiffLineVirtualizer'
 import DiffStageButton from './DiffStageButton.vue'
+import DiffDiscardButton from './DiffDiscardButton.vue'
 
 const props = defineProps<{
   diff: DiffResult
@@ -19,7 +21,7 @@ const diffVirtualizer = useDiffLineVirtualizer(lineCount)
 const { virtualItems, totalSize, scrollEl } = diffVirtualizer
 onMounted(() => void scrollEl.value)
 const diffRef = toRef(props, 'diff')
-const { canStage, canPartialStage, stageHunk, unstageHunk, stageLines, unstageLines } =
+const { canStage, canPartialStage, canDiscard, stageHunk, unstageHunk, discardHunk, stageLines, unstageLines } =
   useDiffStaging(diffRef)
 
 const highlight = useMemoize((content: string, language: string) =>
@@ -46,8 +48,15 @@ function onHunkAction(hunkIndex: number): void {
   void (canStage.value ? stageHunk(hunkIndex) : unstageHunk(hunkIndex))
 }
 
+function onDiscardHunk(hunkIndex: number): void {
+  void discardHunk(hunkIndex)
+}
+
 function onLineAction(hunkIndex: number, lineIndex: number): void {
-  void (canStage.value ? stageLines(hunkIndex, [lineIndex]) : unstageLines(hunkIndex, [lineIndex]))
+  const hunk = props.diff.hunks[hunkIndex]
+  if (!hunk) return
+  const indices = pairedLineIndices(hunk, lineIndex)
+  void (canStage.value ? stageLines(hunkIndex, indices) : unstageLines(hunkIndex, indices))
 }
 </script>
 
@@ -79,12 +88,22 @@ function onLineAction(hunkIndex: number, lineIndex: number): void {
           class="diff-code hljs min-w-0 flex-1 whitespace-pre-wrap break-all px-1"
           v-html="highlight(lines[item.index].content, diff.language)"
         />
-        <DiffStageButton
-          v-if="lines[item.index].type === 'hunk' && canPartialStage"
-          :mode="canStage ? 'stage' : 'unstage'"
-          scope="hunk"
-          @action="onHunkAction(lines[item.index].hunkIndex)"
-        />
+        <div
+          v-if="lines[item.index].type === 'hunk' && (canPartialStage || canDiscard)"
+          class="flex shrink-0 items-center gap-1"
+        >
+          <DiffDiscardButton
+            v-if="canDiscard"
+            scope="hunk"
+            @action="onDiscardHunk(lines[item.index].hunkIndex)"
+          />
+          <DiffStageButton
+            v-if="canPartialStage"
+            :mode="canStage ? 'stage' : 'unstage'"
+            scope="hunk"
+            @action="onHunkAction(lines[item.index].hunkIndex)"
+          />
+        </div>
         <DiffStageButton
           v-else-if="(lines[item.index].type === 'add' || lines[item.index].type === 'del') && lines[item.index].lineIndex != null && canPartialStage"
           :mode="canStage ? 'stage' : 'unstage'"

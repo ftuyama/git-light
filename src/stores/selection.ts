@@ -4,12 +4,24 @@ import { useRepositoryStore } from './repository'
 
 export type { CompareRange }
 
+export const PENDING_BRANCH_ROW = '__pending__' as const
+
+export type BranchCreationDisplay = typeof PENDING_BRANCH_ROW | string
+
+export interface BranchCreation {
+  /** Where to render the inline branch name input. */
+  display: BranchCreationDisplay
+  /** Git ref/SHA to create the branch from. */
+  startPoint?: string
+}
+
 export const useSelectionStore = defineStore('selection', {
   state: () => ({
     selectedSha: null as string | null,
     selectedBranchId: null as string | null,
     hoveredSha: null as string | null,
     compareRange: null as CompareRange | null,
+    branchCreation: null as BranchCreation | null,
   }),
 
   getters: {
@@ -23,6 +35,25 @@ export const useSelectionStore = defineStore('selection', {
       this.selectedSha = sha
       this.selectedBranchId = null
       this.compareRange = null
+      if (this.branchCreation) {
+        if (this.branchCreation.display === PENDING_BRANCH_ROW) {
+          if (sha !== null) this.branchCreation = null
+        } else if (sha !== this.branchCreation.display) {
+          this.branchCreation = null
+        }
+      }
+    },
+
+    beginBranchCreation(options: BranchCreation): void {
+      this.branchCreation = options
+      this.selectedSha =
+        options.display === PENDING_BRANCH_ROW ? null : options.display
+      this.selectedBranchId = null
+      this.compareRange = null
+    },
+
+    cancelBranchCreation(): void {
+      this.branchCreation = null
     },
 
     /** Sidebar branch click: highlight the branch and jump to its tip commit. */
@@ -36,7 +67,7 @@ export const useSelectionStore = defineStore('selection', {
       this.hoveredSha = sha
     },
 
-    /** Shift+click: compare selected commit with another (GitKraken-style). */
+    /** Shift+click: compare selected commit with another. */
     selectWithShift(sha: string): void {
       const repo = useRepositoryStore()
       if (!this.selectedSha || this.selectedSha === sha) {

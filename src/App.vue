@@ -14,6 +14,7 @@ import StartupView from '@/features/startup/StartupView.vue'
 import OperationBanner from '@/features/layout/OperationBanner.vue'
 import PromptHost from '@/features/layout/PromptHost.vue'
 import SearchOverlay from '@/features/search/SearchOverlay.vue'
+import FileHistoryDialog from '@/features/working-tree/FileHistoryDialog.vue'
 import InteractiveRebaseDialog from '@/features/rebase/InteractiveRebaseDialog.vue'
 import AppSettingsDialog from '@/features/settings/AppSettingsDialog.vue'
 import {
@@ -81,6 +82,8 @@ useKeyboardShortcuts([
   { key: 'f', meta: true, shift: true, handler: () => repo.openSearch() },
   { key: 't', meta: true, handler: () => void repo.runAction({ kind: 'open-terminal' }) },
   { key: 'r', meta: true, handler: () => void repo.runAction({ kind: 'refresh' }) },
+  { key: 'l', meta: true, shift: true, handler: () => void repo.runAction({ kind: 'pull' }) },
+  { key: 'p', meta: true, shift: true, handler: () => void repo.runAction({ kind: 'push' }) },
   { key: 'z', meta: true, handler: () => { if (repo.canUndo) void repo.runAction({ kind: 'undo' }) } },
   { key: 'z', meta: true, shift: true, handler: () => { if (repo.canRedo) void repo.runAction({ kind: 'redo' }) } },
   { key: 'arrowdown', handler: () => selection.moveBy(1) },
@@ -140,6 +143,7 @@ useKeyboardShortcuts([
     <ToastViewport />
     <PromptHost />
     <SearchOverlay />
+    <FileHistoryDialog />
     <InteractiveRebaseDialog />
   </TooltipProvider>
 

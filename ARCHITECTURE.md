@@ -83,7 +83,7 @@ Git Light is an Electron desktop app with a Vue 3 renderer. The UI depends on a 
 |------|------|
 | `main.ts` | Window lifecycle, About panel options, app menu, theme-aware window background, startup update check (packaged builds) |
 | `menu.ts` | Application menu (About, Check for Updates, Help links) |
-| `updateCheck.ts` | Compares semver against GitHub Releases; prompts to download |
+| `updateCheck.ts` | Compares semver against GitHub Releases; opens DMG directly, shows release notes, supports per-version “Remind Me Later” snooze |
 | `preload.ts` | Exposes typed `window.electron` bridge |
 | `terminal/registerTerminalIpc.ts` | node-pty sessions; create/write/resize/kill + data/exit push events |
 

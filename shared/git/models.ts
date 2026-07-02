@@ -256,6 +256,50 @@ export interface DiffResult {
   deletions: number
 }
 
+/* ----------------------------- Blame models ---------------------------- */
+
+export interface BlameRequest {
+  path: string
+  source: DiffSource
+  sha?: string
+  toSha?: string
+}
+
+export interface WireBlameLine {
+  lineNumber: number
+  commitSha: string
+  shortSha: string
+  author: string
+  authorEmail: string
+  authorTime: number
+  content: string
+}
+
+export interface BlameResult {
+  path: string
+  lines: WireBlameLine[]
+}
+
+/* ------------------------ File history models ------------------------- */
+
+export interface FileHistoryRequest {
+  path: string
+  limit?: number
+}
+
+export interface FileHistoryEntry {
+  sha: string
+  shortSha: string
+  subject: string
+  author: string
+  date: string
+}
+
+export interface FileHistoryResult {
+  path: string
+  entries: FileHistoryEntry[]
+}
+
 /* --------------------------- Conflict models --------------------------- */
 
 export interface ConflictRequest {

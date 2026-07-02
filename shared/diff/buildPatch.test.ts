@@ -51,4 +51,36 @@ describe('buildPatchFromHunkLines', () => {
     expect(patch).toContain('+new line')
     expect(patch).not.toContain('+extra')
   })
+
+  it('includes leading context for mid-file replacement', () => {
+    const patch = buildPatchFromHunkLines('file.txt', sampleHunk, [1, 2])
+    expect(patch).toContain(' line1')
+    expect(patch).toContain('@@ -1,3 +1,3 @@')
+  })
+
+  it('includes leading context for mid-file insertion', () => {
+    const patch = buildPatchFromHunkLines('file.txt', sampleHunk, [4])
+    expect(patch).toContain(' line3')
+    expect(patch).toContain('@@ -3,1 +3,2 @@')
+  })
+
+  it('anchors add-only selection with preceding context', () => {
+    const midFileHunk: DiffHunk = {
+      header: '@@ -10,3 +10,4 @@',
+      oldStart: 10,
+      oldLines: 3,
+      newStart: 10,
+      newLines: 4,
+      lines: [
+        { type: 'context', content: 'before', oldLine: 10, newLine: 10 },
+        { type: 'context', content: 'anchor', oldLine: 11, newLine: 11 },
+        { type: 'add', content: 'inserted', oldLine: null, newLine: 12 },
+        { type: 'context', content: 'after', oldLine: 12, newLine: 13 },
+      ],
+    }
+    const patch = buildPatchFromHunkLines('file.txt', midFileHunk, [2])
+    expect(patch).toContain(' anchor')
+    expect(patch).toContain('+inserted')
+    expect(patch).toContain('@@ -10,3 +10,4 @@')
+  })
 })

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, useTemplateRef } from 'vue'
 import {
   Check,
   Cherry,
@@ -11,11 +11,15 @@ import {
   RotateCcw,
   Spline,
   Tag as TagIcon,
+  Undo2,
 } from '@lucide/vue'
 import Avatar from '@/components/ui/Avatar.vue'
 import Badge from '@/components/ui/Badge.vue'
 import ContextMenu from '@/components/ui/ContextMenu.vue'
 import RefChip from './RefChip.vue'
+import BranchRefChip from './BranchRefChip.vue'
+import BranchNameChipInput from './BranchNameChipInput.vue'
+import { useBranchInputFocus } from './composables/useBranchInputFocus'
 import type { MenuItem } from '@/components/ui/menu'
 import { relativeTime } from '@/lib/format'
 import { formatRefLabel } from '@shared/git/refLabel'
@@ -25,7 +29,7 @@ import type { GraphNode } from '@/lib/graph/computeGraphLayout'
 import { findLaneBranchPreview } from '@/lib/graph/commitLaneBranchPreview'
 import { useRepositoryStore } from '@/stores/repository'
 import { useInteractiveRebaseStore } from '@/stores/interactiveRebase'
-import { useSelectionStore } from '@/stores/selection'
+import { useSelectionStore, PENDING_BRANCH_ROW } from '@/stores/selection'
 import { useToastStore } from '@/stores/toast'
 import { useUiStore } from '@/stores/ui'
 import { storeToRefs } from 'pinia'
@@ -47,7 +51,7 @@ const interactiveRebase = useInteractiveRebaseStore()
 const toast = useToastStore()
 const ui = useUiStore()
 const { columnWidths } = storeToRefs(ui)
-const { hoveredSha } = storeToRefs(selection)
+const { hoveredSha, branchCreation } = storeToRefs(selection)
 
 function refDisplayLabel(ref: Ref): string {
   return ref.label || formatRefLabel(ref.name, ref.type)
@@ -111,7 +115,14 @@ const isHovered = computed(() => hoveredSha.value === props.commit.sha)
 
 const commitIndex = computed(() => repo.commits.findIndex((c) => c.sha === props.commit.sha))
 
+const isCreatingBranchHere = computed(() => {
+  const creation = branchCreation.value
+  if (!creation || creation.display === PENDING_BRANCH_ROW) return false
+  return creation.display === props.commit.sha
+})
+
 const previewBranch = computed(() => {
+  if (isCreatingBranchHere.value) return null
   if (!isHovered.value || hasBranchRef.value) return null
   const index = commitIndex.value
   if (index < 0) return null
@@ -119,6 +130,10 @@ const previewBranch = computed(() => {
 })
 
 const isCurrentBranchRef = computed(() => primaryRef.value?.ref.isHead === true)
+
+const branchInputRef = useTemplateRef('branchInputRef')
+
+useBranchInputFocus(isCreatingBranchHere, branchInputRef)
 
 const chipColor = computed(() => props.graphNode?.color ?? 'var(--color-fg-muted)')
 
@@ -153,7 +168,7 @@ const connectorStyle = computed((): Record<string, string> | null => {
 })
 
 const showPreviewConnector = computed(
-  () => props.graphNode != null && previewBranch.value != null,
+  () => props.graphNode != null && (previewBranch.value != null || isCreatingBranchHere.value),
 )
 
 const previewConnectorStyle = computed((): Record<string, string> | null => {
@@ -170,28 +185,65 @@ const previewConnectorStyle = computed((): Record<string, string> | null => {
   }
 })
 
-const menu = computed<MenuItem[]>(() => [
-  { label: 'Checkout Commit', icon: Check, onSelect: () => act('checkout') },
-  { label: 'Create Branch Here', icon: GitBranch, onSelect: () => act('create-branch') },
-  { label: 'Tag Commit', icon: TagIcon, onSelect: () => act('tag') },
-  { separator: true },
-  { label: 'Cherry Pick', icon: Cherry, onSelect: () => act('cherry-pick') },
-  { label: 'Merge into Current', icon: GitMerge, onSelect: () => act('merge') },
-  { label: 'Rebase From Here', icon: Spline, onSelect: () => act('rebase-from-here') },
-  { label: 'Interactive Rebase From Here', icon: ListTree, onSelect: () => interactiveRebase.open(props.commit.sha) },
-  {
-    label: 'Reset Current Branch to Here',
-    icon: RotateCcw,
-    children: [
-      { label: 'Soft', shortcut: '--soft', onSelect: () => act('reset-soft') },
-      { label: 'Mixed', shortcut: '--mixed', onSelect: () => act('reset-mixed') },
-      { label: 'Hard', shortcut: '--hard', danger: true, onSelect: () => act('reset-hard') },
-    ],
-  },
-  { separator: true },
-  { label: 'Copy SHA', icon: Copy, shortcut: '⌘C', onSelect: copySha },
-  { label: 'Open on GitHub', icon: ExternalLink, onSelect: openOnGithub },
-])
+const menu = computed<MenuItem[]>(() => {
+  const items: MenuItem[] = [
+    { label: 'Checkout Commit', icon: Check, onSelect: () => act('checkout') },
+    { label: 'Create Branch Here', icon: GitBranch, onSelect: () => beginBranchHere() },
+  ]
+
+  if (ui.isAdvanced) {
+    items.push({ label: 'Tag Commit', icon: TagIcon, onSelect: () => act('tag') })
+  }
+
+  items.push({ separator: true })
+
+  if (ui.isAdvanced) {
+    items.push({ label: 'Cherry Pick', icon: Cherry, onSelect: () => act('cherry-pick') })
+    items.push({ label: 'Revert Commit', icon: Undo2, onSelect: () => act('revert') })
+  }
+
+  items.push({ label: 'Merge into Current', icon: GitMerge, onSelect: () => act('merge') })
+
+  if (ui.isAdvanced) {
+    items.push(
+      { label: 'Rebase From Here', icon: Spline, onSelect: () => act('rebase-from-here') },
+      {
+        label: 'Interactive Rebase From Here',
+        icon: ListTree,
+        onSelect: () => interactiveRebase.open(props.commit.sha),
+      },
+    )
+  }
+
+  items.push(
+    {
+      label: 'Reset Current Branch to Here',
+      icon: RotateCcw,
+      children: [
+        { label: 'Soft', shortcut: '--soft', onSelect: () => act('reset-soft') },
+        { label: 'Mixed', shortcut: '--mixed', onSelect: () => act('reset-mixed') },
+        { label: 'Hard', shortcut: '--hard', danger: true, onSelect: () => act('reset-hard') },
+      ],
+    },
+    { separator: true },
+    { label: 'Copy SHA', icon: Copy, shortcut: '⌘C', onSelect: copySha },
+    { label: 'Open on GitHub', icon: ExternalLink, onSelect: openOnGithub },
+  )
+
+  return items
+})
+
+function beginBranchHere(): void {
+  void repo.beginCreateBranch({ startPoint: props.commit.sha, sha: props.commit.sha })
+}
+
+function onBranchNameSubmit(name: string): void {
+  void repo.submitBranchCreation(name)
+}
+
+function onBranchNameCancel(): void {
+  selection.cancelBranchCreation()
+}
 
 function act(kind: Parameters<typeof repo.runAction>[0]['kind']): void {
   void repo.runAction({ kind, target: props.commit.shortSha })
@@ -222,15 +274,29 @@ function openOnGithub(): void {
         :style="{ width: `${columnWidths.refs}px` }"
       >
         <RefChip
-          v-if="primaryRef && !hasBranchRef"
+          v-if="primaryRef && !hasBranchRef && !isCreatingBranchHere"
           class="shrink-0 overflow-hidden"
           :ref-data="primaryRef.ref"
           :color="chipColor"
           :has-local="primaryRef.hasLocal"
           :has-remote="primaryRef.hasRemote"
         />
-        <div v-if="previewBranch" class="relative min-w-0 flex-1">
-          <RefChip
+        <div v-if="isCreatingBranchHere" class="relative min-w-0 flex-1">
+          <BranchNameChipInput
+            ref="branchInputRef"
+            class="min-w-0 overflow-hidden"
+            :color="chipColor"
+            @submit="onBranchNameSubmit"
+            @cancel="onBranchNameCancel"
+          />
+          <div
+            v-if="previewConnectorStyle"
+            class="pointer-events-none absolute top-1/2 z-10 h-[2px] -translate-y-1/2 opacity-90"
+            :style="{ left: '100%', ...previewConnectorStyle }"
+          />
+        </div>
+        <div v-else-if="previewBranch" class="relative min-w-0 flex-1">
+          <BranchRefChip
             class="min-w-0 overflow-hidden"
             :ref-data="previewBranch.ref"
             :color="chipColor"
@@ -244,9 +310,9 @@ function openOnGithub(): void {
             :style="{ left: '100%', ...previewConnectorStyle }"
           />
         </div>
-        <template v-if="hasBranchRef && primaryRef">
+        <template v-if="hasBranchRef && primaryRef && !isCreatingBranchHere">
           <div class="relative min-w-0 flex-1">
-            <RefChip
+            <BranchRefChip
               class="min-w-0 overflow-hidden"
               :ref-data="primaryRef.ref"
               :color="chipColor"
@@ -270,7 +336,7 @@ function openOnGithub(): void {
             v-if="hiddenCount"
             class="pointer-events-none absolute top-full left-1 z-50 mt-1 hidden min-w-max flex-col gap-1 rounded-md border border-[var(--color-border-strong)] bg-[var(--color-elevated)] px-2 py-1.5 shadow-lg shadow-black/40 group-hover/refs:flex"
           >
-            <RefChip
+            <BranchRefChip
               v-for="(entry, i) in hiddenRefs"
               :key="i"
               :ref-data="entry.ref"

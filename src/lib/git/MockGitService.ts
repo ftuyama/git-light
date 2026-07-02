@@ -1,4 +1,4 @@
-import type { CommitPageInfo, CommitPageRequest, ConflictRequest, ConflictResult, DiffRequest, DiffResult, RecentRepository, RepoChangeEvent, SearchQuery, SearchResults, SnapshotScope } from '@shared/git/models'
+import type { BlameRequest, BlameResult, CommitPageInfo, CommitPageRequest, ConflictRequest, ConflictResult, DiffRequest, DiffResult, FileHistoryRequest, FileHistoryResult, RecentRepository, RepoChangeEvent, SearchQuery, SearchResults, SnapshotScope } from '@shared/git/models'
 import type { RebaseCommitsRequest, RebaseCommitsResult } from '@shared/git/rebase'
 import { isJournalableAction, journalLabel } from '@shared/git/undoPolicy'
 import type { ActionResult, GitAction, GitActionKind, RepositoryData } from '@/types/git'
@@ -29,7 +29,7 @@ const ACTION_MESSAGES: Partial<Record<GitActionKind, (target?: string) => string
   refresh: () => 'Refreshed repository',
   'open-terminal': () => 'Opened terminal',
   checkout: (t) => `Checked out ${t ?? 'branch'}`,
-  'create-branch': (t) => `Created branch ${t ?? ''}`.trim(),
+  'create-branch': (t) => `Created and checked out ${t ?? ''}`.trim(),
   'delete-branch': (t) => `Deleted branch ${t ?? ''}`.trim(),
   'rename-branch': (t) => `Renamed branch ${t ?? ''}`.trim(),
   'compare-branches': () => 'Comparing branches',
@@ -44,6 +44,12 @@ const ACTION_MESSAGES: Partial<Record<GitActionKind, (target?: string) => string
   commit: () => 'Created commit',
   'commit-and-push': () => 'Committed and pushed',
   'commit-and-force-push': () => 'Committed and force-pushed',
+  'restore-file': (t) => `Restored ${t ?? 'file'}`,
+  'worktree-add': () => 'Added worktree',
+  'worktree-remove': (t) => `Removed worktree at ${t ?? ''}`.trim(),
+  'fetch-all': () => 'Fetched all remotes',
+  prune: () => 'Pruned stale remote branches',
+  'push-tags': () => 'Pushed tags',
 }
 
 /**
@@ -133,6 +139,39 @@ export class MockGitService implements GitService {
       hunks: [],
       additions: 0,
       deletions: 0,
+    }
+  }
+
+  async getBlame(request: BlameRequest): Promise<BlameResult> {
+    const data = await this.load()
+    const commit = data.commits[0]
+    return {
+      path: request.path,
+      lines: [
+        {
+          lineNumber: 1,
+          commitSha: commit?.sha ?? '0000000',
+          shortSha: commit?.shortSha ?? '0000000',
+          author: commit?.author.name ?? 'Unknown',
+          authorEmail: commit?.author.email ?? '',
+          authorTime: Math.floor((commit?.date.getTime() ?? Date.now()) / 1000),
+          content: '// mock blame line',
+        },
+      ],
+    }
+  }
+
+  async getFileHistory(request: FileHistoryRequest): Promise<FileHistoryResult> {
+    const data = await this.load()
+    return {
+      path: request.path,
+      entries: data.commits.slice(0, request.limit ?? 10).map((c) => ({
+        sha: c.sha,
+        shortSha: c.shortSha,
+        subject: c.subject,
+        author: c.author.name,
+        date: c.date.toISOString(),
+      })),
     }
   }
 

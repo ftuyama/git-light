@@ -136,6 +136,13 @@ async function routeAction(action: GitAction, ctx: ActionContext): Promise<strin
     case 'discard-all':
       await gitCli.run(['checkout', '--', '.'], { cwd, signal })
       return 'Discarded all unstaged changes'
+    case 'restore-file': {
+      if (!target) throw new GitError('Unknown', 'No file specified.')
+      const sha = String(meta.sha ?? 'HEAD')
+      const safePath = assertPathInsideRepo(cwd, target)
+      await gitCli.run(['restore', '--source', sha, '--', safePath], { cwd, signal })
+      return `Restored ${target} from ${sha.slice(0, 7)}`
+    }
 
     case 'stage-patch':
     case 'unstage-patch': {
@@ -150,6 +157,18 @@ async function routeAction(action: GitAction, ctx: ActionContext): Promise<strin
       if (action.kind === 'unstage-patch') applyArgs.push('-R')
       await gitCli.run(applyArgs, { cwd, signal, input: patch })
       return action.kind === 'unstage-patch' ? `Unstaged hunk in ${target}` : `Staged hunk in ${target}`
+    }
+
+    case 'discard-patch': {
+      if (!target) throw new GitError('Unknown', 'No file specified.')
+      const patch = typeof meta.patch === 'string' ? meta.patch : ''
+      if (!patch.trim()) throw new GitError('Unknown', 'No patch specified.')
+      const safePath = assertPathInsideRepo(cwd, target)
+      if (meta.intentToAdd) {
+        await gitCli.run(['add', '-N', '--', safePath], { cwd, signal, allowFailure: true })
+      }
+      await gitCli.run(['apply', '-R'], { cwd, signal, input: patch })
+      return `Discarded hunk in ${target}`
     }
 
     case 'resolve-conflict-ours':
@@ -236,8 +255,12 @@ async function routeAction(action: GitAction, ctx: ActionContext): Promise<strin
       const name = String(meta.name ?? target ?? '').trim()
       if (!name) throw new GitError('Unknown', 'Branch name is required.')
       const start = typeof meta.startPoint === 'string' ? meta.startPoint : undefined
-      await gitCli.run(start ? ['branch', name, start] : ['branch', name], { cwd, signal })
-      return `Created branch ${name}`
+      if (start) {
+        await gitCli.run(['checkout', '-b', name, start], { cwd, signal })
+      } else {
+        await gitCli.run(['checkout', '-b', name], { cwd, signal })
+      }
+      return `Created and checked out ${name}`
     }
     case 'rename-branch': {
       const newName = String(meta.newName ?? meta.name ?? '').trim()
@@ -269,6 +292,21 @@ async function routeAction(action: GitAction, ctx: ActionContext): Promise<strin
       const count = stdout.split('\n').filter(Boolean).length
       return `${count} commits in ${meta.other} not in ${target}`
     }
+
+    case 'worktree-add': {
+      const wtPath = String(meta.path ?? '')
+      if (!wtPath) throw new GitError('Unknown', 'Worktree path required.')
+      const branch = meta.branch ? String(meta.branch) : undefined
+      const args = branch
+        ? ['worktree', 'add', wtPath, branch]
+        : ['worktree', 'add', wtPath]
+      await gitCli.run(args, { cwd, signal })
+      return `Added worktree at ${wtPath}`
+    }
+    case 'worktree-remove':
+      if (!target) throw new GitError('Unknown', 'No worktree path specified.')
+      await gitCli.run(['worktree', 'remove', target], { cwd, signal })
+      return `Removed worktree at ${target}`
 
     case 'merge': {
       if (!target) throw new GitError('Unknown', 'No branch to merge.')

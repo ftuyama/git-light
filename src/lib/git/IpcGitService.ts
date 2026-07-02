@@ -1,11 +1,15 @@
 import { GitError } from '@shared/git/errors'
 import type {
+  BlameRequest,
+  BlameResult,
   CommitPageInfo,
   CommitPageRequest,
   ConflictRequest,
   ConflictResult,
   DiffRequest,
   DiffResult,
+  FileHistoryRequest,
+  FileHistoryResult,
   OperationProgress,
   RecentRepository,
   RepoChangeEvent,
@@ -140,6 +144,14 @@ export class IpcGitService implements GitService {
 
   async getDiff(request: DiffRequest): Promise<DiffResult> {
     return window.electron.git.diff(request)
+  }
+
+  async getBlame(request: BlameRequest): Promise<BlameResult> {
+    return window.electron.git.blame(request)
+  }
+
+  async getFileHistory(request: FileHistoryRequest): Promise<FileHistoryResult> {
+    return window.electron.git.fileHistory(request)
   }
 
   async getConflict(request: ConflictRequest): Promise<ConflictResult> {

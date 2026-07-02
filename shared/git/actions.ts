@@ -69,8 +69,13 @@ export type GitActionKind =
   | 'unstage-all'
   | 'discard-file'
   | 'discard-all'
+  | 'discard-patch'
+  | 'restore-file'
   | 'stage-patch'
   | 'unstage-patch'
+  // Worktrees
+  | 'worktree-add'
+  | 'worktree-remove'
   // Merge conflicts
   | 'resolve-conflict-ours'
   | 'resolve-conflict-theirs'

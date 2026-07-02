@@ -1,20 +1,9 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { storeToRefs } from 'pinia'
-import {
-  ArrowDown,
-  ArrowUp,
-  Check,
-  Cloud,
-  GitBranch,
-  GitCompare,
-  Link,
-  Pencil,
-  Star,
-  Trash2,
-} from '@lucide/vue'
+import { ArrowDown, ArrowUp, Check, Cloud, Star } from '@lucide/vue'
 import ContextMenu from '@/components/ui/ContextMenu.vue'
-import type { MenuItem } from '@/components/ui/menu'
+import { branchMenuItems } from './branchMenuItems'
 import { cn, laneColor } from '@/lib/utils'
 import type { Branch } from '@/types/git'
 import { useRepositoryStore } from '@/stores/repository'
@@ -96,50 +85,7 @@ const displayName = computed(() => {
   return props.branch.name.split('/').slice(1).join('/')
 })
 
-const menu = computed<MenuItem[]>(() => {
-  if (isRemote.value) {
-    return [
-      {
-        label: 'Checkout Local Branch',
-        icon: Check,
-        onSelect: () => repo.checkoutRemoteBranch(props.branch),
-      },
-      {
-        label: 'Delete Remote Branch',
-        icon: Trash2,
-        danger: true,
-        onSelect: () => void repo.runAction({ kind: 'delete-remote-branch', target: props.branch.name }),
-      },
-    ]
-  }
-
-  return [
-    { label: 'Checkout', icon: Check, onSelect: () => repo.checkoutBranch(props.branch.name) },
-    { label: 'Create Branch Here', icon: GitBranch, onSelect: () => repo.createBranch(props.branch.name) },
-    { separator: true },
-    { label: 'Rename', icon: Pencil, onSelect: () => repo.renameBranch(props.branch.name) },
-    { label: 'Set Upstream', icon: Link, onSelect: () => repo.setUpstream(props.branch.name) },
-    { label: 'Compare with Current', icon: GitCompare, onSelect: () =>
-      void repo.runAction({
-        kind: 'compare-branches',
-        target: props.branch.name,
-        meta: { other: repo.currentBranch?.name },
-      }),
-    },
-    {
-      label: props.branch.isFavorite ? 'Unpin' : 'Pin to Favorites',
-      icon: Star,
-      onSelect: () => repo.toggleFavorite(props.branch.id),
-    },
-    { separator: true },
-    {
-      label: 'Delete',
-      icon: Trash2,
-      danger: true,
-      onSelect: () => repo.deleteBranch(props.branch.name),
-    },
-  ]
-})
+const menu = computed(() => branchMenuItems(repo, props.branch))
 </script>
 
 <template>

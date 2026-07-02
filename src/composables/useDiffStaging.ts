@@ -32,6 +32,13 @@ export function useDiffStaging(diff: Ref<DiffResult>) {
       Boolean(diffStore.selectedFilePath),
   )
   const canPartialStage = computed(() => canStage.value || canUnstage.value)
+  const canDiscard = computed(
+    () =>
+      !selection.selectedSha &&
+      !selection.isCompareMode &&
+      !viewingStaged.value &&
+      Boolean(diffStore.selectedFilePath),
+  )
 
   function hunkAt(index: number): DiffHunk | undefined {
     return diff.value.hunks[index]
@@ -105,12 +112,31 @@ export function useDiffStaging(diff: Ref<DiffResult>) {
     )
   }
 
+  async function discardHunk(hunkIndex: number): Promise<void> {
+    const path = diffStore.selectedFilePath
+    const hunk = hunkAt(hunkIndex)
+    if (!path || !hunk) return
+    const file = repo.workingTree.find(
+      (f) => f.path === path && f.staged === viewingStaged.value,
+    )
+    await repo.runAction({
+      kind: 'discard-patch',
+      target: path,
+      meta: {
+        patch: buildPatchFromHunk(path, hunk, diff.value.oldPath),
+        intentToAdd: file?.status === 'untracked',
+      },
+    })
+  }
+
   return {
     canStage,
     canUnstage,
     canPartialStage,
+    canDiscard,
     stageHunk,
     unstageHunk,
+    discardHunk,
     stageLines,
     unstageLines,
   }

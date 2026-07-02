@@ -1,10 +1,14 @@
 import type {
+  BlameRequest,
+  BlameResult,
   CommitPageInfo,
   CommitPageRequest,
   ConflictRequest,
   ConflictResult,
   DiffRequest,
   DiffResult,
+  FileHistoryRequest,
+  FileHistoryResult,
   OperationProgress,
   RecentRepository,
   RepoChangeEvent,
@@ -45,6 +49,8 @@ export interface GitService {
     page: CommitPageInfo
   }>
   getDiff(request: DiffRequest): Promise<DiffResult>
+  getBlame(request: BlameRequest): Promise<BlameResult>
+  getFileHistory(request: FileHistoryRequest): Promise<FileHistoryResult>
   getConflict(request: ConflictRequest): Promise<ConflictResult>
   getCommitFiles(sha: string): Promise<RepositoryData['workingTree']>
   getCompareFiles(fromSha: string, toSha: string): Promise<RepositoryData['workingTree']>

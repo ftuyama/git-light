@@ -2,6 +2,7 @@ import type { CommitPageInfo, OperationProgress, SnapshotOptions, SnapshotScope 
 import type { RepositoryData } from '@/types/git'
 import { gitService } from '@/lib/git'
 import { useRepoDiffStore } from '@/stores/repoDiff'
+import { useSelectionStore } from '@/stores/selection'
 import { useToastStore } from '@/stores/toast'
 import { useUiStore } from '@/stores/ui'
 import { syncBranchLaneColors } from '@/lib/graph/syncBranchLaneColors'
@@ -117,6 +118,7 @@ export const lifecycleActions = {
     this.workingTree = []
     this.layout = EMPTY_LAYOUT
     useRepoDiffStore().resetOnRepoClose()
+    useSelectionStore().cancelBranchCreation()
     resetDiffReloadScheduler()
     this.screen = 'startup'
     this.recentRepos = await gitService.recentRepos()
@@ -143,10 +145,12 @@ export const lifecycleActions = {
           this.commits = data.commits
           this.commitPage = gitService.commitPage ?? { ...EMPTY_PAGE }
           this.layout = buildGraphLayout(this.commits, this.headCommitIndex)
-          this.branches = syncBranchLaneColors(this.branches, this.commits, this.layout)
         }
         if (scopes.includes('branches')) {
-          this.branches = syncBranchLaneColors(data.branches, this.commits, this.layout)
+          this.branches = data.branches
+        }
+        if (scopes.includes('commits') || scopes.includes('branches')) {
+          this.branches = syncBranchLaneColors(this.branches, this.commits, this.layout)
         }
         if (scopes.includes('tags')) this.tags = data.tags
         if (scopes.includes('stashes')) this.stashes = data.stashes

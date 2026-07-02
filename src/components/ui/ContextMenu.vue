@@ -15,6 +15,7 @@ import {
   MENU_CONTENT_CLASS,
   MENU_ITEM_CLASS,
   MENU_ITEM_DANGER_CLASS,
+  MENU_SUB_CONTENT_CLASS,
   type MenuItem,
 } from './menu'
 
@@ -22,7 +23,7 @@ defineProps<{ items: MenuItem[] }>()
 </script>
 
 <template>
-  <ContextMenuRoot>
+  <ContextMenuRoot :modal="false">
     <ContextMenuTrigger as-child>
       <slot />
     </ContextMenuTrigger>
@@ -43,7 +44,7 @@ defineProps<{ items: MenuItem[] }>()
               <ChevronRight :size="14" class="text-[var(--color-fg-subtle)]" />
             </ContextMenuSubTrigger>
             <ContextMenuPortal>
-              <ContextMenuSubContent :class="MENU_CONTENT_CLASS" :side-offset="2">
+              <ContextMenuSubContent :class="MENU_SUB_CONTENT_CLASS">
                 <ContextMenuItem
                   v-for="(child, childIndex) in item.children"
                   :key="childIndex"

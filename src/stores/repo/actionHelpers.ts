@@ -8,7 +8,12 @@ export function describeAction(action: GitAction): string {
 }
 
 export function isBranchSwitchAction(kind: GitAction['kind']): boolean {
-  return kind === 'checkout' || kind === 'checkout-commit' || kind === 'checkout-tag'
+  return (
+    kind === 'checkout' ||
+    kind === 'checkout-commit' ||
+    kind === 'checkout-tag' ||
+    kind === 'create-branch'
+  )
 }
 
 export function labelForOperation(action: GitAction): string | null {
@@ -39,6 +44,8 @@ export function labelForOperation(action: GitAction): string | null {
       return 'Checking out commit...'
     case 'checkout-tag':
       return `Checking out ${action.target ?? 'tag'}...`
+    case 'create-branch':
+      return `Switching to ${String(action.meta?.name ?? 'branch')}...`
     default:
       return null
   }

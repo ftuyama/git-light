@@ -1,7 +1,7 @@
 {
   "name": "git-light",
   "version": "0.1.6",
-  "description": "GitKraken-style Git client UI shell built with Electron, Vue 3, and TypeScript.",
+  "description": "Desktop Git client built with Electron, Vue 3, and TypeScript.",
   "author": "Git Light",
   "license": "MIT",
   "productName": "Git Light",
@@ -24,6 +24,8 @@
     "test:watch": "vitest",
     "dist": "npm run build && electron-builder --publish never",
     "dist:mac": "npm run build && node scripts/dist-mac.mjs",
+    "dist:win": "npm run build && electron-builder --win --publish never",
+    "dist:linux": "npm run build && electron-builder --linux --publish never",
     "verify:mac-signing": "node scripts/verify-mac-signing.mjs",
     "dist:analyze": "node scripts/dist-analyze.mjs"
   },
@@ -53,6 +55,22 @@
       "entitlementsInherit": "build/entitlements.mac.plist",
       "gatekeeperAssess": false
     },
+    "win": {
+      "target": "nsis",
+      "icon": "build/icon.png"
+    },
+    "linux": {
+      "target": [
+        "AppImage",
+        "deb"
+      ],
+      "icon": "build/icon.png",
+      "category": "Development"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
+    },
     "dmg": {
       "title": "Git Light ${version}"
     }
@@ -74,7 +92,7 @@
     "highlight.js": "^11.11.1",
     "motion-v": "^2.3.0",
     "pinia": "^3.0.4",
-    "reka-ui": "^2.10.0",
+    "reka-ui": "^2.10.1",
     "splitpanes": "^4.1.2",
     "tailwind-merge": "^3.6.0",
     "tailwindcss": "^4.3.1",

@@ -15,7 +15,7 @@ export const THEMES: ThemeDefinition[] = [
   {
     id: 'default',
     label: 'Default',
-    description: 'GitKraken-inspired dark palette with blue accents.',
+    description: 'Dark palette with blue accents.',
     swatches: ['#12151a', '#1b2028', '#6e9fff', '#e6edf3'],
   },
   {

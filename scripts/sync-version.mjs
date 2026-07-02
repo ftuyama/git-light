@@ -7,6 +7,7 @@
  * Targets:
  * - package-lock.json — top-level "version" and packages[""].version
  * - docs/index.html — vX.Y.Z markers (hero badge and footer)
+ * - docs/llms.txt — **Version:** line in Key facts
  *
  * The app reads package.json at build time (shared/app/metadata.ts); no sync needed there.
  *
@@ -24,6 +25,7 @@ const checkOnly = process.argv.includes('--check')
 const packageJsonPath = join(root, 'package.json')
 const packageLockPath = join(root, 'package-lock.json')
 const docsPath = join(root, 'docs/index.html')
+const llmsPath = join(root, 'docs/llms.txt')
 
 const packageJson = JSON.parse(readFileSync(packageJsonPath, 'utf8'))
 const version = packageJson.version
@@ -98,6 +100,24 @@ if (markers.length === 0) {
 
   syncTarget('docs/index.html', docsPath, () => {
     writeFileSync(docsPath, docs.replace(markerPattern, `v${version}`))
+  })
+}
+
+// docs/llms.txt
+const llmsVersionPattern = /^- \*\*Version:\*\* \d+\.\d+\.\d+$/m
+const llms = readFileSync(llmsPath, 'utf8')
+const llmsVersionMatch = llms.match(llmsVersionPattern)
+
+if (!llmsVersionMatch) {
+  console.warn('No **Version:** line found in docs/llms.txt')
+} else {
+  const actual = llmsVersionMatch[0].replace(/^- \*\*Version:\*\* /, '')
+  if (actual !== version) {
+    mismatches.push(`docs/llms.txt (**Version:**): expected ${version}`)
+  }
+
+  syncTarget('docs/llms.txt', llmsPath, () => {
+    writeFileSync(llmsPath, llms.replace(llmsVersionPattern, `- **Version:** ${version}`))
   })
 }
 

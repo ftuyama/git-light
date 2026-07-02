@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { inject, reactive } from 'vue'
-import { ChevronRight, Folder, Inbox, Star, Tag as TagIcon, TreePine } from '@lucide/vue'
+import { ChevronRight, Folder, FolderOpen, Inbox, Star, Tag as TagIcon, Trash2, TreePine } from '@lucide/vue'
 import ContextMenu from '@/components/ui/ContextMenu.vue'
 import type { MenuItem } from '@/components/ui/menu'
 import BranchRow from './BranchRow.vue'
@@ -41,6 +41,25 @@ function stashMenu(stash: Stash): MenuItem[] {
     { label: 'Pop', onSelect: () => void repo.runAction({ kind: 'pop-stash', target: ref }) },
     { label: 'Drop', danger: true, onSelect: () => void repo.runAction({ kind: 'drop-stash', target: ref }) },
   ]
+}
+
+function worktreeMenu(worktree: { path: string; isMain: boolean }): MenuItem[] {
+  const items: MenuItem[] = [
+    {
+      label: 'Reveal in Finder',
+      icon: FolderOpen,
+      onSelect: () => void repo.runAction({ kind: 'reveal-in-finder', target: worktree.path }),
+    },
+  ]
+  if (!worktree.isMain) {
+    items.push({
+      label: 'Remove Worktree',
+      icon: Trash2,
+      danger: true,
+      onSelect: () => void repo.removeWorktree(worktree.path),
+    })
+  }
+  return items
 }
 </script>
 
@@ -132,16 +151,26 @@ function stashMenu(stash: Stash): MenuItem[] {
   </template>
 
   <template v-else-if="section === 'worktrees'">
-    <div
+    <ContextMenu
       v-for="worktree in repo.worktrees"
       :key="worktree.id"
-      class="flex h-8 items-center gap-2 rounded-md pr-2 pl-6 text-[13px] text-[var(--color-fg-muted)] hover:bg-[var(--color-hover)]"
+      :items="worktreeMenu(worktree)"
     >
-      <TreePine :size="13" class="text-[var(--color-success)]" />
-      <div class="min-w-0 flex-1">
-        <div class="truncate">{{ worktree.path }}</div>
-        <div class="truncate text-[10px] text-[var(--color-fg-subtle)]">{{ worktree.branch }}</div>
+      <div
+        class="flex h-8 cursor-pointer items-center gap-2 rounded-md pr-2 pl-6 text-[13px] text-[var(--color-fg-muted)] hover:bg-[var(--color-hover)]"
+      >
+        <TreePine :size="13" class="text-[var(--color-success)]" />
+        <div class="min-w-0 flex-1">
+          <div class="truncate">{{ worktree.path }}</div>
+          <div class="truncate text-[10px] text-[var(--color-fg-subtle)]">{{ worktree.branch }}</div>
+        </div>
       </div>
-    </div>
+    </ContextMenu>
+    <button
+      class="mx-2 mt-1 w-[calc(100%-1rem)] rounded-md px-2 py-1 text-left text-xs text-[var(--color-accent)] hover:bg-[var(--color-hover)]"
+      @click="repo.addWorktree()"
+    >
+      + Add worktree
+    </button>
   </template>
 </template>

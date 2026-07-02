@@ -2,10 +2,16 @@
 import { computed } from 'vue'
 import { formatDistanceToNow } from 'date-fns'
 import { FolderGit2, FolderOpen, Loader2, Trash2 } from '@lucide/vue'
+import { storeToRefs } from 'pinia'
 import iconUrl from '@/assets/icon.png'
+import AppSettingsMenu from '@/features/settings/AppSettingsMenu.vue'
+import UiModePicker from '@/features/settings/UiModePicker.vue'
 import { useRepositoryStore } from '@/stores/repository'
+import { useUiStore } from '@/stores/ui'
 
 const repo = useRepositoryStore()
+const ui = useUiStore()
+const { uiMode } = storeToRefs(ui)
 
 const sortedRecent = computed(() =>
   [...repo.recentRepos].sort((a, b) => b.lastOpened - a.lastOpened),
@@ -23,8 +29,12 @@ function removeRecent(path: string, event: Event): void {
 
 <template>
   <div
-    class="flex h-screen w-screen flex-col items-center justify-center bg-[var(--color-app)] px-6"
+    class="relative flex h-screen w-screen flex-col items-center justify-center bg-[var(--color-app)] px-6"
   >
+    <div class="absolute top-3 right-3">
+      <AppSettingsMenu />
+    </div>
+
     <div class="w-full max-w-lg">
       <div class="mb-10 text-center">
         <img
@@ -39,6 +49,16 @@ function removeRecent(path: string, event: Event): void {
           Open a local repository to browse history, branches, and changes.
         </p>
       </div>
+
+      <section class="mb-6">
+        <h2 class="mb-1 text-xs font-medium uppercase tracking-wider text-[var(--color-fg-subtle)]">
+          Interface
+        </h2>
+        <p class="mb-3 text-xs text-[var(--color-fg-muted)]">
+          Choose how much of Git Light to show. You can change this later in settings.
+        </p>
+        <UiModePicker :model-value="uiMode" compact />
+      </section>
 
       <button
         class="focus-ring flex w-full items-center justify-center gap-2 rounded-lg bg-[var(--color-accent)] px-4 py-3 text-sm font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-60"

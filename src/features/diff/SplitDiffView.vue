@@ -4,10 +4,12 @@ import { useMemoize } from '@vueuse/core'
 import type { DiffResult } from '@shared/git/models'
 import { useDiffStaging } from '@/composables/useDiffStaging'
 import { buildSplitRows, type SplitHunkRow, type SplitLineRow } from '@/lib/diff/buildSplitRows'
+import { collectSplitLineIndices } from '@/lib/diff/pairedLineIndices'
 import { lineBgClass, lineTextClass } from '@/lib/diff/diffLineStyles'
 import { highlightLine } from '@/lib/diff/highlight'
 import { useDiffLineVirtualizer } from './composables/useDiffLineVirtualizer'
 import DiffStageButton from './DiffStageButton.vue'
+import DiffDiscardButton from './DiffDiscardButton.vue'
 
 const props = defineProps<{
   diff: DiffResult
@@ -20,7 +22,7 @@ const rightPane = ref<HTMLElement | null>(null)
 let syncing = false
 
 const diffRef = toRef(props, 'diff')
-const { canStage, canPartialStage, stageHunk, unstageHunk, stageLines, unstageLines } =
+const { canStage, canPartialStage, canDiscard, stageHunk, unstageHunk, discardHunk, stageLines, unstageLines } =
   useDiffStaging(diffRef)
 
 const highlight = useMemoize((content: string, language: string) =>
@@ -52,8 +54,14 @@ function onHunkAction(hunkIndex: number): void {
   void (canStage.value ? stageHunk(hunkIndex) : unstageHunk(hunkIndex))
 }
 
-function onLineAction(hunkIndex: number, lineIndex: number): void {
-  void (canStage.value ? stageLines(hunkIndex, [lineIndex]) : unstageLines(hunkIndex, [lineIndex]))
+function onDiscardHunk(hunkIndex: number): void {
+  void discardHunk(hunkIndex)
+}
+
+function onLineAction(hunkIndex: number, leftLineIndex?: number, rightLineIndex?: number): void {
+  const indices = collectSplitLineIndices(leftLineIndex, rightLineIndex)
+  if (indices.length === 0) return
+  void (canStage.value ? stageLines(hunkIndex, indices) : unstageLines(hunkIndex, indices))
 }
 
 function hunkAt(index: number): SplitHunkRow | null {
@@ -64,6 +72,18 @@ function hunkAt(index: number): SplitHunkRow | null {
 function lineAt(index: number): SplitLineRow | null {
   const row = rows.value[index]
   return row?.kind === 'line' ? row : null
+}
+
+function isStageableLineRow(row: SplitLineRow): boolean {
+  return row.left.type === 'del' || row.right.type === 'add'
+}
+
+function showLineButtonOnLeft(row: SplitLineRow): boolean {
+  return canPartialStage.value && isStageableLineRow(row) && row.left.type === 'del' && row.right.type === 'empty'
+}
+
+function showLineButtonOnRight(row: SplitLineRow): boolean {
+  return canPartialStage.value && isStageableLineRow(row) && row.right.type === 'add'
 }
 </script>
 
@@ -82,12 +102,22 @@ function lineAt(index: number): SplitLineRow | null {
             :style="{ height: `${item.size}px`, transform: `translateY(${item.start}px)` }"
           >
             <span class="min-w-0 flex-1 whitespace-pre-wrap break-all py-px">{{ hunkAt(item.index)!.header }}</span>
-            <DiffStageButton
-              v-if="canPartialStage"
-              :mode="canStage ? 'stage' : 'unstage'"
-              scope="hunk"
-              @action="onHunkAction(hunkAt(item.index)!.hunkIndex)"
-            />
+            <div
+              v-if="canPartialStage || canDiscard"
+              class="flex shrink-0 items-center gap-1"
+            >
+              <DiffDiscardButton
+                v-if="canDiscard"
+                scope="hunk"
+                @action="onDiscardHunk(hunkAt(item.index)!.hunkIndex)"
+              />
+              <DiffStageButton
+                v-if="canPartialStage"
+                :mode="canStage ? 'stage' : 'unstage'"
+                scope="hunk"
+                @action="onHunkAction(hunkAt(item.index)!.hunkIndex)"
+              />
+            </div>
           </div>
           <div
             v-else-if="lineAt(item.index)"
@@ -108,10 +138,14 @@ function lineAt(index: number): SplitLineRow | null {
               v-html="highlight(lineAt(item.index)!.left.content, diff.language)"
             />
             <DiffStageButton
-              v-if="lineAt(item.index)!.left.type === 'del' && lineAt(item.index)!.leftLineIndex != null && canPartialStage"
+              v-if="showLineButtonOnLeft(lineAt(item.index)!)"
               :mode="canStage ? 'stage' : 'unstage'"
               scope="line"
-              @action="onLineAction(lineAt(item.index)!.hunkIndex, lineAt(item.index)!.leftLineIndex!)"
+              @action="onLineAction(
+                lineAt(item.index)!.hunkIndex,
+                lineAt(item.index)!.leftLineIndex,
+                lineAt(item.index)!.rightLineIndex,
+              )"
             />
           </div>
         </template>
@@ -127,10 +161,26 @@ function lineAt(index: number): SplitLineRow | null {
         <template v-for="item in virtualItems" :key="`right-${rows[item.index].key}`">
           <div
             v-if="hunkAt(item.index)"
-            class="diff-row absolute right-0 left-0 flex bg-[var(--color-info)]/10 px-2 font-mono text-[11px] leading-5 font-medium text-[var(--color-info)]"
+            class="diff-row group/diff-row absolute right-0 left-0 flex items-center bg-[var(--color-info)]/10 px-2 font-mono text-[11px] leading-5 font-medium text-[var(--color-info)]"
             :style="{ height: `${item.size}px`, transform: `translateY(${item.start}px)` }"
           >
-            <span class="whitespace-pre-wrap break-all py-px">{{ hunkAt(item.index)!.header }}</span>
+            <span class="min-w-0 flex-1 whitespace-pre-wrap break-all py-px">{{ hunkAt(item.index)!.header }}</span>
+            <div
+              v-if="canPartialStage || canDiscard"
+              class="flex shrink-0 items-center gap-1"
+            >
+              <DiffDiscardButton
+                v-if="canDiscard"
+                scope="hunk"
+                @action="onDiscardHunk(hunkAt(item.index)!.hunkIndex)"
+              />
+              <DiffStageButton
+                v-if="canPartialStage"
+                :mode="canStage ? 'stage' : 'unstage'"
+                scope="hunk"
+                @action="onHunkAction(hunkAt(item.index)!.hunkIndex)"
+              />
+            </div>
           </div>
           <div
             v-else-if="lineAt(item.index)"
@@ -151,10 +201,14 @@ function lineAt(index: number): SplitLineRow | null {
               v-html="highlight(lineAt(item.index)!.right.content, diff.language)"
             />
             <DiffStageButton
-              v-if="lineAt(item.index)!.right.type === 'add' && lineAt(item.index)!.rightLineIndex != null && canPartialStage"
+              v-if="showLineButtonOnRight(lineAt(item.index)!)"
               :mode="canStage ? 'stage' : 'unstage'"
               scope="line"
-              @action="onLineAction(lineAt(item.index)!.hunkIndex, lineAt(item.index)!.rightLineIndex!)"
+              @action="onLineAction(
+                lineAt(item.index)!.hunkIndex,
+                lineAt(item.index)!.leftLineIndex,
+                lineAt(item.index)!.rightLineIndex,
+              )"
             />
           </div>
         </template>

@@ -1,8 +1,8 @@
 # Out of Scope
 
-Features Git Light deliberately does **not** plan to implement. This list is derived from the [GitKraken gap audit](https://github.com/ftuyama/git-light) and product direction: a focused local Git client for repositories you already have on disk — not a full GitKraken replacement with hosting, onboarding, or enterprise collaboration layers.
+Features Git Light deliberately does **not** plan to implement. This list reflects product direction: a focused local Git client for repositories you already have on disk — not a full replacement for commercial Git clients with hosting, onboarding, or enterprise collaboration layers.
 
-For what **is** planned, see the prioritized milestones in the gap audit and [README.md](README.md).
+For what **is** planned, see [README.md](README.md).
 
 ---
 
@@ -25,7 +25,7 @@ For what **is** planned, see the prioritized milestones in the gap audit and [RE
 | Pull request creation or management | Requires deep host APIs and workflow UI beyond local Git. |
 | Issue tracker links | Host-specific; low value without OAuth. |
 | CI pipeline status on commits | Requires host APIs (GitHub Actions, GitLab CI, etc.), polling or webhooks, and auth — same surface as OAuth integrations. |
-| Multi-account / multi-org profiles | Enterprise GitKraken territory. |
+| Multi-account / multi-org profiles | Enterprise multi-account territory. |
 | Avatars or metadata from hosting APIs | Gravatar from commit email is sufficient for local work. |
 
 **In scope instead:** parse `remote -v` for basic “open on GitHub” (or equivalent) deep links where possible.
@@ -37,8 +37,8 @@ For what **is** planned, see the prioritized milestones in the gap audit and [RE
 | Feature | Rationale |
 |---------|-----------|
 | Cloud patches / shared team workflows | Not a local-first Git client concern. |
-| Conflict prevention (pre-merge policy checks) | Enterprise GK feature; depends on host integration. |
-| AI-assisted conflict resolution | Paid-tier GK feature; heavy ML/product coupling. |
+| Conflict prevention (pre-merge policy checks) | Enterprise feature; depends on host integration. |
+| AI-assisted conflict resolution | Paid-tier commercial feature; heavy ML/product coupling. |
 
 ---
 
@@ -64,7 +64,7 @@ For what **is** planned, see the prioritized milestones in the gap audit and [RE
 
 ## Explicit non-goals
 
-- **Not a GitKraken clone** — visual inspiration and core local workflows only (~38% parity target in the audit is intentional scope, not a backlog to close entirely).
+- **Not a full commercial Git client clone** — core local workflows only; intentional scope, not a backlog to close entirely.
 - **Not a hosting client** — no substitute for github.com, GitLab, or desktop auth flows.
 - **Not an IDE** — no built-in editor, terminal replacement, command palette, or CI dashboard.
 

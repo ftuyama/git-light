@@ -5,10 +5,45 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta
       name="description"
-      content="Git Light — a GitKraken-inspired desktop Git client built with Electron, Vue 3, and TypeScript."
+      content="Git Light is a free, open-source desktop Git client for macOS with a commit graph, branch sidebar, working tree, interactive rebase, and real local Git operations. Lightweight alternative to GitKraken and Sourcetree."
     />
-    <title>Git Light — A lighter Git client</title>
+    <meta
+      name="keywords"
+      content="Git client, desktop Git GUI, commit graph, Git history viewer, Electron Git app, open source Git client, macOS Git client, GitKraken alternative, Sourcetree alternative, interactive rebase, branch manager"
+    />
+    <meta name="author" content="ftuyama" />
+    <meta name="robots" content="index, follow, max-image-preview:large" />
+    <meta name="theme-color" content="#0d0f14" />
+    <link rel="canonical" href="https://ftuyama.github.io/git-light/" />
+    <title>Git Light — Free open-source desktop Git client with commit graph</title>
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Git Light" />
+    <meta property="og:title" content="Git Light — Free open-source desktop Git client" />
+    <meta
+      property="og:description"
+      content="A lighter way to see your Git history. Commit graph, branch sidebar, working tree, and real local Git operations — built with Electron, Vue 3, and TypeScript."
+    />
+    <meta property="og:url" content="https://ftuyama.github.io/git-light/" />
+    <meta property="og:image" content="https://ftuyama.github.io/git-light/screenshot.png" />
+    <meta property="og:image:alt" content="Git Light showing commit graph, branch sidebar, and working tree" />
+    <meta property="og:locale" content="en_US" />
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Git Light — Free open-source desktop Git client" />
+    <meta
+      name="twitter:description"
+      content="Commit graph, branch sidebar, working tree, and real local Git operations. Open source and free."
+    />
+    <meta name="twitter:image" content="https://ftuyama.github.io/git-light/screenshot.png" />
+    <meta name="twitter:image:alt" content="Git Light showing commit graph, branch sidebar, and working tree" />
+
     <link rel="icon" href="icon.png" type="image/png" />
+    <link rel="apple-touch-icon" href="icon.png" />
+    <link rel="sitemap" type="application/xml" href="sitemap.xml" />
+    <link rel="alternate" type="text/plain" href="llms.txt" title="LLM-readable site summary" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -415,18 +450,161 @@
           display: none;
         }
       }
+
+      /* FAQ */
+      .faq-list {
+        max-width: 720px;
+        margin: 0 auto;
+        display: grid;
+        gap: 0.75rem;
+      }
+
+      .faq-item {
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: 0.75rem;
+        padding: 1rem 1.25rem;
+      }
+
+      .faq-item h3 {
+        margin: 0 0 0.5rem;
+        font-size: 0.9375rem;
+        font-weight: 600;
+      }
+
+      .faq-item p {
+        margin: 0;
+        font-size: 0.875rem;
+        color: var(--fg-muted);
+        line-height: 1.55;
+      }
+
+      .download-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+        justify-content: center;
+        margin-bottom: 2rem;
+      }
+
+      .install-note {
+        text-align: center;
+        color: var(--fg-subtle);
+        font-size: 0.8125rem;
+        margin: 1rem 0 0;
+      }
     </style>
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "WebSite",
+            "@id": "https://ftuyama.github.io/git-light/#website",
+            "url": "https://ftuyama.github.io/git-light/",
+            "name": "Git Light",
+            "description": "Free open-source desktop Git client with commit graph and real local Git operations.",
+            "inLanguage": "en"
+          },
+          {
+            "@type": "SoftwareApplication",
+            "@id": "https://ftuyama.github.io/git-light/#software",
+            "name": "Git Light",
+            "alternateName": "git-light",
+            "url": "https://ftuyama.github.io/git-light/",
+            "applicationCategory": "DeveloperApplication",
+            "applicationSubCategory": "Version Control",
+            "operatingSystem": "macOS",
+            "softwareVersion": "0.1.6",
+            "description": "Desktop Git client with a commit graph, branch sidebar, working tree, interactive rebase, and real local Git operations via the native Git CLI.",
+            "downloadUrl": "https://github.com/ftuyama/git-light/releases",
+            "screenshot": "https://ftuyama.github.io/git-light/screenshot.png",
+            "image": "https://ftuyama.github.io/git-light/icon.png",
+            "license": "https://opensource.org/licenses/MIT",
+            "isAccessibleForFree": true,
+            "offers": {
+              "@type": "Offer",
+              "price": "0",
+              "priceCurrency": "USD"
+            },
+            "author": {
+              "@type": "Person",
+              "name": "ftuyama",
+              "url": "https://github.com/ftuyama"
+            },
+            "codeRepository": "https://github.com/ftuyama/git-light",
+            "programmingLanguage": ["TypeScript", "JavaScript"],
+            "featureList": [
+              "Commit graph with virtualized SVG lanes",
+              "Branch sidebar with merge and rebase drag-and-drop",
+              "Working tree with per-hunk staging",
+              "Interactive rebase",
+              "Fetch, pull, push, and sync",
+              "Integrated terminal",
+              "Multiple themes"
+            ]
+          },
+          {
+            "@type": "FAQPage",
+            "@id": "https://ftuyama.github.io/git-light/#faq",
+            "mainEntity": [
+              {
+                "@type": "Question",
+                "name": "What is Git Light?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Git Light is a free, open-source desktop Git client for macOS. It provides a three-pane view with a commit graph, branch sidebar, and working tree, running real Git commands against local repositories."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "Is Git Light free?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Yes. Git Light is open source under the MIT license and free to download and use. Optional sponsorship is available on Ko-fi."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "What platforms does Git Light support?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Git Light currently ships macOS builds (.dmg) from GitHub Releases. The source code can be built locally with Node.js and npm for development."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "Does Git Light require an account or subscription?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "No. Git Light works entirely with local repositories and does not require sign-in, cloud sync, or a paid subscription."
+                }
+              },
+              {
+                "@type": "Question",
+                "name": "How is Git Light different from GitKraken or Sourcetree?",
+                "acceptedAnswer": {
+                  "@type": "Answer",
+                  "text": "Git Light is a lightweight, open-source alternative focused on a fast commit graph and real Git CLI operations without accounts or vendor lock-in. It is MIT-licensed and runs Git in the Electron main process via typed IPC."
+                }
+              }
+            ]
+          }
+        ]
+      }
+    </script>
   </head>
   <body>
     <header>
       <div class="wrap header-inner">
         <a class="logo" href="#">
-          <img class="logo-mark" src="icon.png" alt="" width="28" height="28" />
+          <img class="logo-mark" src="icon.png" alt="Git Light app icon" width="28" height="28" />
           Git Light
         </a>
         <nav>
           <a href="#features">Features</a>
-          <a href="#install">Install</a>
+          <a href="#install">Download</a>
+          <a href="#faq">FAQ</a>
           <a
             class="btn btn-sponsor"
             href="https://ko-fi.com/lelouchiee"
@@ -460,15 +638,26 @@
             <span class="badge-dot"></span>
             v0.1.6 · Open source · Electron desktop app
           </div>
-          <h1>A lighter way to <span>see your Git history</span></h1>
+          <h1>Git Light — a lighter way to <span>see your Git history</span></h1>
           <p>
-            Git Light is a GitKraken-inspired desktop client that runs real Git commands
-            against local repositories. Built with Electron, Vue 3,
-            and TypeScript.
+            Free, open-source desktop Git client for macOS. Browse commit history on a
+            fast graph, manage branches, stage changes, and run real Git commands
+            against local repositories — no account required.
           </p>
           <div class="hero-actions">
             <a
               class="btn btn-primary"
+              href="https://github.com/ftuyama/git-light/releases"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <path d="M12 2.25a.75.75 0 0 1 .75.75v11.69l3.22-3.22a.75.75 0 1 1 1.06 1.06l-4.5 4.5a.75.75 0 0 1-1.06 0l-4.5-4.5a.75.75 0 1 1 1.06-1.06l3.22 3.22V3a.75.75 0 0 1 .75-.75zm-9 13.5a.75.75 0 0 1 .75.75v2.25a1.5 1.5 0 0 0 1.5 1.5h13.5a1.5 1.5 0 0 0 1.5-1.5V16.5a.75.75 0 0 1 1.5 0v2.25a3 3 0 0 1-3 3H5.25a3 3 0 0 1-3-3V16.5a.75.75 0 0 1 .75-.75z"/>
+              </svg>
+              Download for macOS
+            </a>
+            <a
+              class="btn btn-ghost"
               href="https://github.com/ftuyama/git-light"
               target="_blank"
               rel="noopener noreferrer"
@@ -505,7 +694,7 @@
       <section id="features">
         <div class="wrap">
           <h2>Everything you need to navigate a repo</h2>
-          <p class="section-sub">Real local Git operations with a GitKraken-inspired three-pane layout.</p>
+          <p class="section-sub">Real local Git operations with a resizable three-pane layout.</p>
           <div class="features">
             <div class="feature-card">
               <div class="feature-icon" style="background: rgba(88,166,255,0.15); color: var(--lane-2)">⎇</div>
@@ -592,7 +781,32 @@
 
       <section id="install">
         <div class="wrap">
-          <h2>Get started</h2>
+          <h2>Download Git Light</h2>
+          <p class="section-sub">Free macOS app — open source, no account required.</p>
+          <div class="download-actions">
+            <a
+              class="btn btn-primary"
+              href="https://github.com/ftuyama/git-light/releases/latest"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Download latest release (.dmg)
+            </a>
+            <a
+              class="btn btn-ghost"
+              href="https://github.com/ftuyama/git-light/releases"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              All releases
+            </a>
+          </div>
+          <p class="install-note">
+            Open the DMG, drag Git Light to Applications, and launch. Use
+            <strong>Git Light → Check for Updates…</strong> to check for new versions.
+          </p>
+
+          <h2 style="margin-top: 3rem">Build from source</h2>
           <p class="section-sub">Clone the repo, install dependencies, and launch in development mode.</p>
           <div class="install-box">
             <div class="install-header">terminal</div>
@@ -601,6 +815,55 @@
 <span class="cmd">cd</span> git-light
 <span class="cmd">npm install</span>
 <span class="cmd">npm run dev</span></pre>
+          </div>
+        </div>
+      </section>
+
+      <section id="faq">
+        <div class="wrap">
+          <h2>Frequently asked questions</h2>
+          <p class="section-sub">Quick answers about Git Light.</p>
+          <div class="faq-list">
+            <article class="faq-item">
+              <h3>What is Git Light?</h3>
+              <p>
+                Git Light is a free, open-source desktop Git client for macOS. It shows a
+                commit graph, branch sidebar, and working tree in a resizable three-pane
+                layout, running real <code style="font-family: var(--font-mono); font-size: 0.8125rem;">git</code>
+                commands against your local repositories.
+              </p>
+            </article>
+            <article class="faq-item">
+              <h3>Is Git Light free?</h3>
+              <p>
+                Yes. Git Light is MIT-licensed and free to download and use. You can
+                optionally support development on
+                <a href="https://ko-fi.com/lelouchiee" target="_blank" rel="noopener noreferrer">Ko-fi</a>.
+              </p>
+            </article>
+            <article class="faq-item">
+              <h3>What platforms does Git Light support?</h3>
+              <p>
+                Packaged builds are available for macOS (.dmg) on
+                <a href="https://github.com/ftuyama/git-light/releases" target="_blank" rel="noopener noreferrer">GitHub Releases</a>.
+                Developers can run it locally on any OS that supports Electron with Node.js and npm.
+              </p>
+            </article>
+            <article class="faq-item">
+              <h3>Does Git Light require an account?</h3>
+              <p>
+                No sign-in, cloud sync, or subscription. Open a local folder and work with
+                your existing Git repositories offline.
+              </p>
+            </article>
+            <article class="faq-item">
+              <h3>How is Git Light different from GitKraken or Sourcetree?</h3>
+              <p>
+                Git Light is a lightweight, open-source alternative focused on a fast commit
+                graph and direct Git CLI operations — without vendor accounts or lock-in.
+                Built with Electron, Vue 3, and TypeScript.
+              </p>
+            </article>
           </div>
         </div>
       </section>
@@ -614,6 +877,7 @@
           · MIT License · Built by
           <a href="https://github.com/ftuyama">ftuyama</a>
           · <a href="https://ko-fi.com/lelouchiee" target="_blank" rel="noopener noreferrer">Sponsor on Ko-fi</a>
+          · <a href="llms.txt">llms.txt</a>
         </p>
       </div>
     </footer>

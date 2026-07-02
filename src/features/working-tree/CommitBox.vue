@@ -67,6 +67,15 @@ const pushMenu = computed<MenuItem[]>(() => [
       Amend previous commit
     </label>
 
+    <label class="mt-1.5 flex items-center gap-2 text-[12px] text-[var(--color-fg-muted)]">
+      <Checkbox
+        :model-value="repo.signOff"
+        aria-label="Sign off commit"
+        @update:model-value="(value) => (repo.signOff = value)"
+      />
+      Sign off commit
+    </label>
+
     <div class="mt-2.5 flex gap-1.5">
       <Button
         variant="primary"

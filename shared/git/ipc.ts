@@ -2,6 +2,8 @@ import type { GitAction } from './actions'
 import type { RebaseCommitsRequest, RebaseCommitsResult } from './rebase'
 import type {
   ActionEnvelope,
+  BlameRequest,
+  BlameResult,
   CommitFilesRequest,
   CompareCommitsRequest,
   CommitPageRequest,
@@ -10,6 +12,8 @@ import type {
   ConflictResult,
   DiffRequest,
   DiffResult,
+  FileHistoryRequest,
+  FileHistoryResult,
   OpenRepoResult,
   RecentRepository,
   SearchQuery,
@@ -28,6 +32,8 @@ export const IpcChannels = {
   commitPage: 'git:commit-page',
   action: 'git:action',
   diff: 'git:diff',
+  blame: 'git:blame',
+  fileHistory: 'git:file-history',
   conflict: 'git:conflict',
   commitFiles: 'git:commit-files',
   compareFiles: 'git:compare-files',
@@ -52,6 +58,8 @@ export interface IpcContract {
   [IpcChannels.commitPage]: [CommitPageRequest, CommitPageResult]
   [IpcChannels.action]: [GitAction, ActionEnvelope]
   [IpcChannels.diff]: [DiffRequest, DiffResult]
+  [IpcChannels.blame]: [BlameRequest, BlameResult]
+  [IpcChannels.fileHistory]: [FileHistoryRequest, FileHistoryResult]
   [IpcChannels.conflict]: [ConflictRequest, ConflictResult]
   [IpcChannels.commitFiles]: [CommitFilesRequest, WireWorkingTreeFile[]]
   [IpcChannels.compareFiles]: [CompareCommitsRequest, WireWorkingTreeFile[]]

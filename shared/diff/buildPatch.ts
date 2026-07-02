@@ -52,9 +52,10 @@ function subsetHunkLines(hunk: DiffHunk, lineIndices: number[]): DiffHunk {
   const min = sorted[0]
   const max = sorted[sorted.length - 1]
   const selected = new Set(lineIndices)
+  const { start, end } = extendRangeWithContext(hunk, min, max)
 
   const lines: DiffLine[] = []
-  for (let i = min; i <= max; i++) {
+  for (let i = start; i <= end; i++) {
     const line = hunk.lines[i]
     if (!line) continue
     if (line.type === 'context') {
@@ -69,6 +70,42 @@ function subsetHunkLines(hunk: DiffHunk, lineIndices: number[]): DiffHunk {
   }
 
   return recalculateHunkHeader(lines)
+}
+
+const MAX_CONTEXT_LINES = 3
+
+function extendRangeWithContext(
+  hunk: DiffHunk,
+  min: number,
+  max: number,
+): { start: number; end: number } {
+  let start = min
+  let end = max
+
+  let leadingContext = 0
+  while (
+    start > 0 &&
+    hunk.lines[start - 1]?.type === 'context' &&
+    leadingContext < MAX_CONTEXT_LINES
+  ) {
+    start--
+    leadingContext++
+  }
+  if (leadingContext === 0 && start > 0 && hunk.lines[start - 1]?.type === 'context') {
+    start--
+  }
+
+  let trailingContext = 0
+  while (
+    end < hunk.lines.length - 1 &&
+    hunk.lines[end + 1]?.type === 'context' &&
+    trailingContext < MAX_CONTEXT_LINES
+  ) {
+    end++
+    trailingContext++
+  }
+
+  return { start, end }
 }
 
 function recalculateHunkHeader(lines: DiffLine[]): DiffHunk {
@@ -94,11 +131,15 @@ function recalculateHunkHeader(lines: DiffLine[]): DiffHunk {
 
 function hunkStart(lines: DiffLine[]): { oldStart: number; newStart: number } {
   for (const line of lines) {
-    if (line.oldLine != null) {
-      return { oldStart: line.oldLine, newStart: line.newLine ?? line.oldLine }
+    if (line.type === 'context' || line.type === 'del') {
+      if (line.oldLine != null) {
+        return { oldStart: line.oldLine, newStart: line.newLine ?? line.oldLine }
+      }
     }
-    if (line.newLine != null) {
-      return { oldStart: line.newLine, newStart: line.newLine }
+  }
+  for (const line of lines) {
+    if (line.type === 'add' && line.newLine != null) {
+      return { oldStart: Math.max(1, line.newLine - 1), newStart: line.newLine }
     }
   }
   return { oldStart: 1, newStart: 1 }

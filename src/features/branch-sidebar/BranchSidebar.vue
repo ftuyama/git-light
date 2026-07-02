@@ -10,7 +10,8 @@ import { useBranchDragStore } from '@/stores/branchDrag'
 import { useBranchSidebarData } from './useBranchSidebarData'
 import { useRepositoryStore } from '@/stores/repository'
 import { useUiStore } from '@/stores/ui'
-import { SECTION_KEYS, SECTION_LABELS, type SectionKey } from '@/lib/preferences'
+import { SECTION_KEYS, SECTION_LABELS, ADVANCED_SECTION_KEYS, type SectionKey } from '@/lib/preferences'
+import type { MergeMode } from '@/lib/mergeMode'
 
 const repo = useRepositoryStore()
 const ui = useUiStore()
@@ -27,7 +28,13 @@ defineExpose({
 })
 
 const visibleSectionKeys = computed(() =>
-  SECTION_KEYS.filter((key) => key !== 'favorites' || !normalizedQuery.value),
+  SECTION_KEYS.filter((key) => {
+    if (key === 'favorites' && normalizedQuery.value) return false
+    if (!ui.isAdvanced && ADVANCED_SECTION_KEYS.includes(key as (typeof ADVANCED_SECTION_KEYS)[number])) {
+      return false
+    }
+    return true
+  }),
 )
 
 const openSectionKeys = computed(() =>
@@ -63,11 +70,11 @@ function closeIntegrateDialog(): void {
   branchDrag.pendingIntegrate = null
 }
 
-async function confirmIntegrate(mode: 'merge' | 'rebase'): Promise<void> {
+async function confirmIntegrate(mode: 'merge' | 'rebase', mergeMode?: MergeMode): Promise<void> {
   const request = branchDrag.pendingIntegrate
   if (!request) return
   branchDrag.pendingIntegrate = null
-  await repo.integrateBranches(request.source, request.target, mode)
+  await repo.integrateBranches(request.source, request.target, mode, mergeMode)
 }
 </script>
 
@@ -140,7 +147,7 @@ async function confirmIntegrate(mode: 'merge' | 'rebase'): Promise<void> {
       :source="integrateSource"
       :target="integrateTarget"
       @cancel="closeIntegrateDialog"
-      @merge="void confirmIntegrate('merge')"
+      @merge="(mode) => void confirmIntegrate('merge', mode)"
       @rebase="void confirmIntegrate('rebase')"
     />
   </aside>

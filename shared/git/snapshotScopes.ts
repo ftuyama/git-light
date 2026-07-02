@@ -15,9 +15,10 @@ export function scopesForAction(kind: GitActionKind): SnapshotScope[] | undefine
     return ['commits', 'status']
   }
   if (kind.includes('stash')) return ['stashes', 'status']
-  if (kind.includes('stage') || kind.includes('discard') || kind.includes('conflict')) {
+  if (kind.includes('stage') || kind.includes('discard') || kind.includes('conflict') || kind === 'restore-file') {
     return ['status']
   }
+  if (kind.startsWith('worktree')) return ['worktrees']
   if (kind === 'fetch' || kind === 'pull' || kind === 'push' || kind === 'sync' || kind === 'fetch-all') {
     return ['branches', 'commits', 'status']
   }

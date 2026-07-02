@@ -9,6 +9,9 @@ const DESTRUCTIVE = new Set<GitActionKind>([
   'drop-stash',
   'discard-file',
   'discard-all',
+  'discard-patch',
+  'restore-file',
+  'worktree-remove',
 ])
 
 export function isDestructiveAction(kind: GitActionKind | string): boolean {

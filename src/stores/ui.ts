@@ -21,6 +21,7 @@ import {
   type DiffViewMode,
   type FileListView,
   type SectionKey,
+  type UiMode,
   type UserPreferences,
 } from '@/lib/preferences'
 import type { ThemePreference } from '@/lib/themes'
@@ -75,6 +76,8 @@ function snapshot(state: {
   lastRepositoryPath: string | null
   diffViewMode: DiffViewMode
   theme: ThemePreference
+  uiMode: UiMode
+  ignoreWhitespace: boolean
 }): UserPreferences {
   return {
     leftSize: state.leftSize,
@@ -92,6 +95,8 @@ function snapshot(state: {
     lastRepositoryPath: state.lastRepositoryPath,
     diffViewMode: state.diffViewMode,
     theme: state.theme,
+    uiMode: state.uiMode,
+    ignoreWhitespace: state.ignoreWhitespace,
   }
 }
 
@@ -112,6 +117,8 @@ export const useUiStore = defineStore('ui', {
     lastRepositoryPath: null as string | null,
     diffViewMode: 'unified' as DiffViewMode,
     theme: defaultPreferences().theme,
+    uiMode: defaultPreferences().uiMode,
+    ignoreWhitespace: false,
     terminalOpen: false,
     commandPaletteOpen: false,
     settingsOpen: false,
@@ -124,6 +131,9 @@ export const useUiStore = defineStore('ui', {
     },
     clampedCommitGraphLimit(state): number {
       return clampCommitGraphLimit(state.commitGraphLimit)
+    },
+    isAdvanced(state): boolean {
+      return state.uiMode === 'advanced'
     },
   },
   actions: {
@@ -144,6 +154,8 @@ export const useUiStore = defineStore('ui', {
       this.lastRepositoryPath = saved.lastRepositoryPath
       this.diffViewMode = saved.diffViewMode
       this.theme = saved.theme
+      this.uiMode = saved.uiMode
+      this.ignoreWhitespace = saved.ignoreWhitespace
       syncThemePreference(this.theme)
       if (persistenceBound) return
       persistenceBound = true
@@ -174,6 +186,8 @@ export const useUiStore = defineStore('ui', {
           lastRepositoryPath: this.lastRepositoryPath,
           diffViewMode: this.diffViewMode,
           theme: this.theme,
+          uiMode: this.uiMode,
+          ignoreWhitespace: this.ignoreWhitespace,
         }),
       )
     },
@@ -269,12 +283,19 @@ export const useUiStore = defineStore('ui', {
     setDiffViewMode(mode: DiffViewMode): void {
       this.diffViewMode = mode
     },
+    setIgnoreWhitespace(value: boolean): void {
+      this.ignoreWhitespace = value
+    },
     setFileListView(view: FileListView): void {
       this.fileListView = view
     },
     setTheme(theme: ThemePreference): void {
       this.theme = theme
       syncThemePreference(theme)
+    },
+    setUiMode(mode: UiMode): void {
+      this.uiMode = mode
+      if (mode === 'basic') this.closeTerminal()
     },
     resetLayout(): void {
       const d = defaultPreferences()

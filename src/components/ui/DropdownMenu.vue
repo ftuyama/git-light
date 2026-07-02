@@ -17,6 +17,7 @@ import {
   MENU_CONTENT_CLASS,
   MENU_ITEM_CLASS,
   MENU_ITEM_DANGER_CLASS,
+  MENU_SUB_CONTENT_CLASS,
   type MenuItem,
 } from './menu'
 
@@ -57,7 +58,7 @@ withDefaults(
               <ChevronRight :size="14" class="text-[var(--color-fg-subtle)]" />
             </DropdownMenuSubTrigger>
             <DropdownMenuPortal>
-              <DropdownMenuSubContent :class="MENU_CONTENT_CLASS" :side-offset="2">
+              <DropdownMenuSubContent :class="MENU_SUB_CONTENT_CLASS">
                 <template v-for="(child, childIndex) in item.children" :key="childIndex">
                   <DropdownMenuCheckboxItem
                     v-if="child.checked !== undefined"

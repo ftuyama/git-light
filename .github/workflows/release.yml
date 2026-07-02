@@ -6,10 +6,23 @@ on:
       - 'v*'
 
 jobs:
-  build-mac:
-    runs-on: macos-latest
-    permissions:
-      contents: write
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-latest
+            script: dist:mac
+            artifacts: dist/*.dmg
+          - os: windows-latest
+            script: dist:win
+            artifacts: dist/*.exe
+          - os: ubuntu-latest
+            script: dist:linux
+            artifacts: |
+              dist/*.AppImage
+              dist/*.deb
+    runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
 
@@ -20,16 +33,32 @@ jobs:
 
       - run: npm ci
 
-      - name: Build signed DMG
-        run: npm run dist:mac
-        # No Apple secrets required — builds are ad-hoc signed automatically.
-        # To enable Developer ID + notarization later, add env vars here; see DEVELOPER.md.
+      - name: Build installer
+        run: npm run ${{ matrix.script }}
 
       - name: Verify macOS code signature
+        if: matrix.os == 'macos-latest'
         run: npm run verify:mac-signing
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: release-${{ matrix.os }}
+          path: ${{ matrix.artifacts }}
+
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: release-*
+          merge-multiple: true
+          path: dist
 
       - uses: softprops/action-gh-release@v2
         with:
-          files: dist/*.dmg
+          files: dist/*
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

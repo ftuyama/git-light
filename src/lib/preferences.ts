@@ -30,6 +30,8 @@ export const SECTION_LABELS: Record<SectionKey, string> = {
   worktrees: 'Worktrees',
 }
 
+export const ADVANCED_SECTION_KEYS = ['tags', 'stashes', 'worktrees'] as const satisfies readonly SectionKey[]
+
 export interface CommitColumnPrefs {
   author: boolean
   sha: boolean
@@ -45,6 +47,12 @@ export function clampCommitGraphLimit(value: number): number {
 }
 
 export type DiffViewMode = 'unified' | 'split'
+
+export type UiMode = 'basic' | 'advanced'
+
+export function isUiMode(value: unknown): value is UiMode {
+  return value === 'basic' || value === 'advanced'
+}
 
 export const WORKING_TREE_CHANGES_SIZE_MIN = 20
 export const WORKING_TREE_CHANGES_SIZE_MAX = 80
@@ -138,6 +146,8 @@ export interface UserPreferences {
   lastRepositoryPath: string | null
   diffViewMode: DiffViewMode
   theme: ThemePreference
+  uiMode: UiMode
+  ignoreWhitespace: boolean
 }
 
 export const PREFERENCES_KEY = 'git-light:preferences'
@@ -208,6 +218,8 @@ export function defaultPreferences(): UserPreferences {
     lastRepositoryPath: null,
     diffViewMode: 'unified',
     theme: 'default',
+    uiMode: 'advanced',
+    ignoreWhitespace: false,
   }
 }
 
@@ -234,5 +246,7 @@ export function mergePreferences(saved: Partial<UserPreferences> | null): UserPr
     lastRepositoryPath: saved.lastRepositoryPath ?? defaults.lastRepositoryPath,
     diffViewMode: saved.diffViewMode === 'split' ? 'split' : 'unified',
     theme: isThemePreference(saved.theme) ? saved.theme : defaults.theme,
+    uiMode: isUiMode(saved.uiMode) ? saved.uiMode : defaults.uiMode,
+    ignoreWhitespace: saved.ignoreWhitespace ?? defaults.ignoreWhitespace,
   }
 }

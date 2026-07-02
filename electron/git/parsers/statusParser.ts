@@ -70,8 +70,8 @@ interface BuildArgs {
 
 /**
  * Parses `git status --porcelain=v2 -z`. A path with both index and worktree
- * changes yields two rows (one staged, one unstaged), matching how GitKraken
- * lists the same file in both sections.
+ * changes yields two rows (one staged, one unstaged), so the same file
+ * appears in both sections.
  */
 export function parseStatus({ porcelain, staged, unstaged }: BuildArgs): WireWorkingTreeFile[] {
   const files: WireWorkingTreeFile[] = []

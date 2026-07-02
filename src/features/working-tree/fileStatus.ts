@@ -1,7 +1,10 @@
+import type { Component } from 'vue'
+import { Minus, Pencil, Plus } from '@lucide/vue'
 import type { FileStatus } from '@/types/git'
 
 interface StatusMeta {
   letter: string
+  icon?: Component
   label: string
   color: string
   bg: string
@@ -10,18 +13,21 @@ interface StatusMeta {
 export const STATUS_META: Record<FileStatus, StatusMeta> = {
   modified: {
     letter: 'M',
+    icon: Pencil,
     label: 'Modified',
     color: 'var(--color-warning)',
     bg: 'color-mix(in srgb, var(--color-warning) 18%, transparent)',
   },
   added: {
     letter: 'A',
+    icon: Plus,
     label: 'Added',
     color: 'var(--color-success)',
     bg: 'color-mix(in srgb, var(--color-success) 18%, transparent)',
   },
   deleted: {
     letter: 'D',
+    icon: Minus,
     label: 'Deleted',
     color: 'var(--color-danger)',
     bg: 'color-mix(in srgb, var(--color-danger) 18%, transparent)',
@@ -46,6 +52,7 @@ export const STATUS_META: Record<FileStatus, StatusMeta> = {
   },
   untracked: {
     letter: 'A',
+    icon: Plus,
     label: 'Added',
     color: 'var(--color-success)',
     bg: 'color-mix(in srgb, var(--color-success) 18%, transparent)',

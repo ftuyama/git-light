@@ -24,6 +24,7 @@ const JOURNALABLE: Partial<Record<GitActionKind, JournalCapture>> = {
   checkout: 'head',
   'checkout-commit': 'head',
   'checkout-tag': 'head',
+  'create-branch': 'head',
   'pop-stash': 'head',
   'apply-stash': 'head',
   stash: 'index',
@@ -86,6 +87,10 @@ export function journalLabel(action: GitAction): string {
       return target ? `Checkout ${target.slice(0, 7)}` : 'Checkout commit'
     case 'checkout-tag':
       return target ? `Checkout tag ${target}` : 'Checkout tag'
+    case 'create-branch':
+      return String(action.meta?.name ?? action.target ?? 'branch')
+        ? `Create branch ${String(action.meta?.name ?? action.target)}`
+        : 'Create branch'
     case 'stash':
       return 'Stash changes'
     case 'pop-stash':

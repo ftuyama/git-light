@@ -184,7 +184,7 @@ watch(compareRange, (range) => {
               <span class="font-mono text-[10px] text-[var(--color-fg-subtle)]">{{ unstaged.length }}</span>
               <FileListViewToggle />
               <button
-                class="focus-ring flex items-center gap-1 rounded px-1.5 py-0.5 text-[11px] font-medium text-[var(--color-accent)] normal-case hover:bg-[var(--color-hover)] disabled:opacity-40"
+                class="focus-ring flex items-center gap-1 rounded px-1.5 py-0.5 text-[11px] font-medium text-[var(--color-success)] normal-case hover:bg-[var(--color-success)]/10 disabled:opacity-40"
                 :disabled="unstaged.length === 0"
                 @click="repo.stageAll()"
               >
