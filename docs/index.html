@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta
       name="description"
-      content="Git Light is a free, open-source desktop Git client for macOS with a commit graph, branch sidebar, working tree, interactive rebase, and real local Git operations. Lightweight alternative to GitKraken and Sourcetree."
+      content="Git Light is a free, open-source desktop Git client for macOS, Windows, and Linux with a commit graph, branch sidebar, working tree, interactive rebase, and real local Git operations. Lightweight alternative to GitKraken and Sourcetree."
     />
     <meta
       name="keywords"
@@ -27,7 +27,7 @@
     />
     <meta property="og:url" content="https://ftuyama.github.io/git-light/" />
     <meta property="og:image" content="https://ftuyama.github.io/git-light/screenshot.png" />
-    <meta property="og:image:alt" content="Git Light showing commit graph, branch sidebar, and working tree" />
+    <meta property="og:image:alt" content="Git Light showing the AwesomeShop repository with repo tabs, commit graph, branch sidebar, and working tree" />
     <meta property="og:locale" content="en_US" />
 
     <!-- Twitter Card -->
@@ -38,7 +38,7 @@
       content="Commit graph, branch sidebar, working tree, and real local Git operations. Open source and free."
     />
     <meta name="twitter:image" content="https://ftuyama.github.io/git-light/screenshot.png" />
-    <meta name="twitter:image:alt" content="Git Light showing commit graph, branch sidebar, and working tree" />
+    <meta name="twitter:image:alt" content="Git Light showing the AwesomeShop repository with repo tabs, commit graph, branch sidebar, and working tree" />
 
     <link rel="icon" href="icon.png" type="image/png" />
     <link rel="apple-touch-icon" href="icon.png" />
@@ -514,7 +514,7 @@
             "url": "https://ftuyama.github.io/git-light/",
             "applicationCategory": "DeveloperApplication",
             "applicationSubCategory": "Version Control",
-            "operatingSystem": "macOS",
+            "operatingSystem": "macOS, Windows, Linux",
             "softwareVersion": "0.1.6",
             "description": "Desktop Git client with a commit graph, branch sidebar, working tree, interactive rebase, and real local Git operations via the native Git CLI.",
             "downloadUrl": "https://github.com/ftuyama/git-light/releases",
@@ -536,11 +536,14 @@
             "programmingLanguage": ["TypeScript", "JavaScript"],
             "featureList": [
               "Commit graph with virtualized SVG lanes",
+              "Multi-repository tabs",
               "Branch sidebar with merge and rebase drag-and-drop",
               "Working tree with per-hunk staging",
+              "Blame overlay with file history",
               "Interactive rebase",
               "Fetch, pull, push, and sync",
               "Integrated terminal",
+              "Basic and Advanced UI modes",
               "Multiple themes"
             ]
           },
@@ -553,7 +556,7 @@
                 "name": "What is Git Light?",
                 "acceptedAnswer": {
                   "@type": "Answer",
-                  "text": "Git Light is a free, open-source desktop Git client for macOS. It provides a three-pane view with a commit graph, branch sidebar, and working tree, running real Git commands against local repositories."
+                  "text": "Git Light is a free, open-source desktop Git client for macOS, Windows, and Linux. It provides a three-pane view with a commit graph, branch sidebar, and working tree, running real Git commands against local repositories."
                 }
               },
               {
@@ -569,7 +572,7 @@
                 "name": "What platforms does Git Light support?",
                 "acceptedAnswer": {
                   "@type": "Answer",
-                  "text": "Git Light currently ships macOS builds (.dmg) from GitHub Releases. The source code can be built locally with Node.js and npm for development."
+                  "text": "Git Light ships installers for macOS (.dmg), Windows (.exe), and Linux (.AppImage and .deb) from GitHub Releases. Developers can also build from source on any OS that supports Electron with Node.js and npm."
                 }
               },
               {
@@ -636,11 +639,11 @@
         <div class="wrap">
           <div class="badge">
             <span class="badge-dot"></span>
-            v0.1.6 · Open source · Electron desktop app
+            v0.1.7 · Open source · Electron desktop app
           </div>
           <h1>Git Light — a lighter way to <span>see your Git history</span></h1>
           <p>
-            Free, open-source desktop Git client for macOS. Browse commit history on a
+            Free, open-source desktop Git client for macOS, Windows, and Linux. Browse commit history on a
             fast graph, manage branches, stage changes, and run real Git commands
             against local repositories — no account required.
           </p>
@@ -654,7 +657,7 @@
               <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
                 <path d="M12 2.25a.75.75 0 0 1 .75.75v11.69l3.22-3.22a.75.75 0 1 1 1.06 1.06l-4.5 4.5a.75.75 0 0 1-1.06 0l-4.5-4.5a.75.75 0 1 1 1.06-1.06l3.22 3.22V3a.75.75 0 0 1 .75-.75zm-9 13.5a.75.75 0 0 1 .75.75v2.25a1.5 1.5 0 0 0 1.5 1.5h13.5a1.5 1.5 0 0 0 1.5-1.5V16.5a.75.75 0 0 1 1.5 0v2.25a3 3 0 0 1-3 3H5.25a3 3 0 0 1-3-3V16.5a.75.75 0 0 1 .75-.75z"/>
               </svg>
-              Download for macOS
+              Download latest release
             </a>
             <a
               class="btn btn-ghost"
@@ -681,7 +684,7 @@
             </div>
             <img
               src="screenshot.png"
-              alt="Git Light showing the AwesomeShop repository with commit graph, branch sidebar, working tree, and resizable three-pane layout"
+              alt="Git Light showing the AwesomeShop repository with repo tabs, commit graph, branch sidebar, working tree, and resizable three-pane layout"
               class="screenshot"
               width="1440"
               height="900"
@@ -717,6 +720,16 @@
               <p>Reorder, squash, fixup, drop, or edit commits in a dialog before starting the rebase.</p>
             </div>
             <div class="feature-card">
+              <div class="feature-icon" style="background: rgba(88,166,255,0.12); color: var(--lane-2)">⊞</div>
+              <h3>Multi-repo tabs</h3>
+              <p>Open several repositories at once — switch between tabs and pick up where you left off.</p>
+            </div>
+            <div class="feature-card">
+              <div class="feature-icon" style="background: rgba(63,185,80,0.12); color: var(--success)">◎</div>
+              <h3>Blame &amp; file history</h3>
+              <p>Inline blame overlay with author blocks, per-revision file history, and optional word wrap for long lines.</p>
+            </div>
+            <div class="feature-card">
               <div class="feature-icon" style="background: rgba(240,136,62,0.12); color: var(--lane-3)">⇅</div>
               <h3>Remote sync</h3>
               <p>Fetch, pull, push, and sync from the toolbar — with ahead/behind counts in the status bar.</p>
@@ -748,8 +761,8 @@
             </div>
             <div class="feature-card">
               <div class="feature-icon" style="background: rgba(163,113,247,0.12); color: var(--lane-0)">◐</div>
-              <h3>Themes</h3>
-              <p>Default, Dracula, Light, Claude, or System appearance — pick in settings and sync the window chrome.</p>
+              <h3>Themes &amp; UI mode</h3>
+              <p>Default, Dracula, Light, Claude, or System appearance. Basic mode hides advanced actions for a simpler toolbar.</p>
             </div>
             <div class="feature-card">
               <div class="feature-icon" style="background: rgba(63,185,80,0.12); color: var(--fg-muted)">◆</div>
@@ -782,7 +795,7 @@
       <section id="install">
         <div class="wrap">
           <h2>Download Git Light</h2>
-          <p class="section-sub">Free macOS app — open source, no account required.</p>
+          <p class="section-sub">Free desktop app for macOS, Windows, and Linux — open source, no account required.</p>
           <div class="download-actions">
             <a
               class="btn btn-primary"
@@ -790,7 +803,7 @@
               target="_blank"
               rel="noopener noreferrer"
             >
-              Download latest release (.dmg)
+              Download latest release
             </a>
             <a
               class="btn btn-ghost"
@@ -802,7 +815,8 @@
             </a>
           </div>
           <p class="install-note">
-            Open the DMG, drag Git Light to Applications, and launch. Use
+            macOS: open the DMG and drag Git Light to Applications. Windows: run the NSIS installer.
+            Linux: use the AppImage or install the .deb package. Use
             <strong>Git Light → Check for Updates…</strong> to check for new versions.
           </p>
 
@@ -827,7 +841,7 @@
             <article class="faq-item">
               <h3>What is Git Light?</h3>
               <p>
-                Git Light is a free, open-source desktop Git client for macOS. It shows a
+                Git Light is a free, open-source desktop Git client for macOS, Windows, and Linux. It shows a
                 commit graph, branch sidebar, and working tree in a resizable three-pane
                 layout, running real <code style="font-family: var(--font-mono); font-size: 0.8125rem;">git</code>
                 commands against your local repositories.
@@ -844,7 +858,7 @@
             <article class="faq-item">
               <h3>What platforms does Git Light support?</h3>
               <p>
-                Packaged builds are available for macOS (.dmg) on
+                Packaged builds are available for macOS (.dmg), Windows (.exe), and Linux (.AppImage, .deb) on
                 <a href="https://github.com/ftuyama/git-light/releases" target="_blank" rel="noopener noreferrer">GitHub Releases</a>.
                 Developers can run it locally on any OS that supports Electron with Node.js and npm.
               </p>
@@ -873,7 +887,7 @@
       <div class="wrap">
         <p>
           <a href="https://github.com/ftuyama/git-light">Git Light</a>
-          v0.1.6
+          v0.1.7
           · MIT License · Built by
           <a href="https://github.com/ftuyama">ftuyama</a>
           · <a href="https://ko-fi.com/lelouchiee" target="_blank" rel="noopener noreferrer">Sponsor on Ko-fi</a>

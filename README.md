@@ -8,7 +8,7 @@ A desktop Git client with a graph-first interface — commit graph, branch sideb
 
 **[ftuyama.github.io/git-light](https://ftuyama.github.io/git-light/)** · MIT License
 
-![Git Light — repository view](docs/screenshot.png)
+![Git Light — AwesomeShop repository with repo tabs, commit graph, branch sidebar, and working tree](docs/screenshot.png)
 
 ## What is this?
 
@@ -19,11 +19,11 @@ Git Light is an Electron app with a three-pane repository view that runs **real 
 | Area | Status |
 |------|--------|
 | Real Git backend (`git` CLI in main process; renderer never shells out) | ✅ |
-| Open local repos · recent repos · startup screen | ✅ |
+| Open local repos · recent repos · multi-repo tabs · startup screen | ✅ |
 | Commit graph — lanes, refs, pagination, shift-compare, keyboard nav | ✅ |
 | Branch sidebar — favorites, tags, stashes, worktrees (add/remove); drag-and-drop merge/rebase | ✅ |
 | Working tree — flat/tree view, stage/unstage (patch hunks), commit | ✅ |
-| Diff viewer — unified/split, syntax highlighting, per-hunk staging, blame, file history | ✅ |
+| Diff viewer — unified/split, syntax highlighting, per-hunk staging, blame overlay with file history, word wrap | ✅ |
 | Fetch / pull / push / sync · remote maintenance (fetch all, prune, push tags) | ✅ |
 | Merge / rebase / interactive rebase / cherry-pick (continue/abort banner) | ✅ |
 | Merge conflict resolution (ours/theirs/per-block) | ✅ |
@@ -31,6 +31,7 @@ Git Light is an Electron app with a three-pane repository view that runs **real 
 | Integrated terminal (xterm + node-pty, ⌘T toggle in graph pane) | ✅ |
 | Themes — Default, Dracula, Light, Claude, System (settings) | ✅ |
 | Collapsible sidebars with expand rails · commit graph zoom | ✅ |
+| UI mode — Basic (essential actions) or Advanced (full toolbar and sidebar) | ✅ |
 | Open on GitHub · app preferences (appearance, layout, graph, sidebar, credits) | ✅ |
 | Credits & attribution (settings panel + native About dialog) | ✅ |
 | Resizable three-pane layout · file watcher auto-refresh | ✅ |

@@ -1,28 +1,31 @@
 # Git Light
 
-> Git Light is a free, open-source desktop Git client for macOS with a graph-first interface — commit graph, branch sidebar, working tree panel, and real local repository operations via the native Git CLI.
+> Git Light is a free, open-source desktop Git client with a graph-first interface — commit graph, branch sidebar, working tree panel, multi-repo tabs, and real local repository operations via the native Git CLI.
 
 ## Key facts
 
 - **Type:** Desktop application (Electron)
 - **License:** MIT (free and open source)
-- **Platform:** macOS (DMG from GitHub Releases)
-- **Version:** 0.1.6
+- **Platforms:** macOS (.dmg), Windows (.exe), Linux (.AppImage, .deb) from GitHub Releases
+- **Version:** 0.1.7
 - **Author:** ftuyama
 - **Stack:** Electron 41, Vue 3, TypeScript, Pinia, Tailwind CSS 4
 
 ## What it does
 
-Git Light runs real `git` commands against local repositories. Users can open a folder, browse commit history on a virtualized SVG graph, manage branches/tags/stashes/worktrees, stage and commit changes (including per-hunk staging), view diffs, fetch/pull/push, merge, rebase (including interactive rebase), resolve merge conflicts, search commits and files, and use an integrated terminal.
+Git Light runs real `git` commands against local repositories. Users can open multiple repos in tabs, browse commit history on a virtualized SVG graph, manage branches/tags/stashes/worktrees, stage and commit changes (including per-hunk staging), view diffs with blame overlay and file history, fetch/pull/push, merge, rebase (including interactive rebase), resolve merge conflicts, search commits and files, and use an integrated terminal.
 
 ## Main features
 
+- Multi-repository tabs with per-tab state cache
 - Commit graph with lanes, infinite scroll, and keyboard navigation
 - Branch sidebar with favorites, remotes, tags, stashes, worktrees; drag-and-drop merge/rebase
 - Working tree with flat or tree file list, per-hunk staging, conflict resolution
+- Diff viewer with unified/split modes, blame overlay, file history, and word wrap
 - Interactive rebase dialog (reorder, squash, fixup, drop, edit)
 - Remote sync (fetch, pull, push) with ahead/behind counts
 - Integrated terminal (xterm.js + node-pty)
+- UI mode: Basic (essential actions) or Advanced (full toolbar and sidebar)
 - Themes: Default, Dracula, Light, Claude, System
 - Auto-update checks against GitHub Releases
 - Resizable three-pane layout with collapsible sidebars
@@ -36,11 +39,11 @@ Git Light runs real `git` commands against local repositories. Users can open a 
 
 - Website: https://ftuyama.github.io/git-light/
 - GitHub repository: https://github.com/ftuyama/git-light
-- Download (macOS DMG): https://github.com/ftuyama/git-light/releases
+- Download: https://github.com/ftuyama/git-light/releases
 - Sponsor: https://ko-fi.com/lelouchiee
 - Developer docs: https://github.com/ftuyama/git-light/blob/main/DEVELOPER.md
 - Architecture: https://github.com/ftuyama/git-light/blob/main/ARCHITECTURE.md
 
 ## Install
 
-Download the latest `.dmg` from GitHub Releases, drag Git Light into Applications, and launch. For development: `git clone https://github.com/ftuyama/git-light.git && cd git-light && npm install && npm run dev`.
+Download the latest installer for your platform from GitHub Releases (macOS `.dmg`, Windows `.exe`, Linux `.AppImage` or `.deb`). For development: `git clone https://github.com/ftuyama/git-light.git && cd git-light && npm install && npm run dev`.

@@ -98,7 +98,7 @@ Git Light is an Electron desktop app with a Vue 3 renderer. The UI depends on a 
 | `rebaseSequenceEditor.ts` | Writes interactive rebase todo lists |
 | `RepoCache.ts` | TTL cache for status/branches |
 | `RepositoryWatcher.ts` | Debounced filesystem events → `git:changed` |
-| `parsers/` | Parse porcelain log, status, branches, diffs, conflicts, rebase commits, etc. |
+| `parsers/` | Parse porcelain log, status, branches, diffs, conflicts, blame, file history, rebase commits, etc. |
 
 ## Renderer stores (`src/stores/`)
 
@@ -111,6 +111,8 @@ Git Light is an Electron desktop app with a Vue 3 renderer. The UI depends on a 
 | `ui` | Layout prefs, graph columns, sidebar sections, theme, terminal panel |
 | `interactiveRebase` | Interactive rebase dialog state |
 | `prompt` / `toast` | Modal and toast UI |
+| `repoTabs` | Open repository tabs, active tab, persistence |
+| `repoTabCache` | Per-tab snapshot cache for fast tab switching |
 
 The `repository` store composes actions from `src/stores/repo/`:
 
@@ -131,7 +133,8 @@ The `repository` store composes actions from `src/stores/repo/`:
 App.vue
 ├── StartupView          (no repo open)
 └── main view
-    ├── Toolbar          remote/history actions, repo switcher, terminal toggle
+    ├── RepoTabs         multi-repo tab bar + repo switcher
+    ├── Toolbar          remote/history actions, terminal toggle
     ├── OperationBanner  merge/rebase/cherry-pick/revert in progress
     ├── SidebarRail      expand affordance when left/right pane collapsed
     ├── Splitpanes
@@ -143,7 +146,8 @@ App.vue
     ├── PromptHost       confirm / prompt dialogs
     ├── SearchOverlay    commit + file search
     ├── InteractiveRebaseDialog
-    └── AppSettingsDialog  appearance (theme), layout, graph, sidebar, credits
+    ├── BlameOverlay     blame view + file history side panel
+    └── AppSettingsDialog  appearance (theme, UI mode), layout, graph, sidebar, credits
 ```
 
 ## Data flow
@@ -158,7 +162,7 @@ App.vue
 
 | Key | Storage |
 |-----|---------|
-| `git-light:preferences` | Panel sizes, collapsed state, theme, graph/sidebar/terminal prefs (electron-store via preload; localStorage fallback in browser) |
+| `git-light:preferences` | Panel sizes, collapsed state, theme, graph/sidebar/terminal prefs, open repo tabs (electron-store via preload; localStorage fallback in browser) |
 | `recent-repos` | Recent repository list (electron-store, main) |
 | `branch-favorites:{path}` | Per-repo pinned branches |
 
@@ -170,6 +174,8 @@ App.vue
 - `electron/git/ActionRouter.test.ts` — action → git argv routing
 - `electron/git/ReflogJournal.test.ts` — undo/redo journal
 - `electron/git/rebaseSequenceEditor.test.ts` — interactive rebase todo writer
+- `electron/git/parsers/blameParser.test.ts` — blame porcelain parser
+- `electron/git/parsers/fileHistoryParser.test.ts` — file history log parser
 - `electron/git/parsers/logParser.test.ts` — porcelain log parser
 - `electron/git/parsers/statusParser.test.ts` — status porcelain parser
 - `electron/git/parsers/commitFilesParser.test.ts` — commit file list parser
@@ -193,10 +199,16 @@ App.vue
 - `src/lib/themes.test.ts` — theme preference resolution
 - `src/lib/sidebarLayout.test.ts` — sidebar collapse/expand layout
 - `src/lib/avatarCache.test.ts` — author avatar image cache
-- `src/lib/diff/buildSplitRows.test.ts` — split diff row builder
-- `src/lib/diff/highlight.test.ts` — syntax highlighting helpers
+- `src/features/branch-sidebar/branchRefUtils.test.ts` — branch ref name helpers
 - `src/features/branch-sidebar/sortBranches.test.ts` — branch sort order
 - `src/features/working-tree/buildFileTree.test.ts` — working-tree file tree
+- `src/lib/diff/buildBlameBlocks.test.ts` — blame author block grouping
+- `src/lib/diff/buildSplitRows.test.ts` — split diff row builder
+- `src/lib/diff/estimateWrappedRowHeight.test.ts` — wrapped diff line height estimation
+- `src/lib/diff/highlight.test.ts` — syntax highlighting helpers
+- `src/lib/diff/pairedLineIndices.test.ts` — split diff line pairing
+- `src/lib/mergeMode.test.ts` — merge mode preference helpers
+- `src/lib/preferences.uiMode.test.ts` — basic/advanced UI mode visibility
 
 Run: `npm run test`
 
