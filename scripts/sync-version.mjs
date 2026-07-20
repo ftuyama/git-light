@@ -6,8 +6,9 @@
  *
  * Targets:
  * - package-lock.json — top-level "version" and packages[""].version
- * - docs/index.html — vX.Y.Z markers (hero badge and footer)
- * - docs/llms.txt — **Version:** line in Key facts
+ * - docs/index.html — vX.Y.Z markers (hero badge and footer) and JSON-LD softwareVersion
+ * - docs/llms.txt — "Current version:" line in prose
+ * - docs/llms-full.txt — Version: line near top
  *
  * The app reads package.json at build time (shared/app/metadata.ts); no sync needed there.
  *
@@ -26,6 +27,7 @@ const packageJsonPath = join(root, 'package.json')
 const packageLockPath = join(root, 'package-lock.json')
 const docsPath = join(root, 'docs/index.html')
 const llmsPath = join(root, 'docs/llms.txt')
+const llmsFullPath = join(root, 'docs/llms-full.txt')
 
 const packageJson = JSON.parse(readFileSync(packageJsonPath, 'utf8'))
 const version = packageJson.version
@@ -99,25 +101,59 @@ if (markers.length === 0) {
   }
 
   syncTarget('docs/index.html', docsPath, () => {
-    writeFileSync(docsPath, docs.replace(markerPattern, `v${version}`))
+    let updated = docs.replace(markerPattern, `v${version}`)
+    updated = updated.replace(
+      /("softwareVersion":\s*")(\d+\.\d+\.\d+)(")/,
+      `$1${version}$3`,
+    )
+    writeFileSync(docsPath, updated)
   })
 }
 
-// docs/llms.txt
-const llmsVersionPattern = /^- \*\*Version:\*\* \d+\.\d+\.\d+$/m
-const llms = readFileSync(llmsPath, 'utf8')
-const llmsVersionMatch = llms.match(llmsVersionPattern)
+// docs/index.html — JSON-LD softwareVersion
+const jsonLdVersionMatch = docs.match(/"softwareVersion":\s*"(\d+\.\d+\.\d+)"/)
+if (!jsonLdVersionMatch) {
+  console.warn('No "softwareVersion" found in docs/index.html JSON-LD')
+} else if (jsonLdVersionMatch[1] !== version) {
+  mismatches.push(`docs/index.html (softwareVersion): expected ${version}`)
+}
 
-if (!llmsVersionMatch) {
-  console.warn('No **Version:** line found in docs/llms.txt')
+// docs/llms.txt
+const llmsProseVersionPattern = /Current version: \d+\.\d+\.\d+\./
+const llms = readFileSync(llmsPath, 'utf8')
+const llmsProseVersionMatch = llms.match(llmsProseVersionPattern)
+
+if (!llmsProseVersionMatch) {
+  console.warn('No "Current version:" line found in docs/llms.txt')
 } else {
-  const actual = llmsVersionMatch[0].replace(/^- \*\*Version:\*\* /, '')
+  const actual = llmsProseVersionMatch[0].replace(/^Current version: /, '').replace(/\.$/, '')
   if (actual !== version) {
-    mismatches.push(`docs/llms.txt (**Version:**): expected ${version}`)
+    mismatches.push(`docs/llms.txt (Current version:): expected ${version}`)
   }
 
   syncTarget('docs/llms.txt', llmsPath, () => {
-    writeFileSync(llmsPath, llms.replace(llmsVersionPattern, `- **Version:** ${version}`))
+    writeFileSync(llmsPath, llms.replace(llmsProseVersionPattern, `Current version: ${version}.`))
+  })
+}
+
+// docs/llms-full.txt
+const llmsFullVersionPattern = /^Version: \d+\.\d+\.\d+ ·/m
+const llmsFull = readFileSync(llmsFullPath, 'utf8')
+const llmsFullVersionMatch = llmsFull.match(llmsFullVersionPattern)
+
+if (!llmsFullVersionMatch) {
+  console.warn('No "Version:" line found in docs/llms-full.txt')
+} else {
+  const actual = llmsFullVersionMatch[0].replace(/^Version: /, '').replace(/ ·$/, '')
+  if (actual !== version) {
+    mismatches.push(`docs/llms-full.txt (Version:): expected ${version}`)
+  }
+
+  syncTarget('docs/llms-full.txt', llmsFullPath, () => {
+    writeFileSync(
+      llmsFullPath,
+      llmsFull.replace(llmsFullVersionPattern, `Version: ${version} ·`),
+    )
   })
 }
 

@@ -1,23 +1,77 @@
+# Git Light — https://ftuyama.github.io/git-light/
+# LLM-readable site summary: /llms.txt (index) and /llms-full.txt (full content)
+
 User-agent: *
 Allow: /
 
-# AI crawlers
+# OpenAI
 User-agent: GPTBot
 Allow: /
 
 User-agent: ChatGPT-User
 Allow: /
 
+User-agent: OAI-SearchBot
+Allow: /
+
+# Anthropic
 User-agent: ClaudeBot
 Allow: /
 
 User-agent: anthropic-ai
 Allow: /
 
-User-agent: PerplexityBot
+User-agent: Claude-Web
+Allow: /
+
+# Google
+User-agent: Googlebot
 Allow: /
 
 User-agent: Google-Extended
+Allow: /
+
+# Perplexity
+User-agent: PerplexityBot
+Allow: /
+
+# Microsoft / Bing
+User-agent: Bingbot
+Allow: /
+
+# Meta
+User-agent: FacebookBot
+Allow: /
+
+User-agent: meta-externalagent
+Allow: /
+
+# Apple
+User-agent: Applebot
+Allow: /
+
+User-agent: Applebot-Extended
+Allow: /
+
+# Cohere
+User-agent: cohere-ai
+Allow: /
+
+# Common Crawl (used by many AI training datasets)
+User-agent: CCBot
+Allow: /
+
+# Other AI / research crawlers
+User-agent: Bytespider
+Allow: /
+
+User-agent: Diffbot
+Allow: /
+
+User-agent: YouBot
+Allow: /
+
+User-agent: Amazonbot
 Allow: /
 
 Sitemap: https://ftuyama.github.io/git-light/sitemap.xml

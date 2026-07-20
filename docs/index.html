@@ -12,7 +12,9 @@
       content="Git client, desktop Git GUI, commit graph, Git history viewer, Electron Git app, open source Git client, macOS Git client, GitKraken alternative, Sourcetree alternative, interactive rebase, branch manager"
     />
     <meta name="author" content="ftuyama" />
-    <meta name="robots" content="index, follow, max-image-preview:large" />
+    <meta name="application-name" content="Git Light" />
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
+    <meta name="googlebot" content="index, follow, max-image-preview:large" />
     <meta name="theme-color" content="#0d0f14" />
     <link rel="canonical" href="https://ftuyama.github.io/git-light/" />
     <title>Git Light — Free open-source desktop Git client with commit graph</title>
@@ -27,6 +29,8 @@
     />
     <meta property="og:url" content="https://ftuyama.github.io/git-light/" />
     <meta property="og:image" content="https://ftuyama.github.io/git-light/screenshot.png" />
+    <meta property="og:image:width" content="1440" />
+    <meta property="og:image:height" content="900" />
     <meta property="og:image:alt" content="Git Light showing the AwesomeShop repository with repo tabs, commit graph, branch sidebar, and working tree" />
     <meta property="og:locale" content="en_US" />
 
@@ -42,8 +46,9 @@
 
     <link rel="icon" href="icon.png" type="image/png" />
     <link rel="apple-touch-icon" href="icon.png" />
-    <link rel="sitemap" type="application/xml" href="sitemap.xml" />
-    <link rel="alternate" type="text/plain" href="llms.txt" title="LLM-readable site summary" />
+    <link rel="sitemap" type="application/xml" title="Sitemap" href="sitemap.xml" />
+    <link rel="alternate" type="text/plain" href="llms.txt" title="LLM-readable site index" />
+    <link rel="alternate" type="text/plain" href="llms-full.txt" title="LLM-readable full site content" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -499,11 +504,33 @@
         "@context": "https://schema.org",
         "@graph": [
           {
+            "@type": "Organization",
+            "@id": "https://ftuyama.github.io/git-light/#organization",
+            "name": "Git Light",
+            "url": "https://ftuyama.github.io/git-light/",
+            "logo": "https://ftuyama.github.io/git-light/icon.png",
+            "sameAs": [
+              "https://github.com/ftuyama/git-light",
+              "https://github.com/ftuyama"
+            ]
+          },
+          {
             "@type": "WebSite",
             "@id": "https://ftuyama.github.io/git-light/#website",
             "url": "https://ftuyama.github.io/git-light/",
             "name": "Git Light",
             "description": "Free open-source desktop Git client with commit graph and real local Git operations.",
+            "inLanguage": "en",
+            "publisher": { "@id": "https://ftuyama.github.io/git-light/#organization" }
+          },
+          {
+            "@type": "WebPage",
+            "@id": "https://ftuyama.github.io/git-light/#webpage",
+            "url": "https://ftuyama.github.io/git-light/",
+            "name": "Git Light — Free open-source desktop Git client with commit graph",
+            "description": "Free desktop Git client for macOS, Windows, and Linux with commit graph, branch sidebar, working tree, and real local Git operations.",
+            "isPartOf": { "@id": "https://ftuyama.github.io/git-light/#website" },
+            "about": { "@id": "https://ftuyama.github.io/git-light/#software" },
             "inLanguage": "en"
           },
           {
@@ -515,7 +542,7 @@
             "applicationCategory": "DeveloperApplication",
             "applicationSubCategory": "Version Control",
             "operatingSystem": "macOS, Windows, Linux",
-            "softwareVersion": "0.1.6",
+            "softwareVersion": "0.1.7",
             "description": "Desktop Git client with a commit graph, branch sidebar, working tree, interactive rebase, and real local Git operations via the native Git CLI.",
             "downloadUrl": "https://github.com/ftuyama/git-light/releases",
             "screenshot": "https://ftuyama.github.io/git-light/screenshot.png",
@@ -532,6 +559,8 @@
               "name": "ftuyama",
               "url": "https://github.com/ftuyama"
             },
+            "publisher": { "@id": "https://ftuyama.github.io/git-light/#organization" },
+            "mainEntityOfPage": { "@id": "https://ftuyama.github.io/git-light/#webpage" },
             "codeRepository": "https://github.com/ftuyama/git-light",
             "programmingLanguage": ["TypeScript", "JavaScript"],
             "featureList": [
@@ -892,6 +921,7 @@
           <a href="https://github.com/ftuyama">ftuyama</a>
           · <a href="https://ko-fi.com/lelouchiee" target="_blank" rel="noopener noreferrer">Sponsor on Ko-fi</a>
           · <a href="llms.txt">llms.txt</a>
+          · <a href="llms-full.txt">llms-full.txt</a>
         </p>
       </div>
     </footer>

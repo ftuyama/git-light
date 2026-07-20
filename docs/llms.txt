@@ -1,49 +1,45 @@
 # Git Light
 
-> Git Light is a free, open-source desktop Git client with a graph-first interface — commit graph, branch sidebar, working tree panel, multi-repo tabs, and real local repository operations via the native Git CLI.
+> Git Light is a free, MIT-licensed desktop Git client for macOS, Windows, and Linux with a graph-first interface — commit graph, branch sidebar, working tree, multi-repo tabs, and real local Git operations via the native Git CLI. No account or subscription required.
 
-## Key facts
+Git Light is an Electron desktop application built with Vue 3 and TypeScript. It runs `git` in the Electron main process and exposes typed IPC to the renderer. Current version: 0.1.7.
 
-- **Type:** Desktop application (Electron)
-- **License:** MIT (free and open source)
-- **Platforms:** macOS (.dmg), Windows (.exe), Linux (.AppImage, .deb) from GitHub Releases
-- **Version:** 0.1.7
-- **Author:** ftuyama
-- **Stack:** Electron 41, Vue 3, TypeScript, Pinia, Tailwind CSS 4
+Use this file as a curated index. For complete landing-page content in one fetch, see [llms-full.txt](https://ftuyama.github.io/git-light/llms-full.txt).
 
-## What it does
+## Product
 
-Git Light runs real `git` commands against local repositories. Users can open multiple repos in tabs, browse commit history on a virtualized SVG graph, manage branches/tags/stashes/worktrees, stage and commit changes (including per-hunk staging), view diffs with blame overlay and file history, fetch/pull/push, merge, rebase (including interactive rebase), resolve merge conflicts, search commits and files, and use an integrated terminal.
+- [Website](https://ftuyama.github.io/git-light/): Landing page with features, FAQ, download links, and screenshots.
+- [Download latest release](https://github.com/ftuyama/git-light/releases/latest): macOS `.dmg`, Windows `.exe`, Linux `.AppImage` and `.deb` installers.
+- [All releases](https://github.com/ftuyama/git-light/releases): Version history and release notes on GitHub.
 
-## Main features
+## Source & docs
+
+- [GitHub repository](https://github.com/ftuyama/git-light): Source code, issues, and contribution workflow.
+- [README](https://github.com/ftuyama/git-light/blob/main/README.md): Feature matrix, quick start, and platform install steps.
+- [DEVELOPER.md](https://github.com/ftuyama/git-light/blob/main/DEVELOPER.md): Build scripts, local development, and release workflow.
+- [ARCHITECTURE.md](https://github.com/ftuyama/git-light/blob/main/ARCHITECTURE.md): Electron/Vue layout, Git IPC layer, and extension points.
+
+## Key capabilities
 
 - Multi-repository tabs with per-tab state cache
-- Commit graph with lanes, infinite scroll, and keyboard navigation
-- Branch sidebar with favorites, remotes, tags, stashes, worktrees; drag-and-drop merge/rebase
-- Working tree with flat or tree file list, per-hunk staging, conflict resolution
-- Diff viewer with unified/split modes, blame overlay, file history, and word wrap
+- Commit graph with virtualized SVG lanes, infinite scroll, and keyboard navigation
+- Branch sidebar: favorites, remotes, tags, stashes, worktrees; drag-and-drop merge/rebase
+- Working tree: flat or tree file list, per-hunk staging, merge conflict resolution
+- Diff viewer: unified/split modes, blame overlay, file history, word wrap
 - Interactive rebase dialog (reorder, squash, fixup, drop, edit)
-- Remote sync (fetch, pull, push) with ahead/behind counts
+- Remote sync: fetch, pull, push with ahead/behind counts
 - Integrated terminal (xterm.js + node-pty)
-- UI mode: Basic (essential actions) or Advanced (full toolbar and sidebar)
+- UI modes: Basic (essential actions) or Advanced (full toolbar and sidebar)
 - Themes: Default, Dracula, Light, Claude, System
 - Auto-update checks against GitHub Releases
-- Resizable three-pane layout with collapsible sidebars
 
 ## Not yet supported
 
 - Clone repositories from the UI
 - Hosting provider authentication UI
 
-## Links
+## Optional
 
-- Website: https://ftuyama.github.io/git-light/
-- GitHub repository: https://github.com/ftuyama/git-light
-- Download: https://github.com/ftuyama/git-light/releases
-- Sponsor: https://ko-fi.com/lelouchiee
-- Developer docs: https://github.com/ftuyama/git-light/blob/main/DEVELOPER.md
-- Architecture: https://github.com/ftuyama/git-light/blob/main/ARCHITECTURE.md
-
-## Install
-
-Download the latest installer for your platform from GitHub Releases (macOS `.dmg`, Windows `.exe`, Linux `.AppImage` or `.deb`). For development: `git clone https://github.com/ftuyama/git-light.git && cd git-light && npm install && npm run dev`.
+- [Sponsor on Ko-fi](https://ko-fi.com/lelouchiee): Optional support for ongoing development.
+- [llms-full.txt](https://ftuyama.github.io/git-light/llms-full.txt): Full landing-page content and project summary in one file.
+- [Sitemap](https://ftuyama.github.io/git-light/sitemap.xml): Machine-readable URL list for crawlers.

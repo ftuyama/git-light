@@ -1,0 +1,134 @@
+# Git Light — Full site content
+
+> Git Light is a free, MIT-licensed desktop Git client for macOS, Windows, and Linux with a graph-first interface — commit graph, branch sidebar, working tree, multi-repo tabs, and real local Git operations via the native Git CLI. No account or subscription required.
+
+Version: 0.1.7 · License: MIT · Author: ftuyama · Stack: Electron 41, Vue 3, TypeScript, Pinia, Tailwind CSS 4
+
+Website: https://ftuyama.github.io/git-light/
+Repository: https://github.com/ftuyama/git-light
+Download: https://github.com/ftuyama/git-light/releases
+
+---
+
+## Overview
+
+Git Light is a desktop Git client with a graph-first interface. It provides a three-pane repository view that runs real Git commands against local repositories via a typed IPC layer. Open a folder, browse history, manage branches, stage files, commit, fetch/pull/push, and inspect diffs.
+
+Git Light is an Electron app. The renderer never shells out to Git directly — the main process runs the native `git` CLI and exposes typed IPC to the Vue 3 renderer.
+
+## Features
+
+### Commit graph
+Virtualized SVG lanes with a pending-changes row, infinite scroll, and arrow-key selection across history.
+
+### Branch sidebar
+Favorites, remotes, tags, stashes, and worktrees — drag branches to merge or rebase.
+
+### Working tree
+Flat or tree file list, per-hunk staging, conflict resolution, and commit composition.
+
+### Interactive rebase
+Reorder, squash, fixup, drop, or edit commits in a dialog before starting the rebase.
+
+### Multi-repo tabs
+Open several repositories at once — switch between tabs and pick up where you left off.
+
+### Blame & file history
+Inline blame overlay with author blocks, per-revision file history, and optional word wrap for long lines.
+
+### Remote sync
+Fetch, pull, push, and sync from the toolbar — with ahead/behind counts in the status bar.
+
+### Search & shortcuts
+Search commits and files by message or path. Navigate history and drive the UI from the keyboard.
+
+### Auto-update checks
+Packaged builds compare against GitHub Releases on startup. Check manually anytime from the app menu.
+
+### Real Git backend
+Native `git` CLI in the Electron main process via typed IPC — mock mode available for UI-only dev.
+
+### Credits & attribution
+Settings credits panel with project links and open-source licenses. Native About dialog on all platforms.
+
+### Integrated terminal
+Toggle an in-app shell at the repo root with ⌘T — xterm.js backed by node-pty in the main process.
+
+### Themes & UI mode
+Default, Dracula, Light, Claude, or System appearance. Basic mode hides advanced actions for a simpler toolbar.
+
+### Polished layout
+Collapsible sidebars with expand rails, resizable panes, and commit graph zoom for dense history views.
+
+## Feature status matrix
+
+| Area | Status |
+|------|--------|
+| Real Git backend (`git` CLI in main process; renderer never shells out) | Supported |
+| Open local repos · recent repos · multi-repo tabs · startup screen | Supported |
+| Commit graph — lanes, refs, pagination, shift-compare, keyboard nav | Supported |
+| Branch sidebar — favorites, tags, stashes, worktrees; drag-and-drop merge/rebase | Supported |
+| Working tree — flat/tree view, stage/unstage (patch hunks), commit | Supported |
+| Diff viewer — unified/split, syntax highlighting, per-hunk staging, blame overlay with file history, word wrap | Supported |
+| Fetch / pull / push / sync · remote maintenance (fetch all, prune, push tags) | Supported |
+| Merge / rebase / interactive rebase / cherry-pick (continue/abort banner) | Supported |
+| Merge conflict resolution (ours/theirs/per-block) | Supported |
+| Undo / redo (reflog-backed) · stash · search | Supported |
+| Integrated terminal (xterm + node-pty, ⌘T toggle in graph pane) | Supported |
+| Themes — Default, Dracula, Light, Claude, System (settings) | Supported |
+| Collapsible sidebars with expand rails · commit graph zoom | Supported |
+| UI mode — Basic (essential actions) or Advanced (full toolbar and sidebar) | Supported |
+| Open on GitHub · app preferences (appearance, layout, graph, sidebar, credits) | Supported |
+| Credits & attribution (settings panel + native About dialog) | Supported |
+| Resizable three-pane layout · file watcher auto-refresh | Supported |
+| Auto-update check (packaged builds) · Check for Updates… menu | Supported |
+| Clone / hosting auth UI | Not yet |
+
+## Tech stack
+
+Electron 41, Vue 3, TypeScript, Pinia, reka-ui, Tailwind CSS 4, xterm.js, node-pty, Vitest, electron-vite.
+
+## Download & install
+
+Download the latest installer from GitHub Releases:
+- macOS: `.dmg` — open the DMG and drag Git Light to Applications
+- Windows: `.exe` (NSIS) — run the installer
+- Linux: `.AppImage` or `.deb`
+
+Use **Git Light → Check for Updates…** to check for new versions in packaged builds.
+
+### Build from source
+
+```
+git clone https://github.com/ftuyama/git-light.git
+cd git-light
+npm install
+npm run dev
+```
+
+## Frequently asked questions
+
+### What is Git Light?
+Git Light is a free, open-source desktop Git client for macOS, Windows, and Linux. It shows a commit graph, branch sidebar, and working tree in a resizable three-pane layout, running real `git` commands against your local repositories.
+
+### Is Git Light free?
+Yes. Git Light is MIT-licensed and free to download and use. Optional sponsorship is available on Ko-fi.
+
+### What platforms does Git Light support?
+Packaged builds are available for macOS (.dmg), Windows (.exe), and Linux (.AppImage, .deb) on GitHub Releases. Developers can run it locally on any OS that supports Electron with Node.js and npm.
+
+### Does Git Light require an account?
+No sign-in, cloud sync, or subscription. Open a local folder and work with your existing Git repositories offline.
+
+### How is Git Light different from GitKraken or Sourcetree?
+Git Light is a lightweight, open-source alternative focused on a fast commit graph and direct Git CLI operations — without vendor accounts or lock-in. Built with Electron, Vue 3, and TypeScript.
+
+## Links
+
+- Website: https://ftuyama.github.io/git-light/
+- GitHub: https://github.com/ftuyama/git-light
+- Download: https://github.com/ftuyama/git-light/releases
+- Developer docs: https://github.com/ftuyama/git-light/blob/main/DEVELOPER.md
+- Architecture: https://github.com/ftuyama/git-light/blob/main/ARCHITECTURE.md
+- Sponsor: https://ko-fi.com/lelouchiee
+- LLM index: https://ftuyama.github.io/git-light/llms.txt
