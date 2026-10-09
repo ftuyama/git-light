@@ -7,6 +7,8 @@ import { ROW_LEFT_PADDING } from './composables/useCommitGraphColumns'
 import { useRepositoryStore } from '@/stores/repository'
 import { PENDING_BRANCH_ROW, useSelectionStore } from '@/stores/selection'
 import { useUiStore } from '@/stores/ui'
+import { STATUS_META } from '@/features/working-tree/fileStatus'
+import type { FileStatus } from '@/types/git'
 
 const props = defineProps<{
   graphWidth: number
@@ -21,16 +23,40 @@ const selection = useSelectionStore()
 const ui = useUiStore()
 const { columnWidths } = storeToRefs(ui)
 const { branchCreation } = storeToRefs(selection)
+const { commitMessage } = storeToRefs(repo)
+
+const MESSAGE_PLACEHOLDER = '// WIP'
 
 const changedCount = computed(() => repo.workingTree.length)
-const stagedCount = computed(() => repo.stagedFiles.length)
-const unstagedCount = computed(() => repo.unstagedFiles.length)
 
-const summary = computed(() => {
-  const parts: string[] = []
-  if (unstagedCount.value) parts.push(`${unstagedCount.value} changed`)
-  if (stagedCount.value) parts.push(`${stagedCount.value} staged`)
-  return parts.length ? parts.join(' · ') : `${changedCount.value} files`
+const messageWidth = computed(() => {
+  const len = commitMessage.value.length || MESSAGE_PLACEHOLDER.length
+  return `${len + 1}ch`
+})
+
+interface StatusGroup {
+  status: FileStatus
+  count: number
+}
+
+const statusBreakdown = computed<StatusGroup[]>(() => {
+  const counts = new Map<FileStatus, number>()
+  for (const file of repo.workingTree) {
+    counts.set(file.status, (counts.get(file.status) ?? 0) + 1)
+  }
+  const added = (counts.get('added') ?? 0) + (counts.get('untracked') ?? 0)
+  const groups: StatusGroup[] = []
+  if (counts.get('modified')) groups.push({ status: 'modified', count: counts.get('modified')! })
+  if (added) groups.push({ status: 'added', count: added })
+  if (counts.get('deleted')) groups.push({ status: 'deleted', count: counts.get('deleted')! })
+  if (counts.get('renamed')) groups.push({ status: 'renamed', count: counts.get('renamed')! })
+  if (counts.get('copied')) groups.push({ status: 'copied', count: counts.get('copied')! })
+  if (counts.get('conflicted'))
+    groups.push({ status: 'conflicted', count: counts.get('conflicted')! })
+  if (counts.get('ignored')) groups.push({ status: 'ignored', count: counts.get('ignored')! })
+  if (!groups.length && changedCount.value)
+    groups.push({ status: 'modified', count: changedCount.value })
+  return groups
 })
 
 const isCreatingBranch = computed(
@@ -104,8 +130,34 @@ function onBranchNameCancel(): void {
       class="relative flex shrink-0 items-center gap-2 px-2"
       :style="{ width: `${columnWidths.commit}px` }"
     >
-      <span class="truncate font-medium">Uncommitted changes</span>
-      <span class="shrink-0 text-[11px] text-[var(--color-fg-subtle)]">{{ summary }}</span>
+      <input
+        v-model="commitMessage"
+        type="text"
+        :placeholder="MESSAGE_PLACEHOLDER"
+        spellcheck="false"
+        aria-label="Commit message"
+        :style="{ width: messageWidth }"
+        class="w-auto min-w-[4ch] max-w-full shrink truncate bg-transparent font-mono text-[13px] text-[var(--color-fg-muted)] placeholder:text-[var(--color-fg-subtle)]/60 focus:outline-none"
+      />
+      <span class="flex shrink-0 items-center gap-2 text-[11px] text-[var(--color-fg-subtle)]">
+        <span
+          v-for="group in statusBreakdown"
+          :key="group.status"
+          class="flex items-center gap-1"
+          :title="STATUS_META[group.status].label"
+        >
+          <component
+            :is="STATUS_META[group.status].icon"
+            v-if="STATUS_META[group.status].icon"
+            :size="12"
+            :style="{ color: STATUS_META[group.status].color }"
+          />
+          <span v-else class="font-mono" :style="{ color: STATUS_META[group.status].color }">
+            {{ STATUS_META[group.status].letter }}
+          </span>
+          <span>{{ group.count }}</span>
+        </span>
+      </span>
     </div>
   </div>
 </template>
