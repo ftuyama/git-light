@@ -46,10 +46,10 @@ For what **is** planned, see [README.md](README.md).
 
 | Feature | Rationale |
 |---------|-----------|
-| Git LFS UI | Niche; large implementation for file-pointer workflows. |
+| Git LFS UI | ✅ In scope — track/untrack patterns plus local prune. |
 | Submodule management UI | Parser awareness only; full UI is a separate product surface. |
-| Bisect UI | Rare workflow; CLI remains the right tool. |
-| Command palette | Toolbar, context menus, and shortcuts cover core actions; a global searchable launcher is large UX infrastructure for marginal gain in a focused client. |
+| Bisect UI | ✅ In scope — start, mark good/bad, skip, reset with banner. |
+| Command palette | ✅ In scope — global fuzzy launcher over existing toolbar actions and branches. |
 | Multi-repo tabs | Complicates shell, state, and memory; one repo per window is the model. |
 
 ---
@@ -66,7 +66,7 @@ For what **is** planned, see [README.md](README.md).
 
 - **Not a full commercial Git client clone** — core local workflows only; intentional scope, not a backlog to close entirely.
 - **Not a hosting client** — no substitute for github.com, GitLab, or desktop auth flows.
-- **Not an IDE** — no built-in editor, terminal replacement, command palette, or CI dashboard.
+- **Not an IDE** — no built-in editor, terminal replacement, or CI dashboard.
 
 ---
 

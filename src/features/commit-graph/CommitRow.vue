@@ -202,7 +202,14 @@ const menu = computed<MenuItem[]>(() => {
     items.push({ label: 'Revert Commit', icon: Undo2, onSelect: () => act('revert') })
   }
 
-  items.push({ label: 'Merge into Current', icon: GitMerge, onSelect: () => act('merge') })
+  items.push({
+    label: 'Merge into Current',
+    icon: GitMerge,
+    children: [
+      { label: 'Merge', onSelect: () => act('merge') },
+      { label: 'Squash merge', shortcut: '--squash', onSelect: () => mergeSquash() },
+    ],
+  })
 
   if (ui.isAdvanced) {
     items.push(
@@ -247,6 +254,10 @@ function onBranchNameCancel(): void {
 
 function act(kind: Parameters<typeof repo.runAction>[0]['kind']): void {
   void repo.runAction({ kind, target: props.commit.shortSha })
+}
+
+function mergeSquash(): void {
+  void repo.runAction({ kind: 'merge', target: props.commit.shortSha, meta: { squash: true } })
 }
 
 function copySha(): void {

@@ -12,6 +12,7 @@ const DESTRUCTIVE = new Set<GitActionKind>([
   'discard-patch',
   'restore-file',
   'worktree-remove',
+  'lfs-prune',
 ])
 
 export function isDestructiveAction(kind: GitActionKind | string): boolean {

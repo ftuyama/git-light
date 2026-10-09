@@ -155,6 +155,9 @@ export interface UserPreferences {
   uiMode: UiMode
   ignoreWhitespace: boolean
   blameWordWrap: boolean
+  diffWordWrap: boolean
+  signOffCommit: boolean
+  signCommit: boolean
 }
 
 export const PREFERENCES_KEY = 'git-light:preferences'
@@ -229,6 +232,9 @@ export function defaultPreferences(): UserPreferences {
     uiMode: 'advanced',
     ignoreWhitespace: false,
     blameWordWrap: false,
+    diffWordWrap: false,
+    signOffCommit: false,
+    signCommit: false,
   }
 }
 
@@ -267,5 +273,8 @@ export function mergePreferences(saved: Partial<UserPreferences> | null): UserPr
     uiMode: isUiMode(saved.uiMode) ? saved.uiMode : defaults.uiMode,
     ignoreWhitespace: saved.ignoreWhitespace ?? defaults.ignoreWhitespace,
     blameWordWrap: saved.blameWordWrap ?? defaults.blameWordWrap,
+    diffWordWrap: saved.diffWordWrap ?? defaults.diffWordWrap,
+    signOffCommit: saved.signOffCommit ?? defaults.signOffCommit,
+    signCommit: saved.signCommit ?? defaults.signCommit,
   }
 }

@@ -1,13 +1,34 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { GitCommitHorizontal, Loader2, Square } from '@lucide/vue'
+import { GitCommitHorizontal, Loader2, Search, Square, ZoomIn, ZoomOut } from '@lucide/vue'
 import { appVersion } from '@/lib/appVersion'
 import { useRepositoryStore } from '@/stores/repository'
+import DropdownMenu from '@/components/ui/DropdownMenu.vue'
+import type { MenuItem } from '@/components/ui/menu'
+import {
+  useCommitGraphZoom,
+  ZOOM_PRESETS,
+} from '@/features/commit-graph/composables/useCommitGraphZoom'
 
 const repo = useRepositoryStore()
+const { zoomPercent, canZoomIn, canZoomOut, zoomIn, zoomOut, resetZoom, setZoomPercent } =
+  useCommitGraphZoom()
 
 const stagedCount = computed(() => repo.stagedFiles.length)
 const changedCount = computed(() => repo.workingTree.length)
+
+const zoomMenuItems = computed<MenuItem[]>(() => [
+  { label: 'Zoom in', icon: ZoomIn, shortcut: '⌘+', disabled: !canZoomIn.value, onSelect: () => zoomIn() },
+  { label: 'Zoom out', icon: ZoomOut, shortcut: '⌘−', disabled: !canZoomOut.value, onSelect: () => zoomOut() },
+  { separator: true },
+  ...ZOOM_PRESETS.map((preset) => ({
+    label: `${preset}%`,
+    checked: zoomPercent.value === preset,
+    onSelect: () => setZoomPercent(preset),
+  })),
+  { separator: true },
+  { label: 'Reset to 100%', shortcut: '⌘0', onSelect: () => resetZoom() },
+])
 </script>
 
 <template>
@@ -32,6 +53,19 @@ const changedCount = computed(() => repo.workingTree.length)
         </button>
       </span>
     </Transition>
+
+    <span class="h-3 w-px bg-[var(--color-border)]" />
+
+    <DropdownMenu :items="zoomMenuItems" side="top" align="center">
+      <button
+        class="app-no-drag focus-ring flex shrink-0 items-center gap-1 rounded px-1 py-0.5 tabular-nums hover:bg-[var(--color-hover)] hover:text-[var(--color-fg)]"
+        title="Select commit graph zoom"
+        aria-label="Select commit graph zoom"
+      >
+        <Search :size="12" class="text-[var(--color-fg-subtle)]" />
+        {{ zoomPercent }}%
+      </button>
+    </DropdownMenu>
 
     <span class="h-3 w-px bg-[var(--color-border)]" />
 

@@ -1,4 +1,4 @@
-export const THEME_IDS = ['default', 'dracula', 'light', 'claude'] as const
+export const THEME_IDS = ['default', 'dracula', 'light', 'claude', 'tokyo-night'] as const
 export type ThemeId = (typeof THEME_IDS)[number]
 
 export const THEME_PREFERENCES = [...THEME_IDS, 'system'] as const
@@ -37,6 +37,12 @@ export const THEMES: ThemeDefinition[] = [
     swatches: ['#141413', '#252320', '#d97757', '#faf9f5'],
   },
   {
+    id: 'tokyo-night',
+    label: 'Tokyo Night',
+    description: 'Dark blue Tokyo Night palette with vivid blue and purple accents.',
+    swatches: ['#1a1b26', '#24283b', '#7aa2f7', '#c0caf5'],
+  },
+  {
     id: 'system',
     label: 'System',
     description: 'Matches your operating system appearance.',
@@ -71,6 +77,7 @@ export const THEME_APP_COLORS: Record<ThemeId, string> = {
   dracula: '#282a36',
   light: '#ffffff',
   claude: '#141413',
+  'tokyo-night': '#1a1b26',
 }
 
 export function themeAppColor(preference: ThemePreference): string {

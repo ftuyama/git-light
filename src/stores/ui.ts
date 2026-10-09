@@ -81,6 +81,9 @@ function snapshot(state: {
   uiMode: UiMode
   ignoreWhitespace: boolean
   blameWordWrap: boolean
+  diffWordWrap: boolean
+  signOffCommit: boolean
+  signCommit: boolean
 }): UserPreferences {
   return {
     leftSize: state.leftSize,
@@ -102,6 +105,9 @@ function snapshot(state: {
     uiMode: state.uiMode,
     ignoreWhitespace: state.ignoreWhitespace,
     blameWordWrap: state.blameWordWrap,
+    diffWordWrap: state.diffWordWrap,
+    signOffCommit: state.signOffCommit,
+    signCommit: state.signCommit,
   }
 }
 
@@ -126,6 +132,9 @@ export const useUiStore = defineStore('ui', {
     uiMode: defaultPreferences().uiMode,
     ignoreWhitespace: false,
     blameWordWrap: false,
+    diffWordWrap: false,
+    signOffCommit: false,
+    signCommit: false,
     terminalOpen: false,
     commandPaletteOpen: false,
     settingsOpen: false,
@@ -165,6 +174,9 @@ export const useUiStore = defineStore('ui', {
       this.uiMode = saved.uiMode
       this.ignoreWhitespace = saved.ignoreWhitespace
       this.blameWordWrap = saved.blameWordWrap
+      this.diffWordWrap = saved.diffWordWrap
+      this.signOffCommit = saved.signOffCommit
+      this.signCommit = saved.signCommit
       syncThemePreference(this.theme)
       if (persistenceBound) return
       persistenceBound = true
@@ -199,6 +211,9 @@ export const useUiStore = defineStore('ui', {
           uiMode: this.uiMode,
           ignoreWhitespace: this.ignoreWhitespace,
           blameWordWrap: this.blameWordWrap,
+          diffWordWrap: this.diffWordWrap,
+          signOffCommit: this.signOffCommit,
+          signCommit: this.signCommit,
         }),
       )
     },
@@ -234,6 +249,15 @@ export const useUiStore = defineStore('ui', {
     },
     toggleTerminal(): void {
       this.terminalOpen = !this.terminalOpen
+    },
+    openCommandPalette(): void {
+      this.commandPaletteOpen = true
+    },
+    closeCommandPalette(): void {
+      this.commandPaletteOpen = false
+    },
+    toggleCommandPalette(): void {
+      this.commandPaletteOpen = !this.commandPaletteOpen
     },
     openTerminal(): void {
       this.terminalOpen = true
@@ -303,6 +327,15 @@ export const useUiStore = defineStore('ui', {
     },
     setBlameWordWrap(value: boolean): void {
       this.blameWordWrap = value
+    },
+    setDiffWordWrap(value: boolean): void {
+      this.diffWordWrap = value
+    },
+    setSignOffCommit(value: boolean): void {
+      this.signOffCommit = value
+    },
+    setSignCommit(value: boolean): void {
+      this.signCommit = value
     },
     setFileListView(view: FileListView): void {
       this.fileListView = view

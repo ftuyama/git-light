@@ -382,6 +382,69 @@ export const gitActions = {
     await this.runAction({ kind: 'rebase-skip' }, { skipConfirm: true })
   },
 
+  async startBisect(this: GitActionsStore): Promise<void> {
+    if (this.busyAction || this.inProgressOperation) {
+      useToastStore().push('Finish the current operation first', 'error')
+      return
+    }
+    const bad = await usePromptStore().prompt({
+      title: 'Start Bisect',
+      message: 'Known-bad commit (empty for HEAD)',
+      placeholder: 'HEAD',
+    })
+    if (bad === null) return
+    const good = await usePromptStore().prompt({
+      title: 'Start Bisect',
+      message: 'Known-good commit (optional)',
+      placeholder: 'v1.0.0',
+    })
+    if (good === null) return
+    await this.runAction({
+      kind: 'bisect-start',
+      meta: { bad: bad || 'HEAD', ...(good ? { good } : {}) },
+    })
+  },
+
+  async bisectGood(this: GitActionsStore, sha?: string): Promise<void> {
+    await this.runAction({ kind: 'bisect-good', ...(sha ? { target: sha } : {}) }, { skipConfirm: true })
+  },
+
+  async bisectBad(this: GitActionsStore, sha?: string): Promise<void> {
+    await this.runAction({ kind: 'bisect-bad', ...(sha ? { target: sha } : {}) }, { skipConfirm: true })
+  },
+
+  async bisectSkip(this: GitActionsStore): Promise<void> {
+    await this.runAction({ kind: 'bisect-skip' }, { skipConfirm: true })
+  },
+
+  async bisectReset(this: GitActionsStore): Promise<void> {
+    await this.runAction({ kind: 'bisect-reset' }, { skipConfirm: true })
+  },
+
+  async lfsTrack(this: GitActionsStore): Promise<void> {
+    const pattern = await usePromptStore().prompt({
+      title: 'Track with Git LFS',
+      message: 'File pattern to track (e.g. *.zip)',
+      placeholder: '*.zip',
+    })
+    if (!pattern) return
+    await this.runAction({ kind: 'lfs-track', target: pattern.trim() })
+  },
+
+  async lfsUntrack(this: GitActionsStore): Promise<void> {
+    const pattern = await usePromptStore().prompt({
+      title: 'Untrack from Git LFS',
+      message: 'File pattern to stop tracking',
+      placeholder: '*.zip',
+    })
+    if (!pattern) return
+    await this.runAction({ kind: 'lfs-untrack', target: pattern.trim() })
+  },
+
+  async lfsPrune(this: GitActionsStore): Promise<void> {
+    await this.runAction({ kind: 'lfs-prune' })
+  },
+
   toggleFavorite(this: GitActionsStore, branchId: string): void {
     const branch = this.branches.find((b) => b.id === branchId)
     if (!branch || !this.repository) return

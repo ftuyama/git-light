@@ -1,9 +1,11 @@
-import type { GitAction } from '@/types/git'
+import type { Commit, GitAction } from '@/types/git'
 import { useRepoDiffStore } from '@/stores/repoDiff'
+import { useUiStore } from '@/stores/ui'
 import type { RepositoryState } from './types'
 
 type CommitBoxStore = RepositoryState & {
   canCommit: boolean
+  headCommit: Commit | undefined
   stagedFiles: { length: number }
   workingTree: RepositoryState['workingTree']
   runAction(action: GitAction, options?: { skipConfirm?: boolean }): Promise<boolean>
@@ -61,6 +63,29 @@ export const commitBoxActions = {
     await this.runAction({ kind: 'discard-all' })
   },
 
+  setAmend(this: CommitBoxStore, value: boolean): void {
+    const next = Boolean(value)
+    if (next === this.amend) return
+    if (next) {
+      const head = this.headCommit
+      if (!head) return
+      this.preAmendDraft = {
+        message: this.commitMessage,
+        description: this.commitDescription,
+      }
+      this.amend = true
+      this.commitMessage = head.subject ?? ''
+      this.commitDescription = head.body ?? ''
+    } else {
+      this.amend = false
+      if (this.preAmendDraft) {
+        this.commitMessage = this.preAmendDraft.message
+        this.commitDescription = this.preAmendDraft.description
+        this.preAmendDraft = null
+      }
+    }
+  },
+
   async commit(this: CommitBoxStore, options: { thenPush?: boolean; forcePush?: boolean } = {}): Promise<void> {
     if (!this.canCommit) return
     const { thenPush = false, forcePush = false } = options
@@ -79,12 +104,14 @@ export const commitBoxActions = {
       meta: {
         message: this.commitMessage,
         body: this.commitDescription,
-        signOff: this.signOff,
+        signOff: useUiStore().signOffCommit,
+        sign: useUiStore().signCommit,
         amend: this.amend,
       },
     })
     this.commitMessage = ''
     this.commitDescription = ''
     this.amend = false
+    this.preAmendDraft = null
   },
 }

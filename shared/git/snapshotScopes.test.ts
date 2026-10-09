@@ -43,4 +43,18 @@ describe('scopesForAction', () => {
     expect(scopesForAction('commit')).toEqual(['commits', 'status'])
     expect(scopesForAction('amend')).toEqual(['commits', 'status'])
   })
+
+  it('refreshes status for lfs actions', () => {
+    expect(scopesForAction('lfs-track')).toEqual(['status'])
+    expect(scopesForAction('lfs-untrack')).toEqual(['status'])
+    expect(scopesForAction('lfs-prune')).toEqual(['status'])
+  })
+
+  it('refreshes commits, branches, and status for bisect actions', () => {
+    expect(scopesForAction('bisect-start')).toEqual(['commits', 'branches', 'status'])
+    expect(scopesForAction('bisect-good')).toEqual(['commits', 'branches', 'status'])
+    expect(scopesForAction('bisect-bad')).toEqual(['commits', 'branches', 'status'])
+    expect(scopesForAction('bisect-skip')).toEqual(['commits', 'branches', 'status'])
+    expect(scopesForAction('bisect-reset')).toEqual(['commits', 'branches', 'status'])
+  })
 })

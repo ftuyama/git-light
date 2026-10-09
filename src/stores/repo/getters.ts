@@ -1,5 +1,5 @@
 import { headCommitIndex as computeHeadCommitIndex } from '@/lib/graph/pendingGraphRow'
-import type { Branch } from '@/types/git'
+import type { Branch, Commit } from '@/types/git'
 import type { RepositoryState } from './types'
 
 export const repositoryGetters = {
@@ -22,12 +22,26 @@ export const repositoryGetters = {
   headCommitIndex(state: RepositoryState): number {
     return computeHeadCommitIndex(state.commits, state.repository?.headSha)
   },
+  headCommit(state: RepositoryState): Commit | undefined {
+    const headSha = state.repository?.headSha
+    if (headSha) {
+      const bySha = state.commits.find((c) => c.sha === headSha)
+      if (bySha) return bySha
+    }
+    return state.commits.find((c) => c.refs.some((r) => r.isHead))
+  },
+  canAmend(): boolean {
+    return this.headCommit != null
+  },
   hasUnresolvedConflicts(): boolean {
     return this.conflictedFiles.length > 0
   },
   canCommit(state: RepositoryState): boolean {
     const hasMessage = state.commitMessage.trim().length > 0
-    if (state.amend) return hasMessage
+    if (state.amend) {
+      if (!this.headCommit) return false
+      return hasMessage || this.stagedFiles.length > 0
+    }
     return hasMessage && this.stagedFiles.length > 0
   },
   hasOpenRepo: (state: RepositoryState): boolean => state.repository != null,
@@ -35,7 +49,7 @@ export const repositoryGetters = {
   inProgressOperation(state: RepositoryState): boolean {
     const s = state.repository?.state
     if (!s) return false
-    return s.merging || s.rebasing || s.cherryPicking || s.reverting
+    return s.merging || s.rebasing || s.cherryPicking || s.reverting || s.bisecting
   },
   canUndo(state: RepositoryState): boolean {
     return !!(

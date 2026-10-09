@@ -27,7 +27,6 @@ export interface CachedTabState {
   commitAuthor: Author | null
   commitMessage: string
   commitDescription: string
-  signOff: boolean
   amend: boolean
 }
 
@@ -45,7 +44,6 @@ type CacheableStore = Pick<
   | 'commitAuthor'
   | 'commitMessage'
   | 'commitDescription'
-  | 'signOff'
   | 'amend'
 >
 
@@ -65,7 +63,6 @@ export function captureTabState(store: CacheableStore): CachedTabState | null {
     commitAuthor: store.commitAuthor,
     commitMessage: store.commitMessage,
     commitDescription: store.commitDescription,
-    signOff: store.signOff,
     amend: store.amend,
   }
 }
@@ -83,7 +80,6 @@ export function applyCachedTabState(store: CacheableStore, cached: CachedTabStat
   store.commitAuthor = cached.commitAuthor
   store.commitMessage = cached.commitMessage
   store.commitDescription = cached.commitDescription
-  store.signOff = cached.signOff
   store.amend = cached.amend
 }
 

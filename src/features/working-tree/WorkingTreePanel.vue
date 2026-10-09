@@ -2,7 +2,7 @@
 import { computed, watch } from 'vue'
 import { storeToRefs } from 'pinia'
 import { Splitpanes, Pane, type SplitpanesResizedPayload } from 'splitpanes'
-import { CheckCheck, ChevronRight, Loader2, Trash2, TriangleAlert, X } from '@lucide/vue'
+import { CheckCheck, ChevronRight, Loader2, Trash2, X } from '@lucide/vue'
 import IconButton from '@/components/ui/IconButton.vue'
 import FileList from './FileList.vue'
 import CommitDetailHeader from './CommitDetailHeader.vue'
@@ -180,8 +180,7 @@ watch(compareRange, (range) => {
             <header
               class="flex h-9 shrink-0 items-center gap-2 px-3 text-[11px] font-semibold tracking-wide text-[var(--color-fg-muted)] uppercase"
             >
-              <span class="flex-1">Changes</span>
-              <span class="font-mono text-[10px] text-[var(--color-fg-subtle)]">{{ unstaged.length }}</span>
+              <span class="flex-1">Changes ({{ unstaged.length }})</span>
               <FileListViewToggle />
               <button
                 class="focus-ring flex items-center gap-1 rounded px-1.5 py-0.5 text-[11px] font-medium text-[var(--color-success)] normal-case hover:bg-[var(--color-success)]/10 disabled:opacity-40"
@@ -199,25 +198,20 @@ watch(compareRange, (range) => {
               No unstaged changes
             </div>
 
-            <div class="shrink-0 border-t border-[var(--color-border)]">
+            <div v-if="conflicts.length" class="shrink-0 border-t border-[var(--color-border)]">
               <button
-                class="flex h-8 w-full items-center gap-2 px-3 text-[11px] font-semibold tracking-wide uppercase"
-                :class="conflicts.length ? 'text-[var(--color-danger)]' : 'text-[var(--color-fg-subtle)]'"
-                :disabled="conflicts.length === 0"
+                class="flex h-8 w-full items-center gap-2 px-3 text-[11px] font-semibold tracking-wide text-[var(--color-danger)] uppercase"
                 @click="ui.toggleSection('conflicts')"
               >
                 <ChevronRight
-                  v-if="conflicts.length"
                   :size="13"
                   class="transition-transform"
                   :class="ui.isSectionOpen('conflicts') ? 'rotate-90' : ''"
                 />
-                <TriangleAlert v-else :size="13" />
-                <span class="flex-1 text-left">Conflicts</span>
-                <span class="font-mono text-[10px]">{{ conflicts.length }}</span>
+                <span class="flex-1 text-left">Conflicts ({{ conflicts.length }})</span>
               </button>
               <div
-                v-if="conflicts.length && ui.isSectionOpen('conflicts')"
+                v-if="ui.isSectionOpen('conflicts')"
                 class="max-h-40 overflow-y-auto px-1 pb-1"
               >
                 <FileList :files="conflicts" />
@@ -231,8 +225,7 @@ watch(compareRange, (range) => {
             <header
               class="flex h-9 shrink-0 items-center gap-2 px-3 text-[11px] font-semibold tracking-wide text-[var(--color-fg-muted)] uppercase"
             >
-              <span class="flex-1">Staged</span>
-              <span class="font-mono text-[10px] text-[var(--color-fg-subtle)]">{{ staged.length }}</span>
+              <span class="flex-1">Staged ({{ staged.length }})</span>
               <FileListViewToggle />
               <button
                 class="focus-ring flex items-center gap-1 rounded px-1.5 py-0.5 text-[11px] font-medium text-[var(--color-fg-muted)] normal-case hover:bg-[var(--color-hover)] disabled:opacity-40"

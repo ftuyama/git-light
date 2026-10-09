@@ -14,6 +14,7 @@ import ToastViewport from '@/features/layout/ToastViewport.vue'
 import StartupView from '@/features/startup/StartupView.vue'
 import OperationBanner from '@/features/layout/OperationBanner.vue'
 import PromptHost from '@/features/layout/PromptHost.vue'
+import CommandPalette from '@/features/palette/CommandPalette.vue'
 import SearchOverlay from '@/features/search/SearchOverlay.vue'
 import FileHistoryDialog from '@/features/working-tree/FileHistoryDialog.vue'
 import InteractiveRebaseDialog from '@/features/rebase/InteractiveRebaseDialog.vue'
@@ -32,11 +33,13 @@ import { useSelectionStore } from '@/stores/selection'
 import { useRepositoryStore } from '@/stores/repository'
 import { useRepoDiffStore } from '@/stores/repoDiff'
 import { useKeyboardShortcuts } from '@/composables/useKeyboardShortcuts'
+import { useCommitGraphZoom } from '@/features/commit-graph/composables/useCommitGraphZoom'
 
 const ui = useUiStore()
 const repo = useRepositoryStore()
 const selection = useSelectionStore()
 const diffStore = useRepoDiffStore()
+const graphZoom = useCommitGraphZoom()
 const { leftSize, rightSize, leftCollapsed, rightCollapsed, leftCollapseHint, rightCollapseHint } =
   storeToRefs(ui)
 const { screen } = storeToRefs(repo)
@@ -91,6 +94,8 @@ function onResized(payload: SplitpanesResizedPayload): void {
 useKeyboardShortcuts([
   { key: 'f', meta: true, handler: () => branchSidebar.value?.focusSearch() },
   { key: 'f', meta: true, shift: true, handler: () => repo.openSearch() },
+  { key: 'k', meta: true, handler: () => ui.toggleCommandPalette(), allowInInput: true },
+  { key: 'o', meta: true, shift: true, handler: () => ui.toggleCommandPalette() },
   { key: 't', meta: true, handler: () => void repo.runAction({ kind: 'open-terminal' }) },
   { key: 'r', meta: true, handler: () => void repo.runAction({ kind: 'refresh' }) },
   { key: 'l', meta: true, shift: true, handler: () => void repo.runAction({ kind: 'pull' }) },
@@ -102,6 +107,10 @@ useKeyboardShortcuts([
   { key: 'j', handler: () => selection.moveBy(1) },
   { key: 'k', handler: () => selection.moveBy(-1) },
   { key: 'b', meta: true, handler: () => ui.toggleLeft() },
+  { key: '+', meta: true, handler: () => graphZoom.zoomIn() },
+  { key: '=', meta: true, handler: () => graphZoom.zoomIn() },
+  { key: '-', meta: true, handler: () => graphZoom.zoomOut() },
+  { key: '0', meta: true, handler: () => graphZoom.resetZoom() },
 ])
 </script>
 
@@ -156,6 +165,7 @@ useKeyboardShortcuts([
     </div>
     <ToastViewport />
     <PromptHost />
+    <CommandPalette />
     <SearchOverlay />
     <FileHistoryDialog />
     <InteractiveRebaseDialog />

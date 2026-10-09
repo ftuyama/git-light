@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { FastForward, GitMerge, RotateCcw, SkipForward, TriangleAlert } from '@lucide/vue'
+import { Check, FastForward, GitMerge, RotateCcw, SkipForward, TriangleAlert, X } from '@lucide/vue'
 import Button from '@/components/ui/Button.vue'
 import { useRepositoryStore } from '@/stores/repository'
 
@@ -18,6 +18,7 @@ const operation = computed(() => {
   if (s.reverting) return 'revert'
   return null
 })
+const isBisecting = computed(() => repo.repository?.state?.bisecting ?? false)
 </script>
 
 <template>
@@ -28,7 +29,7 @@ const operation = computed(() => {
     <GitMerge :size="16" class="shrink-0 text-[var(--color-warning)]" />
     <div class="min-w-0 flex-1">
       <div class="font-medium text-[var(--color-fg)]">
-        {{ operation }} in progress
+        {{ isBisecting ? 'bisect' : operation }} in progress
       </div>
       <div v-if="label" class="truncate text-xs text-[var(--color-fg-muted)]">{{ label }}</div>
       <div
@@ -39,7 +40,21 @@ const operation = computed(() => {
         {{ conflictCount }} unresolved conflict{{ conflictCount === 1 ? '' : 's' }}
       </div>
     </div>
-    <div class="flex items-center gap-2">
+    <div v-if="isBisecting" class="flex items-center gap-2">
+      <Button size="sm" variant="secondary" title="Mark the current commit as good" @click="repo.bisectGood()">
+        <Check :size="13" /> Good
+      </Button>
+      <Button size="sm" variant="secondary" title="Mark the current commit as bad" @click="repo.bisectBad()">
+        <X :size="13" /> Bad
+      </Button>
+      <Button size="sm" variant="secondary" title="Skip the current commit" @click="repo.bisectSkip()">
+        <FastForward :size="13" /> Skip
+      </Button>
+      <Button size="sm" variant="ghost" title="End the bisect session" @click="repo.bisectReset()">
+        <RotateCcw :size="13" /> Reset
+      </Button>
+    </div>
+    <div v-else class="flex items-center gap-2">
       <Button
         v-if="operation === 'rebase'"
         size="sm"

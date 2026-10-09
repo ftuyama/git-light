@@ -76,6 +76,16 @@ export type GitActionKind =
   // Worktrees
   | 'worktree-add'
   | 'worktree-remove'
+  // Git LFS
+  | 'lfs-track'
+  | 'lfs-untrack'
+  | 'lfs-prune'
+  // Bisect
+  | 'bisect-start'
+  | 'bisect-good'
+  | 'bisect-bad'
+  | 'bisect-skip'
+  | 'bisect-reset'
   // Merge conflicts
   | 'resolve-conflict-ours'
   | 'resolve-conflict-theirs'

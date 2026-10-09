@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { Columns2, Loader2, Rows3, UserSearch } from '@lucide/vue'
+import { Columns2, Loader2, Pilcrow, Rows3, UserSearch, X } from '@lucide/vue'
 import { useRepoDiffStore } from '@/stores/repoDiff'
 import { useUiStore } from '@/stores/ui'
-import Checkbox from '@/components/ui/Checkbox.vue'
 import Tooltip from '@/components/ui/Tooltip.vue'
 import SplitDiffView from './SplitDiffView.vue'
 import UnifiedDiffView from './UnifiedDiffView.vue'
+import WordWrapIcon from './WordWrapIcon.vue'
 
 const diffStore = useRepoDiffStore()
 const ui = useUiStore()
@@ -30,10 +30,21 @@ function toggleIgnoreWhitespace(value: boolean): void {
       class="flex h-8 shrink-0 items-center gap-2 border-b border-[var(--color-border)] px-3 text-[11px] font-semibold tracking-wide text-[var(--color-fg-muted)] uppercase"
     >
       <span class="flex-1 truncate normal-case">{{ diffStore.selectedFilePath }}</span>
-      <span v-if="diff" class="font-mono text-[10px] normal-case">
-        +{{ diff.additions }} −{{ diff.deletions }}
-      </span>
-      <div class="flex items-center rounded border border-[var(--color-border)] p-0.5 normal-case">
+      <Tooltip label="Close file">
+        <button
+          type="button"
+          class="focus-ring rounded p-1 text-[var(--color-fg-subtle)] transition-colors hover:bg-[var(--color-hover)] hover:text-[var(--color-fg)]"
+          aria-label="Close file"
+          @click="diffStore.selectFile(null)"
+        >
+          <X :size="12" class="block" />
+        </button>
+      </Tooltip>
+    </header>
+    <div
+      class="flex h-8 shrink-0 items-center gap-2 border-b border-[var(--color-border)] px-3"
+    >
+      <div class="flex items-center rounded border border-[var(--color-border)] p-0.5">
         <Tooltip label="Diff view">
           <button
             type="button"
@@ -60,7 +71,7 @@ function toggleIgnoreWhitespace(value: boolean): void {
       </div>
       <div
         v-if="diff && !diff.binary && !diff.tooLarge"
-        class="flex items-center rounded border border-[var(--color-border)] p-0.5 normal-case"
+        class="flex items-center rounded border border-[var(--color-border)] p-0.5"
       >
         <Tooltip label="Unified diff">
           <button
@@ -91,27 +102,41 @@ function toggleIgnoreWhitespace(value: boolean): void {
           </button>
         </Tooltip>
       </div>
-      <label
-        class="flex items-center gap-1.5 text-[10px] font-normal normal-case text-[var(--color-fg-subtle)]"
-      >
-        <Checkbox
-          :model-value="ui.ignoreWhitespace"
-          aria-label="Ignore whitespace in diff"
-          @update:model-value="toggleIgnoreWhitespace"
-        />
-        Ignore WS
-      </label>
-      <Tooltip label="Close file">
-        <button
-          type="button"
-          class="focus-ring rounded px-1.5 py-0.5 text-[10px] normal-case text-[var(--color-fg-subtle)] hover:bg-[var(--color-hover)]"
-          aria-label="Close file"
-          @click="diffStore.selectFile(null)"
-        >
-          Close
-        </button>
-      </Tooltip>
-    </header>
+      <div class="flex items-center rounded border border-[var(--color-border)] p-0.5">
+        <Tooltip label="Ignore Leading/Trailing Space">
+          <button
+            type="button"
+            class="focus-ring rounded px-1.5 py-0.5 text-[10px] transition-colors"
+            :class="ui.ignoreWhitespace
+              ? 'bg-[var(--color-active)] text-[var(--color-fg)]'
+              : 'text-[var(--color-fg-subtle)] hover:bg-[var(--color-hover)]'"
+            aria-label="Ignore Leading/Trailing Space"
+            :aria-pressed="ui.ignoreWhitespace"
+            @click="toggleIgnoreWhitespace(!ui.ignoreWhitespace)"
+          >
+            <Pilcrow :size="12" class="inline" />
+          </button>
+        </Tooltip>
+        <Tooltip label="Word Wrap">
+          <button
+            type="button"
+            class="focus-ring rounded px-1.5 py-0.5 text-[10px] transition-colors"
+            :class="ui.diffWordWrap
+              ? 'bg-[var(--color-active)] text-[var(--color-fg)]'
+              : 'text-[var(--color-fg-subtle)] hover:bg-[var(--color-hover)]'"
+            aria-label="Word Wrap"
+            :aria-pressed="ui.diffWordWrap"
+            @click="ui.setDiffWordWrap(!ui.diffWordWrap)"
+          >
+            <WordWrapIcon :size="12" />
+          </button>
+        </Tooltip>
+      </div>
+      <span class="flex-1" />
+      <span v-if="diff" class="font-mono text-[10px] text-[var(--color-fg-muted)]">
+        +{{ diff.additions }} −{{ diff.deletions }}
+      </span>
+    </div>
 
     <div
       v-if="diffStore.diffLoading"

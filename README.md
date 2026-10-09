@@ -22,12 +22,15 @@ Git Light is an Electron app with a three-pane repository view that runs **real 
 | Open local repos · recent repos · multi-repo tabs · startup screen | ✅ |
 | Commit graph — lanes, refs, pagination, shift-compare, keyboard nav | ✅ |
 | Branch sidebar — favorites, tags, stashes, worktrees (add/remove); drag-and-drop merge/rebase | ✅ |
-| Working tree — flat/tree view, stage/unstage (patch hunks), commit | ✅ |
+| Working tree — flat/tree view, stage/unstage (patch hunks), commit (sign-off, GPG/SSH `-S`) | ✅ |
 | Diff viewer — unified/split, syntax highlighting, per-hunk staging, blame overlay with file history, word wrap | ✅ |
 | Fetch / pull / push / sync · remote maintenance (fetch all, prune, push tags) | ✅ |
-| Merge / rebase / interactive rebase / cherry-pick (continue/abort banner) | ✅ |
+| Merge (default, ff-only, no-ff, squash) / rebase / interactive rebase / cherry-pick (continue/abort banner) | ✅ |
 | Merge conflict resolution (ours/theirs/per-block) | ✅ |
-| Undo / redo (reflog-backed) · stash · search | ✅ |
+| Undo / redo (reflog-backed; discard & drop-stash are intentionally unrecoverable) · force-push via `--force-with-lease` · stash · search | ✅ |
+| Command palette — fuzzy launcher for actions and branches (⌘K) | ✅ |
+| Bisect — start, mark good/bad, skip, reset with progress banner | ✅ |
+| Git LFS — track/untrack patterns, prune local objects | ✅ |
 | Integrated terminal (xterm + node-pty, ⌘T toggle in graph pane) | ✅ |
 | Themes — Default, Dracula, Light, Claude, System (settings) | ✅ |
 | Collapsible sidebars with expand rails · commit graph zoom | ✅ |

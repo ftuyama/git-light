@@ -265,6 +265,56 @@
   --hljs-tag: #6abf8a;
 }
 
+[data-theme='tokyo-night'] {
+  --color-app: #1a1b26;
+  --color-panel: #16161e;
+  --color-panel-raised: #24283b;
+  --color-elevated: #292e42;
+  --color-hover: #2f354d;
+  --color-active: #414868;
+
+  --color-border: rgba(192, 202, 245, 0.08);
+  --color-border-strong: rgba(192, 202, 245, 0.16);
+
+  --color-fg: #c0caf5;
+  --color-fg-muted: #a9b1d6;
+  --color-fg-subtle: #737aa2;
+
+  --color-accent: #7aa2f7;
+  --color-accent-strong: #5e88e0;
+  --color-accent-soft: rgba(122, 162, 247, 0.16);
+
+  --color-success: #9ece6a;
+  --color-warning: #ff9e64;
+  --color-danger: #f7768e;
+  --color-info: #7dcfff;
+
+  --color-lane-0: #bb9af7;
+  --color-lane-1: #9ece6a;
+  --color-lane-2: #7dcfff;
+  --color-lane-3: #ff9e64;
+  --color-lane-4: #f7768e;
+  --color-lane-5: #e0af68;
+  --color-lane-6: #73daca;
+  --color-lane-7: #7aa2f7;
+
+  --color-scrollbar-thumb: rgba(192, 202, 245, 0.12);
+  --color-scrollbar-thumb-hover: rgba(192, 202, 245, 0.22);
+
+  --hljs-keyword: #bb9af7;
+  --hljs-string: #9ece6a;
+  --hljs-number: #ff9e64;
+  --hljs-comment: #565f89;
+  --hljs-title: #7aa2f7;
+  --hljs-type: #7dcfff;
+  --hljs-variable: #e0af68;
+  --hljs-meta: #7dcfff;
+  --hljs-regexp: #9ece6a;
+  --hljs-symbol: #7aa2f7;
+  --hljs-section: #bb9af7;
+  --hljs-tag: #f7768e;
+}
+
 @layer base {
   * {
     border-color: var(--color-border);

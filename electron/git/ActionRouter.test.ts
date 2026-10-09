@@ -70,6 +70,7 @@ describe('isDestructiveAction', () => {
     'discard-patch',
     'restore-file',
     'worktree-remove',
+    'lfs-prune',
   ])('returns true for %s', (kind) => {
     expect(isDestructiveAction(kind)).toBe(true)
   })
@@ -402,10 +403,31 @@ theirs
       )
     })
 
+    it('commit passes GPG sign flag', async () => {
+      await executeGitAction({ kind: 'commit', meta: { message: 'Title', sign: true } }, ctx())
+
+      expect(mockRun).toHaveBeenCalledWith(['commit', '-m', 'Title', '-S'], {
+        cwd: CWD,
+        signal: undefined,
+      })
+    })
+
     it('amend without message keeps --no-edit', async () => {
       await executeGitAction({ kind: 'amend' }, ctx())
 
       expect(mockRun).toHaveBeenCalledWith(['commit', '--amend', '--no-edit'], { cwd: CWD, signal: undefined })
+    })
+
+    it('amend passes sign-off and GPG sign flags', async () => {
+      await executeGitAction(
+        { kind: 'amend', meta: { message: 'Fix', signOff: true, sign: true } },
+        ctx(),
+      )
+
+      expect(mockRun).toHaveBeenCalledWith(['commit', '--amend', '-m', 'Fix', '--signoff', '-S'], {
+        cwd: CWD,
+        signal: undefined,
+      })
     })
 
     it('commit-and-push chains commit then push', async () => {
@@ -562,6 +584,109 @@ theirs
         env: { GIT_SEQUENCE_EDITOR: 'node /tmp/editor.js' },
       })
       expect(cleanup).toHaveBeenCalled()
+    })
+  })
+
+  describe('lfs', () => {
+    it('lfs-track tracks a pattern', async () => {
+      const result = await executeGitAction({ kind: 'lfs-track', target: '*.zip' }, ctx())
+
+      expect(result.ok).toBe(true)
+      expect(mockRun).toHaveBeenCalledWith(['lfs', 'track', '*.zip'], {
+        cwd: CWD,
+        signal: undefined,
+      })
+    })
+
+    it('lfs-track requires a pattern', async () => {
+      const result = await executeGitAction({ kind: 'lfs-track' }, ctx())
+
+      expect(result.ok).toBe(false)
+    })
+
+    it('lfs-untrack stops tracking a pattern', async () => {
+      await executeGitAction({ kind: 'lfs-untrack', target: '*.zip' }, ctx())
+
+      expect(mockRun).toHaveBeenCalledWith(['lfs', 'untrack', '*.zip'], {
+        cwd: CWD,
+        signal: undefined,
+      })
+    })
+
+    it('lfs-prune prunes local objects', async () => {
+      await executeGitAction({ kind: 'lfs-prune' }, ctx())
+
+      expect(mockRun).toHaveBeenCalledWith(['lfs', 'prune'], { cwd: CWD, signal: undefined })
+    })
+
+    it('lfs reports a friendly message when git-lfs is missing', async () => {
+      mockRun.mockRejectedValueOnce(new GitError('Unknown', "git: 'lfs' is not a git command."))
+      const result = await executeGitAction({ kind: 'lfs-track', target: '*.zip' }, ctx())
+
+      expect(result.ok).toBe(false)
+      expect(result.message).toContain('Git LFS is not installed')
+    })
+  })
+
+  describe('bisect', () => {
+    it('bisect-start starts and marks bad/good commits', async () => {
+      const result = await executeGitAction(
+        { kind: 'bisect-start', meta: { bad: 'HEAD', good: 'v1.0.0' } },
+        ctx(),
+      )
+
+      expect(result.ok).toBe(true)
+      expect(mockRun).toHaveBeenNthCalledWith(1, ['bisect', 'start'], {
+        cwd: CWD,
+        signal: undefined,
+      })
+      expect(mockRun).toHaveBeenNthCalledWith(2, ['bisect', 'bad', 'HEAD'], {
+        cwd: CWD,
+        signal: undefined,
+      })
+      expect(mockRun).toHaveBeenNthCalledWith(3, ['bisect', 'good', 'v1.0.0'], {
+        cwd: CWD,
+        signal: undefined,
+      })
+    })
+
+    it('bisect-start resets when marking fails', async () => {
+      mockRun.mockResolvedValueOnce(runResult())
+      mockRun.mockRejectedValueOnce(new GitError('Unknown', 'Bad revision'))
+      const result = await executeGitAction(
+        { kind: 'bisect-start', meta: { bad: 'nope', good: 'v1.0.0' } },
+        ctx(),
+      )
+
+      expect(result.ok).toBe(false)
+      expect(mockRun).toHaveBeenCalledWith(['bisect', 'reset'], {
+        cwd: CWD,
+        signal: undefined,
+      })
+    })
+
+    it('bisect-good/bad/skip/reset map to git bisect', async () => {
+      await executeGitAction({ kind: 'bisect-good' }, ctx())
+      await executeGitAction({ kind: 'bisect-bad', target: 'abc1234' }, ctx())
+      await executeGitAction({ kind: 'bisect-skip' }, ctx())
+      await executeGitAction({ kind: 'bisect-reset' }, ctx())
+
+      expect(mockRun).toHaveBeenNthCalledWith(1, ['bisect', 'good'], {
+        cwd: CWD,
+        signal: undefined,
+      })
+      expect(mockRun).toHaveBeenNthCalledWith(2, ['bisect', 'bad', 'abc1234'], {
+        cwd: CWD,
+        signal: undefined,
+      })
+      expect(mockRun).toHaveBeenNthCalledWith(3, ['bisect', 'skip'], {
+        cwd: CWD,
+        signal: undefined,
+      })
+      expect(mockRun).toHaveBeenNthCalledWith(4, ['bisect', 'reset'], {
+        cwd: CWD,
+        signal: undefined,
+      })
     })
   })
 

@@ -27,14 +27,22 @@ const commitButtonLabel = computed(() => {
   return `${prefix} ${stagedCount.value} ${fileLabel}`
 })
 
-const pushMenu = computed<MenuItem[]>(() => [
-  { label: 'Commit & Push', onSelect: () => repo.commit({ thenPush: true }) },
-  {
-    label: 'Commit & Force Push',
-    danger: true,
-    onSelect: () => repo.commit({ thenPush: true, forcePush: true }),
-  },
-])
+const summaryPlaceholder = computed(() =>
+  amend.value ? 'Summary (empty keeps previous message)' : 'Summary (required)',
+)
+
+const pushMenu = computed<MenuItem[]>(() => {
+  const verb = amend.value ? 'Amend' : 'Commit'
+  return [
+    { label: `${verb} & Push`, onSelect: () => repo.commit({ thenPush: true }) },
+    {
+      label: `${verb} & Force Push (with lease)`,
+      shortcut: '--force-with-lease',
+      danger: true,
+      onSelect: () => repo.commit({ thenPush: true, forcePush: true }),
+    },
+  ]
+})
 </script>
 
 <template>
@@ -45,7 +53,7 @@ const pushMenu = computed<MenuItem[]>(() => [
       <input
         v-model="commitMessage"
         type="text"
-        placeholder="Summary (required)"
+        :placeholder="summaryPlaceholder"
         spellcheck="false"
         class="w-full bg-transparent px-3 pt-2.5 text-[14px] font-medium text-[var(--color-fg)] placeholder:text-[var(--color-fg-subtle)] focus:outline-none"
       />
@@ -58,22 +66,17 @@ const pushMenu = computed<MenuItem[]>(() => [
       />
     </div>
 
-    <label class="mt-2 flex items-center gap-2 text-[12px] text-[var(--color-fg-muted)]">
+    <label
+      class="mt-2 flex items-center gap-2 text-[12px] text-[var(--color-fg-muted)]"
+      :title="repo.canAmend ? undefined : 'No commits to amend yet'"
+    >
       <Checkbox
         :model-value="amend"
+        :disabled="!repo.canAmend && !amend"
         aria-label="Amend previous commit"
-        @update:model-value="(value) => (amend = value)"
+        @update:model-value="(value) => repo.setAmend(value)"
       />
       Amend previous commit
-    </label>
-
-    <label class="mt-1.5 flex items-center gap-2 text-[12px] text-[var(--color-fg-muted)]">
-      <Checkbox
-        :model-value="repo.signOff"
-        aria-label="Sign off commit"
-        @update:model-value="(value) => (repo.signOff = value)"
-      />
-      Sign off commit
     </label>
 
     <div class="mt-2.5 flex gap-1.5">

@@ -437,26 +437,41 @@ export class GitProvider {
     }
   }
 
-  private async commitParentCount(sha: string, cwd: string): Promise<number> {
+  private async commitParents(sha: string, cwd: string): Promise<string[]> {
     const { stdout } = await gitCli.run(['rev-list', '--parents', '-n', '1', sha], {
       cwd,
       allowFailure: true,
     })
     const parts = stdout.trim().split(/\s+/).filter(Boolean)
-    return Math.max(0, parts.length - 1)
+    return parts.length > 0 ? parts.slice(1) : []
+  }
+
+  private async commitParentCount(sha: string, cwd: string): Promise<number> {
+    return (await this.commitParents(sha, cwd)).length
   }
 
   async getCommitFiles(sha: string): Promise<WireRepositorySnapshot['workingTree']> {
     const cwd = this.requireRepo()
-    const parentCount = await this.commitParentCount(sha, cwd)
-    const hasParent = parentCount > 0
-    // -m is required for merge commits; diff-tree without it returns nothing.
-    const treeArgs = hasParent
-      ? ['diff-tree', '--no-commit-id', '--name-status', '-z', '-r', '-m', sha]
-      : ['diff-tree', '--root', '--no-commit-id', '--name-status', '-z', '-r', sha]
-    const numstatArgs = hasParent
-      ? ['diff-tree', '--no-commit-id', '--numstat', '-z', '-r', '-m', sha]
-      : ['diff-tree', '--root', '--no-commit-id', '--numstat', '-z', '-r', sha]
+    const parents = await this.commitParents(sha, cwd)
+    const hasParent = parents.length > 0
+    const isMerge = parents.length > 1
+    // Single-parent commits: -m is a no-op and keeps the command uniform.
+    // Merge commits: diff against the first parent only (same reference as
+    // GitKraken and as getDiff below). `-m` would list the union against each
+    // parent, surfacing files that are unchanged from the first parent (e.g.
+    // a file touched on the feature side when merging main into it) that
+    // GitKraken hides.
+    // Root commit (no parents): --root shows all files.
+    const treeArgs = !hasParent
+      ? ['diff-tree', '--root', '--no-commit-id', '--name-status', '-z', '-r', sha]
+      : isMerge
+        ? ['diff', '--name-status', '-z', parents[0], sha]
+        : ['diff-tree', '--no-commit-id', '--name-status', '-z', '-r', '-m', sha]
+    const numstatArgs = !hasParent
+      ? ['diff-tree', '--root', '--no-commit-id', '--numstat', '-z', '-r', sha]
+      : isMerge
+        ? ['diff', '--numstat', '-z', parents[0], sha]
+        : ['diff-tree', '--no-commit-id', '--numstat', '-z', '-r', '-m', sha]
     const [nameStatus, numstat] = await Promise.all([
       gitCli.run(treeArgs, { cwd, allowFailure: true }),
       gitCli.run(numstatArgs, { cwd, allowFailure: true }),

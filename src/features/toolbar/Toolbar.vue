@@ -9,6 +9,7 @@ import {
   ChevronDown,
   Cherry,
   CloudDownload,
+  Command,
   FolderGit2,
   GitBranch,
   GitMerge,
@@ -23,6 +24,7 @@ import {
   Search,
   Spline,
   Terminal,
+  Workflow,
 } from '@lucide/vue'
 import IconButton from '@/components/ui/IconButton.vue'
 import DropdownMenu from '@/components/ui/DropdownMenu.vue'
@@ -57,16 +59,70 @@ const branchMenu = computed<MenuItem[]>(() =>
   })),
 )
 
-const remoteMenu = computed<MenuItem[]>(() => [
-  { label: 'Fetch All', icon: CloudDownload, onSelect: () => run('fetch-all') },
-  { label: 'Prune Stale Remotes', onSelect: () => run('prune') },
-  { label: 'Push Tags', onSelect: () => run('push-tags') },
+const remoteMenu = computed<MenuItem[]>(() => {
+  const items: MenuItem[] = [{ label: 'Fetch', icon: CloudDownload, onSelect: () => run('fetch') }]
+  if (ui.isAdvanced) {
+    items.push({ label: 'Sync', icon: ArrowDownUp, onSelect: () => run('sync') })
+  }
+  items.push(
+    { separator: true },
+    { label: 'Fetch All', icon: CloudDownload, onSelect: () => run('fetch-all') },
+    { label: 'Prune Stale Remotes', onSelect: () => run('prune') },
+    { label: 'Push Tags', onSelect: () => run('push-tags') },
+  )
+  return items
+})
+
+const mergeMenu = computed<MenuItem[]>(() => [
+  { label: 'Merge', icon: GitMerge, onSelect: () => repo.mergeBranch() },
+  {
+    label: 'Squash merge',
+    icon: GitMerge,
+    shortcut: '--squash',
+    onSelect: () => repo.mergeBranch('squash'),
+  },
 ])
+
+const workflowMenu = computed<MenuItem[]>(() => [
+  {
+    label: 'Start Bisect…',
+    disabled: repo.inProgressOperation,
+    onSelect: () => void repo.startBisect(),
+  },
+  { separator: true },
+  { label: 'Track with Git LFS…', onSelect: () => void repo.lfsTrack() },
+  { label: 'Untrack from Git LFS…', onSelect: () => void repo.lfsUntrack() },
+  { label: 'Prune Git LFS Objects', onSelect: () => void repo.lfsPrune() },
+])
+
+const moreMenu = computed<MenuItem[]>(() => {
+  const items: MenuItem[] = []
+  if (ui.isAdvanced) {
+    items.push({
+      label: 'Cherry Pick',
+      icon: Cherry,
+      onSelect: () => repo.cherryPickCommit(selection.selectedSha ?? undefined),
+    })
+  }
+  items.push({ label: 'Merge', icon: GitMerge, children: mergeMenu.value })
+  if (ui.isAdvanced) {
+    items.push({ label: 'Rebase', icon: Spline, onSelect: () => repo.rebaseOnto() })
+    items.push({
+      label: 'Interactive Rebase',
+      icon: ListTree,
+      onSelect: () => interactiveRebase.open(),
+    })
+    items.push({ label: 'Bisect and LFS', icon: Workflow, children: workflowMenu.value })
+  }
+  items.push({ separator: true })
+  items.push({ label: 'Reset…', icon: RotateCcw, onSelect: () => repo.resetTo('reset-mixed') })
+  return items
+})
 </script>
 
 <template>
   <header
-    class="app-drag flex h-12 shrink-0 items-center gap-1 border-b border-[var(--color-border)] bg-[var(--color-panel)] pl-2 pr-2"
+    class="app-drag flex h-14 shrink-0 items-center gap-1 border-b border-[var(--color-border)] bg-[var(--color-panel)] pl-2 pr-2"
   >
     <div class="app-no-drag flex shrink-0 items-center gap-2">
       <DropdownMenu :items="repoMenu" align="start">
@@ -102,42 +158,8 @@ const remoteMenu = computed<MenuItem[]>(() => [
     <div class="app-drag min-w-2 flex-1" />
 
     <div class="app-no-drag flex shrink-0 items-center gap-0.5">
-      <IconButton :icon="CloudDownload" label="Fetch" :busy="isBusy('fetch')" @click="run('fetch')" />
-      <IconButton :icon="ArrowDown" label="Pull" shortcut="⌘⇧L" :busy="isBusy('pull')" @click="run('pull')" />
-      <IconButton :icon="ArrowUp" label="Push" shortcut="⌘⇧P" :busy="isBusy('push')" @click="run('push')" />
-      <template v-if="ui.isAdvanced">
-        <IconButton :icon="ArrowDownUp" label="Sync" :busy="isBusy('sync')" @click="run('sync')" />
-        <DropdownMenu :items="remoteMenu" align="start">
-          <IconButton :icon="MoreHorizontal" label="More remote actions" />
-        </DropdownMenu>
-      </template>
-
-      <div class="mx-1 h-6 w-px bg-[var(--color-border)]" />
-
-      <template v-if="ui.isAdvanced">
-        <IconButton :icon="Inbox" label="Stash" @click="repo.stashChanges()" />
-        <IconButton :icon="ArchiveRestore" label="Pop Stash" @click="run('pop-stash')" />
-        <div class="mx-1 h-6 w-px bg-[var(--color-border)]" />
-      </template>
-
       <IconButton
-        v-if="ui.isAdvanced"
-        :icon="Cherry"
-        label="Cherry Pick"
-        @click="repo.cherryPickCommit(selection.selectedSha ?? undefined)"
-      />
-      <IconButton :icon="GitMerge" label="Merge" @click="repo.mergeBranch()" />
-      <template v-if="ui.isAdvanced">
-        <IconButton :icon="Spline" label="Rebase" @click="repo.rebaseOnto()" />
-        <IconButton :icon="ListTree" label="Interactive Rebase" @click="interactiveRebase.open()" />
-      </template>
-      <IconButton :icon="RotateCcw" label="Reset" @click="repo.resetTo('reset-mixed')" />
-    </div>
-
-    <div class="app-drag min-w-2 flex-1" />
-
-    <div class="app-no-drag flex shrink-0 items-center gap-0.5">
-      <IconButton
+        caption="Undo"
         :icon="Undo2"
         :label="repo.undoTooltip"
         shortcut="⌘Z"
@@ -146,6 +168,7 @@ const remoteMenu = computed<MenuItem[]>(() => [
         @click="run('undo')"
       />
       <IconButton
+        caption="Redo"
         :icon="Redo2"
         :label="repo.redoTooltip"
         shortcut="⌘⇧Z"
@@ -153,15 +176,42 @@ const remoteMenu = computed<MenuItem[]>(() => [
         :busy="isBusy('redo')"
         @click="run('redo')"
       />
-      <IconButton :icon="Search" label="Search" shortcut="⌘⇧F" @click="repo.openSearch()" />
+
+      <div class="mx-1 h-6 w-px bg-[var(--color-border)]" />
+
+      <IconButton caption="Pull" :icon="ArrowDown" label="Pull" shortcut="⌘⇧L" :busy="isBusy('pull')" @click="run('pull')" />
+      <IconButton caption="Push" :icon="ArrowUp" label="Push" shortcut="⌘⇧P" :busy="isBusy('push')" @click="run('push')" />
+      <DropdownMenu :items="remoteMenu" align="start">
+        <IconButton caption="Remote" :icon="MoreHorizontal" label="More remote actions" />
+      </DropdownMenu>
+
+      <div class="mx-1 h-6 w-px bg-[var(--color-border)]" />
+
+      <template v-if="ui.isAdvanced">
+        <IconButton caption="Stash" :icon="Inbox" label="Stash" @click="repo.stashChanges()" />
+        <IconButton caption="Pop" :icon="ArchiveRestore" label="Pop Stash" @click="run('pop-stash')" />
+        <div class="mx-1 h-6 w-px bg-[var(--color-border)]" />
+      </template>
+
+      <DropdownMenu :items="moreMenu" align="end">
+        <IconButton caption="More" :icon="MoreHorizontal" label="More actions" />
+      </DropdownMenu>
+    </div>
+
+    <div class="app-drag min-w-2 flex-1" />
+
+    <div class="app-no-drag flex shrink-0 items-center gap-0.5">
+      <IconButton caption="Cmd" :icon="Command" label="Command palette" shortcut="⌘K" @click="ui.toggleCommandPalette()" />
+      <IconButton caption="Search" :icon="Search" label="Search" shortcut="⌘⇧F" @click="repo.openSearch()" />
       <IconButton
         v-if="ui.isAdvanced"
+        caption="Term"
         :icon="Terminal"
         label="Toggle Terminal"
         shortcut="⌘T"
         @click="run('open-terminal')"
       />
-      <IconButton :icon="RotateCw" label="Refresh" shortcut="⌘R" :busy="isBusy('refresh')" @click="run('refresh')" />
+      <IconButton caption="Refresh" :icon="RotateCw" label="Refresh" shortcut="⌘R" :busy="isBusy('refresh')" @click="run('refresh')" />
       <AppSettingsMenu />
     </div>
   </header>

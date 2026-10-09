@@ -76,8 +76,8 @@ export const lifecycleActions = {
   resetCommitBox(this: LifecycleStore): void {
     this.commitMessage = ''
     this.commitDescription = ''
-    this.signOff = false
     this.amend = false
+    this.preAmendDraft = null
   },
 
   async switchRepository(this: LifecycleStore, path: string): Promise<boolean> {

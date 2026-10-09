@@ -49,14 +49,21 @@ export function parseCommitFiles(
     if (!path) continue
 
     const { fileName, directory } = splitPath(path)
-    const counts = numstat.get(path) ?? { additions: 0, deletions: 0 }
+    const counts = numstat.get(path)
+    const additions = counts?.additions ?? 0
+    const deletions = counts?.deletions ?? 0
+    const isEmptyDiff =
+      counts != null && additions === 0 && deletions === 0 && !counts.binary
     const existing = files.find((f) => f.path === path)
     if (existing) {
-      existing.additions = Math.max(existing.additions, counts.additions)
-      existing.deletions = Math.max(existing.deletions, counts.deletions)
+      existing.additions = Math.max(existing.additions, additions)
+      existing.deletions = Math.max(existing.deletions, deletions)
       if (!existing.oldPath && oldPath) existing.oldPath = oldPath
       continue
     }
+    // Hide files with empty diff (+0 -0) from the commit files panel.
+    // Binary entries report `-` (mapped to 0/0 + binary flag) and are kept.
+    if (isEmptyDiff) continue
 
     files.push({
       id: `commit-${id++}`,
@@ -65,8 +72,8 @@ export function parseCommitFiles(
       directory,
       status,
       staged: false,
-      additions: counts.additions,
-      deletions: counts.deletions,
+      additions,
+      deletions,
       oldPath,
     })
   }

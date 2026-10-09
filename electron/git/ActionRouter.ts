@@ -209,6 +209,7 @@ async function routeAction(action: GitAction, ctx: ActionContext): Promise<strin
       const body = typeof meta.body === 'string' ? meta.body.trim() : ''
       if (body) args.push('-m', body)
       if (meta.signOff) args.push('--signoff')
+      if (meta.sign) args.push('-S')
       await gitCli.run(args, { cwd, signal })
       return 'Created commit'
     }
@@ -222,6 +223,7 @@ async function routeAction(action: GitAction, ctx: ActionContext): Promise<strin
         if (body) args.push('-m', body)
       }
       if (meta.signOff) args.push('--signoff')
+      if (meta.sign) args.push('-S')
       await gitCli.run(args, { cwd, signal })
       return 'Amended commit'
     }
@@ -308,10 +310,46 @@ async function routeAction(action: GitAction, ctx: ActionContext): Promise<strin
       await gitCli.run(['worktree', 'remove', target], { cwd, signal })
       return `Removed worktree at ${target}`
 
+    case 'lfs-track': {
+      if (!target) throw new GitError('Unknown', 'No tracking pattern specified.')
+      try {
+        await gitCli.run(['lfs', 'track', target], { cwd, signal })
+      } catch (error) {
+        if (error instanceof GitError && /not a git command|lfs.*not found/i.test(error.message)) {
+          throw new GitError('Unknown', 'Git LFS is not installed. Install git-lfs, then retry.')
+        }
+        throw error
+      }
+      return `Tracking ${target} with Git LFS`
+    }
+    case 'lfs-untrack': {
+      if (!target) throw new GitError('Unknown', 'No tracking pattern specified.')
+      try {
+        await gitCli.run(['lfs', 'untrack', target], { cwd, signal })
+      } catch (error) {
+        if (error instanceof GitError && /not a git command|lfs.*not found/i.test(error.message)) {
+          throw new GitError('Unknown', 'Git LFS is not installed. Install git-lfs, then retry.')
+        }
+        throw error
+      }
+      return `Stopped tracking ${target} with Git LFS`
+    }
+    case 'lfs-prune':
+      try {
+        await gitCli.run(['lfs', 'prune'], { cwd, signal })
+      } catch (error) {
+        if (error instanceof GitError && /not a git command|lfs.*not found/i.test(error.message)) {
+          throw new GitError('Unknown', 'Git LFS is not installed. Install git-lfs, then retry.')
+        }
+        throw error
+      }
+      return 'Pruned local Git LFS objects'
+
     case 'merge': {
       if (!target) throw new GitError('Unknown', 'No branch to merge.')
       const ff = meta.ffOnly ? ['--ff-only'] : meta.noFf ? ['--no-ff'] : meta.squash ? ['--squash'] : []
       await gitCli.run(['merge', ...ff, target], { cwd, signal })
+      if (meta.squash) return `Squashed ${target} — review staged changes and commit`
       return `Merged ${target}`
     }
     case 'merge-continue':
@@ -361,6 +399,32 @@ async function routeAction(action: GitAction, ctx: ActionContext): Promise<strin
     case 'cherry-pick-abort':
       await gitCli.run(['cherry-pick', '--abort'], { cwd, signal })
       return 'Cherry-pick aborted'
+
+    case 'bisect-start': {
+      const bad = String(meta.bad ?? target ?? 'HEAD').trim() || 'HEAD'
+      const good = typeof meta.good === 'string' ? meta.good.trim() : ''
+      await gitCli.run(['bisect', 'start'], { cwd, signal })
+      try {
+        await gitCli.run(['bisect', 'bad', bad], { cwd, signal })
+        if (good) await gitCli.run(['bisect', 'good', good], { cwd, signal })
+      } catch (error) {
+        await gitCli.run(['bisect', 'reset'], { cwd, signal })
+        throw error
+      }
+      return good ? `Bisecting ${bad} against ${good}` : `Bisect started at ${bad}`
+    }
+    case 'bisect-good':
+      await gitCli.run(target ? ['bisect', 'good', target] : ['bisect', 'good'], { cwd, signal })
+      return 'Marked commit as good'
+    case 'bisect-bad':
+      await gitCli.run(target ? ['bisect', 'bad', target] : ['bisect', 'bad'], { cwd, signal })
+      return 'Marked commit as bad'
+    case 'bisect-skip':
+      await gitCli.run(['bisect', 'skip'], { cwd, signal })
+      return 'Skipped commit during bisect'
+    case 'bisect-reset':
+      await gitCli.run(['bisect', 'reset'], { cwd, signal })
+      return 'Bisect ended'
 
     case 'reset-soft':
       await gitCli.run(['reset', '--soft', target ?? 'HEAD'], { cwd, signal })

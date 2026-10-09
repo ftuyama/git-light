@@ -3,6 +3,8 @@ import type { WireFileStatus, WireWorkingTreeFile } from '@shared/git/models'
 export interface NumstatEntry {
   additions: number
   deletions: number
+  /** True when numstat reported `-` (e.g. binary), so 0/0 does not mean empty diff. */
+  binary?: boolean
 }
 
 /** Parses `git diff --numstat -z` into a path -> counts map. */
@@ -19,6 +21,7 @@ export function parseNumstat(stdout: string): Map<string, NumstatEntry> {
       continue
     }
     const [addRaw, delRaw, inlinePath] = head.split('\t')
+    const binary = addRaw === '-' || delRaw === '-'
     const additions = addRaw === '-' ? 0 : Number(addRaw) || 0
     const deletions = delRaw === '-' ? 0 : Number(delRaw) || 0
 
@@ -32,7 +35,7 @@ export function parseNumstat(stdout: string): Map<string, NumstatEntry> {
     } else {
       i += 1
     }
-    if (path) map.set(path, { additions, deletions })
+    if (path) map.set(path, binary ? { additions, deletions, binary } : { additions, deletions })
   }
   return map
 }

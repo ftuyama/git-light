@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, onUnmounted, ref, watch } from 'vue'
-import { GitCommitHorizontal, Heart, Keyboard, LayoutPanelLeft, Palette, PanelLeft, Rows3, X } from '@lucide/vue'
+import { GitCommitHorizontal, Heart, Keyboard, LayoutPanelLeft, Palette, PanelLeft, PenLine, Rows3, X } from '@lucide/vue'
 import { storeToRefs } from 'pinia'
 import Button from '@/components/ui/Button.vue'
 import SettingsCreditsPanel from './SettingsCreditsPanel.vue'
@@ -23,10 +23,10 @@ import { useRepositoryStore } from '@/stores/repository'
 
 const ui = useUiStore()
 const repo = useRepositoryStore()
-const { leftCollapsed, rightCollapsed, settingsOpen, graphScopeAll, commitGraphLimit, fileListView, theme, uiMode } =
+const { leftCollapsed, rightCollapsed, settingsOpen, graphScopeAll, commitGraphLimit, fileListView, theme, uiMode, signOffCommit, signCommit } =
   storeToRefs(ui)
 
-type SettingsCategory = 'appearance' | 'layout' | 'changes' | 'commit-graph' | 'sidebar' | 'shortcuts' | 'credits'
+type SettingsCategory = 'appearance' | 'layout' | 'changes' | 'commits' | 'commit-graph' | 'sidebar' | 'shortcuts' | 'credits'
 
 const activeCategory = ref<SettingsCategory>('appearance')
 
@@ -43,6 +43,7 @@ const preferenceCategories: { id: SettingsCategory; label: string; icon: typeof 
     { id: 'appearance', label: 'Appearance', icon: Palette },
     { id: 'layout', label: 'Layout', icon: LayoutPanelLeft },
     { id: 'changes', label: 'Changes', icon: Rows3 },
+    { id: 'commits', label: 'Commits', icon: PenLine },
     { id: 'commit-graph', label: 'Commit Graph', icon: GitCommitHorizontal },
     { id: 'sidebar', label: 'Sidebar', icon: PanelLeft },
     { id: 'shortcuts', label: 'Shortcuts', icon: Keyboard },
@@ -242,6 +243,31 @@ onUnmounted(() => document.removeEventListener('keydown', onKeydown))
                   description="Group changed files in a collapsible folder hierarchy."
                   :model-value="fileListView === 'tree'"
                   @update:model-value="ui.setFileListView($event ? 'tree' : 'path')"
+                />
+              </section>
+            </template>
+
+            <template v-else-if="activeCategory === 'commits'">
+              <p class="mb-3 px-3 text-[12px] text-[var(--color-fg-muted)]">
+                Default options applied to new commits.
+              </p>
+              <section class="space-y-0.5">
+                <h3
+                  class="px-3 pb-1 text-[11px] font-semibold tracking-wide text-[var(--color-fg-subtle)] uppercase"
+                >
+                  Commit options
+                </h3>
+                <SettingsRow
+                  label="Sign off commit"
+                  description="Add a Signed-off-by trailer to commit messages (--signoff)."
+                  :model-value="signOffCommit"
+                  @update:model-value="ui.setSignOffCommit($event)"
+                />
+                <SettingsRow
+                  label="Sign commit (GPG/SSH)"
+                  description="Sign with GPG/SSH key (-S). Requires user.signingkey in git config."
+                  :model-value="signCommit"
+                  @update:model-value="ui.setSignCommit($event)"
                 />
               </section>
             </template>

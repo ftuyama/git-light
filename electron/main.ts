@@ -39,6 +39,7 @@ const THEME_APP_COLORS: Record<string, string> = {
   dracula: '#282a36',
   light: '#ffffff',
   claude: '#141413',
+  'tokyo-night': '#1a1b26',
 }
 
 function startupBackgroundColor(): string {

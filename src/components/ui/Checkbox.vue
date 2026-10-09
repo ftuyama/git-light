@@ -5,6 +5,7 @@ import { Check, Minus } from '@lucide/vue'
 defineProps<{
   modelValue: boolean | 'indeterminate'
   ariaLabel?: string
+  disabled?: boolean
 }>()
 
 const emit = defineEmits<{ 'update:modelValue': [boolean] }>()
@@ -14,7 +15,8 @@ const emit = defineEmits<{ 'update:modelValue': [boolean] }>()
   <CheckboxRoot
     :model-value="modelValue"
     :aria-label="ariaLabel"
-    class="focus-ring flex size-4 shrink-0 items-center justify-center rounded border border-[var(--color-border-strong)] bg-[var(--color-panel)] transition-colors data-[state=checked]:border-[var(--color-accent-strong)] data-[state=checked]:bg-[var(--color-accent-strong)] data-[state=indeterminate]:border-[var(--color-accent-strong)] data-[state=indeterminate]:bg-[var(--color-accent-strong)]"
+    :disabled="disabled"
+    class="focus-ring flex size-4 shrink-0 items-center justify-center rounded border border-[var(--color-border-strong)] bg-[var(--color-panel)] transition-colors data-[state=checked]:border-[var(--color-accent-strong)] data-[state=checked]:bg-[var(--color-accent-strong)] data-[state=indeterminate]:border-[var(--color-accent-strong)] data-[state=indeterminate]:bg-[var(--color-accent-strong)] data-[disabled]:opacity-40"
     @update:model-value="(value) => emit('update:modelValue', value === true)"
     @click.stop
   >

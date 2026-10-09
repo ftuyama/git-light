@@ -8,6 +8,7 @@ const props = withDefaults(
   defineProps<{
     icon: Component
     label: string
+    caption?: string
     shortcut?: string
     disabled?: boolean
     active?: boolean
@@ -22,7 +23,8 @@ const emit = defineEmits<{ click: [MouseEvent] }>()
 
 const classes = computed(() =>
   cn(
-    'app-no-drag focus-ring relative flex h-8 w-8 items-center justify-center rounded-md text-[var(--color-fg-muted)] transition-all duration-150 active:scale-[0.94]',
+    'app-no-drag focus-ring relative flex items-center justify-center rounded-md text-[var(--color-fg-muted)] transition-all duration-150 active:scale-[0.94]',
+    props.caption ? 'h-10 min-w-9 flex-col gap-0.5 px-1' : 'h-8 w-8',
     'hover:bg-[var(--color-hover)] hover:text-[var(--color-fg)]',
     props.active && 'bg-[var(--color-accent-soft)] text-[var(--color-accent)]',
     props.danger && 'hover:bg-[var(--color-danger)]/15 hover:text-[var(--color-danger)]',
@@ -41,6 +43,13 @@ const classes = computed(() =>
       :aria-pressed="active"
       @click="emit('click', $event)"
     >
+      <span
+        v-if="caption"
+        aria-hidden="true"
+        class="max-w-[52px] truncate text-[9px] leading-none font-medium tracking-wide"
+      >
+        {{ caption }}
+      </span>
       <component
         :is="busy ? Loader2 : icon"
         :size="16"

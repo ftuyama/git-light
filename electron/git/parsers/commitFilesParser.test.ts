@@ -77,4 +77,35 @@ describe('parseCommitFiles', () => {
     expect(files).toHaveLength(1)
     expect(files[0]?.path).toBe('src/foo.ts')
   })
+
+  it('hides files with empty diff (+0 -0)', () => {
+    const nameStatus = 'M\0src/empty.ts\0M\0src/real.ts\0'
+    const numstat = '0\t0\tsrc/empty.ts\0' + '5\t2\tsrc/real.ts\0'
+    const files = parseCommitFiles(nameStatus, numstat)
+
+    expect(files).toHaveLength(1)
+    expect(files[0]?.path).toBe('src/real.ts')
+  })
+
+  it('keeps binary files reporting - -', () => {
+    const nameStatus = 'M\0assets/logo.png\0'
+    const numstat = '-\t-\tassets/logo.png\0'
+    const files = parseCommitFiles(nameStatus, numstat)
+
+    expect(files).toHaveLength(1)
+    expect(files[0]?.path).toBe('assets/logo.png')
+  })
+
+  it('parses combined (--cc) merge output with MM status', () => {
+    const nameStatus = 'MM\0src/foo.ts\0'
+    const numstat = '1\t1\tsrc/foo.ts\0'
+    const files = parseCommitFiles(nameStatus, numstat)
+
+    expect(files).toHaveLength(1)
+    expect(files[0]).toMatchObject({ path: 'src/foo.ts', status: 'modified' })
+  })
+
+  it('returns empty list for clean merges (--cc outputs nothing)', () => {
+    expect(parseCommitFiles('', '')).toHaveLength(0)
+  })
 })

@@ -19,6 +19,8 @@ export function scopesForAction(kind: GitActionKind): SnapshotScope[] | undefine
     return ['status']
   }
   if (kind.startsWith('worktree')) return ['worktrees']
+  if (kind.startsWith('lfs-')) return ['status']
+  if (kind.startsWith('bisect-')) return ['commits', 'branches', 'status']
   if (kind === 'fetch' || kind === 'pull' || kind === 'push' || kind === 'sync' || kind === 'fetch-all') {
     return ['branches', 'commits', 'status']
   }

@@ -34,8 +34,8 @@ export interface RepositoryState {
   canCancel: boolean
   commitMessage: string
   commitDescription: string
-  signOff: boolean
   amend: boolean
+  preAmendDraft: { message: string; description: string } | null
   recentRepos: RecentRepository[]
   searchOpen: boolean
   commitAuthor: Author | null
