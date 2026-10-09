@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { highlightBlameLines, highlightLine } from './highlight'
+import { highlightBlameLines, highlightHunkLines, highlightLine } from './highlight'
 
 describe('highlightLine', () => {
   it('highlights Ruby code', () => {
@@ -54,5 +54,61 @@ describe('highlightBlameLines', () => {
   it('escapes plaintext lines', () => {
     const result = highlightBlameLines(['a < b'], 'plaintext')
     expect(result[0]).toBe('a &lt; b')
+  })
+})
+
+describe('highlightHunkLines', () => {
+  it('preserves multi-line block comments across lines', () => {
+    const result = highlightHunkLines(['/* block', 'continued */'], 'javascript')
+    expect(result).toHaveLength(2)
+    expect(result[0]).toContain('hljs-comment')
+    expect(result[1]).toContain('hljs-comment')
+  })
+
+  it('highlights Vue SFC script content via embedded sub-language', () => {
+    const lines = [
+      '<script setup lang="ts">',
+      'const x = ref(1);',
+      '</script>',
+    ]
+    const result = highlightHunkLines(lines, 'vue')
+    expect(result).toHaveLength(3)
+    expect(result[1]).toContain('hljs-keyword')
+  })
+
+  it('falls back to script highlighting for marker-less Vue hunks', () => {
+    const result = highlightHunkLines(['const x = ref(1);'], 'vue')
+    expect(result[0]).toContain('hljs-keyword')
+  })
+
+  it('highlights marker-less Vue template hunks as markup', () => {
+    const result = highlightHunkLines(['  <div :class="foo">Hello</div>'], 'vue')
+    expect(result[0]).toContain('hljs-tag')
+  })
+
+  it('highlights marker-less Vue style hunks as CSS', () => {
+    const result = highlightHunkLines(['.foo { color: red; }'], 'vue')
+    expect(result[0]).toContain('hljs-')
+  })
+
+  it('prefers script over CSS for arrow callbacks and if-braces', () => {
+    const lines = [
+      'const highlight = useMemoize((content: string, language: string) =>',
+      '  highlightLine(content, language),',
+      ')',
+      'if (line.type === \'add\') {',
+      '  return map',
+      '}',
+    ]
+    const result = highlightHunkLines(lines, 'vue')
+    expect(result[0]).toContain('hljs-keyword')
+    expect(result[0]).toContain('const')
+    expect(result[3]).toContain('hljs-keyword')
+  })
+
+  it('keeps CSS @import as CSS, not script', () => {
+    const result = highlightHunkLines(['@import url("foo.css");'], 'vue')
+    // CSS grammar keeps the at-rule whole; the TS grammar would not.
+    expect(result[0]).toContain('@import</span>')
   })
 })

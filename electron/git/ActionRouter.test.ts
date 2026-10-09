@@ -1,4 +1,4 @@
-import { readFileSync, writeFileSync } from 'node:fs'
+import { readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { GitError } from '@shared/git/errors'
 import type { GitAction } from '@shared/git/actions'
@@ -18,6 +18,7 @@ vi.mock('node:fs', async (importOriginal) => {
   return {
     ...actual,
     readFileSync: vi.fn(),
+    rmSync: vi.fn(),
     writeFileSync: vi.fn(),
   }
 })
@@ -31,6 +32,7 @@ vi.mock('./rebaseSequenceEditor', async (importOriginal) => {
 })
 
 const mockReadFileSync = vi.mocked(readFileSync)
+const mockRmSync = vi.mocked(rmSync)
 const mockWriteFileSync = vi.mocked(writeFileSync)
 const mockCreateRebaseEditorBundle = vi.mocked(createRebaseEditorBundle)
 
@@ -51,6 +53,7 @@ beforeEach(() => {
   mockRun.mockReset()
   mockRunStreaming.mockReset()
   mockReadFileSync.mockReset()
+  mockRmSync.mockReset()
   mockWriteFileSync.mockReset()
   mockCreateRebaseEditorBundle.mockReset()
   mockRun.mockResolvedValue(runResult())
@@ -340,10 +343,35 @@ describe('executeGitAction', () => {
       expect(result.message).toBe('No patch specified.')
     })
 
-    it('discard-all checks out the whole tree', async () => {
+    it('discard-file restores staged and worktree from HEAD', async () => {
+      const result = await executeGitAction({ kind: 'discard-file', target: 'src/file.ts' }, ctx())
+
+      expect(result.ok).toBe(true)
+      expect(mockRun).toHaveBeenCalledWith(
+        ['restore', '--source=HEAD', '--staged', '--worktree', '--', 'src/file.ts'],
+        { cwd: CWD, signal: undefined },
+      )
+      expect(mockRmSync).not.toHaveBeenCalled()
+    })
+
+    it('discard-file deletes untracked files when restore reports unknown pathspec', async () => {
+      mockRun.mockRejectedValueOnce(
+        new GitError('Unknown', "pathspec 'new.ts' did not match any file(s) known to git"),
+      )
+
+      const result = await executeGitAction({ kind: 'discard-file', target: 'new.ts' }, ctx())
+
+      expect(result.ok).toBe(true)
+      expect(mockRmSync).toHaveBeenCalledWith(`${CWD}/new.ts`, { force: true, recursive: true })
+    })
+
+    it('discard-all restores staged and worktree from HEAD', async () => {
       await executeGitAction({ kind: 'discard-all' }, ctx())
 
-      expect(mockRun).toHaveBeenCalledWith(['checkout', '--', '.'], { cwd: CWD, signal: undefined })
+      expect(mockRun).toHaveBeenCalledWith(
+        ['restore', '--source=HEAD', '--staged', '--worktree', '--', '.'],
+        { cwd: CWD, signal: undefined },
+      )
     })
 
     it('restore-file restores from a specific commit', async () => {

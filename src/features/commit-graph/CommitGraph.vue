@@ -2,9 +2,10 @@
 import { computed } from 'vue'
 import { storeToRefs } from 'pinia'
 import { Splitpanes, Pane, type SplitpanesResizedPayload } from 'splitpanes'
-import { Columns3, GitCommitHorizontal } from '@lucide/vue'
+import { Columns3, GitCommitHorizontal, Inbox } from '@lucide/vue'
 import CommitRow from './CommitRow.vue'
 import PendingChangesRow from './PendingChangesRow.vue'
+import StashGraphRow from './StashGraphRow.vue'
 import CommitGraphHeaderCell from './CommitGraphHeaderCell.vue'
 import Avatar from '@/components/ui/Avatar.vue'
 import DropdownMenu from '@/components/ui/DropdownMenu.vue'
@@ -34,8 +35,14 @@ function onTerminalResized(payload: SplitpanesResizedPayload): void {
   if (terminalPane?.size != null) ui.setTerminalPanelSize(terminalPane.size)
 }
 const { repo, showLoading, hasPendingRow, headIndex, pendingRowSelected } = useCommitGraphState()
-const { selectedSha, selectRow, selectPendingRow, rowClasses, selection } =
-  useCommitGraphSelection()
+const {
+  selectedSha,
+  selectRow,
+  selectPendingRow,
+  selectStashRow,
+  rowClasses,
+  selection,
+} = useCommitGraphSelection()
 const {
   columns,
   columnWidths,
@@ -49,20 +56,50 @@ const { rowHeight, laneWidth, nodeSize, selectionRingRadius, onWheel } = useComm
 const graphScroll = useCommitGraphScroll()
 const { scrollEl, headerScrollEl, syncHorizontalScroll, onBodyScroll } = graphScroll
 void headerScrollEl
-const { virtualItems, totalSize, resolveCommitIndex } = useCommitGraphVirtualList({
+const {
+  virtualItems,
+  totalSize,
+  rows,
+  resolveCommitIndex,
+  resolveStashIndex,
+  isPendingIndex,
+  virtualIndexForCommitIndex,
+} = useCommitGraphVirtualList({
   scrollEl,
   rowHeight,
   hasPendingRow,
 })
 const { graphContentWidth, visibleEdges, visibleNodes, laneX } = useCommitGraphOverlay({
   virtualItems,
+  rows,
   hasPendingRow,
   headIndex,
   pendingRowSelected,
   rowHeight,
   laneWidth,
   resolveCommitIndex,
+  resolveStashIndex,
+  virtualIndexForCommitIndex,
+  stashBoxX: stashNodeX,
 })
+
+const stashBoxSize = computed(() => Math.max(20, nodeSize.value))
+
+/**
+ * Graph X for a stash box: its own independent lane just right of the base
+ * commit's lane (GitKraken-style), else right of the head lane.
+ */
+function stashBaseLane(stashIndex: number): number {
+  const baseSha = repo.stashes[stashIndex]?.baseSha
+  const baseIndex = baseSha ? repo.commits.findIndex((c) => c.sha === baseSha) : -1
+  return baseIndex >= 0
+    ? (repo.layout.nodes[baseIndex]?.lane ?? 0)
+    : (repo.layout.nodes[headIndex.value]?.lane ?? 0)
+}
+
+function stashNodeX(stashIndex: number): number {
+  return laneX(stashBaseLane(stashIndex)) + laneWidth.value
+}
 </script>
 
 <template>
@@ -232,15 +269,35 @@ const { graphContentWidth, visibleEdges, visibleNodes, laneX } = useCommitGraphO
               v-for="node in visibleNodes"
               :key="node.key"
               class="absolute flex items-center justify-center"
-              :style="{
-                width: `${nodeSize}px`,
-                height: `${nodeSize}px`,
-                left: `${node.cx - nodeSize / 2}px`,
-                top: `${node.cy - nodeSize / 2}px`,
-              }"
+              :style="
+                node.stash
+                  ? {
+                      width: `${stashBoxSize}px`,
+                      height: `${stashBoxSize}px`,
+                      left: `${node.cx - stashBoxSize / 2}px`,
+                      top: `${node.cy - stashBoxSize / 2}px`,
+                    }
+                  : {
+                      width: `${nodeSize}px`,
+                      height: `${nodeSize}px`,
+                      left: `${node.cx - nodeSize / 2}px`,
+                      top: `${node.cy - nodeSize / 2}px`,
+                    }
+              "
             >
+              <div
+                v-if="node.stash"
+                class="flex h-full w-full items-center justify-center bg-[var(--color-app)]"
+                :style="{
+                  border: '2px dotted var(--color-info)',
+                  borderRadius: '5px',
+                }"
+                title="Stash"
+              >
+                <Inbox :size="13" class="text-[var(--color-info)]" />
+              </div>
               <Avatar
-                v-if="!node.pending && node.author"
+                v-else-if="!node.pending && node.author"
                 :author="node.author"
                 :size="nodeSize"
                 :ring-color="node.color"
@@ -253,11 +310,39 @@ const { graphContentWidth, visibleEdges, visibleNodes, laneX } = useCommitGraphO
         <div
           v-for="item in virtualItems"
           :key="item.index"
-          class="absolute right-0 left-0 z-0 hover:z-30"
+          class="absolute right-0 left-0"
           :style="{ height: `${item.size}px`, transform: `translateY(${item.start}px)` }"
         >
           <div
-            v-if="resolveCommitIndex(item.index) === null"
+            v-if="resolveStashIndex(item.index) !== null"
+            class="group/row h-full cursor-pointer border-l-2 transition-colors"
+            :class="
+              selection.selectedStash ===
+              repo.stashes[resolveStashIndex(item.index)!]?.id
+                ? 'border-[var(--color-accent)] bg-[var(--color-accent-soft)]'
+                : 'border-transparent hover:bg-[var(--color-hover)]/25'
+            "
+            role="row"
+            :aria-selected="
+              selection.selectedStash ===
+              repo.stashes[resolveStashIndex(item.index)!]?.id
+            "
+            @click="
+              selectStashRow(repo.stashes[resolveStashIndex(item.index)!].id)
+            "
+          >
+            <StashGraphRow
+              :stash="repo.stashes[resolveStashIndex(item.index)!]"
+              :graph-width="graphColumnWidth"
+              :row-height="rowHeight"
+              :selected="
+                selection.selectedStash ===
+                repo.stashes[resolveStashIndex(item.index)!]?.id
+              "
+            />
+          </div>
+          <div
+            v-else-if="isPendingIndex(item.index)"
             class="group/row h-full cursor-pointer border-l-2 transition-colors"
             :class="
               pendingRowSelected

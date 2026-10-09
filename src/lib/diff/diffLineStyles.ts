@@ -20,9 +20,8 @@ export function lineBgClass(type: DiffLineKind): string {
 export function lineTextClass(type: DiffLineKind): string {
   switch (type) {
     case 'add':
-      return 'text-[var(--color-success)]'
     case 'del':
-      return 'text-[var(--color-danger)]'
+      return 'text-[var(--color-fg)]'
     case 'hunk':
       return 'text-[var(--color-info)] font-medium'
     case 'empty':

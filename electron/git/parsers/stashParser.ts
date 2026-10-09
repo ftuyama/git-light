@@ -24,6 +24,7 @@ export function parseStashes(stdout: string): WireStash[] {
       branch,
       date: ts ? new Date(Number(ts) * 1000).toISOString() : new Date(0).toISOString(),
       filesChanged: 0,
+      baseSha: null,
     })
     index++
   }

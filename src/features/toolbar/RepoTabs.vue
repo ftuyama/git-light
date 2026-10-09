@@ -3,6 +3,7 @@ import { Folder, FolderGit2, Plus, X } from '@lucide/vue'
 import { storeToRefs } from 'pinia'
 import DropdownMenu from '@/components/ui/DropdownMenu.vue'
 import IconButton from '@/components/ui/IconButton.vue'
+import AppSettingsMenu from '@/features/settings/AppSettingsMenu.vue'
 import { useRepoMenu } from '@/features/toolbar/useRepoMenu'
 import { useRepositoryStore } from '@/stores/repository'
 import { useRepoTabsStore } from '@/stores/repoTabs'
@@ -102,5 +103,9 @@ function openNewRepository(): void {
     </div>
 
     <div class="app-drag min-w-8 flex-1 self-stretch" />
+
+    <div class="app-no-drag flex shrink-0 items-start pr-2">
+      <AppSettingsMenu />
+    </div>
   </header>
 </template>

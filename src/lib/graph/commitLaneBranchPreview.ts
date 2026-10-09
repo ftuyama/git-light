@@ -1,3 +1,4 @@
+import { isHeadBranch, isHeadSymbolicRef } from '@/lib/git/headRef'
 import { formatRefLabel } from '@shared/git/refLabel'
 import type { Branch, Commit, Ref } from '@/types/git'
 import type { GraphLayout } from './computeGraphLayout'
@@ -30,7 +31,7 @@ function branchRefsFromCommit(commit: Commit): BranchPreview[] {
   const byLabel = new Map<string, Ref>()
   const refsByLabel = new Map<string, Ref[]>()
   for (const ref of commit.refs) {
-    if (ref.type === 'head') continue
+    if (isHeadSymbolicRef(ref)) continue
     if (ref.type !== 'localBranch' && ref.type !== 'remoteBranch') continue
     const label = refDisplayLabel(ref)
     const group = refsByLabel.get(label) ?? []
@@ -100,6 +101,7 @@ function fallbackFromBranches(
 ): BranchPreview | null {
   const tipIndexBySha = new Map(commits.map((c, i) => [c.sha, i]))
   const candidates = branches.filter((branch) => {
+    if (isHeadBranch(branch)) return false
     const tipIndex = tipIndexBySha.get(branch.tipSha)
     if (tipIndex === undefined) return false
     return layout.nodes[tipIndex]?.lane === lane

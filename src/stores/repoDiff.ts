@@ -138,6 +138,12 @@ export const useRepoDiffStore = defineStore('repoDiff', {
       const commitSha = selection.selectedSha
       const viewingCommitFile =
         Boolean(commitSha) && !compare && this.commitFiles.some((f) => f.path === path)
+      const stashRef = selection.selectedStash
+      const viewingStashFile =
+        Boolean(stashRef) &&
+        !commitSha &&
+        !compare &&
+        this.commitFiles.some((f) => f.path === path)
       const staged =
         this.selectedFileStaged ??
         useRepositoryStore().workingTree.find((f) => f.path === path && f.staged)?.staged ??
@@ -154,6 +160,9 @@ export const useRepoDiffStore = defineStore('repoDiff', {
       if (viewingCommitFile) {
         return { path, source: 'commit' as const, sha: commitSha! }
       }
+      if (viewingStashFile) {
+        return { path, source: 'commit' as const, sha: stashRef! }
+      }
       return {
         path,
         source: staged ? ('index' as const) : ('worktree' as const),
@@ -167,6 +176,12 @@ export const useRepoDiffStore = defineStore('repoDiff', {
       const commitSha = selection.selectedSha
       const viewingCommitFile =
         Boolean(commitSha) && !compare && this.commitFiles.some((f) => f.path === path)
+      const stashRef = selection.selectedStash
+      const viewingStashFile =
+        Boolean(stashRef) &&
+        !commitSha &&
+        !compare &&
+        this.commitFiles.some((f) => f.path === path)
       const staged =
         this.selectedFileStaged ??
         useRepositoryStore().workingTree.find((f) => f.path === path && f.staged)?.staged ??
@@ -184,6 +199,9 @@ export const useRepoDiffStore = defineStore('repoDiff', {
       }
       if (viewingCommitFile) {
         return { path, source: 'commit' as const, sha: commitSha!, ignoreWhitespace }
+      }
+      if (viewingStashFile) {
+        return { path, source: 'commit' as const, sha: stashRef!, ignoreWhitespace }
       }
       return {
         path,

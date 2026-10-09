@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref, toRef, watch } from 'vue'
-import { useMemoize } from '@vueuse/core'
 import type { DiffResult } from '@shared/git/models'
 import { useDiffStaging } from '@/composables/useDiffStaging'
 import { buildSplitRows, type SplitHunkRow, type SplitLineRow } from '@/lib/diff/buildSplitRows'
 import { collectSplitLineIndices } from '@/lib/diff/pairedLineIndices'
 import { lineBgClass, lineTextClass } from '@/lib/diff/diffLineStyles'
 import { highlightLine } from '@/lib/diff/highlight'
+import { renderInlineDiff, shouldInlineHighlight } from '@/lib/diff/wordDiff'
 import {
   DIFF_ROW_HEIGHT,
   estimateWrappedRowHeight,
@@ -54,12 +54,44 @@ const diffRef = toRef(props, 'diff')
 const { canStage, canPartialStage, canDiscard, stageHunk, unstageHunk, discardHunk, stageLines, unstageLines } =
   useDiffStaging(diffRef)
 
-const highlight = useMemoize((content: string, language: string) =>
-  highlightLine(content, language),
-)
+const splitInlineHtml = computed(() => {
+  const map = new Map<string, { left: string | null; right: string | null }>()
+  for (const row of rows.value) {
+    if (row.kind !== 'line') continue
+    if (row.left.type === 'del' && row.right.type === 'add') {
+      if (!shouldInlineHighlight(row.left.content, row.right.content)) continue
+      const { oldHtml, newHtml } = renderInlineDiff(
+        row.left.content,
+        row.right.content,
+        props.diff.language,
+      )
+      map.set(row.key, { left: oldHtml, right: newHtml })
+    }
+  }
+  return map
+})
+
+function cellHtml(
+  rowKey: string,
+  side: 'left' | 'right',
+  type: string,
+  content: string,
+): string {
+  if ((type === 'add' || type === 'del') && content) {
+    const inline = splitInlineHtml.value.get(rowKey)?.[side]
+    if (inline != null) return inline
+  }
+  return highlightLine(content, props.diff.language)
+}
 
 function sideClass(type: 'context' | 'add' | 'del' | 'empty'): string {
   return [lineBgClass(type), lineTextClass(type)].filter(Boolean).join(' ')
+}
+
+function gutterTextClass(type: string): string {
+  if (type === 'add') return 'text-[var(--color-success)]'
+  if (type === 'del') return 'text-[var(--color-danger)]'
+  return 'text-[var(--color-fg-subtle)]'
 }
 
 function syncScroll(source: HTMLElement, target: HTMLElement | null): void {
@@ -196,7 +228,10 @@ function showLineButtonOnRight(row: SplitLineRow): boolean {
             :class="[sideClass(lineAt(item.index)!.left.type), wordWrap ? 'right-0' : 'min-w-full']"
             :style="{ height: `${rowHeight(item.index)}px`, transform: `translateY(${item.start}px)` }"
           >
-            <span class="diff-gutter w-10 shrink-0 pr-2 text-right tabular-nums text-[var(--color-fg-subtle)] select-none">
+            <span
+              class="diff-gutter w-10 shrink-0 pr-2 text-right tabular-nums select-none"
+              :class="gutterTextClass(lineAt(item.index)!.left.type)"
+            >
               {{ lineAt(item.index)!.left.lineNum ?? '' }}
             </span>
             <code
@@ -207,7 +242,7 @@ function showLineButtonOnRight(row: SplitLineRow): boolean {
               v-else
               class="diff-code hljs min-w-0 flex-1 px-1"
               :class="wordWrap ? 'whitespace-pre-wrap break-all' : 'whitespace-pre'"
-              v-html="highlight(lineAt(item.index)!.left.content, diff.language)"
+              v-html="cellHtml(lineAt(item.index)!.key, 'left', lineAt(item.index)!.left.type, lineAt(item.index)!.left.content)"
             />
             <DiffStageButton
               v-if="showLineButtonOnLeft(lineAt(item.index)!)"
@@ -268,7 +303,10 @@ function showLineButtonOnRight(row: SplitLineRow): boolean {
             :class="[sideClass(lineAt(item.index)!.right.type), wordWrap ? 'right-0' : 'min-w-full']"
             :style="{ height: `${rowHeight(item.index)}px`, transform: `translateY(${item.start}px)` }"
           >
-            <span class="diff-gutter w-10 shrink-0 pr-2 text-right tabular-nums text-[var(--color-fg-subtle)] select-none">
+            <span
+              class="diff-gutter w-10 shrink-0 pr-2 text-right tabular-nums select-none"
+              :class="gutterTextClass(lineAt(item.index)!.right.type)"
+            >
               {{ lineAt(item.index)!.right.lineNum ?? '' }}
             </span>
             <code
@@ -279,7 +317,7 @@ function showLineButtonOnRight(row: SplitLineRow): boolean {
               v-else
               class="diff-code hljs min-w-0 flex-1 px-1"
               :class="wordWrap ? 'whitespace-pre-wrap break-all' : 'whitespace-pre'"
-              v-html="highlight(lineAt(item.index)!.right.content, diff.language)"
+              v-html="cellHtml(lineAt(item.index)!.key, 'right', lineAt(item.index)!.right.type, lineAt(item.index)!.right.content)"
             />
             <DiffStageButton
               v-if="showLineButtonOnRight(lineAt(item.index)!)"

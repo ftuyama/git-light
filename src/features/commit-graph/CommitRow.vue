@@ -22,6 +22,7 @@ import BranchNameChipInput from './BranchNameChipInput.vue'
 import { useBranchInputFocus } from './composables/useBranchInputFocus'
 import type { MenuItem } from '@/components/ui/menu'
 import { relativeTime } from '@/lib/format'
+import { isHeadSymbolicRef } from '@/lib/git/headRef'
 import { formatRefLabel } from '@shared/git/refLabel'
 import { githubCommitUrl } from '@shared/git/githubUrl'
 import type { Commit, Ref } from '@/types/git'
@@ -77,11 +78,17 @@ function branchPresence(refs: Ref[]): { hasLocal: boolean; hasRemote: boolean } 
   }
 }
 
+const isStashCommit = computed(
+  () =>
+    props.commit.refs.some((r) => r.type === 'stash') ||
+    /^(WIP on|On) /.test(props.commit.subject ?? ''),
+)
+
 const displayRefs = computed((): DisplayRef[] => {
   const byLabel = new Map<string, Ref>()
   const refsByLabel = new Map<string, Ref[]>()
   for (const ref of props.commit.refs) {
-    if (ref.type === 'head') continue
+    if (ref.type === 'stash' || isHeadSymbolicRef(ref)) continue
     const label = refDisplayLabel(ref)
     const group = refsByLabel.get(label) ?? []
     group.push(ref)
@@ -181,6 +188,19 @@ const previewConnectorStyle = computed((): Record<string, string> | null => {
   )
   return {
     backgroundColor: props.graphNode.color,
+    width: `${width}px`,
+  }
+})
+
+const nodeToBarConnectorStyle = computed((): Record<string, string> | null => {
+  if (!props.graphNode) return null
+  // Extend left to the node's left edge so the band passes fully behind the
+  // avatar and hugs the circle. The avatar renders above in the overlay.
+  const leftEdge = props.nodeX - props.nodeSize / 2
+  const width = Math.max(0, props.graphWidth - leftEdge)
+  return {
+    backgroundColor: props.graphNode.color,
+    left: `${leftEdge}px`,
     width: `${width}px`,
   }
 })
@@ -363,12 +383,23 @@ function openOnGithub(): void {
         class="relative z-0 flex shrink-0 items-center"
         :style="{ width: `${graphWidth}px`, height: `${rowHeight}px` }"
         aria-hidden="true"
-      />
+      >
+        <div
+          v-if="nodeToBarConnectorStyle"
+          class="pointer-events-none absolute top-2 bottom-2"
+          :class="selected ? 'opacity-30' : 'opacity-8'"
+          :style="nodeToBarConnectorStyle"
+        />
+      </div>
 
       <div
-        class="relative flex shrink-0 items-center gap-2 px-2"
+        class="relative flex h-full shrink-0 items-center gap-2 px-2"
         :style="{ width: `${columnWidths.commit}px` }"
       >
+        <div
+          class="absolute top-2 bottom-2 left-0 w-[3px] rounded-full"
+          :style="{ backgroundColor: chipColor }"
+        />
         <Cherry
           v-if="commit.isCherryPick"
           :size="13"
@@ -376,11 +407,15 @@ function openOnGithub(): void {
         />
         <span
           class="truncate"
-          :class="selected ? 'text-[var(--color-fg)]' : 'text-[var(--color-fg)]/90'"
+          :class="
+            selected
+              ? 'font-medium text-[var(--color-fg)]'
+              : 'text-[var(--color-fg)]/90'
+          "
         >
           {{ commit.subject }}
         </span>
-        <Badge v-if="commit.isMerge" tone="info">merge</Badge>
+        <Badge v-if="commit.isMerge && !isStashCommit" tone="info">merge</Badge>
       </div>
 
       <div

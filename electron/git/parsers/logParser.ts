@@ -24,21 +24,24 @@ export const LOG_FORMAT = [
 
 export const CHERRY_PICK_RE = /\(cherry picked from commit [0-9a-f]+\)/i
 
-function parseRefEntry(entry: string): WireRef | WireRef[] {
+function parseRefEntry(entry: string): WireRef | WireRef[] | null {
+  if (entry === 'refs/stash' || /^stash(@\{.*\})?$/.test(entry)) {
+    return { type: 'stash', name: entry, label: 'stash' }
+  }
   if (entry.startsWith('HEAD -> ')) {
     const branch = entry.slice('HEAD -> '.length).trim()
-    return [
-      { type: 'head', name: 'HEAD', label: 'HEAD' },
-      {
-        type: 'localBranch',
-        name: branch,
-        label: formatRefLabel(branch, 'localBranch'),
-        isHead: true,
-      },
-    ]
+    // HEAD pseudo-ref oculto da visualização — a branch atual segue
+    // indicada via `isHead: true`.
+    return {
+      type: 'localBranch',
+      name: branch,
+      label: formatRefLabel(branch, 'localBranch'),
+      isHead: true,
+    }
   }
   if (entry === 'HEAD') {
-    return { type: 'head', name: 'HEAD', label: 'HEAD' }
+    // Detached HEAD oculto da visualização de commits.
+    return null
   }
   if (entry.startsWith('tag: ')) {
     const tag = entry.slice('tag: '.length).trim()
@@ -52,6 +55,9 @@ function parseRefEntry(entry: string): WireRef | WireRef[] {
     }
   }
   if (entry.startsWith('refs/remotes/')) {
+    // Symbolic origin/HEAD oculto da visualização.
+    const rest = entry.slice('refs/remotes/'.length)
+    if (rest === 'HEAD' || rest.endsWith('/HEAD')) return null
     return {
       type: 'remoteBranch',
       name: entry,
@@ -60,6 +66,8 @@ function parseRefEntry(entry: string): WireRef | WireRef[] {
   }
   if (entry.includes('/')) {
     // Short decorate: origin/main, origin/ENG/bla, etc.
+    // Symbolic origin/HEAD oculto da visualização.
+    if (entry.endsWith('/HEAD')) return null
     return {
       type: 'remoteBranch',
       name: entry,
@@ -82,6 +90,7 @@ function parseDecorations(raw: string): WireRef[] {
     const entry = entryRaw.trim()
     if (!entry) continue
     const parsed = parseRefEntry(entry)
+    if (parsed == null) continue
     if (Array.isArray(parsed)) refs.push(...parsed)
     else refs.push(parsed)
   }

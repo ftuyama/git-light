@@ -11,6 +11,7 @@ import type {
   WireWorkingTreeFile,
   WireWorktree,
 } from '@shared/git/models'
+import { isHeadBranch, isHeadSymbolicRef } from './headRef'
 import type {
   Author,
   Branch,
@@ -38,7 +39,7 @@ function reviveCommit(w: WireCommit): Commit {
     author: reviveAuthor(w.author),
     committer: reviveAuthor(w.committer),
     date: new Date(w.date),
-    refs: w.refs.map(reviveRef),
+    refs: w.refs.filter((r) => !isHeadSymbolicRef(r)).map(reviveRef),
   }
 }
 
@@ -92,7 +93,7 @@ export function wireSnapshotToRepositoryData(
   return {
     repository: reviveRepository(snapshot.repository),
     commits: snapshot.commits.map(reviveCommit),
-    branches: snapshot.branches.map(reviveBranch),
+    branches: snapshot.branches.filter((b) => !isHeadBranch(b)).map(reviveBranch),
     tags: snapshot.tags.map(reviveTag),
     stashes: snapshot.stashes.map(reviveStash),
     worktrees: snapshot.worktrees.map(reviveWorktree),

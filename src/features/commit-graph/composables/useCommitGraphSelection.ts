@@ -20,6 +20,10 @@ export function useCommitGraphSelection() {
     selection.select(null)
   }
 
+  function selectStashRow(stashId: string): void {
+    selection.selectStash(selection.selectedStash === stashId ? null : stashId)
+  }
+
   function rowClasses(commitIndex: number): string {
     const sha = repo.commits[commitIndex]?.sha
     const isSelected = selectedSha.value === sha
@@ -33,18 +37,20 @@ export function useCommitGraphSelection() {
     return 'border-transparent hover:bg-[var(--color-hover)]/25'
   }
 
-  return { selectedSha, selectRow, selectPendingRow, rowClasses, selection }
+  return { selectedSha, selectRow, selectPendingRow, selectStashRow, rowClasses, selection }
 }
 
 export function useCommitGraphState() {
   const repo = useRepositoryStore()
   const selection = useSelectionStore()
-  const { selectedSha } = storeToRefs(selection)
+  const { selectedSha, selectedStash } = storeToRefs(selection)
 
   const showLoading = computed(() => repo.loading || repo.branchSwitching)
   const hasPendingRow = computed(() => repo.hasPendingChanges && repo.headCommitIndex >= 0)
   const headIndex = computed(() => repo.headCommitIndex)
-  const pendingRowSelected = computed(() => hasPendingRow.value && !selectedSha.value)
+  const pendingRowSelected = computed(
+    () => hasPendingRow.value && !selectedSha.value && !selectedStash.value,
+  )
 
   return { repo, showLoading, hasPendingRow, headIndex, pendingRowSelected }
 }

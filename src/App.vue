@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { Splitpanes, Pane, type SplitpanesResizePayload, type SplitpanesResizedPayload } from 'splitpanes'
 import { TooltipProvider } from 'reka-ui'
 import { storeToRefs } from 'pinia'
@@ -40,7 +40,7 @@ const repo = useRepositoryStore()
 const selection = useSelectionStore()
 const diffStore = useRepoDiffStore()
 const graphZoom = useCommitGraphZoom()
-const { leftSize, rightSize, leftCollapsed, rightCollapsed, leftCollapseHint, rightCollapseHint } =
+const { leftSize, rightSize, leftCollapsed, rightCollapsed, leftCollapseHint, rightCollapseHint, suppressPaneAnimation } =
   storeToRefs(ui)
 const { screen } = storeToRefs(repo)
 
@@ -67,6 +67,22 @@ const showBlameOverlay = computed(
     Boolean(diffStore.selectedFilePath) &&
     !diffStore.selectedFileIsConflicted,
 )
+
+const isFileDiffActive = computed(() => diffStore.selectedFilePath !== null)
+
+let paneInstantTimer: ReturnType<typeof setTimeout> | undefined
+
+watch(isFileDiffActive, (active, previous) => {
+  if (active && !previous) ui.autoCollapseLeftForDiff()
+  else if (!active && previous) ui.restoreLeftAfterDiff()
+  else return
+  // Keep the instant-snap class for one paint cycle past the 0.2s
+  // splitpanes width transition so only the auto-toggle skips animation.
+  clearTimeout(paneInstantTimer)
+  paneInstantTimer = setTimeout(() => {
+    ui.suppressPaneAnimation = false
+  }, 250)
+})
 
 function onResize(payload: SplitpanesResizePayload): void {
   presentPanes.value.forEach((key, index) => {
@@ -131,6 +147,7 @@ useKeyboardShortcuts([
           :class="{
             'splitpanes--collapse-hint-left': leftCollapseHint,
             'splitpanes--collapse-hint-right': rightCollapseHint,
+            'splitpanes--instant': suppressPaneAnimation,
           }"
           @resize="onResize"
           @resized="onResized"

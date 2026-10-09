@@ -13,6 +13,8 @@ export function formatRefLabel(name: string, type?: WireRefType): string {
     label = label.slice('refs/heads/'.length)
   } else if (label.startsWith('refs/tags/')) {
     label = label.slice('refs/tags/'.length)
+  } else if (label === 'refs/stash' || type === 'stash') {
+    return 'stash'
   } else if (type === 'remoteBranch') {
     const slash = label.indexOf('/')
     if (slash !== -1) label = label.slice(slash + 1)

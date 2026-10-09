@@ -70,6 +70,8 @@ export interface WireStash {
   branch: string
   date: string
   filesChanged: number
+  /** First-parent (base) commit the stash was created on; null when unresolvable. */
+  baseSha: string | null
 }
 
 export interface WireWorktree {

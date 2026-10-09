@@ -2,7 +2,7 @@ import type { GitAction } from '@shared/git/actions'
 import type { ActionEnvelope, RepoState } from '@shared/git/models'
 import type { RebaseTodoLine } from '@shared/git/rebase'
 import { GitError } from '@shared/git/errors'
-import { readFileSync, writeFileSync } from 'node:fs'
+import { readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { gitCli } from './GitCliProvider'
 import { assertPathInsideRepo } from './pathUtils'
@@ -129,13 +129,31 @@ async function routeAction(action: GitAction, ctx: ActionContext): Promise<strin
     case 'unstage-all':
       await gitCli.run(['restore', '--staged', '.'], { cwd, signal })
       return 'Unstaged all changes'
-    case 'discard-file':
+    case 'discard-file': {
       if (!target) throw new GitError('Unknown', 'No file specified.')
-      await gitCli.run(['checkout', '--', assertPathInsideRepo(cwd, target)], { cwd, signal })
+      const safePath = assertPathInsideRepo(cwd, target)
+      try {
+        await gitCli.run(['restore', '--source=HEAD', '--staged', '--worktree', '--', safePath], {
+          cwd,
+          signal,
+        })
+      } catch (error) {
+        // Untracked files are unknown to git — restore fails with a pathspec
+        // error, so delete them from disk instead.
+        if (error instanceof GitError && /did not match any file.*known to git/i.test(error.message)) {
+          rmSync(join(cwd, safePath), { force: true, recursive: true })
+        } else {
+          throw error
+        }
+      }
       return `Discarded changes in ${target}`
+    }
     case 'discard-all':
-      await gitCli.run(['checkout', '--', '.'], { cwd, signal })
-      return 'Discarded all unstaged changes'
+      await gitCli.run(['restore', '--source=HEAD', '--staged', '--worktree', '--', '.'], {
+        cwd,
+        signal,
+      })
+      return 'Discarded all changes'
     case 'restore-file': {
       if (!target) throw new GitError('Unknown', 'No file specified.')
       const sha = String(meta.sha ?? 'HEAD')

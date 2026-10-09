@@ -1,10 +1,8 @@
 import { computed, type ComputedRef } from 'vue'
 import { storeToRefs } from 'pinia'
 import { graphEdgePath } from '@/lib/graph/graphEdgePath'
-import {
-  PENDING_ROW_VIRTUAL_INDEX,
-  virtualIndexForCommit,
-} from '@/lib/graph/pendingGraphRow'
+import { stashVirtualIndexByStash } from '@/lib/graph/stashGraphRows'
+import type { GraphRow } from '@/lib/graph/stashGraphRows'
 import { useRepositoryStore } from '@/stores/repository'
 import { useSelectionStore } from '@/stores/selection'
 import type { Author } from '@/types/git'
@@ -26,42 +24,51 @@ export interface VisibleNode {
   merge: boolean
   author?: Author
   pending?: boolean
+  stash?: boolean
+  stashIndex?: number
 }
 
 export function useCommitGraphOverlay(options: {
   virtualItems: ComputedRef<{ index: number }[]>
+  rows: ComputedRef<GraphRow[]>
   hasPendingRow: ComputedRef<boolean>
   headIndex: ComputedRef<number>
   pendingRowSelected: ComputedRef<boolean>
   rowHeight: ComputedRef<number>
   laneWidth: ComputedRef<number>
   resolveCommitIndex: (virtualIndex: number) => number | null
+  resolveStashIndex: (virtualIndex: number) => number | null
+  virtualIndexForCommitIndex: (commitIndex: number) => number
+  stashBoxX: (stashIndex: number) => number
 }) {
   const repo = useRepositoryStore()
   const selection = useSelectionStore()
-  const { selectedSha } = storeToRefs(selection)
+  const { selectedSha, selectedStash } = storeToRefs(selection)
   const {
     virtualItems,
+    rows,
     hasPendingRow,
     headIndex,
     pendingRowSelected,
     rowHeight,
     laneWidth,
     resolveCommitIndex,
+    resolveStashIndex,
+    virtualIndexForCommitIndex,
+    stashBoxX,
   } = options
 
   const graphContentWidth = computed(
     () =>
       LANE_LEFT_PAD +
       LANE_RIGHT_PAD +
-      Math.max(1, repo.layout.maxLanes) * laneWidth.value,
+      (Math.max(1, repo.layout.maxLanes) + (repo.stashes.length > 0 ? 1 : 0)) *
+        laneWidth.value,
   )
 
   const visibleEdges = computed<VisibleEdge[]>(() => {
     const items = virtualItems.value
     if (items.length === 0) return []
-    const firstVirtual = items[0].index
-    const lastVirtual = items[items.length - 1].index
     const edges: VisibleEdge[] = []
 
     const visibleCommitIndices = items
@@ -74,8 +81,14 @@ export function useCommitGraphOverlay(options: {
       for (let band = minCommit; band <= maxCommit; band++) {
         const segments = repo.layout.bands[band]
         if (!segments) continue
-        const y1 = rowCenterY(virtualIndexForCommit(band, hasPendingRow.value), rowHeight)
-        const y2 = rowCenterY(virtualIndexForCommit(band + 1, hasPendingRow.value), rowHeight)
+        // Bands connect consecutive commit rows; stash/pending rows inserted
+        // between them shift Y positions via the row map.
+        const y1 = rowCenterY(virtualIndexForCommitIndex(band), rowHeight)
+        const nextVirtual =
+          band + 1 < repo.commits.length
+            ? virtualIndexForCommitIndex(band + 1)
+            : virtualIndexForCommitIndex(band) + 1
+        const y2 = rowCenterY(nextVirtual, rowHeight)
         for (let i = 0; i < segments.length; i++) {
           const seg = segments[i]
           const x1 = laneX(seg.fromLane, laneWidth)
@@ -87,13 +100,18 @@ export function useCommitGraphOverlay(options: {
       }
     }
 
-    if (hasPendingRow.value && firstVirtual <= PENDING_ROW_VIRTUAL_INDEX) {
-      const headVirtual = virtualIndexForCommit(headIndex.value, true)
-      if (lastVirtual >= headVirtual) {
+    const pendingVirtual = rows.value.findIndex((row) => row.kind === 'pending')
+    if (
+      hasPendingRow.value &&
+      pendingVirtual >= 0 &&
+      items[0].index <= pendingVirtual
+    ) {
+      const headVirtual = virtualIndexForCommitIndex(headIndex.value)
+      if (items[items.length - 1].index >= headVirtual && headVirtual >= 0) {
         const headNode = repo.layout.nodes[headIndex.value]
         if (headNode) {
           const x = laneX(headNode.lane, laneWidth)
-          const y1 = rowCenterY(PENDING_ROW_VIRTUAL_INDEX, rowHeight)
+          const y1 = rowCenterY(pendingVirtual, rowHeight)
           const y2 = rowCenterY(headVirtual, rowHeight)
           edges.push({
             key: 'pending-head',
@@ -105,6 +123,38 @@ export function useCommitGraphOverlay(options: {
       }
     }
 
+    // Dotted connector anchored at the base commit circle: up the base lane
+    // to the stash row, then into the stash box. Stashes without a loaded
+    // base commit stay floating with no line.
+    {
+      const stashVirtualByStash = stashVirtualIndexByStash(rows.value)
+      const firstVisible = items[0].index
+      const lastVisible = items[items.length - 1].index
+      repo.stashes.forEach((stash, stashIndex) => {
+        const stashVirtual = stashVirtualByStash.get(stashIndex)
+        if (stashVirtual == null) return
+        if (stashVirtual < firstVisible || stashVirtual > lastVisible) return
+        const baseIndex = stash.baseSha
+          ? repo.commits.findIndex((c) => c.sha === stash.baseSha)
+          : -1
+        if (baseIndex < 0) return
+        const baseNode = repo.layout.nodes[baseIndex]
+        if (!baseNode) return
+        const baseVirtual = virtualIndexForCommitIndex(baseIndex)
+        if (baseVirtual < firstVisible || baseVirtual > lastVisible) return
+        const baseX = laneX(baseNode.lane, laneWidth)
+        const boxX = stashBoxX(stashIndex)
+        const stashY = rowCenterY(stashVirtual, rowHeight)
+        const baseY = rowCenterY(baseVirtual, rowHeight)
+        edges.push({
+          key: `stash-${stashIndex}`,
+          d: `M${baseX} ${baseY} L${baseX} ${stashY} L${boxX} ${stashY}`,
+          color: 'var(--color-info)',
+          dashed: true,
+        })
+      })
+    }
+
     return edges
   })
 
@@ -112,15 +162,16 @@ export function useCommitGraphOverlay(options: {
     const nodes: VisibleNode[] = []
 
     if (hasPendingRow.value) {
-      const visible = virtualItems.value.some(
-        (item) => item.index === PENDING_ROW_VIRTUAL_INDEX,
-      )
+      const pendingVirtual = rows.value.findIndex((row) => row.kind === 'pending')
+      const visible =
+        pendingVirtual >= 0 &&
+        virtualItems.value.some((item) => item.index === pendingVirtual)
       const headNode = repo.layout.nodes[headIndex.value]
       if (visible && headNode) {
         nodes.push({
           key: 'pending',
           cx: laneX(headNode.lane, laneWidth),
-          cy: rowCenterY(PENDING_ROW_VIRTUAL_INDEX, rowHeight),
+          cy: rowCenterY(pendingVirtual, rowHeight),
           color: headNode.color,
           selected: pendingRowSelected.value,
           merge: false,
@@ -130,6 +181,20 @@ export function useCommitGraphOverlay(options: {
     }
 
     for (const item of virtualItems.value) {
+      const stashIndex = resolveStashIndex(item.index)
+      if (stashIndex !== null) {
+        nodes.push({
+          key: `stash-${stashIndex}`,
+          cx: stashBoxX(stashIndex),
+          cy: rowCenterY(item.index, rowHeight),
+          color: 'var(--color-info)',
+          selected: repo.stashes[stashIndex]?.id === selectedStash.value,
+          merge: false,
+          stash: true,
+          stashIndex,
+        })
+        continue
+      }
       const commitIndex = resolveCommitIndex(item.index)
       if (commitIndex === null) continue
       const node = repo.layout.nodes[commitIndex]

@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref, toRef, watch } from 'vue'
-import { useMemoize } from '@vueuse/core'
 import type { DiffResult } from '@shared/git/models'
 import { useDiffStaging } from '@/composables/useDiffStaging'
 import { buildUnifiedLines } from '@/lib/diff/buildUnifiedLines'
 import { pairedLineIndices } from '@/lib/diff/pairedLineIndices'
 import { lineClass } from '@/lib/diff/diffLineStyles'
 import { highlightLine } from '@/lib/diff/highlight'
+import { renderInlineDiff, shouldInlineHighlight } from '@/lib/diff/wordDiff'
 import {
   DIFF_ROW_HEIGHT,
   estimateWrappedRowHeight,
@@ -44,9 +44,53 @@ const diffRef = toRef(props, 'diff')
 const { canStage, canPartialStage, canDiscard, stageHunk, unstageHunk, discardHunk, stageLines, unstageLines } =
   useDiffStaging(diffRef)
 
-const highlight = useMemoize((content: string, language: string) =>
-  highlightLine(content, language),
-)
+/**
+ * GitHub-style intra-line highlight: pair each del with its add counterpart
+ * (1:1 by offset within a del→add block) and pre-render HTML so only the
+ * changed words get a strong tint. Unpaired lines fall back to plain highlight.
+ */
+const inlineHtml = computed(() => {
+  const map = new Map<string, string>()
+  const language = props.diff.language
+  props.diff.hunks.forEach((hunk, hunkIndex) => {
+    const lines = hunk.lines
+    let i = 0
+    while (i < lines.length) {
+      if (lines[i].type !== 'del') {
+        i++
+        continue
+      }
+      const dels: { content: string; lineIndex: number }[] = []
+      while (i < lines.length && lines[i].type === 'del') {
+        dels.push({ content: lines[i].content, lineIndex: i })
+        i++
+      }
+      const adds: { content: string; lineIndex: number }[] = []
+      while (i < lines.length && lines[i].type === 'add') {
+        adds.push({ content: lines[i].content, lineIndex: i })
+        i++
+      }
+      const pairs = Math.min(dels.length, adds.length)
+      for (let k = 0; k < pairs; k++) {
+        const oldText = dels[k].content
+        const newText = adds[k].content
+        if (!shouldInlineHighlight(oldText, newText)) continue
+        const { oldHtml, newHtml } = renderInlineDiff(oldText, newText, language)
+        map.set(`${hunkIndex}:${dels[k].lineIndex}`, oldHtml)
+        map.set(`${hunkIndex}:${adds[k].lineIndex}`, newHtml)
+      }
+    }
+  })
+  return map
+})
+
+function lineHtml(hunkIndex: number, lineIndex: number | undefined, type: string, content: string): string {
+  if ((type === 'add' || type === 'del') && lineIndex != null) {
+    const inline = inlineHtml.value.get(`${hunkIndex}:${lineIndex}`)
+    if (inline != null) return inline
+  }
+  return highlightLine(content, props.diff.language)
+}
 
 let resizeObserver: ResizeObserver | undefined
 
@@ -80,7 +124,15 @@ function rowHeight(index: number): number {
 
 function gutterClass(type: string): string {
   if (type === 'hunk') return 'text-[var(--color-info)]'
+  if (type === 'add') return 'text-[var(--color-success)]'
+  if (type === 'del') return 'text-[var(--color-danger)]'
   return 'text-[var(--color-fg-subtle)]'
+}
+
+function prefixClass(type: string): string {
+  if (type === 'add') return 'text-[var(--color-success)]'
+  if (type === 'del') return 'text-[var(--color-danger)]'
+  return ''
 }
 
 function prefix(type: string): string {
@@ -132,7 +184,7 @@ function onLineAction(hunkIndex: number, lineIndex: number): void {
           class="diff-gutter w-10 shrink-0 pr-2 text-right tabular-nums select-none"
           :class="gutterClass(lines[item.index].type)"
         >{{ lines[item.index].newLine ?? '' }}</span>
-        <span class="diff-prefix w-4 shrink-0 select-none opacity-70">{{ prefix(lines[item.index].type) }}</span>
+        <span class="diff-prefix w-4 shrink-0 select-none opacity-70" :class="prefixClass(lines[item.index].type)">{{ prefix(lines[item.index].type) }}</span>
         <code
           v-if="lines[item.index].type === 'hunk'"
           class="diff-code min-w-0 flex-1 px-1"
@@ -142,7 +194,7 @@ function onLineAction(hunkIndex: number, lineIndex: number): void {
           v-else
           class="diff-code hljs min-w-0 flex-1 px-1"
           :class="wordWrap ? 'whitespace-pre-wrap break-all' : 'whitespace-pre'"
-          v-html="highlight(lines[item.index].content, diff.language)"
+          v-html="lineHtml(lines[item.index].hunkIndex, lines[item.index].lineIndex, lines[item.index].type, lines[item.index].content)"
         />
         <div
           v-if="lines[item.index].type === 'hunk' && (canPartialStage || canDiscard)"

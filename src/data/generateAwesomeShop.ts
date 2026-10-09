@@ -300,7 +300,7 @@ function makeTags(commits: Commit[]): Tag[] {
   })
 }
 
-function makeStashes(): Stash[] {
+function makeStashes(commits: Commit[]): Stash[] {
   const messages = [
     'WIP on feature/payment: refactor checkout totals',
     'WIP on develop: experiment with new avatar uploader',
@@ -313,6 +313,7 @@ function makeStashes(): Stash[] {
     branch: ['feature/payment', 'develop', 'main'][index],
     date: faker.date.recent({ days: 10 }),
     filesChanged: faker.number.int({ min: 1, max: 14 }),
+    baseSha: commits[Math.min(commits.length - 1, 2 + index * 20)]?.sha ?? null,
   }))
 }
 
@@ -395,14 +396,9 @@ export function generateAwesomeShop(commitCount = 400): RepositoryData {
   const commits = [...chrono].reverse()
   attachRefs(commits, branchTips, currentBranch)
 
-  // HEAD marker on the tip of the current branch.
-  const headSha = branchTips.get(currentBranch)
-  const headCommit = commits.find((c) => c.sha === headSha)
-  if (headCommit) headCommit.refs.unshift({ type: 'head', name: 'HEAD', label: 'HEAD' })
-
   const branches = makeBranches(branchTips, currentBranch)
   const tags = makeTags(commits)
-  const stashes = makeStashes()
+  const stashes = makeStashes(commits)
   const worktrees = makeWorktrees()
   const workingTree = makeWorkingTree(200)
 

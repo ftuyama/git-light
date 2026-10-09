@@ -18,7 +18,7 @@ const repo = useRepositoryStore()
 const diffStore = useRepoDiffStore()
 const selection = useSelectionStore()
 const ui = useUiStore()
-const { selectedSha, compareRange, isCompareMode } = storeToRefs(selection)
+const { selectedSha, selectedStash, compareRange, isCompareMode } = storeToRefs(selection)
 const { workingTreeChangesSize } = storeToRefs(ui)
 
 const unstaged = computed(() => repo.unstagedFiles)
@@ -26,10 +26,25 @@ const staged = computed(() => repo.stagedFiles)
 const conflicts = computed(() => repo.conflictedFiles)
 const viewingCommit = computed(() => Boolean(selectedSha.value) && !isCompareMode.value)
 const viewingCompare = computed(() => isCompareMode.value && compareRange.value != null)
+const viewingStash = computed(
+  () => selectedStash.value != null && !selectedSha.value && !isCompareMode.value,
+)
 const selectedCommit = computed(() =>
   selectedSha.value ? repo.commits.find((c) => c.sha === selectedSha.value) : undefined,
 )
-const showWorkingTree = computed(() => !selectedSha.value && !isCompareMode.value)
+const selectedStashEntry = computed(() =>
+  selectedStash.value != null
+    ? repo.stashes.find((s) => s.id === selectedStash.value)
+    : undefined,
+)
+const selectedStashLabel = computed(() =>
+  selectedStashEntry.value?.branch
+    ? `WIP on ${selectedStashEntry.value.branch}`
+    : 'WIP',
+)
+const showWorkingTree = computed(
+  () => !selectedSha.value && selectedStash.value == null && !isCompareMode.value,
+)
 const compareFiles = computed(() => diffStore.compareFiles)
 const commitFiles = computed(() => diffStore.commitFiles)
 
@@ -60,6 +75,10 @@ function exitCompare(): void {
   selection.clearCompare()
 }
 
+function exitStash(): void {
+  selection.selectStash(null)
+}
+
 watch(
   selectedSha,
   (sha) => {
@@ -68,10 +87,15 @@ watch(
       return
     }
     if (sha) void diffStore.loadCommitFiles(sha)
-    else diffStore.clearCommitFiles()
+    else if (selectedStash.value == null) diffStore.clearCommitFiles()
   },
   { immediate: true },
 )
+
+watch(selectedStash, (id) => {
+  if (id) void diffStore.loadCommitFiles(id)
+  else if (selectedSha.value == null) diffStore.clearCommitFiles()
+})
 
 watch(compareRange, (range) => {
   if (range) void diffStore.loadCompareFiles(range.fromSha, range.toSha)
@@ -140,6 +164,56 @@ watch(compareRange, (range) => {
         <FileList
           v-else-if="commitFiles.length"
           :key="selectedSha ?? 'none'"
+          :files="commitFiles"
+          readonly
+        />
+        <div
+          v-else
+          class="flex flex-1 items-center justify-center px-4 text-center text-xs text-[var(--color-fg-subtle)]"
+        >
+          {{ commitEmptyMessage }}
+        </div>
+      </div>
+    </template>
+
+    <template v-else-if="viewingStash">
+      <div class="flex shrink-0 items-center gap-2 border-b border-[var(--color-border)] px-3 py-2.5">
+        <div class="min-w-0 flex-1">
+          <p class="truncate text-[13px] font-medium text-[var(--color-fg)]">
+            {{ selectedStashLabel }}
+          </p>
+          <p class="mt-0.5 truncate font-mono text-[11px] text-[var(--color-fg-subtle)]">
+            {{ selectedStash }} · {{ commitFiles.length }}
+            {{ commitFiles.length === 1 ? 'file' : 'files' }}
+          </p>
+        </div>
+        <button
+          class="focus-ring flex h-6 w-6 shrink-0 items-center justify-center rounded text-[var(--color-fg-subtle)] hover:bg-[var(--color-hover)] hover:text-[var(--color-fg)]"
+          title="Close stash files"
+          aria-label="Close stash files"
+          @click="exitStash"
+        >
+          <X :size="14" />
+        </button>
+      </div>
+
+      <div class="flex min-h-0 flex-1 flex-col">
+        <header
+          class="flex h-9 shrink-0 items-center gap-2 px-3 text-[11px] font-semibold tracking-wide text-[var(--color-fg-muted)] uppercase"
+        >
+          <span class="flex-1">Files</span>
+          <FileListViewToggle />
+        </header>
+
+        <div
+          v-if="diffStore.commitFilesLoading"
+          class="flex flex-1 items-center justify-center text-xs text-[var(--color-fg-subtle)]"
+        >
+          <Loader2 :size="16" class="mr-2 animate-spin" /> Loading files…
+        </div>
+        <FileList
+          v-else-if="commitFiles.length"
+          :key="selectedStash ?? 'none'"
           :files="commitFiles"
           readonly
         />

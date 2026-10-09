@@ -321,6 +321,16 @@ export const gitActions = {
     await this.runAction({ kind: 'stash', meta: { message: message || 'WIP' } })
   },
 
+  async renameStash(this: GitActionsStore, target: string, currentMessage: string): Promise<void> {
+    const message = await usePromptStore().prompt({
+      title: 'Edit stash message',
+      message: 'Stash message',
+      defaultValue: currentMessage,
+    })
+    if (message === null || message.trim() === '') return
+    await this.runAction({ kind: 'rename-stash', target, meta: { message: message.trim() } })
+  },
+
   async createTag(this: GitActionsStore): Promise<void> {
     const name = await usePromptStore().prompt({
       title: 'Create Tag',

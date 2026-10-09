@@ -325,9 +325,17 @@ export class GitProvider {
 
     const { stdout } = await gitCli.run(args, { cwd, timeout: 120_000, allowFailure: !!endRev })
 
-    const allCommits = parseCommits(stdout, authors)
-    const hasMore = allCommits.length > limit
-    const commits = hasMore ? allCommits.slice(0, limit) : allCommits
+    const parsed = parseCommits(stdout, authors)
+    // Stash commits (refs/stash) are rendered as dedicated inline rows from
+    // `git stash list` — keep them (and their `index on …` helper commits)
+    // out of the main lane layout.
+    const allCommits = parsed.filter(
+      (c) =>
+        !c.refs.some((r) => r.type === 'stash') &&
+        !/^(WIP on|On|index on) /i.test(c.subject ?? ''),
+    )
+    const hasMore = parsed.length > limit || allCommits.length > limit
+    const commits = allCommits.length > limit ? allCommits.slice(0, limit) : allCommits
     return { commits, hasMore }
   }
 
@@ -354,7 +362,20 @@ export class GitProvider {
       cwd,
       allowFailure: true,
     })
-    return parseStashes(stdout)
+    const stashes = parseStashes(stdout)
+    if (stashes.length === 0) return stashes
+    // Resolve each stash's base commit (first parent) in one batch so the
+    // graph can anchor stash rows inline above their base commit, GitKraken-style.
+    const { stdout: baseOut } = await gitCli.run(
+      ['rev-parse', '--verify', ...stashes.map((s) => `${s.id}^1`)],
+      { cwd, allowFailure: true },
+    )
+    const bases = baseOut.split('\n').map((line) => line.trim())
+    for (let i = 0; i < stashes.length; i++) {
+      const sha = bases[i]
+      stashes[i].baseSha = sha && /^[0-9a-f]{40}$/i.test(sha) ? sha : null
+    }
+    return stashes
   }
 
   private async loadWorktrees(cwd: string): Promise<WireRepositorySnapshot['worktrees']> {

@@ -1,4 +1,5 @@
 import { computed, type Ref } from 'vue'
+import { isHeadBranch } from '@/lib/git/headRef'
 import { sortCurrentBranchFirst } from './sortBranches'
 import { useRepositoryStore } from '@/stores/repository'
 import type { Branch } from '@/types/git'
@@ -9,9 +10,10 @@ export function useBranchSidebarData(query: Ref<string>) {
   const normalizedQuery = computed(() => query.value.trim().toLowerCase())
 
   const filteredLocal = computed(() => {
+    const visible = repo.localBranches.filter((b) => !isHeadBranch(b))
     const branches = normalizedQuery.value
-      ? repo.localBranches.filter((b) => b.name.toLowerCase().includes(normalizedQuery.value))
-      : repo.localBranches
+      ? visible.filter((b) => b.name.toLowerCase().includes(normalizedQuery.value))
+      : visible
     return sortCurrentBranchFirst(branches)
   })
 
@@ -30,11 +32,12 @@ export function useBranchSidebarData(query: Ref<string>) {
       .map(([group, branches]) => [group, sortCurrentBranchFirst(branches)] as const)
   })
 
-  const remoteBranches = computed(() =>
-    normalizedQuery.value
-      ? repo.remoteBranches.filter((b) => b.name.toLowerCase().includes(normalizedQuery.value))
-      : repo.remoteBranches,
-  )
+  const remoteBranches = computed(() => {
+    const visible = repo.remoteBranches.filter((b) => !isHeadBranch(b))
+    return normalizedQuery.value
+      ? visible.filter((b) => b.name.toLowerCase().includes(normalizedQuery.value))
+      : visible
+  })
 
   const groupedRemoteBranches = computed(() => {
     const groups = new Map<string, Branch[]>()

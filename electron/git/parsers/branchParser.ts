@@ -66,7 +66,7 @@ export function parseBranches(stdout: string, favorites: Set<string>): WireBranc
     } else if (refname.startsWith('refs/remotes/')) {
       const rest = refname.slice('refs/remotes/'.length)
       // Skip symbolic origin/HEAD.
-      if (rest.endsWith('/HEAD')) continue
+      if (rest === 'HEAD' || rest.endsWith('/HEAD')) continue
       const slash = rest.indexOf('/')
       const remote = slash === -1 ? rest : rest.slice(0, slash)
       const name = slash === -1 ? rest : rest.slice(slash + 1)

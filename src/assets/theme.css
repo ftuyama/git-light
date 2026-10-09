@@ -458,6 +458,12 @@
 .splitpanes__pane {
   transition: none;
 }
+/* Skips the library's 0.2s width transition (`.splitpanes--ready
+   .splitpanes__pane` wins over the rule above on specificity) for
+   automatic sidebar toggles only; manual toggles keep animating. */
+.splitpanes--instant.splitpanes--ready .splitpanes__pane {
+  transition: none;
+}
 
 @media (prefers-reduced-motion: reduce) {
   *,
@@ -572,3 +578,23 @@
 .conflict-view code.hljs .hljs-subst {
   color: var(--color-fg-muted);
 }
+
+.diff-view .diff-word-add,
+.diff-view .diff-word-del {
+  border-radius: 2px;
+  padding: 0 1px;
+  margin: 0 -1px;
+  color: inherit;
+}
+
+.diff-view .diff-word-add {
+  background: color-mix(in srgb, var(--color-success) 28%, transparent);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--color-success) 35%, transparent);
+}
+
+.diff-view .diff-word-del {
+  background: color-mix(in srgb, var(--color-danger) 28%, transparent);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--color-danger) 35%, transparent);
+}
+
+

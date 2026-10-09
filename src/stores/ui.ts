@@ -140,6 +140,8 @@ export const useUiStore = defineStore('ui', {
     settingsOpen: false,
     leftCollapseHint: false,
     rightCollapseHint: false,
+    leftCollapsedBeforeDiff: null as boolean | null,
+    suppressPaneAnimation: false,
   }),
   getters: {
     graphScope(state): GraphScope {
@@ -270,6 +272,23 @@ export const useUiStore = defineStore('ui', {
     },
     toggleRight(): void {
       this.rightCollapsed = !this.rightCollapsed
+    },
+    autoCollapseLeftForDiff(): void {
+      if (this.leftCollapsedBeforeDiff !== null) return
+      this.leftCollapsedBeforeDiff = this.leftCollapsed
+      if (!this.leftCollapsed) {
+        this.leftCollapsed = true
+        this.suppressPaneAnimation = true
+      }
+    },
+    restoreLeftAfterDiff(): void {
+      if (this.leftCollapsedBeforeDiff === null) return
+      const wasExpanded = !this.leftCollapsedBeforeDiff
+      this.leftCollapsedBeforeDiff = null
+      if (wasExpanded) {
+        this.leftCollapsed = false
+        this.suppressPaneAnimation = true
+      }
     },
     toggleSection(key: string): void {
       this.sections = { ...this.sections, [key]: !this.isSectionOpen(key) }

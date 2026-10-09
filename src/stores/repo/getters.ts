@@ -1,11 +1,15 @@
 import { headCommitIndex as computeHeadCommitIndex } from '@/lib/graph/pendingGraphRow'
+import { isHeadBranch } from '@/lib/git/headRef'
 import type { Branch, Commit } from '@/types/git'
 import type { RepositoryState } from './types'
 
 export const repositoryGetters = {
-  localBranches: (state: RepositoryState): Branch[] => state.branches.filter((b) => b.kind === 'local'),
-  remoteBranches: (state: RepositoryState): Branch[] => state.branches.filter((b) => b.kind === 'remote'),
-  favoriteBranches: (state: RepositoryState): Branch[] => state.branches.filter((b) => b.isFavorite),
+  localBranches: (state: RepositoryState): Branch[] =>
+    state.branches.filter((b) => b.kind === 'local' && !isHeadBranch(b)),
+  remoteBranches: (state: RepositoryState): Branch[] =>
+    state.branches.filter((b) => b.kind === 'remote' && !isHeadBranch(b)),
+  favoriteBranches: (state: RepositoryState): Branch[] =>
+    state.branches.filter((b) => b.isFavorite && !isHeadBranch(b)),
   currentBranch: (state: RepositoryState): Branch | undefined => state.branches.find((b) => b.isCurrent),
   stagedFiles: (state: RepositoryState) => state.workingTree.filter((f) => f.staged),
   unstagedFiles: (state: RepositoryState) =>

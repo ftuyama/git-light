@@ -50,7 +50,7 @@ const chipStyle = computed(() => {
 const anchorRef = useTemplateRef('anchorRef')
 const labelRef = useTemplateRef('labelRef')
 const expanded = ref(false)
-const anchorRect = ref({ top: 0, left: 0, width: 0, height: 18 })
+const anchorRect = ref({ top: 0, left: 0, width: 0, height: 22 })
 
 let leaveTimer: ReturnType<typeof setTimeout> | undefined
 
@@ -102,18 +102,18 @@ onUnmounted(() => {
 
 <template>
   <span
-    class="block h-[18px] min-w-0 max-w-full"
+    class="block h-[22px] min-w-0 max-w-full"
     :style="expanded ? { width: `${anchorRect.width}px` } : undefined"
   >
     <span
       ref="anchorRef"
-      class="relative z-20 inline-flex h-[18px] w-full max-w-full min-w-0 items-center gap-0.5 overflow-hidden rounded px-1.5 text-[11px] font-medium"
+      class="relative z-20 inline-flex h-[22px] w-full max-w-full min-w-0 items-center gap-1 overflow-hidden rounded-md px-2 text-[12px] font-medium"
       :class="[expanded ? 'invisible' : '', muted ? 'opacity-45' : '']"
       :style="chipStyle"
       @mouseenter="expand"
     >
-      <Check v-if="isCurrent" :size="10" class="shrink-0" />
-      <TagIcon v-if="showTagIcon" :size="10" class="shrink-0 opacity-90" />
+      <Check v-if="isCurrent" :size="12" class="shrink-0" />
+      <TagIcon v-if="showTagIcon" :size="12" class="shrink-0 opacity-90" />
       <span
         ref="labelRef"
         class="min-w-0 flex-1 truncate"
@@ -121,9 +121,9 @@ onUnmounted(() => {
       >
         {{ label }}
       </span>
-      <span v-if="showLocalIcon || showRemoteIcon" class="ml-auto flex shrink-0 items-center gap-0.5">
-        <Monitor v-if="showLocalIcon" :size="10" class="opacity-90" />
-        <Cloud v-if="showRemoteIcon" :size="10" class="opacity-90" />
+      <span v-if="showLocalIcon || showRemoteIcon" class="ml-auto flex shrink-0 items-center gap-1">
+        <Monitor v-if="showLocalIcon" :size="12" class="opacity-90" />
+        <Cloud v-if="showRemoteIcon" :size="12" class="opacity-90" />
       </span>
     </span>
   </span>
@@ -131,7 +131,7 @@ onUnmounted(() => {
   <Teleport to="body">
     <span
       v-if="expanded"
-      class="fixed z-[100] inline-flex items-center gap-0.5 whitespace-nowrap rounded px-1.5 text-[11px] font-medium shadow-md"
+      class="fixed z-[100] inline-flex items-center gap-1 whitespace-nowrap rounded-md px-2 text-[12px] font-medium shadow-md"
       :style="{
         ...chipStyle,
         top: `${anchorRect.top}px`,
@@ -141,12 +141,12 @@ onUnmounted(() => {
       @mouseenter="cancelCollapse"
       @mouseleave="scheduleCollapse"
     >
-      <Check v-if="isCurrent" :size="10" class="shrink-0" />
-      <TagIcon v-if="showTagIcon" :size="10" class="shrink-0 opacity-90" />
+      <Check v-if="isCurrent" :size="12" class="shrink-0" />
+      <TagIcon v-if="showTagIcon" :size="12" class="shrink-0 opacity-90" />
       <span :class="isCurrent ? 'font-semibold' : 'font-medium'">{{ label }}</span>
-      <span v-if="showLocalIcon || showRemoteIcon" class="ml-auto flex shrink-0 items-center gap-0.5">
-        <Monitor v-if="showLocalIcon" :size="10" class="opacity-90" />
-        <Cloud v-if="showRemoteIcon" :size="10" class="opacity-90" />
+      <span v-if="showLocalIcon || showRemoteIcon" class="ml-auto flex shrink-0 items-center gap-1">
+        <Monitor v-if="showLocalIcon" :size="12" class="opacity-90" />
+        <Cloud v-if="showRemoteIcon" :size="12" class="opacity-90" />
       </span>
     </span>
   </Teleport>

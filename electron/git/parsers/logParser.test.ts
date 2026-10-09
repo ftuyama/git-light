@@ -53,6 +53,37 @@ describe('parseCommits decorations', () => {
     expect(labels).toEqual(['ENG/bla', 'ENG/bla'])
   })
 
+  it('hides the HEAD pseudo-ref but keeps isHead on the current branch', () => {
+    const commits = parseCommits(commitRecord('HEAD -> ENG/bla, origin/ENG/bla'), authors)
+    expect(commits[0]!.refs.some((ref) => ref.type === 'head')).toBe(false)
+    expect(commits[0]!.refs).toContainEqual({
+      type: 'localBranch',
+      name: 'ENG/bla',
+      label: 'ENG/bla',
+      isHead: true,
+    })
+  })
+
+  it('hides detached HEAD from the commit refs', () => {
+    const commits = parseCommits(commitRecord('HEAD'), authors)
+    expect(commits[0]!.refs).toEqual([])
+  })
+
+  it('hides symbolic origin/HEAD in full decorate output', () => {
+    const commits = parseCommits(
+      commitRecord('HEAD -> refs/heads/main, refs/remotes/origin/HEAD, refs/remotes/origin/main'),
+      authors,
+    )
+    expect(commits[0]!.refs.some((ref) => ref.label === 'HEAD')).toBe(false)
+    expect(commits[0]!.refs.map((ref) => ref.label).sort()).toEqual(['main', 'main'])
+  })
+
+  it('hides symbolic origin/HEAD in short decorate output', () => {
+    const commits = parseCommits(commitRecord('HEAD -> main, origin/HEAD, origin/main'), authors)
+    expect(commits[0]!.refs.some((ref) => ref.label === 'HEAD')).toBe(false)
+    expect(commits[0]!.refs.map((ref) => ref.label).sort()).toEqual(['main', 'main'])
+  })
+
   it('uses the configured log format marker', () => {
     expect(LOG_FORMAT.endsWith(RECORD)).toBe(true)
   })

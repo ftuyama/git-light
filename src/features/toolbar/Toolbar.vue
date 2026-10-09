@@ -28,7 +28,6 @@ import {
 } from '@lucide/vue'
 import IconButton from '@/components/ui/IconButton.vue'
 import DropdownMenu from '@/components/ui/DropdownMenu.vue'
-import AppSettingsMenu from '@/features/settings/AppSettingsMenu.vue'
 import { useRepoMenu } from '@/features/toolbar/useRepoMenu'
 import type { MenuItem } from '@/components/ui/menu'
 import { useRepositoryStore } from '@/stores/repository'
@@ -212,7 +211,6 @@ const moreMenu = computed<MenuItem[]>(() => {
         @click="run('open-terminal')"
       />
       <IconButton caption="Refresh" :icon="RotateCw" label="Refresh" shortcut="⌘R" :busy="isBusy('refresh')" @click="run('refresh')" />
-      <AppSettingsMenu />
     </div>
   </header>
 </template>

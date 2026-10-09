@@ -18,6 +18,7 @@ export interface BranchCreation {
 export const useSelectionStore = defineStore('selection', {
   state: () => ({
     selectedSha: null as string | null,
+    selectedStash: null as string | null,
     selectedBranchId: null as string | null,
     hoveredSha: null as string | null,
     compareRange: null as CompareRange | null,
@@ -33,6 +34,7 @@ export const useSelectionStore = defineStore('selection', {
   actions: {
     select(sha: string | null): void {
       this.selectedSha = sha
+      this.selectedStash = null
       this.selectedBranchId = null
       this.compareRange = null
       if (this.branchCreation) {
@@ -42,6 +44,12 @@ export const useSelectionStore = defineStore('selection', {
           this.branchCreation = null
         }
       }
+    },
+
+    /** Select a stash row (e.g. `stash@{0}`); clears any commit selection. */
+    selectStash(id: string | null): void {
+      this.select(null)
+      this.selectedStash = id
     },
 
     beginBranchCreation(options: BranchCreation): void {
@@ -60,6 +68,7 @@ export const useSelectionStore = defineStore('selection', {
     selectBranch(branchId: string, tipSha: string): void {
       this.selectedBranchId = branchId
       this.selectedSha = tipSha
+      this.selectedStash = null
       this.compareRange = null
     },
 
@@ -76,6 +85,7 @@ export const useSelectionStore = defineStore('selection', {
       }
       this.compareRange = normalizeCompareRange(this.selectedSha, sha, repo.commits)
       this.selectedSha = sha
+      this.selectedStash = null
       this.selectedBranchId = null
     },
 

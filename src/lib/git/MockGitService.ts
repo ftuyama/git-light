@@ -16,6 +16,7 @@ const ACTION_MESSAGES: Partial<Record<GitActionKind, (target?: string) => string
   'pop-stash': () => 'Popped latest stash',
   'apply-stash': () => 'Applied stash',
   'drop-stash': () => 'Dropped stash',
+  'rename-stash': () => 'Renamed stash',
   'cherry-pick': (t) => `Cherry-picked ${t ?? 'commit'}`,
   merge: (t) => `Merged ${t ?? 'branch'}`,
   rebase: (t) => `Rebased onto ${t ?? 'branch'}`,
@@ -188,6 +189,15 @@ export class MockGitService implements GitService {
 
   async getCommitFiles(sha: string): Promise<RepositoryData['workingTree']> {
     const data = await this.load()
+    const stashMatch = /^stash@\{\d+\}$/.exec(sha)
+    if (stashMatch) {
+      const tag = sha.replace(/[^a-z0-9]+/gi, '')
+      return data.workingTree.slice(0, Math.min(8, data.workingTree.length)).map((file, index) => ({
+        ...file,
+        id: `stash-${tag}-${index}`,
+        staged: false,
+      }))
+    }
     const commit = data.commits.find((c) => c.sha === sha)
     if (!commit) return []
     const limit = commit.isMerge ? 8 : 5

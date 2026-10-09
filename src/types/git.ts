@@ -69,6 +69,8 @@ export interface Stash {
   branch: string
   date: Date
   filesChanged: number
+  /** First-parent (base) commit the stash was created on; null when unresolvable. */
+  baseSha: string | null
 }
 
 export interface Worktree {
