@@ -73,7 +73,7 @@ const menu = computed<MenuItem[]>(() => [
         :style="{ width: `${columnWidths.commit}px` }"
       >
         <div
-          class="absolute top-2 bottom-2 left-0 w-[3px] rounded-full bg-[var(--color-info)]"
+          class="absolute top-1.5 bottom-1.5 left-0 w-[3px] rounded-full bg-[var(--color-info)]"
         />
         <span
           class="truncate"

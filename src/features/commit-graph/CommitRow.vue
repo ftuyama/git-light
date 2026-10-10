@@ -386,7 +386,7 @@ function openOnGithub(): void {
       >
         <div
           v-if="nodeToBarConnectorStyle"
-          class="pointer-events-none absolute top-2 bottom-2"
+          class="pointer-events-none absolute top-1.5 bottom-1.5"
           :class="selected ? 'opacity-30' : 'opacity-8'"
           :style="nodeToBarConnectorStyle"
         />
@@ -397,7 +397,7 @@ function openOnGithub(): void {
         :style="{ width: `${columnWidths.commit}px` }"
       >
         <div
-          class="absolute top-2 bottom-2 left-0 w-[3px] rounded-full"
+          class="absolute top-1.5 bottom-1.5 left-0 w-[3px] rounded-full"
           :style="{ backgroundColor: chipColor }"
         />
         <Cherry
