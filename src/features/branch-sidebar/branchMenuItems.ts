@@ -18,7 +18,11 @@ export function branchMenuItems(repo: RepositoryStore, branch: Branch): MenuItem
         icon: Trash2,
         danger: true,
         onSelect: () =>
-          void repo.runAction({ kind: 'delete-remote-branch', target: branch.name }),
+          void repo.runAction({
+            kind: 'delete-remote-branch',
+            target: branch.remote ? `${branch.remote}/${branch.name}` : branch.name,
+            meta: branch.remote ? { remote: branch.remote } : undefined,
+          }),
       },
     ]
   }

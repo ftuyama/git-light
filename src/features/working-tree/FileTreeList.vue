@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { ChevronRight, Folder } from '@lucide/vue'
 import FileRow from './FileRow.vue'
 import { buildFileTree, flattenFileTree } from './buildFileTree'
-import type { FileTreeFolder } from './buildFileTree'
+import type { FileTreeFolder, FileTreeNode } from './buildFileTree'
 import type { WorkingTreeFile } from '@/types/git'
 import { cn } from '@/lib/utils'
 
@@ -13,6 +13,28 @@ const collapsed = ref(new Set<string>())
 
 const tree = computed(() => buildFileTree(props.files))
 const rows = computed(() => flattenFileTree(tree.value, collapsed.value))
+
+// Drop collapse state for folders that no longer exist when the file set changes
+// (e.g. switching working-tree → commit → compare).
+watch(tree, (next) => {
+  if (collapsed.value.size === 0) return
+  const existing = new Set<string>()
+  const collect = (nodes: FileTreeNode[]): void => {
+    for (const n of nodes) {
+      if (n.kind !== 'folder') continue
+      existing.add(n.path)
+      collect(n.children)
+    }
+  }
+  collect(next)
+  let changed = false
+  const pruned = new Set<string>()
+  for (const p of collapsed.value) {
+    if (existing.has(p)) pruned.add(p)
+    else changed = true
+  }
+  if (changed) collapsed.value = pruned
+})
 
 function toggleFolder(folder: FileTreeFolder): void {
   const next = new Set(collapsed.value)

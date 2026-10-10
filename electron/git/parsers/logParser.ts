@@ -44,7 +44,8 @@ function parseRefEntry(entry: string): WireRef | WireRef[] | null {
     return null
   }
   if (entry.startsWith('tag: ')) {
-    const tag = entry.slice('tag: '.length).trim()
+    const raw = entry.slice('tag: '.length).trim()
+    const tag = raw.startsWith('refs/tags/') ? raw.slice('refs/tags/'.length) : raw
     return { type: 'tag', name: tag, label: formatRefLabel(tag, 'tag') }
   }
   if (entry.startsWith('refs/heads/')) {
@@ -86,7 +87,7 @@ function parseDecorations(raw: string): WireRef[] {
   const trimmed = raw.trim()
   if (!trimmed) return refs
 
-  for (const entryRaw of trimmed.split(/,\s*/)) {
+  for (const entryRaw of trimmed.split(', ')) {
     const entry = entryRaw.trim()
     if (!entry) continue
     const parsed = parseRefEntry(entry)
@@ -113,8 +114,11 @@ export function parseCommits(stdout: string, authors: AuthorRegistry): WireCommi
     if (fields.length < 10) continue
 
     const [sha, parentsRaw, an, ae, cn, ce, at, decorations, subject, body] = fields
+    if (!sha) continue
     const parents = parentsRaw.trim() ? parentsRaw.trim().split(/\s+/) : []
     const bodyText = body?.replace(/\s+$/, '') ?? ''
+    const timestamp = Number(at)
+    if (!Number.isFinite(timestamp)) continue
 
     commits.push({
       sha,
@@ -124,7 +128,7 @@ export function parseCommits(stdout: string, authors: AuthorRegistry): WireCommi
       body: bodyText || undefined,
       author: authors.resolve(an, ae),
       committer: authors.resolve(cn, ce),
-      date: new Date(Number(at) * 1000).toISOString(),
+      date: new Date(timestamp * 1000).toISOString(),
       refs: parseDecorations(decorations ?? ''),
       isMerge: parents.length > 1,
       isCherryPick: CHERRY_PICK_RE.test(bodyText),

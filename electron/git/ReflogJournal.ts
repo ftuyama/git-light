@@ -7,6 +7,8 @@ export interface JournalCheckpoint {
   headSha: string
   branch: string
   indexTreeSha: string | null
+  /** Reset mode used so undo restores with --soft/--mixed instead of --hard. */
+  resetMode?: 'soft' | 'mixed' | 'hard'
 }
 
 export interface JournalEntry extends JournalCheckpoint {
@@ -21,7 +23,13 @@ export interface JournalState {
 }
 
 export function isUndoRedoSafe(state: RepoState): boolean {
-  return !state.merging && !state.rebasing && !state.cherryPicking && !state.reverting
+  return (
+    !state.merging &&
+    !state.rebasing &&
+    !state.cherryPicking &&
+    !state.reverting &&
+    !state.bisecting
+  )
 }
 
 export class ReflogJournal {
@@ -121,6 +129,8 @@ export class ReflogJournal {
       return
     }
 
+    const resetFlag =
+      entry.resetMode === 'soft' ? '--soft' : entry.resetMode === 'mixed' ? '--mixed' : '--hard'
     if (entry.branch && entry.branch !== 'HEAD') {
       const checkout = await gitCli.run(['checkout', entry.branch], {
         cwd,
@@ -128,8 +138,8 @@ export class ReflogJournal {
         allowFailure: true,
       })
       if (checkout.exitCode === 0) {
-        await gitCli.run(['reset', '--hard', entry.headSha], { cwd, signal })
-        if (entry.indexTreeSha) {
+        await gitCli.run(['reset', resetFlag, entry.headSha], { cwd, signal })
+        if (entry.indexTreeSha && resetFlag === '--hard') {
           await gitCli.run(['read-tree', entry.indexTreeSha], { cwd, signal })
         }
         return

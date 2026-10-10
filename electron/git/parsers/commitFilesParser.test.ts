@@ -78,13 +78,13 @@ describe('parseCommitFiles', () => {
     expect(files[0]?.path).toBe('src/foo.ts')
   })
 
-  it('hides files with empty diff (+0 -0)', () => {
+  it('keeps mode-only changes reporting +0 -0 (e.g. chmod)', () => {
     const nameStatus = 'M\0src/empty.ts\0M\0src/real.ts\0'
     const numstat = '0\t0\tsrc/empty.ts\0' + '5\t2\tsrc/real.ts\0'
     const files = parseCommitFiles(nameStatus, numstat)
 
-    expect(files).toHaveLength(1)
-    expect(files[0]?.path).toBe('src/real.ts')
+    expect(files).toHaveLength(2)
+    expect(files.map((f) => f.path).sort()).toEqual(['src/empty.ts', 'src/real.ts'])
   })
 
   it('keeps binary files reporting - -', () => {

@@ -15,7 +15,7 @@ export function parseUnifiedDiff(path: string, raw: string): DiffResult {
     }
   }
 
-  if (raw.includes('Binary files') || raw.includes('GIT binary patch')) {
+  if (/^Binary files /m.test(raw) || /^GIT binary patch/m.test(raw)) {
     return {
       path,
       binary: true,
@@ -36,18 +36,17 @@ export function parseUnifiedDiff(path: string, raw: string): DiffResult {
   let deletions = 0
   let oldPath: string | undefined
 
-  for (const line of lines) {
+  for (let idx = 0; idx < lines.length; idx++) {
+    const rawLine = lines[idx]
+    const line = rawLine.endsWith('\r') ? rawLine.slice(0, -1) : rawLine
+    const isLast = idx === lines.length - 1
     if (line.startsWith('+++ ')) {
-      const p = line.slice(4).trim()
-      if (p.startsWith('b/')) oldPath = undefined
-      else if (p !== `/dev/null`) {
-        /* keep path */
-      }
       continue
     }
     if (line.startsWith('--- ')) {
       const p = line.slice(4).trim()
       if (p.startsWith('a/')) oldPath = p.slice(2)
+      else if (p !== '/dev/null') oldPath = p
       continue
     }
     const hunkMatch = line.match(/^@@ -(\d+)(?:,(\d+))? \+(\d+)(?:,(\d+))? @@(.*)$/)
@@ -65,21 +64,24 @@ export function parseUnifiedDiff(path: string, raw: string): DiffResult {
       }
       continue
     }
+    // Combined diff (merge) headers use `@@@`; skip without losing the file.
+    if (line.startsWith('@@@')) continue
 
     if (!current) continue
 
-    if (line.startsWith('+')) {
+    if (line.startsWith('+') && !line.startsWith('+++')) {
       current.lines.push(lineEntry('add', line.slice(1), null, newLine++))
       additions++
-    } else if (line.startsWith('-')) {
+    } else if (line.startsWith('-') && !line.startsWith('---')) {
       current.lines.push(lineEntry('del', line.slice(1), oldLine++, null))
       deletions++
-    } else if (line.startsWith(' ') || line === '') {
-      current.lines.push(lineEntry('context', line.slice(1) || '', oldLine++, newLine++))
+    } else if (line.startsWith(' ') || (line === '' && !isLast)) {
+      current.lines.push(lineEntry('context', line.slice(1), oldLine++, newLine++))
     } else if (line.startsWith('\\')) {
       current.lines.push(lineEntry('meta', line, null, null))
     }
   }
+
 
   if (current) hunks.push(current)
 

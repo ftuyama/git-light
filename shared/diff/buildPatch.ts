@@ -28,16 +28,18 @@ export function buildPatchFromHunkLines(
 }
 
 function formatHunk(hunk: DiffHunk): string {
-  let out = `${hunk.header}\n`
+  const clean = (s: string): string => (s.endsWith('\r') ? s.slice(0, -1) : s)
+  let out = `${clean(hunk.header)}\n`
   for (const line of hunk.lines) {
+    const content = clean(line.content)
     if (line.type === 'meta') {
-      out += `${line.content}\n`
+      out += `${content}\n`
     } else if (line.type === 'add') {
-      out += `+${line.content}\n`
+      out += `+${content}\n`
     } else if (line.type === 'del') {
-      out += `-${line.content}\n`
+      out += `-${content}\n`
     } else {
-      out += ` ${line.content}\n`
+      out += ` ${content}\n`
     }
   }
   return out

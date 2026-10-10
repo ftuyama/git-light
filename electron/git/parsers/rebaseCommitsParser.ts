@@ -11,7 +11,7 @@ export function parseRebaseCommits(stdout: string): RebaseCommitEntry[] {
   if (!trimmed) return commits
 
   for (const record of trimmed.split(RECORD)) {
-    const line = record.trim()
+    const line = record.replace(/^[\r\n]+/, '').replace(/[\r\n]+$/, '')
     if (!line) continue
     const [sha, shortSha, subject, authorName, at] = line.split(FIELD)
     if (!sha || !shortSha || subject == null) continue

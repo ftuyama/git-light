@@ -15,9 +15,18 @@ export function remapHeadLaneToLeft(
   const remapLane = new Map(reordered.map((lane, index) => [lane, index]))
   const mapLane = (lane: number): number => remapLane.get(lane) ?? lane
 
+  const laneState = layout.laneState
+    ? {
+        lanes: reordered.flatMap((lane) => {
+          const sha = layout.laneState?.lanes[lane]
+          return sha === undefined ? [] : [sha]
+        }),
+      }
+    : layout.laneState
+
   return {
     maxLanes: layout.maxLanes,
-    laneState: layout.laneState,
+    laneState,
     nodes: layout.nodes.map((node) => ({
       ...node,
       lane: mapLane(node.lane),

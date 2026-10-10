@@ -200,8 +200,12 @@ export class GitCliProvider {
     options: RunOptions,
     onLine?: (line: string, stream: 'stdout' | 'stderr') => void,
   ): Promise<RunResult> {
-    const { cwd, signal, allowFailure, env } = options
-    const fullArgs = [...this.baseArgs(), ...args, '--progress']
+    const { cwd, signal, allowFailure, env, timeout } = options
+    const supportsProgress = ['fetch', 'push', 'pull', 'clone'].includes(args[0] ?? '')
+    const fullArgs =
+      supportsProgress && !args.includes('--progress') && !args.includes('--no-progress')
+        ? [...this.baseArgs(), ...args, '--progress']
+        : [...this.baseArgs(), ...args]
 
     return new Promise<RunResult>((resolve, reject) => {
       const child = spawn('git', fullArgs, {
@@ -213,6 +217,14 @@ export class GitCliProvider {
 
       let stdout = ''
       let stderr = ''
+      let timedOut = false
+      const timer =
+        timeout && timeout > 0
+          ? setTimeout(() => {
+              timedOut = true
+              child.kill()
+            }, timeout)
+          : null
 
       const pump = (chunk: Buffer, stream: 'stdout' | 'stderr'): void => {
         const text = chunk.toString('utf8')
@@ -229,6 +241,7 @@ export class GitCliProvider {
       child.stderr?.on('data', (c: Buffer) => pump(c, 'stderr'))
 
       child.on('error', (error: NodeJS.ErrnoException) => {
+        if (timer) clearTimeout(timer)
         if (error.code === 'ABORT_ERR' || signal?.aborted) {
           reject(new GitError('Cancelled', 'The operation was cancelled.'))
         } else if (error.code === 'ENOENT') {
@@ -239,8 +252,13 @@ export class GitCliProvider {
       })
 
       child.on('close', (code) => {
+        if (timer) clearTimeout(timer)
         if (signal?.aborted) {
           reject(new GitError('Cancelled', 'The operation was cancelled.'))
+          return
+        }
+        if (timedOut) {
+          reject(new GitError('Unknown', 'Git command timed out.'))
           return
         }
         if (code === 0 || allowFailure) {

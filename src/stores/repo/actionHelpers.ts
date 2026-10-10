@@ -14,6 +14,8 @@ export function describeAction(action: GitAction): string {
       return `Are you sure you want to run ${action.kind}${target}? Working-tree changes will be lost permanently and cannot be undone.`
     case 'drop-stash':
       return `Are you sure you want to drop stash${target}? The stash entry will be permanently deleted and cannot be undone.`
+    case 'reset-hard':
+      return `Are you sure you want to run reset-hard${target}? Working-tree changes will be lost. HEAD can be restored with Undo.`
     default:
       return `Are you sure you want to run ${action.kind}${target}? This cannot be undone.`
   }

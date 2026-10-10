@@ -5,7 +5,13 @@ import type { SnapshotScope } from './models'
 export function scopesForAction(kind: GitActionKind): SnapshotScope[] | undefined {
   if (kind === 'refresh') return undefined
 
-  if (kind.startsWith('reset') || kind.includes('rebase') || kind.includes('merge') || kind.includes('cherry')) {
+  if (
+    kind.startsWith('reset') ||
+    kind.includes('rebase') ||
+    kind.includes('merge') ||
+    kind.includes('cherry') ||
+    kind.includes('revert')
+  ) {
     return ['commits', 'branches', 'status']
   }
   if (kind.includes('branch') || kind === 'checkout' || kind === 'checkout-commit' || kind === 'checkout-tag') {

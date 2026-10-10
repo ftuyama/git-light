@@ -53,7 +53,8 @@ export function useTerminal(container: Ref<HTMLElement | null>, cwd: Ref<string 
   async function fitAndResize(): Promise<void> {
     if (!terminal || !fitAddon) return
     fitAddon.fit()
-    const { cols, rows } = terminal
+    const cols = Math.max(1, terminal.cols)
+    const rows = Math.max(1, terminal.rows)
     await window.electron?.terminal?.resize({ id: TERMINAL_ID, cols, rows })
   }
 
@@ -90,8 +91,12 @@ export function useTerminal(container: Ref<HTMLElement | null>, cwd: Ref<string 
       void window.electron?.terminal?.write({ id: TERMINAL_ID, data })
     })
     attachIpcListeners()
+    let resizeTimer: ReturnType<typeof setTimeout> | null = null
     resizeObserver = new ResizeObserver(() => {
-      void fitAndResize()
+      if (resizeTimer) clearTimeout(resizeTimer)
+      resizeTimer = setTimeout(() => {
+        void fitAndResize()
+      }, 150)
     })
     resizeObserver.observe(el)
   }
@@ -99,8 +104,10 @@ export function useTerminal(container: Ref<HTMLElement | null>, cwd: Ref<string 
   async function spawnSession(path: string): Promise<void> {
     if (!terminal || !fitAddon || !window.electron?.terminal) return
     disposePty()
+    terminal.clear()
     fitAddon.fit()
-    const { cols, rows } = terminal
+    const cols = Math.max(1, terminal.cols)
+    const rows = Math.max(1, terminal.rows)
     const result = await window.electron.terminal.create({ id: TERMINAL_ID, cwd: path, cols, rows })
     if (!result.ok) {
       unavailable.value = true
@@ -117,8 +124,9 @@ export function useTerminal(container: Ref<HTMLElement | null>, cwd: Ref<string 
   async function ensureSession(): Promise<void> {
     const path = cwd.value
     if (!path || !window.electron?.terminal) return
-    if (activeCwd === path && ready.value) return
     mountTerminal()
+    if (terminal) terminal.options.theme = terminalTheme()
+    if (activeCwd === path && ready.value) return
     await spawnSession(path)
   }
 

@@ -205,14 +205,14 @@ const nodeToBarConnectorStyle = computed((): Record<string, string> | null => {
   }
 })
 
-const menu = computed<MenuItem[]>(() => {
+  const menu = computed<MenuItem[]>(() => {
   const items: MenuItem[] = [
-    { label: 'Checkout Commit', icon: Check, onSelect: () => act('checkout') },
+    { label: 'Checkout Commit', icon: Check, onSelect: () => act('checkout-commit') },
     { label: 'Create Branch Here', icon: GitBranch, onSelect: () => beginBranchHere() },
   ]
 
   if (ui.isAdvanced) {
-    items.push({ label: 'Tag Commit', icon: TagIcon, onSelect: () => act('tag') })
+    items.push({ label: 'Tag Commit', icon: TagIcon, onSelect: () => repo.createTagAt(props.commit.sha) })
   }
 
   items.push({ separator: true })
@@ -273,11 +273,11 @@ function onBranchNameCancel(): void {
 }
 
 function act(kind: Parameters<typeof repo.runAction>[0]['kind']): void {
-  void repo.runAction({ kind, target: props.commit.shortSha })
+  void repo.runAction({ kind, target: props.commit.sha })
 }
 
 function mergeSquash(): void {
-  void repo.runAction({ kind: 'merge', target: props.commit.shortSha, meta: { squash: true } })
+  void repo.runAction({ kind: 'merge', target: props.commit.sha, meta: { squash: true } })
 }
 
 function copySha(): void {

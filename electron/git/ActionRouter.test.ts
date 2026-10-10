@@ -280,7 +280,7 @@ describe('executeGitAction', () => {
         signal: undefined,
         allowFailure: true,
       })
-      expect(mockRun).toHaveBeenNthCalledWith(2, ['apply', '--cached'], {
+      expect(mockRun).toHaveBeenNthCalledWith(2, ['apply', '--cached', '--include=new.ts'], {
         cwd: CWD,
         signal: undefined,
         input: patch,
@@ -291,7 +291,7 @@ describe('executeGitAction', () => {
       const patch = 'diff --git a/file.ts b/file.ts\n'
       await executeGitAction({ kind: 'unstage-patch', target: 'file.ts', meta: { patch } }, ctx())
 
-      expect(mockRun).toHaveBeenCalledWith(['apply', '--cached', '-R'], {
+      expect(mockRun).toHaveBeenCalledWith(['apply', '--cached', '--include=file.ts', '-R'], {
         cwd: CWD,
         signal: undefined,
         input: patch,
@@ -306,7 +306,7 @@ describe('executeGitAction', () => {
       )
 
       expect(result.ok).toBe(true)
-      expect(mockRun).toHaveBeenCalledWith(['apply', '-R'], {
+      expect(mockRun).toHaveBeenCalledWith(['apply', '-R', '--include=file.ts'], {
         cwd: CWD,
         signal: undefined,
         input: patch,
@@ -326,7 +326,7 @@ describe('executeGitAction', () => {
         signal: undefined,
         allowFailure: true,
       })
-      expect(mockRun).toHaveBeenNthCalledWith(2, ['apply', '-R'], {
+      expect(mockRun).toHaveBeenNthCalledWith(2, ['apply', '-R', '--include=new.ts'], {
         cwd: CWD,
         signal: undefined,
         input: patch,
@@ -526,6 +526,7 @@ theirs
       expect(mockRun).toHaveBeenCalledWith(['checkout', '-b', 'feature', 'origin/feature'], {
         cwd: CWD,
         signal: undefined,
+        allowFailure: true,
       })
     })
 
@@ -546,7 +547,7 @@ theirs
       expect(mockRun).toHaveBeenCalledWith(['branch', '-D', 'old'], { cwd: CWD, signal: undefined })
     })
 
-    it('compare-branches counts commits with allowFailure', async () => {
+    it('compare-branches counts commits', async () => {
       mockRun.mockResolvedValueOnce(runResult('abc1234 One\n def5678 Two\n'))
 
       const result = await executeGitAction(
@@ -557,7 +558,6 @@ theirs
       expect(mockRun).toHaveBeenCalledWith(['log', '--oneline', 'main..feature'], {
         cwd: CWD,
         signal: undefined,
-        allowFailure: true,
       })
       expect(result.message).toBe('2 commits in feature not in main')
     })
@@ -610,6 +610,7 @@ theirs
         cwd: CWD,
         signal: undefined,
         env: { GIT_SEQUENCE_EDITOR: 'node /tmp/editor.js' },
+        timeout: 0,
       })
       expect(cleanup).toHaveBeenCalled()
     })
@@ -797,6 +798,63 @@ theirs
       expect(result.ok).toBe(true)
       expect(result.message).toBe('Undid Commit')
       expect(journal.undo).toHaveBeenCalledWith(CWD, undefined)
+    })
+  })
+
+  describe('merge/stash/remote fixes', () => {
+    it('merge-continue uses merge --continue', async () => {
+      await executeGitAction({ kind: 'merge-continue' }, ctx())
+      expect(mockRun).toHaveBeenCalledWith(['merge', '--continue'], {
+        cwd: CWD,
+        signal: undefined,
+      })
+    })
+
+    it('rename-stash drops old ref then stores new message', async () => {
+      mockRun.mockResolvedValueOnce(runResult('abc1234def'))
+      await executeGitAction(
+        { kind: 'rename-stash', target: 'stash@{0}', meta: { message: 'new' } },
+        ctx(),
+      )
+      expect(mockRun).toHaveBeenNthCalledWith(1, ['rev-parse', 'stash@{0}'], {
+        cwd: CWD,
+        signal: undefined,
+      })
+      expect(mockRun).toHaveBeenNthCalledWith(2, ['stash', 'drop', 'stash@{0}'], {
+        cwd: CWD,
+        signal: undefined,
+      })
+      expect(mockRun).toHaveBeenNthCalledWith(3, ['stash', 'store', '-m', 'new', 'abc1234def'], {
+        cwd: CWD,
+        signal: undefined,
+      })
+    })
+
+    it('delete-remote-branch strips remote prefix', async () => {
+      await executeGitAction({ kind: 'delete-remote-branch', target: 'origin/foo' }, ctx())
+      expect(mockRun).toHaveBeenCalledWith(['push', 'origin', '--delete', 'foo'], {
+        cwd: CWD,
+        signal: undefined,
+      })
+    })
+
+    it('delete-remote-branch honors explicit remote', async () => {
+      await executeGitAction(
+        { kind: 'delete-remote-branch', target: 'foo', meta: { remote: 'upstream' } },
+        ctx(),
+      )
+      expect(mockRun).toHaveBeenCalledWith(['push', 'upstream', '--delete', 'foo'], {
+        cwd: CWD,
+        signal: undefined,
+      })
+    })
+
+    it('rejects invalid patch content', async () => {
+      const result = await executeGitAction(
+        { kind: 'stage-patch', target: 'file.ts', meta: { patch: 'not a diff' } },
+        ctx(),
+      )
+      expect(result.ok).toBe(false)
     })
   })
 })

@@ -133,7 +133,7 @@ function assignEdges(
     toLane: number,
     kind: GraphEdgeKind,
   ): void => {
-    const key = `${fromLane}>${toLane}`
+    const key = `${fromLane}>${toLane}:${kind}`
     if (seen[band].has(key)) return
     seen[band].add(key)
     bands[band].push({ fromLane, toLane, color: laneColor(toLane), kind })
@@ -174,7 +174,7 @@ function seedEdgeSeen(bands: GraphEdge[][]): Set<string>[] {
   return bands.map((band) => {
     const set = new Set<string>()
     for (const edge of band) {
-      set.add(`${edge.fromLane}>${edge.toLane}`)
+      set.add(`${edge.fromLane}>${edge.toLane}:${edge.kind}`)
     }
     return set
   })

@@ -39,7 +39,7 @@ import { AuthorRegistry } from './parsers/authors'
 import { parseBranches, BRANCH_FORMAT, BRANCH_REFSPECS } from './parsers/branchParser'
 import { parseCommits, LOG_FORMAT } from './parsers/logParser'
 import { parseRemotes, parseTags, TAG_FORMAT } from './parsers/refParser'
-import { parseStatus } from './parsers/statusParser'
+import { parseNumstat, parseStatus } from './parsers/statusParser'
 import { parseCommitFiles } from './parsers/commitFilesParser'
 import { parseStashes, STASH_FORMAT } from './parsers/stashParser'
 import { readRepoState } from './parsers/stateParser'
@@ -320,8 +320,8 @@ export class GitProvider {
       String(fetchLimit),
     ]
     if (graphScope === 'all') args.splice(1, 0, '--all')
+    if (endRev) args.push(endRev)
     if (skip > 0) args.push('--skip', String(skip))
-    else if (endRev) args.push(endRev)
 
     const { stdout } = await gitCli.run(args, { cwd, timeout: 120_000, allowFailure: !!endRev })
 
@@ -387,14 +387,16 @@ export class GitProvider {
     const cached = this.cache.getStatus()
     if (cached) return cached
 
-    const [statusResult] = await Promise.all([
+    const [statusResult, stagedNumstat, unstagedNumstat] = await Promise.all([
       gitCli.run(['status', '--porcelain=v2', '-z', '-uall'], { cwd }),
+      gitCli.run(['diff', '--cached', '--numstat', '-z'], { cwd, allowFailure: true }),
+      gitCli.run(['diff', '--numstat', '-z'], { cwd, allowFailure: true }),
     ])
 
     const files = parseStatus({
       porcelain: statusResult.stdout,
-      staged: new Map(),
-      unstaged: new Map(),
+      staged: parseNumstat(stagedNumstat.stdout),
+      unstaged: parseNumstat(unstagedNumstat.stdout),
     })
     this.cache.setStatus(files)
     return files
@@ -406,11 +408,15 @@ export class GitProvider {
     const controller = new AbortController()
     this.operations.set(operationId, { controller, kind: action.kind })
     const repoState = this.gitDir ? readRepoState(this.gitDir) : undefined
-    const captureKind = journalCaptureFor(action.kind)
-    let checkpoint = null
+    const captureKind =
+      action.kind === 'merge' && action.meta?.squash ? null : journalCaptureFor(action.kind)
+    let checkpoint: Awaited<ReturnType<typeof this.journal.capture>> | null = null
     if (captureKind && repoState) {
       try {
         checkpoint = await this.journal.capture(cwd, captureKind, controller.signal)
+        if (action.kind === 'reset-soft') checkpoint.resetMode = 'soft'
+        else if (action.kind === 'reset-mixed') checkpoint.resetMode = 'mixed'
+        else if (action.kind === 'reset-hard') checkpoint.resetMode = 'hard'
       } catch {
         checkpoint = null
       }

@@ -13,7 +13,7 @@ export function parseBlamePorcelain(stdout: string): WireBlameLine[] {
       continue
     }
 
-    const headerMatch = /^([0-9a-f]{4,40})\s+(\d+)\s+(\d+)(?:\s+(\d+))?/.exec(header)
+    const headerMatch = /^\^?([0-9a-f]{4,40})\s+(\d+)\s+(\d+)(?:\s+(\d+))?/.exec(header)
     if (!headerMatch) {
       i++
       continue

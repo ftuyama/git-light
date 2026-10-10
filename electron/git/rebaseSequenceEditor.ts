@@ -57,10 +57,11 @@ fs.writeFileSync(idxPath, String(idx + 1));
     'utf8',
   )
 
+  const quote = (p: string): string => `"${p.replace(/"/g, '\\"')}"`
   return {
     env: {
-      GIT_SEQUENCE_EDITOR: `node ${seqEditorPath}`,
-      GIT_EDITOR: `node ${msgEditorPath}`,
+      GIT_SEQUENCE_EDITOR: `node ${quote(seqEditorPath)}`,
+      GIT_EDITOR: `node ${quote(msgEditorPath)}`,
     },
     cleanup: () => {
       try {

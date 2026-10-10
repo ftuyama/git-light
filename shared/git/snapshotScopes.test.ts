@@ -32,6 +32,9 @@ describe('scopesForAction', () => {
     expect(scopesForAction('rebase')).toEqual(['commits', 'branches', 'status'])
     expect(scopesForAction('cherry-pick')).toEqual(['commits', 'branches', 'status'])
     expect(scopesForAction('reset-hard')).toEqual(['commits', 'branches', 'status'])
+    expect(scopesForAction('revert')).toEqual(['commits', 'branches', 'status'])
+    expect(scopesForAction('revert-continue')).toEqual(['commits', 'branches', 'status'])
+    expect(scopesForAction('revert-abort')).toEqual(['commits', 'branches', 'status'])
   })
 
   it('refreshes remote-related scopes for fetch and push', () => {

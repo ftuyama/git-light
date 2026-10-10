@@ -6,14 +6,17 @@ export function parseFileHistory(stdout: string): FileHistoryEntry[] {
     .split('\n')
     .filter(Boolean)
     .map((line) => {
-      const [sha, subject, author, at] = line.split('\x1f')
+      const cleaned = line.endsWith('\r') ? line.slice(0, -1) : line
+      const [sha, subject, author, at] = cleaned.split('\x1f')
       if (!sha) return null
+      const timestamp = Number(at)
+      if (!Number.isFinite(timestamp)) return null
       return {
         sha,
         shortSha: sha.slice(0, 7),
         subject: subject ?? '',
         author: author ?? '',
-        date: new Date(Number(at) * 1000).toISOString(),
+        date: new Date(timestamp * 1000).toISOString(),
       }
     })
     .filter((entry): entry is FileHistoryEntry => entry != null)

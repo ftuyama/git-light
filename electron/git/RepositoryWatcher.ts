@@ -42,6 +42,7 @@ export class RepositoryWatcher {
   private repoPath: string | null = null
   private timer: ReturnType<typeof setTimeout> | null = null
   private onChange: ((event: RepoChangeEvent) => void) | null = null
+  private pending = new Set<SnapshotScope>()
 
   async watch(repoPath: string, onChange: (event: RepoChangeEvent) => void): Promise<void> {
     await this.stop()
@@ -51,9 +52,11 @@ export class RepositoryWatcher {
     const chokidar = (await import('chokidar')) as ChokidarModule
 
     const schedule = (scopes: SnapshotScope[]): void => {
+      for (const s of scopes) this.pending.add(s)
       if (this.timer) clearTimeout(this.timer)
       this.timer = setTimeout(() => {
-        if (this.repoPath) this.onChange?.({ path: this.repoPath, scopes })
+        if (this.repoPath) this.onChange?.({ path: this.repoPath, scopes: [...this.pending] })
+        this.pending.clear()
       }, 150)
     }
 
@@ -90,6 +93,7 @@ export class RepositoryWatcher {
   async stop(): Promise<void> {
     if (this.timer) clearTimeout(this.timer)
     this.timer = null
+    this.pending.clear()
 
     await Promise.all(
       this.watchers.map(async (watcher) => {

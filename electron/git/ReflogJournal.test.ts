@@ -33,11 +33,12 @@ beforeEach(() => {
 })
 
 describe('isUndoRedoSafe', () => {
-  it('returns false while merge/rebase/cherry-pick/revert is active', () => {
+  it('returns false while merge/rebase/cherry-pick/revert/bisect is active', () => {
     expect(isUndoRedoSafe({ ...SAFE_STATE, merging: true })).toBe(false)
     expect(isUndoRedoSafe({ ...SAFE_STATE, rebasing: true })).toBe(false)
     expect(isUndoRedoSafe({ ...SAFE_STATE, cherryPicking: true })).toBe(false)
     expect(isUndoRedoSafe({ ...SAFE_STATE, reverting: true })).toBe(false)
+    expect(isUndoRedoSafe({ ...SAFE_STATE, bisecting: true })).toBe(false)
   })
 
   it('returns true when no operation is in progress', () => {

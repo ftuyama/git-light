@@ -77,9 +77,12 @@ async function routeAction(action: GitAction, ctx: ActionContext): Promise<strin
     case 'push-tags':
       await gitCli.run(['push', '--tags'], { cwd, signal })
       return 'Pushed tags'
-    case 'prune':
-      await gitCli.run(['remote', 'prune', 'origin'], { cwd, signal })
-      return 'Pruned stale remote branches'
+    case 'prune': {
+      const remote =
+        typeof meta.remote === 'string' && meta.remote.trim() ? meta.remote.trim() : 'origin'
+      await gitCli.run(['remote', 'prune', remote], { cwd, signal })
+      return `Pruned stale remote branches (${remote})`
+    }
     case 'sync': {
       await gitCli.runStreaming(['fetch', '--all'], { cwd, signal }, (line) =>
         onProgress?.(line, null),
@@ -105,12 +108,26 @@ async function routeAction(action: GitAction, ctx: ActionContext): Promise<strin
     case 'drop-stash':
       await gitCli.run(['stash', 'drop', target ?? 'stash@{0}'], { cwd, signal })
       return 'Dropped stash'
-    case 'rename-stash':
-      await gitCli.run(['stash', 'store', '-m', String(meta.message ?? ''), target ?? 'stash@{0}'], {
-        cwd,
-        signal,
-      })
+    case 'rename-stash': {
+      const ref = target ?? 'stash@{0}'
+      const message = String(meta.message ?? '').trim()
+      if (!message) throw new GitError('Unknown', 'Stash message is required.')
+      const { stdout } = await gitCli.run(['rev-parse', ref], { cwd, signal })
+      const sha = stdout.trim()
+      if (!sha) throw new GitError('Unknown', 'Could not resolve stash ref.')
+      // `stash store` with the same sha while the ref exists is a no-op, so
+      // drop first (sha stays in the object db) then store with the new message.
+      await gitCli.run(['stash', 'drop', ref], { cwd, signal })
+      try {
+        await gitCli.run(['stash', 'store', '-m', message, sha], { cwd, signal })
+      } catch (error) {
+        throw new GitError(
+          'Unknown',
+          `Renamed stash was dropped but re-storing failed (recover with ${sha}).`,
+        )
+      }
       return 'Renamed stash'
+    }
 
     case 'stage':
       if (!target) throw new GitError('Unknown', 'No file specified.')
@@ -127,7 +144,7 @@ async function routeAction(action: GitAction, ctx: ActionContext): Promise<strin
       await gitCli.run(['add', '-A'], { cwd, signal })
       return 'Staged all changes'
     case 'unstage-all':
-      await gitCli.run(['restore', '--staged', '.'], { cwd, signal })
+      await gitCli.run(['restore', '--staged', '--', '.'], { cwd, signal })
       return 'Unstaged all changes'
     case 'discard-file': {
       if (!target) throw new GitError('Unknown', 'No file specified.')
@@ -171,7 +188,8 @@ async function routeAction(action: GitAction, ctx: ActionContext): Promise<strin
       if (meta.intentToAdd) {
         await gitCli.run(['add', '-N', '--', safePath], { cwd, signal, allowFailure: true })
       }
-      const applyArgs = ['apply', '--cached']
+      if (!patch.startsWith('diff --git')) throw new GitError('Unknown', 'Invalid patch.')
+      const applyArgs = ['apply', '--cached', `--include=${safePath}`]
       if (action.kind === 'unstage-patch') applyArgs.push('-R')
       await gitCli.run(applyArgs, { cwd, signal, input: patch })
       return action.kind === 'unstage-patch' ? `Unstaged hunk in ${target}` : `Staged hunk in ${target}`
@@ -185,7 +203,8 @@ async function routeAction(action: GitAction, ctx: ActionContext): Promise<strin
       if (meta.intentToAdd) {
         await gitCli.run(['add', '-N', '--', safePath], { cwd, signal, allowFailure: true })
       }
-      await gitCli.run(['apply', '-R'], { cwd, signal, input: patch })
+      if (!patch.startsWith('diff --git')) throw new GitError('Unknown', 'Invalid patch.')
+      await gitCli.run(['apply', '-R', `--include=${safePath}`], { cwd, signal, input: patch })
       return `Discarded hunk in ${target}`
     }
 
@@ -262,7 +281,14 @@ async function routeAction(action: GitAction, ctx: ActionContext): Promise<strin
       if (!target) throw new GitError('Unknown', 'No branch specified.')
       if (meta.remote) {
         const remoteRef = `${String(meta.remote)}/${target}`
-        await gitCli.run(['checkout', '-b', target, remoteRef], { cwd, signal })
+        const created = await gitCli.run(['checkout', '-b', target, remoteRef], {
+          cwd,
+          signal,
+          allowFailure: true,
+        })
+        if (created.exitCode !== 0) {
+          await gitCli.run(['checkout', target], { cwd, signal })
+        }
       } else {
         await gitCli.run(['checkout', target], { cwd, signal })
       }
@@ -295,20 +321,30 @@ async function routeAction(action: GitAction, ctx: ActionContext): Promise<strin
         signal,
       })
       return `Deleted branch ${target}`
-    case 'delete-remote-branch':
+    case 'delete-remote-branch': {
       if (!target) throw new GitError('Unknown', 'No remote branch specified.')
-      await gitCli.run(['push', 'origin', '--delete', target], { cwd, signal })
-      return `Deleted remote branch ${target}`
+      const explicitRemote = typeof meta.remote === 'string' ? meta.remote.trim() : ''
+      let remote = explicitRemote || 'origin'
+      let branch = target
+      if (!explicitRemote && target.includes('/')) {
+        const slash = target.indexOf('/')
+        remote = target.slice(0, slash)
+        branch = target.slice(slash + 1)
+      }
+      if (!branch) throw new GitError('Unknown', 'No remote branch specified.')
+      await gitCli.run(['push', remote, '--delete', branch], { cwd, signal })
+      return `Deleted remote branch ${branch}`
+    }
     case 'set-upstream':
       if (!target) throw new GitError('Unknown', 'No upstream specified.')
       await gitCli.run(['branch', '-u', target], { cwd, signal })
       return `Set upstream to ${target}`
     case 'compare-branches': {
       if (!target || !meta.other) throw new GitError('Unknown', 'Two branches required.')
-      const { stdout } = await gitCli.run(
-        ['log', '--oneline', `${target}..${String(meta.other)}`],
-        { cwd, signal, allowFailure: true },
-      )
+      const { stdout } = await gitCli.run(['log', '--oneline', `${target}..${String(meta.other)}`], {
+        cwd,
+        signal,
+      })
       const count = stdout.split('\n').filter(Boolean).length
       return `${count} commits in ${meta.other} not in ${target}`
     }
@@ -371,7 +407,7 @@ async function routeAction(action: GitAction, ctx: ActionContext): Promise<strin
       return `Merged ${target}`
     }
     case 'merge-continue':
-      await gitCli.run(['commit', '--no-edit'], { cwd, signal })
+      await gitCli.run(['merge', '--continue'], { cwd, signal })
       return 'Merge completed'
     case 'merge-abort':
       await gitCli.run(['merge', '--abort'], { cwd, signal })
@@ -391,7 +427,7 @@ async function routeAction(action: GitAction, ctx: ActionContext): Promise<strin
       if (!entries?.length) throw new GitError('Unknown', 'No rebase plan specified.')
       const bundle = createRebaseEditorBundle(entries)
       try {
-        await gitCli.run(['rebase', '-i', target], { cwd, signal, env: bundle.env })
+        await gitCli.run(['rebase', '-i', target], { cwd, signal, env: bundle.env, timeout: 0 })
       } finally {
         bundle.cleanup()
       }
@@ -426,7 +462,7 @@ async function routeAction(action: GitAction, ctx: ActionContext): Promise<strin
         await gitCli.run(['bisect', 'bad', bad], { cwd, signal })
         if (good) await gitCli.run(['bisect', 'good', good], { cwd, signal })
       } catch (error) {
-        await gitCli.run(['bisect', 'reset'], { cwd, signal })
+        await gitCli.run(['bisect', 'reset'], { cwd })
         throw error
       }
       return good ? `Bisecting ${bad} against ${good}` : `Bisect started at ${bad}`
@@ -483,7 +519,7 @@ async function routeAction(action: GitAction, ctx: ActionContext): Promise<strin
       return `Deleted tag ${target}`
     case 'checkout-tag':
       if (!target) throw new GitError('Unknown', 'No tag specified.')
-      await gitCli.run(['checkout', 'tags/' + target], { cwd, signal })
+      await gitCli.run(['checkout', '--detach', target], { cwd, signal })
       return `Checked out tag ${target}`
 
     case 'refresh':

@@ -40,7 +40,7 @@ export function parseRemotes(stdout: string): WireRemote[] {
   for (const lineRaw of stdout.split('\n')) {
     const line = lineRaw.trim()
     if (!line) continue
-    const match = line.match(/^(\S+)\s+(\S+)\s+\((fetch|push)\)$/)
+    const match = line.match(/^(\S+)\s+(.+)\s+\((fetch|push)\)$/)
     if (!match) continue
     const [, name, url, kind] = match
     const existing = map.get(name) ?? { name, fetchUrl: '', pushUrl: '' }

@@ -88,7 +88,17 @@ export const gitActions = {
     this.busyAction = action.kind
     this.operation = labelForOperation(action)
     this.branchSwitching = switchingBranch
-    this.canCancel = ['fetch', 'pull', 'push', 'force-push', 'commit-and-force-push', 'sync', 'fetch-all'].includes(action.kind)
+    this.canCancel = [
+      'fetch',
+      'pull',
+      'push',
+      'push-tags',
+      'force-push',
+      'commit-and-push',
+      'commit-and-force-push',
+      'sync',
+      'fetch-all',
+    ].includes(action.kind)
 
     const result = await gitService.execute(action)
 
@@ -346,6 +356,24 @@ export const gitActions = {
     await this.runAction({
       kind: 'create-tag',
       meta: { name, message: message ?? name, annotated: Boolean(message) },
+    })
+  },
+
+  async createTagAt(this: GitActionsStore, sha: string): Promise<void> {
+    const name = await usePromptStore().prompt({
+      title: 'Create Tag',
+      message: `Tag name for ${sha.slice(0, 7)}`,
+      placeholder: 'v1.0.0',
+    })
+    if (!name) return
+    const message = await usePromptStore().prompt({
+      title: 'Tag Message',
+      message: 'Annotated tag message (optional)',
+      placeholder: name,
+    })
+    await this.runAction({
+      kind: 'create-tag',
+      meta: { name, message: message ?? name, annotated: Boolean(message), sha },
     })
   },
 

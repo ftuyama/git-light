@@ -15,8 +15,9 @@ export function parseConflictMarkers(content: string): {
   blocks: ParsedConflictBlock[]
   hasMarkers: boolean
 } {
-  const lines = content.split('\n')
+  const lines = content.split('\n').map((l) => (l.endsWith('\r') ? l.slice(0, -1) : l))
   const blocks: ParsedConflictBlock[] = []
+  let sawMarker = false
   let i = 0
 
   while (i < lines.length) {
@@ -27,7 +28,8 @@ export function parseConflictMarkers(content: string): {
     }
 
     const startLine = i + 1
-    const oursLabel = startMatch[1]
+    const oursLabel = startMatch[1].trim()
+    sawMarker = true
     i++
     const oursLines: string[] = []
     let base: string | undefined
@@ -63,7 +65,7 @@ export function parseConflictMarkers(content: string): {
     blocks.push({
       index: blocks.length,
       oursLabel,
-      theirsLabel: endMatch[1],
+      theirsLabel: endMatch[1].trim(),
       ours: oursLines.join('\n'),
       theirs: theirsLines.join('\n'),
       base,
@@ -73,7 +75,7 @@ export function parseConflictMarkers(content: string): {
     i++
   }
 
-  return { blocks, hasMarkers: blocks.length > 0 }
+  return { blocks, hasMarkers: blocks.length > 0 || sawMarker }
 }
 
 /** Replace one conflict block with the chosen side and return the updated file content. */

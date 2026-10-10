@@ -48,7 +48,9 @@ export function parseBranches(stdout: string, favorites: Set<string>): WireBranc
 
     if (refname.startsWith('refs/heads/')) {
       const name = refname.slice('refs/heads/'.length)
-      const { ahead, behind } = parseTrack(track ?? '')
+      const rawTrack = track ?? ''
+      const { ahead, behind } = parseTrack(rawTrack)
+      const gone = rawTrack.includes('[gone]')
       branches.push({
         id: `local:${name}`,
         name,
@@ -61,7 +63,7 @@ export function parseBranches(stdout: string, favorites: Set<string>): WireBranc
         isFavorite: favorites.has(name),
         lastActivity: date ? new Date(date).toISOString() : new Date(0).toISOString(),
         laneColorIndex: laneColorIndexFor(name),
-        upstream: upstream || undefined,
+        upstream: gone ? undefined : upstream || undefined,
       })
     } else if (refname.startsWith('refs/remotes/')) {
       const rest = refname.slice('refs/remotes/'.length)
