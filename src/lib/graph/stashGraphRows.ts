@@ -12,16 +12,19 @@ export type GraphRow =
   | { kind: 'stash'; stashIndex: number }
   | { kind: 'commit'; commitIndex: number }
 
+import { buildCommitIndex } from './commitIndex'
+
 export function buildGraphRows(
   commits: { sha: string }[],
   hasPendingRow: boolean,
   stashes: { baseSha: string | null }[],
 ): GraphRow[] {
+  const indexBySha = buildCommitIndex(commits)
   const byBase = new Map<number, number[]>()
   const unanchored: number[] = []
   for (let i = 0; i < stashes.length; i++) {
     const baseSha = stashes[i].baseSha
-    const baseIndex = baseSha ? commits.findIndex((c) => c.sha === baseSha) : -1
+    const baseIndex = baseSha ? (indexBySha.get(baseSha) ?? -1) : -1
     if (baseIndex >= 0) {
       const list = byBase.get(baseIndex) ?? []
       list.push(i)

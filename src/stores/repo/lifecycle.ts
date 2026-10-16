@@ -5,6 +5,7 @@ import { gitService } from '@/lib/git'
 import { useToastStore } from '@/stores/toast'
 import { useUiStore } from '@/stores/ui'
 import { syncBranchLaneColors } from '@/lib/graph/syncBranchLaneColors'
+import { headCommitIndex } from '@/lib/graph/pendingGraphRow'
 import { buildGraphLayout, appendGraphLayout, EMPTY_LAYOUT, EMPTY_PAGE } from './graphLayout'
 import { graphSnapshotOptions, scheduleSnapshotRefresh } from './refreshScheduler'
 import { scheduleDiffReload } from './diffReloadScheduler'
@@ -16,6 +17,7 @@ import type { RepositoryState } from './types'
 
 type LifecycleStore = RepositoryState & {
   headCommitIndex: number
+  $patch: (patch: Partial<RepositoryState>) => void
   onProgress(progress: OperationProgress): void
   applySnapshot(data: RepositoryData, page?: CommitPageInfo): void
   refreshSnapshot(
@@ -73,17 +75,23 @@ export const lifecycleActions = {
   },
 
   applySnapshot(this: LifecycleStore, data: RepositoryData, page?: CommitPageInfo): void {
-    this.repository = data.repository
-    this.commits = data.commits
-    this.branches = data.branches
-    this.tags = data.tags
-    this.stashes = data.stashes
-    this.worktrees = data.worktrees
-    this.workingTree = data.workingTree
-    this.commitAuthor = data.commitAuthor
-    this.commitPage = page ?? gitService.commitPage ?? { ...EMPTY_PAGE }
-    this.layout = buildGraphLayout(this.commits, this.headCommitIndex)
-    this.branches = syncBranchLaneColors(this.branches, this.commits, this.layout)
+    // Compute layout from the incoming data (not from `this`) so the whole
+    // snapshot can land in a single $patch notification.
+    const headIndex = headCommitIndex(data.commits, data.repository.headSha)
+    const layout = buildGraphLayout(data.commits, headIndex)
+    const branches = syncBranchLaneColors(data.branches, data.commits, layout)
+    this.$patch({
+      repository: data.repository,
+      commits: data.commits,
+      branches,
+      tags: data.tags,
+      stashes: data.stashes,
+      worktrees: data.worktrees,
+      workingTree: data.workingTree,
+      commitAuthor: data.commitAuthor,
+      commitPage: page ?? gitService.commitPage ?? { ...EMPTY_PAGE },
+      layout,
+    })
   },
 
   resetCommitBox(this: LifecycleStore): void {
@@ -125,9 +133,20 @@ export const lifecycleActions = {
       this.restartAutoFetch()
 
       // Revalidate in the background; never let this reject unhandled.
+      // Guarded by path: if the user switched again meanwhile, the stale
+      // result must not overwrite the now-active repo.
+      // Fresh caches (<30s) only refresh working-tree status, which is the
+      // only scope that changes frequently while a tab is inactive.
+      const age = Date.now() - (cached.savedAt ?? 0)
       void (async () => {
         try {
+          if (age < 30_000) {
+            if (this.repository?.path !== path) return
+            await this.refreshSnapshot(['status'])
+            return
+          }
           const result = await gitService.openRepository(path, graphSnapshotOptions())
+          if (this.repository?.path !== path) return
           if (result.ok && result.data) {
             this.applySnapshot(result.data)
             try {
@@ -138,7 +157,7 @@ export const lifecycleActions = {
             return
           }
           cache.remove(path)
-          await this.openRepository(path)
+          if (this.repository?.path === path) await this.openRepository(path)
         } catch (err) {
           console.error('[git-light] tab background refresh failed:', err)
         }

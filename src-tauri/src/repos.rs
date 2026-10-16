@@ -306,8 +306,8 @@ mod tests {
         std::fs::create_dir_all(root.join("b").join("nested").join(".git")).unwrap();
         std::fs::create_dir_all(root.join("plain")).unwrap();
         let found = discover_repos(root, 2);
-        let paths: Vec<&str> = found.iter().map(|r| r.path.as_str()).collect();
-        assert!(paths.iter().any(|p| p.ends_with("/a")));
+        let paths: Vec<&Path> = found.iter().map(|r| Path::new(&r.path)).collect();
+        assert!(paths.iter().any(|p| p.ends_with("a")));
         assert!(paths.iter().any(|p| p.ends_with("nested")));
         assert_eq!(paths.len(), 2);
     }

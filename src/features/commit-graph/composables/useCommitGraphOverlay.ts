@@ -3,6 +3,7 @@ import { storeToRefs } from 'pinia'
 import { graphEdgePath } from '@/lib/graph/graphEdgePath'
 import { commitMatchesFilter, isGraphFiltering, stashMatchesFilter } from '@/lib/graph/graphFilter'
 import { stashVirtualIndexByStash } from '@/lib/graph/stashGraphRows'
+import { buildCommitIndex } from '@/lib/graph/commitIndex'
 import type { GraphRow } from '@/lib/graph/stashGraphRows'
 import { useRepositoryStore } from '@/stores/repository'
 import { useSelectionStore } from '@/stores/selection'
@@ -68,6 +69,9 @@ export function useCommitGraphOverlay(options: {
       (Math.max(1, repo.layout.maxLanes) + (repo.stashes.length > 0 ? 1 : 0)) *
         laneWidth.value,
   )
+
+  const commitIndexBySha = computed(() => buildCommitIndex(repo.commits))
+  const stashVirtualByStashMap = computed(() => stashVirtualIndexByStash(rows.value))
 
   const visibleEdges = computed<VisibleEdge[]>(() => {
     const items = virtualItems.value
@@ -141,16 +145,15 @@ export function useCommitGraphOverlay(options: {
     // the stash box. Stashes without a loaded base commit stay floating
     // with no line.
     {
-      const stashVirtualByStash = stashVirtualIndexByStash(rows.value)
+      const stashVirtualByStash = stashVirtualByStashMap.value
       const firstVisible = items[0].index
       const lastVisible = items[items.length - 1].index
+      const indexBySha = commitIndexBySha.value
       repo.stashes.forEach((stash, stashIndex) => {
         const stashVirtual = stashVirtualByStash.get(stashIndex)
         if (stashVirtual == null) return
         if (stashVirtual < firstVisible || stashVirtual > lastVisible) return
-        const baseIndex = stash.baseSha
-          ? repo.commits.findIndex((c) => c.sha === stash.baseSha)
-          : -1
+        const baseIndex = stash.baseSha ? (indexBySha.get(stash.baseSha) ?? -1) : -1
         if (baseIndex < 0) return
         const baseNode = repo.layout.nodes[baseIndex]
         if (!baseNode) return

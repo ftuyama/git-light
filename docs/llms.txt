@@ -2,7 +2,7 @@
 
 > Git Light is a free, MIT-licensed desktop Git client for macOS, Windows, and Linux with a graph-first interface — commit graph, branch sidebar, working tree, multi-repo tabs, and real local Git operations via the native Git CLI. No account or subscription required.
 
-Git Light is a Tauri 2 desktop application built with Vue 3, TypeScript, and Rust. It runs `git` in the Rust backend and exposes typed Tauri commands to the renderer. Current version: 1.0.0.
+Git Light is a Tauri 2 desktop application built with Vue 3, TypeScript, and Rust. It runs `git` in the Rust backend and exposes typed Tauri commands to the renderer. Current version: 1.0.1.
 
 Use this file as a curated index. For complete landing-page content in one fetch, see [llms-full.txt](https://ftuyama.github.io/git-light/llms-full.txt).
 
@@ -21,20 +21,21 @@ Use this file as a curated index. For complete landing-page content in one fetch
 
 ## Key capabilities
 
-- Multi-repository tabs with per-tab state cache
+- Multi-repository tabs with per-tab state cache (reopen closed, cycle, jump-to-index)
 - Clone from a URL (progress + cancel), init new repositories, folder discovery
 - Commit graph with virtualized SVG lanes, infinite scroll, and keyboard navigation
 - Branch sidebar: favorites, remotes, tags, stashes, worktrees; drag-and-drop merge/rebase
-- Working tree: flat or tree file list, per-hunk staging, merge conflict resolution
-- Diff viewer: unified/split modes, blame overlay, file history, word wrap
+- Working tree: flat or tree file list, per-hunk staging, merge conflict resolution, file type icons
+- Diff viewer: unified/split modes, blame overlay, file history, word wrap · image diffs with zoom, pan, fullscreen lightbox
 - Merge (default, ff-only, no-ff, squash) / rebase / interactive rebase (reorder, squash, fixup, drop, edit) / cherry-pick
-- Remote sync: fetch, pull, push with ahead/behind counts; remote maintenance (fetch all, prune, push tags)
+- Remote sync: fetch, pull, push with ahead/behind counts; remote maintenance (fetch all, prune, push tags); configurable auto-fetch interval
 - Undo / redo (reflog-backed) · stash · force-push via `--force-with-lease`
-- Command palette — fuzzy launcher for actions and branches (⌘K)
+- Git output log: per-tab drawer with executed commands, stdout/stderr, and status
+- Command palette — fuzzy launcher for actions and branches (⌘K) · customizable keyboard shortcuts (remappable, conflict detection)
 - Bisect — start, mark good/bad, skip, reset with progress banner
 - Git LFS — track/untrack patterns, prune local objects
 - Open system terminal at the repo root (⌘T)
-- Open on GitHub · app preferences (appearance, layout, graph, sidebar, credits)
+- Open on GitHub · app preferences (appearance, layout, graph, sidebar, sync/auto-fetch, shortcuts, credits)
 - UI modes: Basic (essential actions) or Advanced (full toolbar and sidebar)
 - Themes: Default, Dracula, Light, Claude, System
 - Resizable three-pane layout · file watcher auto-refresh

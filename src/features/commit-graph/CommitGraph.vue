@@ -20,6 +20,7 @@ import {
 import { useCommitGraphVirtualList } from './composables/useCommitGraphVirtualList'
 import { useCommitGraphZoom } from './composables/useCommitGraphZoom'
 import { commitMatchesFilter, isGraphFiltering, stashMatchesFilter } from '@/lib/graph/graphFilter'
+import { buildCommitIndex } from '@/lib/graph/commitIndex'
 
 const diffStore = useRepoDiffStore()
 const { repo, showLoading, hasPendingRow, headIndex, pendingRowSelected } = useCommitGraphState()
@@ -73,13 +74,16 @@ const { graphContentWidth, visibleEdges, visibleNodes, laneX } = useCommitGraphO
 
 const stashBoxSize = computed(() => Math.max(20, nodeSize.value))
 
+/** SHA -> commit index, rebuilt only when the commit list changes. */
+const commitIndexBySha = computed(() => buildCommitIndex(repo.commits))
+
 /**
  * Graph X for a stash box: its own independent lane just right of the base
  * commit's lane (GitKraken-style), else right of the head lane.
  */
 function stashBaseLane(stashIndex: number): number {
   const baseSha = repo.stashes[stashIndex]?.baseSha
-  const baseIndex = baseSha ? repo.commits.findIndex((c) => c.sha === baseSha) : -1
+  const baseIndex = baseSha ? (commitIndexBySha.value.get(baseSha) ?? -1) : -1
   return baseIndex >= 0
     ? (repo.layout.nodes[baseIndex]?.lane ?? 0)
     : (repo.layout.nodes[headIndex.value]?.lane ?? 0)
@@ -93,7 +97,7 @@ function stashNodeX(stashIndex: number): number {
 function stashBoxTitle(stashIndex: number): string {
   const stash = repo.stashes[stashIndex]
   if (!stash?.baseSha) return 'Stash (base desconhecida)'
-  const anchored = repo.commits.some((c) => c.sha === stash.baseSha)
+  const anchored = commitIndexBySha.value.has(stash.baseSha)
   if (anchored) return `Stash sobre ${stash.baseSha.slice(0, 7)}`
   const subject = stash.baseSubject ? ` “${stash.baseSubject}”` : ''
   return `Stash sobre ${stash.baseSha.slice(0, 7)}${subject} — fora da vista carregada`
@@ -404,6 +408,7 @@ function checkoutCommitAt(commitIndex: number, event?: Event): void {
           >
             <CommitRow
               :commit="repo.commits[resolveCommitIndex(item.index)!]"
+              :commit-index="resolveCommitIndex(item.index)!"
               :graph-node="repo.layout.nodes[resolveCommitIndex(item.index)!] ?? null"
               :graph-width="graphColumnWidth"
               :node-x="laneX(repo.layout.nodes[resolveCommitIndex(item.index)!]?.lane ?? 0)"

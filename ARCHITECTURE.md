@@ -6,9 +6,9 @@ Git Light is a Tauri 2 desktop app with a Vue 3 renderer. The UI depends on a `G
 
 | Layer | Technology |
 |-------|------------|
-| Shell | Tauri 2 (Rust backend + native window) |
-| UI | Vue 3, Pinia, Tailwind v4, reka-ui |
-| Build | Vite + `tauri-cli`, TypeScript |
+| Shell | Tauri 2.12 (Rust backend + native window) |
+| UI | Vue 3.5, Pinia 3, Tailwind v4, reka-ui |
+| Build | Vite 7 + `tauri-cli` 2.12, TypeScript 6 |
 | Git | Native `git` CLI spawned by Rust (`tokio::process`, argv arrays only) |
 | Terminal | System terminal (external, via `git_open_terminal_external`) |
 | File watch | `notify` crate → debounced `git:changed` events → scoped snapshot refresh |
@@ -76,6 +76,9 @@ Git Light is a Tauri 2 desktop app with a Vue 3 renderer. The UI depends on a `G
 | `appMenu.ts` (`src/lib/tauri/`) | Native app/window menu (About, Check for Updates, Help) |
 | `updater.ts` + `updateCheck.ts` (`src/lib/tauri/`) | GitHub Releases check, semver compare, snooze |
 | `favorites.ts` (`src/lib/tauri/`) | Pinned-branch persistence bridge |
+| `keybindings.ts` (`src/lib/`) | Central shortcut registry (`COMMAND_IDS`), defaults, conflict detection, persistence |
+| `imageFiles.ts` / `imageZoom.ts` (`src/lib/`) | Image-path detection + zoom/pan transform helpers for `ImageDiffView` |
+| `graphFilter.ts` (`src/lib/graph/`) | Local commit/stash matcher that dims non-matching graph rows during search |
 | `MockGitService.ts` | Generated data; used when `VITE_USE_MOCK=true` (browser/dev) |
 | `wireAdapter.ts` | Revives wire snapshots into domain types (`Date`, etc.) |
 | `themes.ts` / `applyTheme.ts` | Theme catalog, system preference resolution, CSS variable application |
@@ -94,6 +97,7 @@ in Tauri, mock when `VITE_USE_MOCK=true`.
 | `log.rs` | Commit log fetch + parse, author registry, avatar URLs |
 | `refs.rs` | Branches/tags/stashes/worktrees/remotes/status parsers |
 | `diff.rs` | Diff/commit-files/search, conflict markers, rebase commits |
+| `image.rs` | Binary image previews (size cap, data-URL sides for old/new) |
 | `actions.rs` | Action router (`git_execute_action`), journal (undo/redo), cancellable runner with progress, rebase editor bundle |
 | `watcher.rs` | `notify`-based repo watcher → debounced scoped `git:changed` events |
 
@@ -113,8 +117,9 @@ run `cargo test --manifest-path src-tauri/Cargo.toml`.
 | `ui` | Layout prefs, graph columns, sidebar sections, theme |
 | `interactiveRebase` | Interactive rebase dialog state |
 | `prompt` / `toast` | Modal and toast UI |
-| `repoTabs` | Open repository tabs, active tab, persistence |
+| `repoTabs` | Open repository tabs, active tab, persistence (reopen closed, cycle, jump-to-index) |
 | `repoTabCache` | Per-tab snapshot cache for fast tab switching |
+| `gitOutput` | Per-repo executed-command log (capped) + drawer open state |
 
 The `repository` store composes actions from `src/stores/repo/`:
 
@@ -133,22 +138,23 @@ The `repository` store composes actions from `src/stores/repo/`:
 
 ```
 App.vue
-├── StartupView          (no repo open)
+├── StartupView          (no repo open: open/recent + CloneDialog + InitDialog + folder discovery)
 └── main view
-    ├── RepoTabs         multi-repo tab bar + repo switcher
+    ├── RepoTabs         multi-repo tab bar + repo switcher (reopen closed, cycle, jump-to-index)
     ├── Toolbar          remote/history actions, open external terminal
     ├── OperationBanner  merge/rebase/cherry-pick/revert in progress
     ├── SidebarRail      expand affordance when left/right pane collapsed
     ├── Splitpanes
-    │   ├── BranchSidebar       (drag-drop integrate dialog)
-    │   ├── CommitGraph         (virtualized graph + diff/conflict overlay)
-    │   └── WorkingTreePanel
-    ├── StatusBar        ahead/behind, progress, cancel
+    │   ├── BranchSidebar       (drag-drop integrate dialog, section context menus)
+    │   ├── CommitGraph         (virtualized graph + diff/conflict overlay; ImageDiffView with zoom/pan/lightbox)
+    │   └── WorkingTreePanel    (FileTypeIcon per path)
+    ├── GitOutputDrawer  per-tab executed git commands (stdout/stderr, ok/error)
+    ├── StatusBar        ahead/behind, progress, cancel, auto-fetch state
     ├── PromptHost       confirm / prompt dialogs
     ├── SearchOverlay    commit + file search
     ├── InteractiveRebaseDialog
     ├── BlameOverlay     blame view + file history side panel
-    └── AppSettingsDialog  appearance (theme, UI mode), layout, graph, sidebar, credits
+    └── AppSettingsDialog  appearance (theme, UI mode), layout, changes, commits, graph, sidebar, sync (auto-fetch), shortcuts (remappable, conflict detection), credits
 ```
 
 ## Data flow

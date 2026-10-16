@@ -1,6 +1,7 @@
 import { computed, watch, type ComputedRef, type Ref } from 'vue'
 import { useVirtualizer } from '@tanstack/vue-virtual'
 import { storeToRefs } from 'pinia'
+import { buildCommitIndex } from '@/lib/graph/commitIndex'
 import {
   buildGraphRows,
   commitVirtualIndexByCommit,
@@ -26,6 +27,7 @@ export function useCommitGraphVirtualList(options: {
   )
 
   const commitVirtualByCommit = computed(() => commitVirtualIndexByCommit(rows.value))
+  const commitIndexBySha = computed(() => buildCommitIndex(repo.commits))
 
   const pendingVirtualIndex = computed(() =>
     rows.value.findIndex((row) => row.kind === 'pending'),
@@ -75,7 +77,7 @@ export function useCommitGraphVirtualList(options: {
 
   watch(selectedSha, (sha) => {
     if (sha) {
-      const index = repo.commits.findIndex((c) => c.sha === sha)
+      const index = commitIndexBySha.value.get(sha) ?? -1
       if (index >= 0) {
         virtualizer.value.scrollToIndex(virtualIndexForCommitIndex(index), {
           align: 'auto',

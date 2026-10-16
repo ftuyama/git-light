@@ -39,6 +39,7 @@ import { ROW_LEFT_PADDING } from './composables/useCommitGraphColumns'
 
 const props = defineProps<{
   commit: Commit
+  commitIndex: number
   graphNode: GraphNode | null
   graphWidth: number
   nodeX: number
@@ -121,7 +122,7 @@ const hasBranchRef = computed(() =>
 
 const isHovered = computed(() => hoveredSha.value === props.commit.sha)
 
-const commitIndex = computed(() => repo.commits.findIndex((c) => c.sha === props.commit.sha))
+const commitIndex = computed(() => props.commitIndex)
 
 const isCreatingBranchHere = computed(() => {
   const creation = branchCreation.value

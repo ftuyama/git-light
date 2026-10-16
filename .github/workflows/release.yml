@@ -8,13 +8,14 @@ on:
 jobs:
   verify:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
           cache: npm
-      - run: npm ci
+      - run: npm ci --no-audit --no-fund
       - run: npm run typecheck
       - run: npm run test
       - run: npm run sync-version -- --check
@@ -24,22 +25,25 @@ jobs:
         with:
           components: clippy, rustfmt
 
+      # Fail fast on formatting before paying for apt + frontend build + cargo.
+      - run: cargo fmt --check --manifest-path src-tauri/Cargo.toml
+
       - name: Install Linux dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf xdg-utils
+          sudo apt-get install -y --no-install-recommends libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf xdg-utils
 
       - name: Rust cache
         uses: swatinem/rust-cache@v2
         with:
           workspaces: './src-tauri -> target'
+          shared-key: 'linux'
 
       # Build the frontend first: tauri::generate_context!() in
       # src-tauri/src/main.rs requires ../dist to exist at compile time.
       - run: npm run build
       - run: cargo test --manifest-path src-tauri/Cargo.toml
       - run: cargo clippy --manifest-path src-tauri/Cargo.toml -- -D warnings
-      - run: cargo fmt --check --manifest-path src-tauri/Cargo.toml
 
   build:
     needs: [verify]
@@ -63,7 +67,7 @@ jobs:
         if: matrix.platform == 'ubuntu-22.04'
         run: |
           sudo apt-get update
-          sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf xdg-utils
+          sudo apt-get install -y --no-install-recommends libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf xdg-utils
 
       - uses: actions/setup-node@v4
         with:
@@ -77,8 +81,9 @@ jobs:
         uses: swatinem/rust-cache@v2
         with:
           workspaces: './src-tauri -> target'
+          shared-key: 'release-${{ matrix.platform }}'
 
-      - run: npm ci
+      - run: npm ci --no-audit --no-fund
 
       - uses: tauri-apps/tauri-action@v1
         env:

@@ -1,6 +1,6 @@
 {
   "name": "git-light",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Free, open-source desktop Git client (Tauri 2, Vue 3, TypeScript, Rust) — graph-first alternative to GitKraken with commit graph, branches, staging and real local Git operations.",
   "author": "Git Light <ftuyama@users.noreply.github.com>",
   "license": "MIT",

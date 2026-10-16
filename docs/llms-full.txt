@@ -2,7 +2,7 @@
 
 > Git Light is a free, MIT-licensed desktop Git client for macOS, Windows, and Linux with a graph-first interface — commit graph, branch sidebar, working tree, multi-repo tabs, and real local Git operations via the native Git CLI. No account or subscription required.
 
-Version: 1.0.0 · License: MIT · Author: ftuyama · Stack: Tauri 2, Vue 3, TypeScript, Rust, Pinia, Tailwind CSS 4
+Version: 1.0.1 · License: MIT · Author: ftuyama · Stack: Tauri 2, Vue 3, TypeScript, Rust, Pinia, Tailwind CSS 4
 
 Website: https://ftuyama.github.io/git-light/
 Repository: https://github.com/ftuyama/git-light
@@ -28,22 +28,28 @@ Virtualized SVG lanes with a pending-changes row, infinite scroll, and arrow-key
 Favorites, remotes, tags, stashes, and worktrees — drag branches to merge or rebase.
 
 ### Working tree
-Flat or tree file list, per-hunk staging, conflict resolution, and commit composition.
+Flat or tree file list, per-hunk staging, conflict resolution, and commit composition. File type icons per path.
+
+### Diff viewer
+Unified/split modes, syntax highlighting, per-hunk staging, blame overlay with file history, and word wrap. Binary images render side-by-side with zoom, pan, and a fullscreen lightbox.
 
 ### Interactive rebase
 Reorder, squash, fixup, drop, or edit commits in a dialog before starting the rebase.
 
 ### Multi-repo tabs
-Open several repositories at once — switch between tabs and pick up where you left off.
+Open several repositories at once — switch between tabs and pick up where you left off. Reopen the last closed tab, cycle with keyboard, or jump to a tab by index.
 
 ### Blame & file history
 Inline blame overlay with author blocks, per-revision file history, and optional word wrap for long lines.
 
-### Remote sync
-Fetch, pull, push, and sync from the toolbar — with ahead/behind counts in the status bar.
+### Remote sync + auto-fetch
+Fetch, pull, push, and sync from the toolbar — with ahead/behind counts in the status bar. Optional background auto-fetch on a configurable interval.
 
 ### Search & shortcuts
-Search commits and files by message or path. Navigate history and drive the UI from the keyboard.
+Search commits and files by message or path (non-matching graph rows dim). Navigate history and drive the UI from the keyboard — every shortcut is remappable in Settings → Shortcuts with conflict detection.
+
+### Git output log
+Per-tab drawer listing each executed git command with stdout/stderr and ok/error status. Clear per tab.
 
 ### Auto-update checks
 Packaged builds compare against GitHub Releases on startup. Check manually anytime from the app menu.
@@ -68,20 +74,22 @@ Collapsible sidebars with expand rails, resizable panes, and commit graph zoom f
 | Area | Status |
 |------|--------|
 | Real Git backend (`git` CLI in Rust backend; renderer never shells out) | Supported |
-| Open local repos · recent repos · multi-repo tabs · startup screen | Supported |
-| Commit graph — lanes, refs, pagination, shift-compare, keyboard nav | Supported |
-| Branch sidebar — favorites, tags, stashes, worktrees; drag-and-drop merge/rebase | Supported |
-| Working tree — flat/tree view, stage/unstage (patch hunks), commit | Supported |
-| Diff viewer — unified/split, syntax highlighting, per-hunk staging, blame overlay with file history, word wrap | Supported |
-| Fetch / pull / push / sync · remote maintenance (fetch all, prune, push tags) | Supported |
+| Open local repos · recent repos · multi-repo tabs (reopen closed, cycle, jump-to-index) · startup screen | Supported |
+| Commit graph — lanes, refs, pagination, shift-compare, keyboard nav, search dimming | Supported |
+| Branch sidebar — favorites, tags, stashes, worktrees; drag-and-drop merge/rebase; section context menus | Supported |
+| Working tree — flat/tree view, stage/unstage (patch hunks), commit, file type icons | Supported |
+| Diff viewer — unified/split, syntax highlighting, per-hunk staging, blame overlay with file history, word wrap · image diffs (zoom, pan, lightbox) | Supported |
+| Fetch / pull / push / sync · remote maintenance (fetch all, prune, push tags) · auto-fetch interval | Supported |
 | Merge / rebase / interactive rebase / cherry-pick (continue/abort banner) | Supported |
 | Merge conflict resolution (ours/theirs/per-block) | Supported |
 | Undo / redo (reflog-backed) · stash · search | Supported |
+| Git output log — per-tab executed commands with stdout/stderr | Supported |
+| Command palette (⌘K) · customizable keyboard shortcuts (remappable, conflict detection) | Supported |
 | Open system terminal at the repo root (⌘T toolbar action) | Supported |
 | Themes — Default, Dracula, Light, Claude, System (settings) | Supported |
 | Collapsible sidebars with expand rails · commit graph zoom | Supported |
 | UI mode — Basic (essential actions) or Advanced (full toolbar and sidebar) | Supported |
-| Open on GitHub · app preferences (appearance, layout, graph, sidebar, credits) | Supported |
+| Open on GitHub · app preferences (appearance, layout, graph, sidebar, sync/auto-fetch, shortcuts, credits) | Supported |
 | Credits & attribution (settings panel + native About dialog) | Supported |
 | Resizable three-pane layout · file watcher auto-refresh | Supported |
 | Auto-update check (packaged builds) · Check for Updates… menu | Supported |
