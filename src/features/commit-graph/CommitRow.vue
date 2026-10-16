@@ -293,6 +293,21 @@ function act(kind: Parameters<typeof repo.runAction>[0]['kind']): void {
   void repo.runAction({ kind, target: props.commit.sha })
 }
 
+function checkoutPrimaryBranch(): void {
+  if (selection.branchCreation) return
+  const entry = primaryRef.value
+  if (!entry) return
+  if (entry.ref.type !== 'localBranch' && entry.ref.type !== 'remoteBranch') return
+  const label = refDisplayLabel(entry.ref)
+  const branch = repo.branches.find((b) => b.name === label)
+  if (branch) {
+    if (branch.kind === 'remote') repo.checkoutRemoteBranch(branch)
+    else repo.checkoutBranch(branch.name)
+    return
+  }
+  if (entry.ref.type === 'localBranch') repo.checkoutBranch(label)
+}
+
 function mergeSquash(): void {
   void repo.runAction({ kind: 'merge', target: props.commit.sha, meta: { squash: true } })
 }
@@ -362,7 +377,10 @@ function openOnGithub(): void {
           </div>
         </div>
         <template v-if="hasBranchRef && primaryRef && !isCreatingBranchHere">
-          <div class="relative flex min-w-0 flex-1 items-center gap-1">
+          <div
+            class="relative flex min-w-0 flex-1 items-center gap-1"
+            @dblclick.stop="checkoutPrimaryBranch()"
+          >
             <div class="w-fit min-w-0 max-w-full shrink">
               <BranchRefChip
                 :ref-data="primaryRef.ref"

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, provide, ref } from 'vue'
+import { provide, ref, computed } from 'vue'
 import { ChevronLeft, Loader2 } from '@lucide/vue'
 import IconButton from '@/components/ui/IconButton.vue'
 import SearchInput from '@/components/ui/SearchInput.vue'
@@ -13,6 +13,7 @@ import { useSidebarSectionMenu } from './useSidebarSectionMenu'
 import { useRepositoryStore } from '@/stores/repository'
 import { useUiStore } from '@/stores/ui'
 import { SECTION_KEYS, SECTION_LABELS, ADVANCED_SECTION_KEYS, type SectionKey } from '@/lib/preferences'
+import { formatBindings } from '@/lib/keybindings'
 import type { MergeMode } from '@/lib/mergeMode'
 
 const repo = useRepositoryStore()
@@ -25,6 +26,9 @@ const sidebarData = useBranchSidebarData(query)
 provide('branchSidebarData', sidebarData)
 const { normalizedQuery, filteredLocal, remoteBranches, hasLocalMatches } = sidebarData
 const { sectionMenu } = useSidebarSectionMenu()
+
+const toggleSidebarShortcut = computed(() => formatBindings(ui.keybindings.toggleLeftSidebar))
+const focusSearchShortcut = computed(() => formatBindings(ui.keybindings.focusSidebarSearch))
 
 defineExpose({
   focusSearch: () => search.value?.focus(),
@@ -98,7 +102,7 @@ async function confirmIntegrate(mode: 'merge' | 'rebase', mergeMode?: MergeMode)
       <IconButton
         :icon="ChevronLeft"
         label="Hide left sidebar"
-        shortcut="⌘B"
+        :shortcut="toggleSidebarShortcut"
         tooltip-side="right"
         @click="ui.toggleLeft()"
       />
@@ -107,7 +111,7 @@ async function confirmIntegrate(mode: 'merge' | 'rebase', mergeMode?: MergeMode)
           ref="search"
           v-model="query"
           placeholder="Search branches"
-          shortcut="⌘F"
+          :shortcut="focusSearchShortcut"
         />
       </div>
     </div>

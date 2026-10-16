@@ -1,4 +1,6 @@
-/** Central registry of keyboard shortcuts for the cheatsheet and shortcut handlers. */
+/** Backwards-compatible cheatsheet derived from the remappable keybinding defaults. */
+import { COMMAND_IDS, COMMAND_META, defaultKeymap, formatBindings } from './keybindings'
+
 export interface ShortcutEntry {
   keys: string
   description: string
@@ -6,15 +8,13 @@ export interface ShortcutEntry {
   advanced?: boolean
 }
 
-export const KEYBOARD_SHORTCUTS: ShortcutEntry[] = [
-  { keys: '⌘F', description: 'Focus branch sidebar search' },
-  { keys: '⌘⇧F', description: 'Open global search' },
-  { keys: '⌘R', description: 'Refresh repository' },
-  { keys: '⌘⇧L', description: 'Pull' },
-  { keys: '⌘⇧P', description: 'Push' },
-  { keys: '⌘Z', description: 'Undo last operation' },
-  { keys: '⌘⇧Z', description: 'Redo operation' },
-  { keys: '⌘B', description: 'Toggle left sidebar' },
-  { keys: '↑ / ↓ / J / K', description: 'Navigate commit graph' },
-  { keys: '⌘T', description: 'Open system terminal', advanced: true },
-]
+function buildEntries(): ShortcutEntry[] {
+  const defaults = defaultKeymap()
+  return COMMAND_IDS.map((id) => ({
+    keys: formatBindings(defaults[id]),
+    description: COMMAND_META[id].title,
+    ...(COMMAND_META[id].advanced ? { advanced: true as const } : {}),
+  }))
+}
+
+export const KEYBOARD_SHORTCUTS: ShortcutEntry[] = buildEntries()

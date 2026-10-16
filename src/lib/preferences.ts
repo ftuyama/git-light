@@ -1,4 +1,5 @@
 import { isThemePreference, type ThemePreference } from './themes'
+import { sanitizeKeymap, type Keymap } from './keybindings'
 
 export type CommitColumnKey = 'author' | 'sha' | 'when'
 
@@ -58,9 +59,31 @@ export function clampCommitGraphLimit(value: number): number {
 export type DiffViewMode = 'unified' | 'split'
 
 export type UiMode = 'basic' | 'advanced'
-
 export function isUiMode(value: unknown): value is UiMode {
   return value === 'basic' || value === 'advanced'
+}
+
+export const AUTO_FETCH_INTERVAL_OPTIONS = [0, 60, 300, 600, 1800, 3600, 7200] as const
+
+export const DEFAULT_AUTO_FETCH_INTERVAL_SEC = 300
+
+export function clampAutoFetchIntervalSec(value: unknown): number {
+  const rounded =
+    typeof value === 'number' && Number.isFinite(value) ? Math.round(value) : DEFAULT_AUTO_FETCH_INTERVAL_SEC
+  return (AUTO_FETCH_INTERVAL_OPTIONS as readonly number[]).includes(rounded)
+    ? rounded
+    : DEFAULT_AUTO_FETCH_INTERVAL_SEC
+}
+
+export function formatAutoFetchInterval(sec: number): string {
+  if (sec <= 0) return 'Disabled'
+  if (sec < 60) return `Every ${sec}s`
+  if (sec % 3600 === 0) {
+    const hours = sec / 3600
+    return hours === 1 ? 'Every hour' : `Every ${hours} hours`
+  }
+  const min = Math.round(sec / 60)
+  return min === 1 ? 'Every minute' : `Every ${min} minutes`
 }
 
 export const WORKING_TREE_CHANGES_SIZE_MIN = 20
@@ -156,6 +179,8 @@ export interface UserPreferences {
   diffWordWrap: boolean
   signOffCommit: boolean
   signCommit: boolean
+  autoFetchIntervalSec: number
+  keybindings?: Keymap
 }
 
 export const PREFERENCES_KEY = 'git-light:preferences'
@@ -233,6 +258,8 @@ export function defaultPreferences(): UserPreferences {
     diffWordWrap: false,
     signOffCommit: false,
     signCommit: false,
+    autoFetchIntervalSec: DEFAULT_AUTO_FETCH_INTERVAL_SEC,
+    keybindings: undefined,
   }
 }
 
@@ -272,5 +299,9 @@ export function mergePreferences(saved: Partial<UserPreferences> | null): UserPr
     diffWordWrap: saved.diffWordWrap ?? defaults.diffWordWrap,
     signOffCommit: saved.signOffCommit ?? defaults.signOffCommit,
     signCommit: saved.signCommit ?? defaults.signCommit,
+    autoFetchIntervalSec: clampAutoFetchIntervalSec(
+      saved.autoFetchIntervalSec ?? defaults.autoFetchIntervalSec,
+    ),
+    keybindings: saved.keybindings !== undefined ? sanitizeKeymap(saved.keybindings) : undefined,
   }
 }

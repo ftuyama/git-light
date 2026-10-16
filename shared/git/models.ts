@@ -399,10 +399,49 @@ export interface OpenRepoResult {
   error?: import('./errors').SerializedGitError
 }
 
+/* ---------------------- Onboarding (clone/init/discover) ---------------------- */
+
+export interface DiscoveredRepo {
+  path: string
+  name: string
+}
+
+export interface CloneRepoRequest {
+  url: string
+  parentPath: string
+  name?: string
+}
+
+export interface InitRepoRequest {
+  path: string
+  defaultBranch?: string
+}
+
+export interface DiscoverReposRequest {
+  root: string
+  maxDepth?: number
+}
+
+export interface ExecutedGitCommand {
+  /** Full argv without the leading `git`, e.g. `["fetch", "--all"]`. */
+  argv: string[]
+  /** Human-readable command line, e.g. `git fetch --all`. */
+  command: string
+  stdout: string
+  stderr: string
+  exitCode: number | null
+  /** True when the command exited with 0 (or was allowed to fail). */
+  ok: boolean
+  /** True when stdout/stderr were truncated for transport. */
+  truncated: boolean
+}
+
 export interface ActionEnvelope {
   ok: boolean
   message: string
   error?: import('./errors').SerializedGitError
   /** Conflicted files when an operation stops mid-way. */
   conflicts?: string[]
+  /** Every git CLI invocation executed for this action, in order. */
+  commands?: ExecutedGitCommand[]
 }

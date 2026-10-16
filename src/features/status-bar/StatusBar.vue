@@ -1,16 +1,21 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { GitCommitHorizontal, Loader2, Search, Square, ZoomIn, ZoomOut } from '@lucide/vue'
+import { GitCommitHorizontal, Loader2, Search, Square, Terminal, ZoomIn, ZoomOut } from '@lucide/vue'
 import { appVersion } from '@/lib/appVersion'
 import { useRepositoryStore } from '@/stores/repository'
+import { useGitOutputStore } from '@/stores/gitOutput'
 import DropdownMenu from '@/components/ui/DropdownMenu.vue'
 import type { MenuItem } from '@/components/ui/menu'
 import {
   useCommitGraphZoom,
   ZOOM_PRESETS,
 } from '@/features/commit-graph/composables/useCommitGraphZoom'
+import { useUiStore } from '@/stores/ui'
+import { formatBindings } from '@/lib/keybindings'
 
 const repo = useRepositoryStore()
+const output = useGitOutputStore()
+const ui = useUiStore()
 const { zoomPercent, canZoomIn, canZoomOut, zoomIn, zoomOut, resetZoom, setZoomPercent } =
   useCommitGraphZoom()
 
@@ -18,8 +23,8 @@ const stagedCount = computed(() => repo.stagedFiles.length)
 const changedCount = computed(() => repo.workingTree.length)
 
 const zoomMenuItems = computed<MenuItem[]>(() => [
-  { label: 'Zoom in', icon: ZoomIn, shortcut: '⌘+', disabled: !canZoomIn.value, onSelect: () => zoomIn() },
-  { label: 'Zoom out', icon: ZoomOut, shortcut: '⌘−', disabled: !canZoomOut.value, onSelect: () => zoomOut() },
+  { label: 'Zoom in', icon: ZoomIn, shortcut: formatBindings(ui.keybindings.graphZoomIn), disabled: !canZoomIn.value, onSelect: () => zoomIn() },
+  { label: 'Zoom out', icon: ZoomOut, shortcut: formatBindings(ui.keybindings.graphZoomOut), disabled: !canZoomOut.value, onSelect: () => zoomOut() },
   { separator: true },
   ...ZOOM_PRESETS.map((preset) => ({
     label: `${preset}%`,
@@ -27,7 +32,7 @@ const zoomMenuItems = computed<MenuItem[]>(() => [
     onSelect: () => setZoomPercent(preset),
   })),
   { separator: true },
-  { label: 'Reset to 100%', shortcut: '⌘0', onSelect: () => resetZoom() },
+  { label: 'Reset to 100%', shortcut: formatBindings(ui.keybindings.graphZoomReset), onSelect: () => resetZoom() },
 ])
 </script>
 
@@ -73,6 +78,15 @@ const zoomMenuItems = computed<MenuItem[]>(() => [
       <GitCommitHorizontal :size="12" class="text-[var(--color-fg-subtle)]" />
       {{ repo.commits.length }} commits
     </span>
+    <button
+      class="app-no-drag focus-ring flex shrink-0 items-center gap-1 rounded px-1 py-0.5 hover:bg-[var(--color-hover)] hover:text-[var(--color-fg)]"
+      :class="output.open ? 'text-[var(--color-accent)]' : ''"
+      title="Toggle git output (per tab)"
+      @click="output.toggle()"
+    >
+      <Terminal :size="12" />
+      Output
+    </button>
     <span>{{ stagedCount }} staged · {{ changedCount }} changed</span>
   </footer>
 </template>

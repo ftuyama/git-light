@@ -123,6 +123,24 @@ impl Default for RunOptions {
     }
 }
 
+/// Timeout budgets for remote operations, in seconds. Fetches mirror the
+/// prefetch background fetcher (5min); push/pull mirror gitcat (1min).
+/// Local operations keep the 30s default from `RunOptions`.
+pub const REMOTE_FETCH_TIMEOUT_SECS: u64 = 300;
+pub const REMOTE_PUSH_PULL_TIMEOUT_SECS: u64 = 60;
+
+/// Timeout budget for a single-phase remote action kind. Returns `None`
+/// for non-remote kinds (caller keeps the default). `sync` is two-phase
+/// (fetch leg + pull leg), so its legs use the constants directly.
+pub fn remote_timeout_for(kind: &str) -> Option<Duration> {
+    let secs = match kind {
+        "fetch" | "fetch-all" => REMOTE_FETCH_TIMEOUT_SECS,
+        "pull" | "push" | "push-tags" | "force-push" => REMOTE_PUSH_PULL_TIMEOUT_SECS,
+        _ => return None,
+    };
+    Some(Duration::from_secs(secs))
+}
+
 /// Registry of in-flight operations for `git_cancel` (mirrors the
 /// `operations` map + AbortControllers in `GitProvider`).
 /// Dropping a sender closes the channel, which the runner treats as cancel.
@@ -828,6 +846,109 @@ pub fn create_rebase_editor_bundle(
 
 #[derive(Debug, Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
+pub struct ExecutedGitCommand {
+    pub argv: Vec<String>,
+    pub command: String,
+    pub stdout: String,
+    pub stderr: String,
+    pub exit_code: Option<i32>,
+    pub ok: bool,
+    pub truncated: bool,
+}
+
+/// Per-stream cap for the command log sent to the renderer. The full
+/// 8MiB `MAX_OUTPUT_BYTES` buffer is kept for internal use; only a small
+/// prefix crosses the IPC boundary so a verbose `fetch/push` never
+/// balloons renderer memory.
+pub const MAX_COMMAND_LOG_CHARS: usize = 8 * 1024;
+
+fn format_git_command(argv: &[String]) -> String {
+    let mut out = String::from("git");
+    for a in argv {
+        out.push(' ');
+        if a.chars()
+            .any(|c| c.is_whitespace() || c == '"' || c == '\'')
+        {
+            out.push('"');
+            for c in a.chars() {
+                if c == '"' {
+                    out.push('\\');
+                }
+                out.push(c);
+            }
+            out.push('"');
+        } else {
+            out.push_str(a);
+        }
+    }
+    out
+}
+
+fn truncate_for_log(text: &str) -> (String, bool) {
+    if text.len() <= MAX_COMMAND_LOG_CHARS {
+        return (text.to_string(), false);
+    }
+    let mut end = MAX_COMMAND_LOG_CHARS;
+    while !text.is_char_boundary(end) {
+        end -= 1;
+    }
+    (format!("{}…", &text[..end]), true)
+}
+
+impl ExecutedGitCommand {
+    fn from_success(argv: Vec<String>, stdout: &str, stderr: &str, exit_code: Option<i32>) -> Self {
+        let (stdout_t, t1) = truncate_for_log(stdout);
+        let (stderr_t, t2) = truncate_for_log(stderr);
+        Self {
+            command: format_git_command(&argv),
+            argv,
+            stdout: stdout_t,
+            stderr: stderr_t,
+            exit_code,
+            ok: true,
+            truncated: t1 || t2,
+        }
+    }
+
+    fn from_failure(argv: Vec<String>, stderr_fallback: &str) -> Self {
+        let (stderr_t, truncated) = truncate_for_log(stderr_fallback);
+        Self {
+            command: format_git_command(&argv),
+            argv,
+            stdout: String::new(),
+            stderr: stderr_t,
+            exit_code: None,
+            ok: false,
+            truncated,
+        }
+    }
+}
+
+fn record_result(
+    log: &std::sync::Mutex<Vec<ExecutedGitCommand>>,
+    argv: Vec<String>,
+    result: &Result<RunResult, GitError>,
+) {
+    let mut guard = match log.lock() {
+        Ok(g) => g,
+        Err(_) => return,
+    };
+    if guard.len() >= 50 {
+        return;
+    }
+    match result {
+        Ok(r) => guard.push(ExecutedGitCommand::from_success(
+            argv,
+            &r.stdout,
+            &r.stderr,
+            r.exit_code,
+        )),
+        Err(e) => guard.push(ExecutedGitCommand::from_failure(argv, &e.message)),
+    }
+}
+
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct ActionEnvelope {
     pub ok: bool,
     pub message: String,
@@ -835,6 +956,8 @@ pub struct ActionEnvelope {
     pub error: Option<GitError>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub conflicts: Option<Vec<String>>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub commands: Option<Vec<ExecutedGitCommand>>,
 }
 
 impl ActionEnvelope {
@@ -844,6 +967,7 @@ impl ActionEnvelope {
             message,
             error: None,
             conflicts: None,
+            commands: None,
         }
     }
 
@@ -854,7 +978,15 @@ impl ActionEnvelope {
             message: error.message.clone(),
             error: Some(error),
             conflicts,
+            commands: None,
         }
+    }
+
+    fn with_commands(mut self, commands: Vec<ExecutedGitCommand>) -> Self {
+        if !commands.is_empty() {
+            self.commands = Some(commands);
+        }
+        self
     }
 }
 
@@ -978,6 +1110,7 @@ pub async fn execute_action(
 
     emit("Starting…", Some(0), false);
     let progress_cb = |phase: &str| emit(phase, None, false);
+    let command_log = std::sync::Mutex::new(Vec::<ExecutedGitCommand>::new());
     let result = route_action(
         cwd,
         kind,
@@ -987,9 +1120,11 @@ pub async fn execute_action(
         &cancel_rx,
         &progress_cb,
         &repo_state,
+        &command_log,
     )
     .await;
     ops.lock().await.unregister(operation_id);
+    let commands = command_log.into_inner().unwrap_or_default();
 
     match result {
         Ok(message) => {
@@ -1001,11 +1136,11 @@ pub async fn execute_action(
                 }
             }
             emit("Done", Some(100), true);
-            ActionEnvelope::ok(message)
+            ActionEnvelope::ok(message).with_commands(commands)
         }
         Err(error) => {
             emit("Done", Some(100), true);
-            ActionEnvelope::err(error)
+            ActionEnvelope::err(error).with_commands(commands)
         }
     }
 }
@@ -1036,29 +1171,55 @@ async fn route_action(
     cancel: &watch::Receiver<()>,
     on_progress: &(dyn Fn(&str) + Send + Sync),
     repo_state: &RepoState,
+    command_log: &std::sync::Mutex<Vec<ExecutedGitCommand>>,
 ) -> Result<String, GitError> {
-    let run =
-        |args: Vec<String>| run_git(cwd, args, RunOptions::default(), Some(cancel.clone()), None);
-    let run_allow = |args: Vec<String>| {
-        run_git(
-            cwd,
-            args,
-            RunOptions {
-                allow_failure: true,
-                ..RunOptions::default()
-            },
-            Some(cancel.clone()),
-            None,
-        )
+    let run = |args: Vec<String>| {
+        let cancel_c = cancel.clone();
+        async move {
+            let argv_copy = args.clone();
+            let res = run_git(cwd, args, RunOptions::default(), Some(cancel_c), None).await;
+            record_result(command_log, argv_copy, &res);
+            res
+        }
     };
-    let run_stream = |args: Vec<String>| {
-        run_git_streaming(
-            cwd,
-            args,
-            RunOptions::default(),
-            Some(cancel.clone()),
-            on_progress,
-        )
+    let run_allow = |args: Vec<String>| {
+        let cancel_c = cancel.clone();
+        async move {
+            let argv_copy = args.clone();
+            let res = run_git(
+                cwd,
+                args,
+                RunOptions {
+                    allow_failure: true,
+                    ..RunOptions::default()
+                },
+                Some(cancel_c),
+                None,
+            )
+            .await;
+            record_result(command_log, argv_copy, &res);
+            res
+        }
+    };
+    let run_stream = |args: Vec<String>, op: &str| {
+        let cancel_c = cancel.clone();
+        let op_owned = op.to_string();
+        async move {
+            let argv_copy = args.clone();
+            let res = run_git_streaming(
+                cwd,
+                args,
+                RunOptions {
+                    timeout: remote_timeout_for(&op_owned).or(RunOptions::default().timeout),
+                    ..RunOptions::default()
+                },
+                Some(cancel_c),
+                on_progress,
+            )
+            .await;
+            record_result(command_log, argv_copy, &res);
+            res
+        }
     };
     let no_target = || GitError::unknown("No target specified.".to_string());
 
@@ -1099,27 +1260,35 @@ async fn route_action(
 
     match kind {
         "fetch" => {
-            run_stream(vec![s_arg("fetch"), s_arg("--all")]).await?;
+            run_stream(vec![s_arg("fetch"), s_arg("--all")], "fetch").await?;
             Ok("Fetched from all remotes".to_string())
         }
         "fetch-all" => {
-            run_stream(vec![s_arg("fetch"), s_arg("--all"), s_arg("--prune")]).await?;
+            run_stream(
+                vec![s_arg("fetch"), s_arg("--all"), s_arg("--prune")],
+                "fetch-all",
+            )
+            .await?;
             Ok("Fetched and pruned remotes".to_string())
         }
         "pull" => {
-            run(vec![s_arg("pull"), s_arg("--ff-only")]).await?;
+            run_stream(vec![s_arg("pull"), s_arg("--ff-only")], "pull").await?;
             Ok("Pulled latest changes".to_string())
         }
         "push" => {
-            run_stream(vec![s_arg("push")]).await?;
+            run_stream(vec![s_arg("push")], "push").await?;
             Ok("Pushed to remote".to_string())
         }
         "force-push" => {
-            run_stream(vec![s_arg("push"), s_arg("--force-with-lease")]).await?;
+            run_stream(
+                vec![s_arg("push"), s_arg("--force-with-lease")],
+                "force-push",
+            )
+            .await?;
             Ok("Force-pushed to remote".to_string())
         }
         "push-tags" => {
-            run(vec![s_arg("push"), s_arg("--tags")]).await?;
+            run_stream(vec![s_arg("push"), s_arg("--tags")], "push-tags").await?;
             Ok("Pushed tags".to_string())
         }
         "prune" => {
@@ -1132,8 +1301,8 @@ async fn route_action(
             Ok(format!("Pruned stale remote branches ({remote})"))
         }
         "sync" => {
-            run_stream(vec![s_arg("fetch"), s_arg("--all")]).await?;
-            run(vec![s_arg("pull"), s_arg("--ff-only")]).await?;
+            run_stream(vec![s_arg("fetch"), s_arg("--all")], "fetch").await?;
+            run_stream(vec![s_arg("pull"), s_arg("--ff-only")], "pull").await?;
             Ok("Synced with remote".to_string())
         }
 
@@ -1305,17 +1474,22 @@ async fn route_action(
             if kind == "unstage-patch" {
                 apply_args.push(s_arg("-R"));
             }
-            run_git(
-                cwd,
-                apply_args,
-                RunOptions {
-                    input: Some(patch.to_string()),
-                    ..RunOptions::default()
-                },
-                Some(cancel.clone()),
-                None,
-            )
-            .await?;
+            {
+                let argv_copy = apply_args.clone();
+                let res = run_git(
+                    cwd,
+                    apply_args,
+                    RunOptions {
+                        input: Some(patch.to_string()),
+                        ..RunOptions::default()
+                    },
+                    Some(cancel.clone()),
+                    None,
+                )
+                .await;
+                record_result(command_log, argv_copy, &res);
+                res?;
+            }
             Ok(if kind == "unstage-patch" {
                 format!("Unstaged hunk in {t}")
             } else {
@@ -1335,21 +1509,26 @@ async fn route_action(
             if !patch.starts_with("diff --git") {
                 return Err(GitError::unknown("Invalid patch.".to_string()));
             }
-            run_git(
-                cwd,
-                vec![
+            {
+                let argv_copy = vec![
                     s_arg("apply"),
                     s_arg("-R"),
                     s_arg(&format!("--include={safe}")),
-                ],
-                RunOptions {
-                    input: Some(patch.to_string()),
-                    ..RunOptions::default()
-                },
-                Some(cancel.clone()),
-                None,
-            )
-            .await?;
+                ];
+                let res = run_git(
+                    cwd,
+                    argv_copy.clone(),
+                    RunOptions {
+                        input: Some(patch.to_string()),
+                        ..RunOptions::default()
+                    },
+                    Some(cancel.clone()),
+                    None,
+                )
+                .await;
+                record_result(command_log, argv_copy, &res);
+                res?;
+            }
             Ok(format!("Discarded hunk in {t}"))
         }
 
@@ -1473,6 +1652,7 @@ async fn route_action(
                 cancel,
                 on_progress,
                 repo_state,
+                command_log,
             ))
             .await?;
             let push_kind = if kind == "commit-and-force-push" {
@@ -1489,6 +1669,7 @@ async fn route_action(
                 cancel,
                 on_progress,
                 repo_state,
+                command_log,
             ))
             .await?;
             Ok(if meta_bool(meta, "amend") {
@@ -1763,9 +1944,10 @@ async fn route_action(
             }
             let bundle = create_rebase_editor_bundle(&todo_entries)?;
             let env: Vec<(String, String)> = bundle.env.clone();
+            let argv_copy = vec![s_arg("rebase"), s_arg("-i"), s_arg(&base)];
             let result = run_git(
                 cwd,
-                vec![s_arg("rebase"), s_arg("-i"), s_arg(&base)],
+                argv_copy.clone(),
                 RunOptions {
                     timeout: None,
                     extra_env: env,
@@ -1775,6 +1957,7 @@ async fn route_action(
                 None,
             )
             .await;
+            record_result(command_log, argv_copy, &result);
             drop(bundle);
             result?;
             Ok("Interactive rebase started".to_string())
@@ -2378,6 +2561,97 @@ mod tests {
         let env = h.exec("undo", None, &null_meta()).await;
         assert!(!env.ok);
         assert!(env.message.contains("Nothing to undo"));
+    }
+
+    #[test]
+    fn remote_timeout_budgets_match_policy() {
+        assert_eq!(REMOTE_FETCH_TIMEOUT_SECS, 300);
+        assert_eq!(REMOTE_PUSH_PULL_TIMEOUT_SECS, 60);
+        assert_eq!(
+            remote_timeout_for("fetch"),
+            Some(Duration::from_secs(REMOTE_FETCH_TIMEOUT_SECS))
+        );
+        assert_eq!(
+            remote_timeout_for("fetch-all"),
+            Some(Duration::from_secs(REMOTE_FETCH_TIMEOUT_SECS))
+        );
+        for kind in ["pull", "push", "push-tags", "force-push"] {
+            assert_eq!(
+                remote_timeout_for(kind),
+                Some(Duration::from_secs(REMOTE_PUSH_PULL_TIMEOUT_SECS)),
+                "kind: {kind}"
+            );
+        }
+        assert_eq!(remote_timeout_for("commit"), None);
+        assert_eq!(remote_timeout_for("sync"), None);
+        assert_eq!(remote_timeout_for("status"), None);
+    }
+
+    #[tokio::test]
+    async fn remote_actions_stream_progress_against_local_remote() {
+        let h = Harness::new().await;
+        let remote_dir = tempfile::tempdir().expect("remote tempdir");
+        let remote_arg = remote_dir
+            .path()
+            .join("origin.git")
+            .to_string_lossy()
+            .into_owned();
+        let run = |args: Vec<String>| run_git(&h.cwd, args, RunOptions::default(), None, None);
+        run(vec!["init".into(), "--bare".into(), remote_arg.clone()])
+            .await
+            .expect("init bare remote");
+        run(vec![
+            "remote".into(),
+            "add".into(),
+            "origin".into(),
+            remote_arg,
+        ])
+        .await
+        .expect("remote add");
+        run(vec![
+            "push".into(),
+            "-u".into(),
+            "origin".into(),
+            "main".into(),
+        ])
+        .await
+        .expect("initial push");
+
+        async fn exec_with_progress(h: &Harness, kind: &str) -> (ActionEnvelope, Vec<String>) {
+            let phases = std::sync::Mutex::new(Vec::new());
+            let emit = |phase: &str, _: Option<u32>, _: bool| {
+                phases.lock().unwrap().push(phase.to_string());
+            };
+            let env = execute_action(
+                &"test-op".to_string(),
+                &h.cwd,
+                &h.git_dir(),
+                kind,
+                None,
+                &serde_json::Value::Null,
+                &h.journal,
+                &h.ops,
+                &emit,
+            )
+            .await;
+            (env, phases.into_inner().unwrap())
+        }
+
+        // `pull` and `push-tags` previously used the non-streaming runner;
+        // every remote kind must flow through `run_git_streaming` so the
+        // frontend gets live phases plus a working cancel.
+        for kind in ["push", "fetch", "pull", "push-tags"] {
+            let (env, phases) = exec_with_progress(&h, kind).await;
+            assert!(env.ok, "{kind}: {}", env.message);
+            assert!(
+                phases.iter().any(|p| p.contains("Starting")),
+                "{kind}: missing start phase in {phases:?}"
+            );
+            assert!(
+                phases.iter().any(|p| p == "Done"),
+                "{kind}: missing done phase in {phases:?}"
+            );
+        }
     }
 
     #[tokio::test]

@@ -1,4 +1,8 @@
 import type {
+  CloneRepoRequest,
+  DiscoverReposRequest,
+  DiscoveredRepo,
+  InitRepoRequest,
   OpenRepoResult,
   RecentRepository,
   SnapshotOptions,
@@ -32,4 +36,31 @@ export async function tauriOpenRepo(
   invoker: InvokeFn = defaultInvoke,
 ): Promise<OpenRepoResult> {
   return (await invoker('git_open_repo', { path: req.path, options: req.options })) as OpenRepoResult
+}
+
+export async function tauriCloneRepo(
+  req: { request: CloneRepoRequest; options?: SnapshotOptions },
+  invoker: InvokeFn = defaultInvoke,
+): Promise<OpenRepoResult> {
+  return (await invoker('git_clone_repo', {
+    request: req.request,
+    options: req.options,
+  })) as OpenRepoResult
+}
+
+export async function tauriInitRepo(
+  req: { request: InitRepoRequest; options?: SnapshotOptions },
+  invoker: InvokeFn = defaultInvoke,
+): Promise<OpenRepoResult> {
+  return (await invoker('git_init_repo', {
+    request: req.request,
+    options: req.options,
+  })) as OpenRepoResult
+}
+
+export async function tauriDiscoverRepos(
+  req: DiscoverReposRequest,
+  invoker: InvokeFn = defaultInvoke,
+): Promise<DiscoveredRepo[]> {
+  return (await invoker('git_discover_repos', { request: req })) as DiscoveredRepo[]
 }

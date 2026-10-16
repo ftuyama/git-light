@@ -1,16 +1,20 @@
 import type {
   BlameRequest,
   BlameResult,
+  CloneRepoRequest,
   CommitPageInfo,
   CommitPageRequest,
   ConflictRequest,
   ConflictResult,
   DiffRequest,
   DiffResult,
+  DiscoveredRepo,
+  DiscoverReposRequest,
   FileHistoryRequest,
   FileHistoryResult,
   ImagePreviewRequest,
   ImagePreviewResult,
+  InitRepoRequest,
   OperationProgress,
   RecentRepository,
   RepoChangeEvent,
@@ -19,6 +23,7 @@ import type {
   SnapshotOptions,
   SnapshotScope,
 } from '@shared/git/models'
+import type { GitErrorCode } from '@shared/git/errors'
 import type { RebaseCommitsRequest, RebaseCommitsResult } from '@shared/git/rebase'
 import type { ActionResult, GitAction, RepositoryData } from '@/types/git'
 
@@ -38,13 +43,23 @@ export interface GitService {
   openRepository(
     path: string,
     options?: SnapshotRefreshOptions,
-  ): Promise<{ ok: boolean; data?: RepositoryData; message: string }>
+  ): Promise<{ ok: boolean; data?: RepositoryData; message: string; errorCode?: GitErrorCode }>
   pickAndOpenRepository(options?: SnapshotRefreshOptions): Promise<{
     ok: boolean
     cancelled?: boolean
     data?: RepositoryData
     message: string
+    errorCode?: GitErrorCode
   }>
+  cloneRepository(
+    request: CloneRepoRequest,
+    options?: SnapshotRefreshOptions,
+  ): Promise<{ ok: boolean; data?: RepositoryData; message: string; errorCode?: GitErrorCode }>
+  initRepository(
+    request: InitRepoRequest,
+    options?: SnapshotRefreshOptions,
+  ): Promise<{ ok: boolean; data?: RepositoryData; message: string; errorCode?: GitErrorCode }>
+  discoverRepositories(request: DiscoverReposRequest): Promise<DiscoveredRepo[]>
   closeRepository(): Promise<void>
   loadMoreCommits(request: CommitPageRequest): Promise<{
     commits: RepositoryData['commits']

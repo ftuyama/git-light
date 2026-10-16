@@ -185,4 +185,40 @@ describe('TauriGitService', () => {
     expect(result.page.oldestSha).toBe('abc')
     expect(service.commitPage.hasMore).toBe(true)
   })
+
+  it('clones and inits repos returning opened snapshots', async () => {
+    const result: OpenRepoResult = { ok: true, snapshot: snapshotFixture() }
+    const { service, invoker } = setup(async () => result)
+    const cloned = await service.cloneRepository({ url: 'https://github.com/o/r.git', parentPath: '/tmp' })
+    expect(invoker).toHaveBeenCalledWith('git_clone_repo', {
+      request: { url: 'https://github.com/o/r.git', parentPath: '/tmp' },
+      options: undefined,
+    })
+    expect(cloned.ok).toBe(true)
+    expect(cloned.data?.repository.name).toBe('repo')
+    const inited = await service.initRepository({ path: '/tmp/new' })
+    expect(invoker).toHaveBeenCalledWith('git_init_repo', {
+      request: { path: '/tmp/new' },
+      options: undefined,
+    })
+    expect(inited.ok).toBe(true)
+  })
+
+  it('maps clone failures to message and code', async () => {
+    const { service } = setup(async () => ({
+      ok: false,
+      error: { __gitError: true, code: 'Authentication', message: 'Auth failed' },
+    }))
+    const cloned = await service.cloneRepository({ url: 'git@h:o/r.git', parentPath: '/tmp' })
+    expect(cloned.ok).toBe(false)
+    expect(cloned.errorCode).toBe('Authentication')
+    expect(cloned.message).toContain('Auth failed')
+  })
+
+  it('discovers repos via git_discover_repos', async () => {
+    const found = [{ path: '/tmp/a', name: 'a' }]
+    const { service, invoker } = setup(async () => found)
+    await expect(service.discoverRepositories({ root: '/tmp' })).resolves.toEqual(found)
+    expect(invoker).toHaveBeenCalledWith('git_discover_repos', { request: { root: '/tmp' } })
+  })
 })

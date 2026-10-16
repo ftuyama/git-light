@@ -1,7 +1,9 @@
 import { defineStore } from 'pinia'
 import type { GraphScope } from '@shared/git/models'
 import { syncThemePreference } from '@/lib/applyTheme'
+import { defaultKeymap, sanitizeKeymap, type CommandId, type KeyBinding, type Keymap } from '@/lib/keybindings'
 import {
+  clampAutoFetchIntervalSec,
   clampCommitGraphLimit,
   clampColumnWidth,
   clampLeftSidebarSize,
@@ -72,6 +74,8 @@ function snapshot(state: {
   diffWordWrap: boolean
   signOffCommit: boolean
   signCommit: boolean
+  autoFetchIntervalSec: number
+  keybindings: Keymap
 }): UserPreferences {
   return {
     leftSize: state.leftSize,
@@ -96,6 +100,8 @@ function snapshot(state: {
     diffWordWrap: state.diffWordWrap,
     signOffCommit: state.signOffCommit,
     signCommit: state.signCommit,
+    autoFetchIntervalSec: state.autoFetchIntervalSec,
+    keybindings: state.keybindings,
   }
 }
 
@@ -123,6 +129,8 @@ export const useUiStore = defineStore('ui', {
     diffWordWrap: false,
     signOffCommit: false,
     signCommit: false,
+    autoFetchIntervalSec: defaultPreferences().autoFetchIntervalSec,
+    keybindings: defaultKeymap(),
     commandPaletteOpen: false,
     settingsOpen: false,
     leftCollapseHint: false,
@@ -166,6 +174,8 @@ export const useUiStore = defineStore('ui', {
       this.diffWordWrap = saved.diffWordWrap
       this.signOffCommit = saved.signOffCommit
       this.signCommit = saved.signCommit
+      this.autoFetchIntervalSec = saved.autoFetchIntervalSec
+      this.keybindings = saved.keybindings ? sanitizeKeymap(saved.keybindings) : defaultKeymap()
       syncThemePreference(this.theme)
       if (persistenceBound) return
       persistenceBound = true
@@ -202,6 +212,8 @@ export const useUiStore = defineStore('ui', {
           diffWordWrap: this.diffWordWrap,
           signOffCommit: this.signOffCommit,
           signCommit: this.signCommit,
+          autoFetchIntervalSec: this.autoFetchIntervalSec,
+          keybindings: this.keybindings,
         }),
       )
     },
@@ -345,6 +357,9 @@ export const useUiStore = defineStore('ui', {
     setSignCommit(value: boolean): void {
       this.signCommit = value
     },
+    setAutoFetchIntervalSec(value: number): void {
+      this.autoFetchIntervalSec = clampAutoFetchIntervalSec(value)
+    },
     setFileListView(view: FileListView): void {
       this.fileListView = view
     },
@@ -362,6 +377,19 @@ export const useUiStore = defineStore('ui', {
       this.workingTreeChangesSize = d.workingTreeChangesSize
       this.leftCollapsed = d.leftCollapsed
       this.rightCollapsed = d.rightCollapsed
+    },
+    setBinding(command: CommandId, binding: KeyBinding | null): void {
+      this.keybindings = { ...this.keybindings, [command]: binding ? [{ ...binding }] : [] }
+    },
+    clearBinding(command: CommandId): void {
+      this.keybindings = { ...this.keybindings, [command]: [] }
+    },
+    resetBinding(command: CommandId): void {
+      const defaults = defaultKeymap()
+      this.keybindings = { ...this.keybindings, [command]: defaults[command].map((x) => ({ ...x })) }
+    },
+    resetAllKeybindings(): void {
+      this.keybindings = defaultKeymap()
     },
   },
 })

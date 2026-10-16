@@ -1,20 +1,30 @@
 <script setup lang="ts">
 import { computed, onUnmounted, ref, watch } from 'vue'
-import { GitCommitHorizontal, Heart, Keyboard, LayoutPanelLeft, Palette, PanelLeft, PenLine, Rows3, X } from '@lucide/vue'
+import { GitCommitHorizontal, Heart, Keyboard, LayoutPanelLeft, Palette, PanelLeft, PenLine, RefreshCw, Rows3, X } from '@lucide/vue'
 import { storeToRefs } from 'pinia'
 import Button from '@/components/ui/Button.vue'
 import SettingsCreditsPanel from './SettingsCreditsPanel.vue'
 import SettingsRow from './SettingsRow.vue'
 import ThemePicker from './ThemePicker.vue'
 import UiModePicker from './UiModePicker.vue'
-import { KEYBOARD_SHORTCUTS } from '@/lib/keyboardShortcuts'
+import ShortcutRecorder from './ShortcutRecorder.vue'
+import {
+  COMMAND_IDS,
+  COMMAND_META,
+  bindingSignature,
+  findConflicts,
+  type CommandId,
+  type KeyBinding,
+} from '@/lib/keybindings'
 import {
   ADVANCED_SECTION_KEYS,
+  AUTO_FETCH_INTERVAL_OPTIONS,
   COLUMN_LABELS,
   COMMIT_GRAPH_LIMIT_MAX,
   COMMIT_GRAPH_LIMIT_MIN,
   SECTION_KEYS,
   SECTION_LABELS,
+  formatAutoFetchInterval,
   type CommitColumnKey,
   type SectionKey,
 } from '@/lib/preferences'
@@ -23,10 +33,10 @@ import { useRepositoryStore } from '@/stores/repository'
 
 const ui = useUiStore()
 const repo = useRepositoryStore()
-const { leftCollapsed, rightCollapsed, settingsOpen, graphScopeAll, commitGraphLimit, fileListView, theme, uiMode, signOffCommit, signCommit } =
+const { leftCollapsed, rightCollapsed, settingsOpen, graphScopeAll, commitGraphLimit, fileListView, theme, uiMode, signOffCommit, signCommit, autoFetchIntervalSec } =
   storeToRefs(ui)
 
-type SettingsCategory = 'appearance' | 'layout' | 'changes' | 'commits' | 'commit-graph' | 'sidebar' | 'shortcuts' | 'credits'
+type SettingsCategory = 'appearance' | 'layout' | 'changes' | 'commits' | 'commit-graph' | 'sidebar' | 'sync' | 'shortcuts' | 'credits'
 
 const activeCategory = ref<SettingsCategory>('appearance')
 
@@ -38,24 +48,78 @@ const sidebarSectionKeys = computed(() =>
     : SECTION_KEYS.filter((key) => !ADVANCED_SECTION_KEYS.includes(key as (typeof ADVANCED_SECTION_KEYS)[number])),
 )
 
-const preferenceCategories: { id: SettingsCategory; label: string; icon: typeof LayoutPanelLeft }[] =
-  [
-    { id: 'appearance', label: 'Appearance', icon: Palette },
-    { id: 'layout', label: 'Layout', icon: LayoutPanelLeft },
-    { id: 'changes', label: 'Changes', icon: Rows3 },
-    { id: 'commits', label: 'Commits', icon: PenLine },
-    { id: 'commit-graph', label: 'Commit Graph', icon: GitCommitHorizontal },
-    { id: 'sidebar', label: 'Sidebar', icon: PanelLeft },
-    { id: 'shortcuts', label: 'Shortcuts', icon: Keyboard },
-  ]
+interface SettingsCategoryItem {
+  id: SettingsCategory
+  label: string
+  icon: typeof LayoutPanelLeft
+}
 
-const creditsCategory = { id: 'credits' as const, label: 'Credits', icon: Heart }
+interface SettingsGroup {
+  label: string
+  items: SettingsCategoryItem[]
+}
 
-const categories = [...preferenceCategories, creditsCategory]
+const preferenceGroups: SettingsGroup[] = [
+  {
+    label: 'General',
+    items: [
+      { id: 'appearance', label: 'Appearance', icon: Palette },
+      { id: 'layout', label: 'Layout', icon: LayoutPanelLeft },
+    ],
+  },
+  {
+    label: 'Repository',
+    items: [
+      { id: 'changes', label: 'Changes', icon: Rows3 },
+      { id: 'commits', label: 'Commits', icon: PenLine },
+      { id: 'commit-graph', label: 'Commit Graph', icon: GitCommitHorizontal },
+      { id: 'sidebar', label: 'Sidebar', icon: PanelLeft },
+      { id: 'sync', label: 'Sync', icon: RefreshCw },
+    ],
+  },
+  {
+    label: 'Application',
+    items: [
+      { id: 'shortcuts', label: 'Shortcuts', icon: Keyboard },
+      { id: 'credits', label: 'Credits', icon: Heart },
+    ],
+  },
+]
 
-const visibleShortcuts = computed(() =>
-  KEYBOARD_SHORTCUTS.filter((entry) => !entry.advanced || ui.isAdvanced),
-)
+const categories = preferenceGroups.flatMap((group) => group.items)
+
+const visibleShortcutGroups = computed(() => {
+  const groups = new Map<string, CommandId[]>()
+  for (const id of COMMAND_IDS) {
+    const meta = COMMAND_META[id]
+    if (meta.advanced && !ui.isAdvanced) continue
+    const list = groups.get(meta.category) ?? []
+    list.push(id)
+    groups.set(meta.category, list)
+  }
+  return [...groups.entries()]
+})
+
+const conflictSignatures = computed(() => new Set(findConflicts(ui.keybindings).keys()))
+
+function isConflicted(id: CommandId): boolean {
+  return (ui.keybindings[id] ?? []).some((x) => conflictSignatures.value.has(bindingSignature(x)))
+}
+
+function conflictNames(id: CommandId): string {
+  const sigs = new Map<string, CommandId[]>(findConflicts(ui.keybindings))
+  const names = new Set<string>()
+  for (const binding of ui.keybindings[id] ?? []) {
+    for (const other of sigs.get(bindingSignature(binding)) ?? []) {
+      if (other !== id) names.add(COMMAND_META[other].title)
+    }
+  }
+  return [...names].join(', ')
+}
+
+function onCapture(id: CommandId, binding: KeyBinding): void {
+  ui.setBinding(id, binding)
+}
 
 const columnDescriptions: Record<CommitColumnKey, string> = {
   author: 'Show the commit author avatar and name in each row.',
@@ -90,6 +154,12 @@ function onCommitGraphLimit(value: number): void {
   refreshGraphIfOpen()
 }
 
+function onAutoFetchIntervalSec(value: number): void {
+  ui.setAutoFetchIntervalSec(value)
+  // Apply immediately: restart the background timer with the new delay.
+  if (repo.hasOpenRepo) repo.restartAutoFetch()
+}
+
 watch(settingsOpen, (open) => {
   if (open) document.addEventListener('keydown', onKeydown)
   else document.removeEventListener('keydown', onKeydown)
@@ -113,40 +183,29 @@ onUnmounted(() => document.removeEventListener('keydown', onKeydown))
       >
         <!-- Sidebar nav -->
         <nav
-          class="flex w-44 shrink-0 flex-col border-r border-[var(--color-border)] bg-[var(--color-panel-raised)] py-3"
+          class="flex w-44 shrink-0 flex-col overflow-y-auto border-r border-[var(--color-border)] bg-[var(--color-panel-raised)] py-3"
         >
-          <p
-            class="mb-2 px-4 text-[11px] font-semibold tracking-wide text-[var(--color-fg-subtle)] uppercase"
-          >
-            Preferences
-          </p>
-          <button
-            v-for="category in preferenceCategories"
-            :key="category.id"
-            class="focus-ring mx-2 flex items-center gap-2.5 rounded-md px-2.5 py-2 text-left text-[13px] transition-colors"
-            :class="
-              activeCategory === category.id
-                ? 'bg-[var(--color-accent-soft)] font-medium text-[var(--color-accent)]'
-                : 'text-[var(--color-fg-muted)] hover:bg-[var(--color-hover)] hover:text-[var(--color-fg)]'
-            "
-            @click="activeCategory = category.id"
-          >
-            <component :is="category.icon" :size="15" class="shrink-0" />
-            {{ category.label }}
-          </button>
-          <div class="my-3 border-t border-[var(--color-border)]" />
-          <button
-            class="focus-ring mx-2 flex items-center gap-2.5 rounded-md px-2.5 py-2 text-left text-[13px] transition-colors"
-            :class="
-              activeCategory === creditsCategory.id
-                ? 'bg-[var(--color-accent-soft)] font-medium text-[var(--color-accent)]'
-                : 'text-[var(--color-fg-muted)] hover:bg-[var(--color-hover)] hover:text-[var(--color-fg)]'
-            "
-            @click="activeCategory = creditsCategory.id"
-          >
-            <component :is="creditsCategory.icon" :size="15" class="shrink-0" />
-            {{ creditsCategory.label }}
-          </button>
+          <div v-for="group in preferenceGroups" :key="group.label">
+            <p
+              class="mt-2 mb-1 px-4 text-[11px] font-semibold tracking-wide text-[var(--color-fg-subtle)] uppercase first:mt-0"
+            >
+              {{ group.label }}
+            </p>
+            <button
+              v-for="category in group.items"
+              :key="category.id"
+              class="focus-ring mx-2 flex w-[calc(100%-1rem)] items-center gap-2.5 rounded-md px-2.5 py-2 text-left text-[13px] transition-colors"
+              :class="
+                activeCategory === category.id
+                  ? 'bg-[var(--color-accent-soft)] font-medium text-[var(--color-accent)]'
+                  : 'text-[var(--color-fg-muted)] hover:bg-[var(--color-hover)] hover:text-[var(--color-fg)]'
+              "
+              @click="activeCategory = category.id"
+            >
+              <component :is="category.icon" :size="15" class="shrink-0" />
+              {{ category.label }}
+            </button>
+          </div>
         </nav>
 
         <!-- Content -->
@@ -352,22 +411,97 @@ onUnmounted(() => document.removeEventListener('keydown', onKeydown))
               </section>
             </template>
 
-            <template v-else-if="activeCategory === 'shortcuts'">
+            <template v-else-if="activeCategory === 'sync'">
               <p class="mb-3 px-3 text-[12px] text-[var(--color-fg-muted)]">
-                Keyboard shortcuts available in the repository view.
+                Keep remote-tracking branches fresh without leaving the app.
               </p>
               <section class="space-y-0.5">
-                <div
-                  v-for="shortcut in visibleShortcuts"
-                  :key="shortcut.keys"
-                  class="flex items-center justify-between gap-4 rounded-lg px-3 py-2.5 transition-colors hover:bg-[var(--color-hover)]"
+                <h3
+                  class="px-3 pb-1 text-[11px] font-semibold tracking-wide text-[var(--color-fg-subtle)] uppercase"
                 >
-                  <span class="text-[13px] text-[var(--color-fg)]">{{ shortcut.description }}</span>
-                  <kbd
-                    class="shrink-0 rounded border border-[var(--color-border)] bg-[var(--color-app)] px-2 py-0.5 font-mono text-[11px] text-[var(--color-fg-muted)]"
+                  Background fetch
+                </h3>
+                <div
+                  class="flex items-start justify-between gap-4 rounded-lg px-3 py-2.5 transition-colors hover:bg-[var(--color-hover)]"
+                >
+                  <div class="min-w-0 pt-0.5">
+                    <div class="text-[13px] font-medium text-[var(--color-fg)]">
+                      Auto-fetch interval
+                    </div>
+                    <p class="mt-0.5 text-[12px] leading-snug text-[var(--color-fg-muted)]">
+                      Silently fetch all remotes on a schedule. No banner, no toast — the
+                      graph just updates.
+                    </p>
+                  </div>
+                  <select
+                    class="focus-ring shrink-0 rounded-md border border-[var(--color-border)] bg-[var(--color-app)] px-2 py-1 text-[13px] text-[var(--color-fg)]"
+                    :value="autoFetchIntervalSec"
+                    aria-label="Auto-fetch interval"
+                    @change="
+                      onAutoFetchIntervalSec(Number(($event.target as HTMLSelectElement).value))
+                    "
                   >
-                    {{ shortcut.keys }}
-                  </kbd>
+                    <option
+                      v-for="option in AUTO_FETCH_INTERVAL_OPTIONS"
+                      :key="option"
+                      :value="option"
+                    >
+                      {{ formatAutoFetchInterval(option) }}
+                    </option>
+                  </select>
+                </div>
+              </section>
+            </template>
+
+            <template v-else-if="activeCategory === 'shortcuts'">
+              <div class="mb-3 flex items-start justify-between gap-3 px-3">
+                <p class="text-[12px] text-[var(--color-fg-muted)]">
+                  Click a shortcut to record a new one. Esc cancels. Conflicts are highlighted.
+                </p>
+                <Button variant="secondary" size="sm" class="shrink-0" @click="ui.resetAllKeybindings()">
+                  Restore defaults
+                </Button>
+              </div>
+              <section v-for="[group, ids] in visibleShortcutGroups" :key="group" class="mb-4 space-y-0.5">
+                <h3
+                  class="px-3 pb-1 text-[11px] font-semibold tracking-wide text-[var(--color-fg-subtle)] uppercase"
+                >
+                  {{ group }}
+                </h3>
+                <div
+                  v-for="id in ids"
+                  :key="id"
+                  class="flex items-center justify-between gap-4 rounded-lg px-3 py-2 transition-colors hover:bg-[var(--color-hover)]"
+                >
+                  <div class="min-w-0">
+                    <div class="text-[13px] text-[var(--color-fg)]">{{ COMMAND_META[id].title }}</div>
+                    <div v-if="isConflicted(id)" class="mt-0.5 text-[11px] text-[var(--color-danger)]">
+                      Conflicts with: {{ conflictNames(id) }}
+                    </div>
+                  </div>
+                  <div class="flex shrink-0 items-center gap-1.5">
+                    <ShortcutRecorder
+                      :bindings="ui.keybindings[id]"
+                      @capture="(binding) => onCapture(id, binding)"
+                    />
+                    <button
+                      v-if="ui.keybindings[id]?.length"
+                      class="focus-ring rounded px-1.5 py-0.5 text-[11px] text-[var(--color-fg-subtle)] hover:bg-[var(--color-hover)] hover:text-[var(--color-fg)]"
+                      :aria-label="`Disable ${COMMAND_META[id].title} shortcut`"
+                      title="Disable (clear shortcut)"
+                      @click="ui.clearBinding(id)"
+                    >
+                      ×
+                    </button>
+                    <button
+                      class="focus-ring rounded px-1.5 py-0.5 text-[11px] text-[var(--color-fg-subtle)] hover:bg-[var(--color-hover)] hover:text-[var(--color-fg)]"
+                      :aria-label="`Reset ${COMMAND_META[id].title} shortcut`"
+                      title="Reset to default"
+                      @click="ui.resetBinding(id)"
+                    >
+                      ↺
+                    </button>
+                  </div>
                 </div>
               </section>
             </template>

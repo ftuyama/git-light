@@ -1,6 +1,7 @@
 import { computed, type ComputedRef } from 'vue'
 import { storeToRefs } from 'pinia'
 import { graphEdgePath } from '@/lib/graph/graphEdgePath'
+import { commitMatchesFilter, isGraphFiltering, stashMatchesFilter } from '@/lib/graph/graphFilter'
 import { stashVirtualIndexByStash } from '@/lib/graph/stashGraphRows'
 import type { GraphRow } from '@/lib/graph/stashGraphRows'
 import { useRepositoryStore } from '@/stores/repository'
@@ -13,6 +14,7 @@ export interface VisibleEdge {
   d: string
   color: string
   dashed?: boolean
+  dimmed?: boolean
 }
 
 export interface VisibleNode {
@@ -26,6 +28,7 @@ export interface VisibleNode {
   pending?: boolean
   stash?: boolean
   stashIndex?: number
+  dimmed?: boolean
 }
 
 export function useCommitGraphOverlay(options: {
@@ -43,7 +46,7 @@ export function useCommitGraphOverlay(options: {
 }) {
   const repo = useRepositoryStore()
   const selection = useSelectionStore()
-  const { selectedSha, selectedStash } = storeToRefs(selection)
+  const { selectedSha, selectedStash, graphFilter } = storeToRefs(selection)
   const {
     virtualItems,
     rows,
@@ -70,6 +73,13 @@ export function useCommitGraphOverlay(options: {
     const items = virtualItems.value
     if (items.length === 0) return []
     const edges: VisibleEdge[] = []
+    const filtering = isGraphFiltering(graphFilter.value)
+
+    const isCommitDimmed = (commitIndex: number): boolean => {
+      if (!filtering) return false
+      const commit = repo.commits[commitIndex]
+      return commit ? !commitMatchesFilter(commit, graphFilter.value) : false
+    }
 
     const visibleCommitIndices = items
       .map((item) => resolveCommitIndex(item.index))
@@ -98,7 +108,7 @@ export function useCommitGraphOverlay(options: {
             laneWidth.value * 0.35,
           )
           const d = graphEdgePath(x1, y1, x2, y2, cornerRadius, seg.kind)
-          edges.push({ key: `${band}-${i}`, d, color: seg.color })
+          edges.push({ key: `${band}-${i}`, d, color: seg.color, dimmed: isCommitDimmed(band) })
         }
       }
     }
@@ -155,6 +165,7 @@ export function useCommitGraphOverlay(options: {
           d: graphEdgePath(baseX, baseY, boxX, stashY, 9, 'merge'),
           color: 'var(--color-info)',
           dashed: true,
+          dimmed: filtering && !stashMatchesFilter(stash, graphFilter.value),
         })
       })
     }
@@ -164,6 +175,7 @@ export function useCommitGraphOverlay(options: {
 
   const visibleNodes = computed<VisibleNode[]>(() => {
     const nodes: VisibleNode[] = []
+    const filtering = isGraphFiltering(graphFilter.value)
 
     if (hasPendingRow.value) {
       const pendingVirtual = rows.value.findIndex((row) => row.kind === 'pending')
@@ -187,6 +199,7 @@ export function useCommitGraphOverlay(options: {
     for (const item of virtualItems.value) {
       const stashIndex = resolveStashIndex(item.index)
       if (stashIndex !== null) {
+        const stash = repo.stashes[stashIndex]
         nodes.push({
           key: `stash-${stashIndex}`,
           cx: stashBoxX(stashIndex),
@@ -196,6 +209,7 @@ export function useCommitGraphOverlay(options: {
           merge: false,
           stash: true,
           stashIndex,
+          dimmed: filtering && stash ? !stashMatchesFilter(stash, graphFilter.value) : false,
         })
         continue
       }
@@ -212,6 +226,7 @@ export function useCommitGraphOverlay(options: {
         selected: node.sha === selectedSha.value,
         merge: commit.isMerge,
         author: commit.author,
+        dimmed: filtering && !commitMatchesFilter(commit, graphFilter.value),
       })
     }
 

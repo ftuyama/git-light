@@ -5,6 +5,7 @@ import { resetDiffReloadScheduler } from './diffReloadScheduler'
 
 export function resetPerRepoUiState(): void {
   useSelectionStore().cancelBranchCreation()
+  useSelectionStore().setGraphFilter('')
   useSelectionStore().select(null)
   useRepoDiffStore().resetOnRepoClose()
   resetDiffReloadScheduler()

@@ -10,10 +10,9 @@ For what **is** planned, see [README.md](README.md).
 
 | Feature | Rationale |
 |---------|-----------|
-| **Clone repository** | Users clone with `git clone` (or their host's UI) and open the folder in Git Light. In-app clone adds auth, progress UX, and path picking that duplicate the shell and hosting clients. |
-| Init new repository UI | Creating a repo is a one-line `git init`; open-folder covers the common path. |
+| In-app clone with hosting auth (OAuth token flows, private-host browsing) | Users authenticate with SSH keys or their system credential manager; in-app OAuth adds account/token storage and API churn that duplicate the host UI. |
 
-**In scope instead:** startup screen with recent repositories and open-folder dialog.
+**In scope:** startup screen with recent repositories, open-folder dialog, `git clone` into a chosen folder (SSH/credential-manager auth, progress + cancel), `git init` for new repositories, and folder discovery (open a subfolder resolves to the repo root; scanning a parent folder lists nested repositories).
 
 ---
 

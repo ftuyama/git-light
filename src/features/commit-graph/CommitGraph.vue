@@ -19,6 +19,7 @@ import {
 } from './composables/useCommitGraphSelection'
 import { useCommitGraphVirtualList } from './composables/useCommitGraphVirtualList'
 import { useCommitGraphZoom } from './composables/useCommitGraphZoom'
+import { commitMatchesFilter, isGraphFiltering, stashMatchesFilter } from '@/lib/graph/graphFilter'
 
 const diffStore = useRepoDiffStore()
 const { repo, showLoading, hasPendingRow, headIndex, pendingRowSelected } = useCommitGraphState()
@@ -96,6 +97,35 @@ function stashBoxTitle(stashIndex: number): string {
   if (anchored) return `Stash sobre ${stash.baseSha.slice(0, 7)}`
   const subject = stash.baseSubject ? ` “${stash.baseSubject}”` : ''
   return `Stash sobre ${stash.baseSha.slice(0, 7)}${subject} — fora da vista carregada`
+}
+
+const graphFilterText = computed(() => selection.graphFilter ?? '')
+const isFiltering = computed(() => isGraphFiltering(graphFilterText.value))
+
+function isCommitDimmed(commitIndex: number): boolean {
+  if (!isFiltering.value) return false
+  const commit = repo.commits[commitIndex]
+  return commit ? !commitMatchesFilter(commit, graphFilterText.value) : false
+}
+
+function isStashDimmed(stashIndex: number): boolean {
+  if (!isFiltering.value) return false
+  const stash = repo.stashes[stashIndex]
+  return stash ? !stashMatchesFilter(stash, graphFilterText.value) : false
+}
+
+function isEditableDblClickTarget(event: Event): boolean {
+  const target = event.target
+  if (!(target instanceof HTMLElement)) return false
+  return Boolean(target.closest('input, textarea, [contenteditable="true"]'))
+}
+
+function checkoutCommitAt(commitIndex: number, event?: Event): void {
+  if (event && isEditableDblClickTarget(event)) return
+  if (selection.branchCreation) return
+  const sha = repo.commits[commitIndex]?.sha
+  if (!sha) return
+  void repo.runAction({ kind: 'checkout-commit', target: sha })
 }
 </script>
 
@@ -229,6 +259,7 @@ function stashBoxTitle(stashIndex: number): string {
               :stroke-linecap="edge.dashed ? 'round' : 'butt'"
               stroke-linejoin="round"
               :stroke-dasharray="edge.dashed ? '5 4' : undefined"
+              :opacity="edge.dimmed ? 0.2 : 1"
             />
             <template v-for="node in visibleNodes" :key="`sel-${node.key}`">
               <circle
@@ -261,7 +292,7 @@ function stashBoxTitle(stashIndex: number): string {
             <div
               v-for="node in visibleNodes"
               :key="node.key"
-              class="absolute flex items-center justify-center"
+              class="absolute flex items-center justify-center transition-opacity"
               :style="
                 node.stash
                   ? {
@@ -269,12 +300,14 @@ function stashBoxTitle(stashIndex: number): string {
                       height: `${stashBoxSize}px`,
                       left: `${node.cx - stashBoxSize / 2}px`,
                       top: `${node.cy - stashBoxSize / 2}px`,
+                      opacity: node.dimmed ? 0.3 : 1,
                     }
                   : {
                       width: `${nodeSize}px`,
                       height: `${nodeSize}px`,
                       left: `${node.cx - nodeSize / 2}px`,
                       top: `${node.cy - nodeSize / 2}px`,
+                      opacity: node.dimmed ? 0.3 : 1,
                     }
               "
             >
@@ -309,12 +342,13 @@ function stashBoxTitle(stashIndex: number): string {
           <div
             v-if="resolveStashIndex(item.index) !== null"
             class="group/row h-full cursor-pointer border-l-2 transition-colors"
-            :class="
+            :class="[
               selection.selectedStash ===
               repo.stashes[resolveStashIndex(item.index)!]?.id
                 ? 'border-[var(--color-accent)] bg-[var(--color-accent-soft)]'
-                : 'border-transparent hover:bg-[var(--color-hover)]/25'
-            "
+                : 'border-transparent hover:bg-[var(--color-hover)]/25',
+              isStashDimmed(resolveStashIndex(item.index)!) ? 'opacity-40' : '',
+            ]"
             role="row"
             :aria-selected="
               selection.selectedStash ===
@@ -357,10 +391,14 @@ function stashBoxTitle(stashIndex: number): string {
           <div
             v-else
             class="group/row h-full cursor-pointer border-l-2 transition-colors"
-            :class="rowClasses(resolveCommitIndex(item.index)!)"
+            :class="[
+              rowClasses(resolveCommitIndex(item.index)!),
+              isCommitDimmed(resolveCommitIndex(item.index)!) ? 'opacity-40' : '',
+            ]"
             role="row"
             :aria-selected="selectedSha === repo.commits[resolveCommitIndex(item.index)!]?.sha"
             @click="selectRow(repo.commits[resolveCommitIndex(item.index)!].sha, $event)"
+            @dblclick="checkoutCommitAt(resolveCommitIndex(item.index)!, $event)"
             @mouseenter="selection.hover(repo.commits[resolveCommitIndex(item.index)!].sha)"
             @mouseleave="selection.hover(null)"
           >

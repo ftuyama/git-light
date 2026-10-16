@@ -12,11 +12,14 @@ Download: https://github.com/ftuyama/git-light/releases
 
 ## Overview
 
-Git Light is a desktop Git client with a graph-first interface. It provides a three-pane repository view that runs real Git commands against local repositories via typed Tauri commands. Open a folder, browse history, manage branches, stage files, commit, fetch/pull/push, and inspect diffs.
+Git Light is a desktop Git client with a graph-first interface. It provides a three-pane repository view that runs real Git commands against local repositories via typed Tauri commands. Open a folder, clone from a URL, start a repo with init, browse history, manage branches, stage files, commit, fetch/pull/push, and inspect diffs.
 
 Git Light is a Tauri 2 app. The renderer never shells out to Git directly — the Rust backend runs the native `git` CLI and exposes typed commands to the Vue 3 renderer.
 
 ## Features
+
+### Clone, init & discovery
+Clone from a URL with progress and cancel, start a repo with init, or scan a folder to find nested repositories. Opening a subfolder resolves to the repo root. No account required.
 
 ### Commit graph
 Virtualized SVG lanes with a pending-changes row, infinite scroll, and arrow-key selection across history.
@@ -82,7 +85,8 @@ Collapsible sidebars with expand rails, resizable panes, and commit graph zoom f
 | Credits & attribution (settings panel + native About dialog) | Supported |
 | Resizable three-pane layout · file watcher auto-refresh | Supported |
 | Auto-update check (packaged builds) · Check for Updates… menu | Supported |
-| Clone / hosting auth UI | Not yet |
+| Clone (URL, progress + cancel) · init new repository · folder discovery | Supported |
+| Hosting auth UI (OAuth sign-in, private-host browsing) | Not yet |
 
 ## Tech stack
 
@@ -118,7 +122,7 @@ Yes. Git Light is MIT-licensed and free to download and use. Optional sponsorshi
 Packaged builds are available for macOS (.dmg), Windows (.exe), and Linux (.AppImage, .deb) on GitHub Releases. Developers can run it locally on any OS that supports Tauri with Node.js, npm, and Rust.
 
 ### Does Git Light require an account?
-No sign-in, cloud sync, or subscription. Open a local folder and work with your existing Git repositories offline.
+No sign-in, cloud sync, or subscription. Open a local folder, clone from a URL, or start a new repo and work with your Git repositories offline.
 
 ### How is Git Light different from GitKraken or Sourcetree?
 Git Light is a lightweight, open-source alternative focused on a fast commit graph and direct Git CLI operations — without vendor accounts or lock-in. Built with Tauri 2, Vue 3, TypeScript, and Rust.

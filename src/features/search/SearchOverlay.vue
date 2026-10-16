@@ -26,9 +26,19 @@ watch(
       query.value = ''
       commits.value = []
       files.value = []
+      selection.setGraphFilter('')
     }
   },
 )
+
+watch(query, (text) => {
+  selection.setGraphFilter(text)
+})
+
+function close(): void {
+  selection.setGraphFilter('')
+  repo.closeSearch()
+}
 
 async function runSearch(): Promise<void> {
   const text = query.value.trim()
@@ -45,17 +55,19 @@ async function runSearch(): Promise<void> {
 
 function selectCommit(hit: SearchCommitHit): void {
   selection.select(hit.sha)
+  selection.setGraphFilter('')
   repo.closeSearch()
 }
 
 function selectFile(path: string): void {
   selection.select(null)
+  selection.setGraphFilter('')
   diffStore.selectFile(path)
   repo.closeSearch()
 }
 
 function onKeydown(event: KeyboardEvent): void {
-  if (event.key === 'Escape') repo.closeSearch()
+  if (event.key === 'Escape') close()
 }
 </script>
 
@@ -64,7 +76,7 @@ function onKeydown(event: KeyboardEvent): void {
     <div
       v-if="repo.searchOpen"
       class="fixed inset-0 z-[180] flex items-start justify-center bg-black/50 p-6 pt-[12vh] backdrop-blur-[1px]"
-      @click.self="repo.closeSearch()"
+      @click.self="close()"
       @keydown="onKeydown"
     >
       <div
@@ -82,7 +94,7 @@ function onKeydown(event: KeyboardEvent): void {
           />
           <button
             class="focus-ring rounded p-1 text-[var(--color-fg-subtle)] hover:bg-[var(--color-hover)]"
-            @click="repo.closeSearch()"
+            @click="close()"
           >
             <X :size="16" />
           </button>

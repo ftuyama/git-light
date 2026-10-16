@@ -23,6 +23,7 @@ export const useSelectionStore = defineStore('selection', {
     hoveredSha: null as string | null,
     compareRange: null as CompareRange | null,
     branchCreation: null as BranchCreation | null,
+    graphFilter: '' as string,
   }),
 
   getters: {
@@ -62,6 +63,10 @@ export const useSelectionStore = defineStore('selection', {
 
     cancelBranchCreation(): void {
       this.branchCreation = null
+    },
+
+    setGraphFilter(query: string): void {
+      this.graphFilter = query
     },
 
     /** Sidebar branch click: highlight the branch and jump to its tip commit. */

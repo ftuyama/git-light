@@ -3,16 +3,20 @@ import type {
   ActionEnvelope,
   BlameRequest,
   BlameResult,
+  CloneRepoRequest,
   CommitPageInfo,
   CommitPageRequest,
   ConflictRequest,
   ConflictResult,
   DiffRequest,
   DiffResult,
+  DiscoveredRepo,
+  DiscoverReposRequest,
   FileHistoryRequest,
   FileHistoryResult,
   ImagePreviewRequest,
   ImagePreviewResult,
+  InitRepoRequest,
   OperationProgress,
   RecentRepository,
   RepoChangeEvent,
@@ -32,9 +36,9 @@ function envelopeToResult(envelope: ActionEnvelope): ActionResult {
   if (envelope.error) {
     const err = envelope.error
     const detail = err.detail ? `: ${err.detail}` : ''
-    return { ok: false, message: `${err.message}${detail}`, errorCode: err.code }
+    return { ok: false, message: `${err.message}${detail}`, errorCode: err.code, commands: envelope.commands }
   }
-  return { ok: envelope.ok, message: envelope.message }
+  return { ok: envelope.ok, message: envelope.message, commands: envelope.commands }
 }
 
 function toSnapshotOptions(
@@ -89,14 +93,35 @@ export class TauriGitService implements GitService {
   async openRepository(
     path: string,
     options?: SnapshotRefreshOptions,
-  ): Promise<{ ok: boolean; data?: RepositoryData; message: string }> {
+  ): Promise<{ ok: boolean; data?: RepositoryData; message: string; errorCode?: GitError['code'] }> {
     const result = (await this.invoker('git_open_repo', { path, options })) as {
       ok: boolean
       snapshot?: Parameters<typeof wireSnapshotToRepositoryData>[0]
       error?: ReturnType<GitError['serialize']>
     }
     if (!result.ok || !result.snapshot) {
-      return { ok: false, message: result.error?.message ?? 'Failed to open repository.' }
+      return {
+        ok: false,
+        message: result.error?.message ?? 'Failed to open repository.',
+        errorCode: result.error?.code,
+      }
+    }
+    const data = wireSnapshotToRepositoryData(result.snapshot)
+    this.page = data.page
+    return { ok: true, data, message: `Opened ${data.repository.name}` }
+  }
+
+  private applyOpenedSnapshot(result: {
+    ok: boolean
+    snapshot?: Parameters<typeof wireSnapshotToRepositoryData>[0]
+    error?: ReturnType<GitError['serialize']>
+  }): { ok: boolean; data?: RepositoryData; message: string; errorCode?: GitError['code'] } {
+    if (!result.ok || !result.snapshot) {
+      return {
+        ok: false,
+        message: result.error?.message ?? 'Failed to open repository.',
+        errorCode: result.error?.code,
+      }
     }
     const data = wireSnapshotToRepositoryData(result.snapshot)
     this.page = data.page
@@ -105,7 +130,7 @@ export class TauriGitService implements GitService {
 
   async pickAndOpenRepository(
     options?: SnapshotRefreshOptions,
-  ): Promise<{ ok: boolean; cancelled?: boolean; data?: RepositoryData; message: string }> {
+  ): Promise<{ ok: boolean; cancelled?: boolean; data?: RepositoryData; message: string; errorCode?: GitError['code'] }> {
     const result = (await this.invoker('git_pick_and_open_repo', { options })) as
       | { cancelled: true }
       | {
@@ -117,11 +142,43 @@ export class TauriGitService implements GitService {
       return { ok: false, cancelled: true, message: '' }
     }
     if (!result.ok || !result.snapshot) {
-      return { ok: false, message: result.error?.message ?? 'Failed to open repository.' }
+      return {
+        ok: false,
+        message: result.error?.message ?? 'Failed to open repository.',
+        errorCode: result.error?.code,
+      }
     }
     const data = wireSnapshotToRepositoryData(result.snapshot)
     this.page = data.page
     return { ok: true, data, message: `Opened ${data.repository.name}` }
+  }
+
+  async cloneRepository(
+    request: CloneRepoRequest,
+    options?: SnapshotRefreshOptions,
+  ): Promise<{ ok: boolean; data?: RepositoryData; message: string; errorCode?: GitError['code'] }> {
+    const result = (await this.invoker('git_clone_repo', { request, options })) as {
+      ok: boolean
+      snapshot?: Parameters<typeof wireSnapshotToRepositoryData>[0]
+      error?: ReturnType<GitError['serialize']>
+    }
+    return this.applyOpenedSnapshot(result)
+  }
+
+  async initRepository(
+    request: InitRepoRequest,
+    options?: SnapshotRefreshOptions,
+  ): Promise<{ ok: boolean; data?: RepositoryData; message: string; errorCode?: GitError['code'] }> {
+    const result = (await this.invoker('git_init_repo', { request, options })) as {
+      ok: boolean
+      snapshot?: Parameters<typeof wireSnapshotToRepositoryData>[0]
+      error?: ReturnType<GitError['serialize']>
+    }
+    return this.applyOpenedSnapshot(result)
+  }
+
+  async discoverRepositories(request: DiscoverReposRequest): Promise<DiscoveredRepo[]> {
+    return (await this.invoker('git_discover_repos', { request })) as DiscoveredRepo[]
   }
 
   async closeRepository(): Promise<void> {

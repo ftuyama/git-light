@@ -1,4 +1,5 @@
-import type { CommitPageInfo, OperationProgress, SnapshotOptions, SnapshotScope } from '@shared/git/models'
+import type { CommitPageInfo, DiscoveredRepo, OperationProgress, SnapshotOptions, SnapshotScope } from '@shared/git/models'
+import type { CloneRepoRequest, InitRepoRequest } from '@shared/git/models'
 import type { RepositoryData } from '@/types/git'
 import { gitService } from '@/lib/git'
 import { useToastStore } from '@/stores/toast'
@@ -8,6 +9,7 @@ import { buildGraphLayout, appendGraphLayout, EMPTY_LAYOUT, EMPTY_PAGE } from '.
 import { graphSnapshotOptions, scheduleSnapshotRefresh } from './refreshScheduler'
 import { scheduleDiffReload } from './diffReloadScheduler'
 import { resetPerRepoUiState } from './resetPerRepoUi'
+import { isAutoFetchInFlight } from './gitActions'
 import { useRepoTabsStore } from '@/stores/repoTabs'
 import { applyCachedTabState, useRepoTabCacheStore } from '@/stores/repoTabCache'
 import type { RepositoryState } from './types'
@@ -23,6 +25,12 @@ type LifecycleStore = RepositoryState & {
   resetCommitBox(): void
   switchRepository(path: string): Promise<boolean>
   openRepository(path: string, options?: { silent?: boolean }): Promise<boolean>
+  adoptOpenedRepository(result: { ok: boolean; data?: RepositoryData; message: string }): Promise<boolean>
+  cloneRepository(request: CloneRepoRequest): Promise<boolean>
+  initRepository(request: InitRepoRequest): Promise<boolean>
+  discoverRepositories(root: string): Promise<DiscoveredRepo[]>
+  restartAutoFetch(): void
+  stopAutoFetch(): void
 }
 
 let changeUnsub: (() => void) | null = null
@@ -40,6 +48,11 @@ export const lifecycleActions = {
   },
 
   onProgress(this: LifecycleStore, progress: OperationProgress): void {
+    // Silent auto-fetch must never flash the progress banner or steal
+    // the cancel button. Manual operations always set `busyAction`
+    // (`runAction`) or `loading` (clone), so anything arriving with
+    // neither is background noise.
+    if (isAutoFetchInFlight() && !this.busyAction && !this.loading) return
     if (progress.done) {
       this.operationPhase = null
       this.canCancel = false
@@ -109,6 +122,7 @@ export const lifecycleActions = {
       this.screen = 'main'
       useRepoTabsStore().setActive(path)
       useUiStore().setLastRepositoryPath(path)
+      this.restartAutoFetch()
 
       // Revalidate in the background; never let this reject unhandled.
       void (async () => {
@@ -177,6 +191,7 @@ export const lifecycleActions = {
     useRepoTabsStore().syncFromRecent(this.recentRepos)
     useUiStore().setLastRepositoryPath(path)
     if (!options?.silent) toast.push(result.message, 'success')
+    this.restartAutoFetch()
     return true
   },
 
@@ -207,10 +222,85 @@ export const lifecycleActions = {
     this.recentRepos = await gitService.recentRepos()
     useRepoTabsStore().syncFromRecent(this.recentRepos)
     toast.push(result.message, 'success')
+    this.restartAutoFetch()
     return true
   },
 
+  async adoptOpenedRepository(
+    this: LifecycleStore,
+    result: { ok: boolean; data?: RepositoryData; message: string },
+  ): Promise<boolean> {
+    const toast = useToastStore()
+    if (!result.ok || !result.data) {
+      if (result.message) toast.push(result.message, 'error')
+      return false
+    }
+    const previousPath = this.repository?.path
+    const repoPath = result.data.repository?.path
+    if (previousPath && repoPath && previousPath !== repoPath) {
+      resetPerRepoUiState()
+      this.resetCommitBox()
+      this.searchOpen = false
+    }
+    this.applySnapshot(result.data)
+    this.screen = 'main'
+    if (repoPath) {
+      useRepoTabsStore().addTab(repoPath, result.data.repository?.name ?? repoPath)
+      try {
+        useRepoTabCacheStore().save(this)
+      } catch (err) {
+        console.error('[git-light] tab cache save failed:', err)
+      }
+      useUiStore().setLastRepositoryPath(repoPath)
+    }
+    this.recentRepos = await gitService.recentRepos()
+    useRepoTabsStore().syncFromRecent(this.recentRepos)
+    toast.push(result.message, 'success')
+    this.restartAutoFetch()
+    return true
+  },
+
+  async cloneRepository(this: LifecycleStore, request: CloneRepoRequest): Promise<boolean> {
+    const toast = useToastStore()
+    this.loading = true
+    try {
+      const result = await gitService.cloneRepository(request, graphSnapshotOptions())
+      return await this.adoptOpenedRepository(result)
+    } catch (err) {
+      console.error('[git-light] clone repository failed:', err)
+      toast.push('Clone failed.', 'error')
+      return false
+    } finally {
+      this.loading = false
+    }
+  },
+
+  async initRepository(this: LifecycleStore, request: InitRepoRequest): Promise<boolean> {
+    const toast = useToastStore()
+    this.loading = true
+    try {
+      const result = await gitService.initRepository(request, graphSnapshotOptions())
+      return await this.adoptOpenedRepository(result)
+    } catch (err) {
+      console.error('[git-light] init repository failed:', err)
+      toast.push('Could not initialize repository.', 'error')
+      return false
+    } finally {
+      this.loading = false
+    }
+  },
+
+  async discoverRepositories(this: LifecycleStore, root: string): Promise<DiscoveredRepo[]> {
+    try {
+      return await gitService.discoverRepositories({ root, maxDepth: 2 })
+    } catch (err) {
+      console.error('[git-light] discover repositories failed:', err)
+      return []
+    }
+  },
+
   async closeRepository(this: LifecycleStore): Promise<void> {
+    this.stopAutoFetch()
     await gitService.closeRepository()
     this.repository = null
     this.commits = []

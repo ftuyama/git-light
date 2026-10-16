@@ -71,7 +71,7 @@ Git Light is a Tauri 2 desktop app with a Vue 3 renderer. The UI depends on a `G
 | `GitService.ts` (`src/lib/git/`) | Interface the store depends on |
 | `tauriGitService.ts` (`src/lib/tauri/`) | Production implementation via `@tauri-apps/api` `invoke` |
 | `invoke.ts` (`src/lib/tauri/`) | Typed Tauri command wrappers (injectable invoker/listener) |
-| `commands.ts` (`src/lib/tauri/`) | Health/version/recents/open command wrappers |
+| `commands.ts` (`src/lib/tauri/`) | Health/version/recents/open/clone/init/discover command wrappers |
 | `appBridge.ts` (`src/lib/tauri/`) | External URLs + window background (opener plugin) |
 | `appMenu.ts` (`src/lib/tauri/`) | Native app/window menu (About, Check for Updates, Help) |
 | `updater.ts` + `updateCheck.ts` (`src/lib/tauri/`) | GitHub Releases check, semver compare, snooze |
@@ -89,6 +89,7 @@ in Tauri, mock when `VITE_USE_MOCK=true`.
 | File | Role |
 |------|------|
 | `main.rs` | Tauri builder, `#[tauri::command]` handlers, plugin init (dialog/opener/os), update-check compatible release flow |
+| `repos.rs` | Onboarding: clone/init validation, folder discovery scan |
 | `git.rs` | Snapshot builder, repo validation, recents + favorites |
 | `log.rs` | Commit log fetch + parse, author registry, avatar URLs |
 | `refs.rs` | Branches/tags/stashes/worktrees/remotes/status parsers |

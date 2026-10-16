@@ -8,6 +8,8 @@ import { usePromptStore } from '@/stores/prompt'
 import { useRepoDiffStore } from '@/stores/repoDiff'
 import { useSelectionStore, PENDING_BRANCH_ROW } from '@/stores/selection'
 import { useToastStore } from '@/stores/toast'
+import { useUiStore } from '@/stores/ui'
+import { useGitOutputStore } from '@/stores/gitOutput'
 import { mergeMetaForMode, type MergeMode } from '@/lib/mergeMode'
 import {
   describeAction,
@@ -19,6 +21,24 @@ import { headCommitIndex as computeHeadCommitIndex } from '@/lib/graph/pendingGr
 import { suppressWatcherRefresh } from './refreshScheduler'
 import type { RepositoryState } from './types'
 
+/** Silent background fetch (auto-fetch) bookkeeping. A `setTimeout` chain
+ * (not `setInterval`) so a slow fetch never overlaps the next tick. */
+let autoFetchTimer: ReturnType<typeof setTimeout> | undefined
+let autoFetchInFlight = false
+
+function clearAutoFetchTimer(): void {
+  if (autoFetchTimer !== undefined) {
+    clearTimeout(autoFetchTimer)
+    autoFetchTimer = undefined
+  }
+}
+
+/** True while a silent auto-fetch is running. `lifecycle.onProgress`
+ * uses this to ignore backend progress noise from background fetches. */
+export function isAutoFetchInFlight(): boolean {
+  return autoFetchInFlight
+}
+
 type GitActionsStore = RepositoryState & {
   inProgressOperation: boolean
   refreshSnapshot: (
@@ -26,6 +46,9 @@ type GitActionsStore = RepositoryState & {
     extra?: Pick<import('@shared/git/models').SnapshotOptions, 'invalidateCommits'>,
   ) => Promise<void>
   runAction(action: GitAction, options?: { skipConfirm?: boolean }): Promise<boolean>
+  restartAutoFetch(): void
+  stopAutoFetch(): void
+  runAutoFetch(): Promise<void>
   checkoutBranchForIntegrate(branch: Branch): Promise<boolean>
   beginCreateBranch(options?: { startPoint?: string; sha?: string }): void
   submitBranchCreation(name: string): Promise<void>
@@ -133,6 +156,7 @@ export const gitActions = {
     const hint = !result.ok && result.errorCode ? credentialHintFor(result.errorCode) : undefined
     const toastMessage = hint ? `${result.message} — ${hint}` : result.message
     toast.push(toastMessage, result.ok ? 'success' : 'error')
+    useGitOutputStore().log(this.repository?.path, action, result)
     if (result.ok) {
       suppressWatcherRefresh()
       this.refreshing = true
@@ -150,6 +174,54 @@ export const gitActions = {
     }
 
     return result.ok
+  },
+
+  restartAutoFetch(this: GitActionsStore): void {
+    clearAutoFetchTimer()
+    autoFetchInFlight = false
+    // No repo open, or auto-fetch disabled in settings: stay stopped.
+    if (!this.repository) return
+    const intervalSec = useUiStore().autoFetchIntervalSec
+    if (!intervalSec || intervalSec <= 0) return
+    autoFetchTimer = setTimeout(() => {
+      void this.runAutoFetch()
+    }, intervalSec * 1000)
+  },
+
+  stopAutoFetch(): void {
+    clearAutoFetchTimer()
+    autoFetchInFlight = false
+  },
+
+  async runAutoFetch(this: GitActionsStore): Promise<void> {
+    autoFetchTimer = undefined
+    try {
+      // Single-flight, and never compete with a manual operation:
+      // a manual fetch/pull/push owns the progress banner and cancel.
+      if (autoFetchInFlight) return
+      if (!this.repository) return
+      if (this.busyAction || this.inProgressOperation || this.refreshing || this.loading) return
+      autoFetchInFlight = true
+      try {
+        // Bypass `runAction`: no toast, no operation banner, no cancel
+        // button. Progress events from this fetch are ignored by
+        // `lifecycle.onProgress` (see `isAutoFetchInFlight`).
+        const result = await gitService.execute({ kind: 'fetch' })
+        if (result.ok) {
+          await this.refreshSnapshot(scopesForAction('fetch'))
+        }
+        // Silent on failure (offline, auth, no upstream): the next
+        // tick retries, and the watcher still picks up local changes.
+      } catch (err) {
+        console.error('[git-light] auto-fetch failed:', err)
+      } finally {
+        autoFetchInFlight = false
+      }
+    } finally {
+      // Reschedule from the current settings so interval changes apply
+      // without reopening the repo.
+      if (this.repository) this.restartAutoFetch()
+    }
   },
 
   beginCreateBranch(

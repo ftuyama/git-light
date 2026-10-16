@@ -482,6 +482,9 @@ pub async fn git_bytes(cwd: &Path, args: &[&str]) -> Result<(bool, Vec<u8>), Git
 }
 
 /// Resolve + validate that `path` is a non-bare git working tree.
+/// Subfolders of a working tree resolve to the top level
+/// (`rev-parse --show-toplevel`) so opening a nested folder lands on the repo
+/// root instead of the subfolder.
 pub async fn validate_repo(path: &Path) -> Result<RepoInfo, GitError> {
     let canonical = std::fs::canonicalize(path).map_err(|_| {
         GitError::new(
@@ -496,6 +499,18 @@ pub async fn validate_repo(path: &Path) -> Result<RepoInfo, GitError> {
             "This folder is not a Git repository.".to_string(),
         ));
     }
+    // Resolve the working-tree root (handles opening a subfolder directly).
+    let worktree_root = match git_text(&canonical, &["rev-parse", "--show-toplevel"]).await {
+        Ok((true, out, _)) => {
+            let trimmed = out.trim();
+            if trimmed.is_empty() {
+                canonical.clone()
+            } else {
+                std::fs::canonicalize(trimmed).unwrap_or_else(|_| PathBuf::from(trimmed))
+            }
+        }
+        _ => canonical.clone(),
+    };
     let raw = stdout.trim().to_string();
     let git_dir = if Path::new(&raw).is_absolute() {
         PathBuf::from(raw)
@@ -519,7 +534,7 @@ pub async fn validate_repo(path: &Path) -> Result<RepoInfo, GitError> {
     let (_, version_out, _) = git_text(&canonical, &["--version"]).await?;
     let git_version = version_out.replace("git version ", "").trim().to_string();
     Ok(RepoInfo {
-        path: canonical,
+        path: worktree_root,
         git_dir,
         git_version,
     })

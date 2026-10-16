@@ -14,7 +14,7 @@
 
 ## What is this?
 
-Git Light is a Tauri 2 app with a three-pane repository view that runs **real Git commands** against local repositories via typed Tauri commands. Open a folder, browse history, manage branches, stage files, commit, fetch/pull/push, and inspect diffs.
+Git Light is a Tauri 2 app with a three-pane repository view that runs **real Git commands** against local repositories via typed Tauri commands. Open a folder, clone from a URL, or start a repo with init — then browse history, manage branches, stage files, commit, fetch/pull/push, and inspect diffs.
 
 ## Why Git Light?
 
@@ -56,7 +56,8 @@ Looking for a free, open-source **GitKraken alternative**? Git Light focuses on 
 | Credits & attribution (settings panel + native About dialog) | ✅ |
 | Resizable three-pane layout · file watcher auto-refresh | ✅ |
 | Auto-update check (packaged builds) · **Check for Updates…** menu | ✅ |
-| Clone / hosting auth UI | ❌ Not yet |
+| Clone (URL + destination, SSH/credential-manager auth, progress + cancel) · Init new repository · folder discovery (subfolder resolves to root, parent scan lists nested repos) | ✅ |
+| Hosting auth UI (OAuth sign-in, private-host browsing) | ❌ Not planned |
 
 ## Quick start
 

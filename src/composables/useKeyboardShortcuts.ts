@@ -1,4 +1,4 @@
-import { onBeforeUnmount, onMounted } from 'vue'
+import { onBeforeUnmount, onMounted, toValue, type MaybeRefOrGetter } from 'vue'
 
 export interface ShortcutHandler {
   /** Lowercase key, e.g. 'f', 'arrowdown'. */
@@ -17,10 +17,10 @@ function isEditableTarget(target: EventTarget | null): boolean {
   return tag === 'INPUT' || tag === 'TEXTAREA' || target.isContentEditable
 }
 
-export function useKeyboardShortcuts(shortcuts: ShortcutHandler[]): void {
+export function useKeyboardShortcuts(shortcuts: MaybeRefOrGetter<ShortcutHandler[]>): void {
   const onKeydown = (event: KeyboardEvent): void => {
     const editable = isEditableTarget(event.target)
-    for (const shortcut of shortcuts) {
+    for (const shortcut of toValue(shortcuts)) {
       if (editable && !shortcut.allowInInput) continue
       if (event.key.toLowerCase() !== shortcut.key) continue
       const meta = event.metaKey || event.ctrlKey

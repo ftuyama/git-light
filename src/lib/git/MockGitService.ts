@@ -1,4 +1,4 @@
-import type { BlameRequest, BlameResult, CommitPageInfo, CommitPageRequest, ConflictRequest, ConflictResult, DiffRequest, DiffResult, FileHistoryRequest, FileHistoryResult, ImagePreviewRequest, ImagePreviewResult, RecentRepository, RepoChangeEvent, SearchQuery, SearchResults, SnapshotScope } from '@shared/git/models'
+import type { BlameRequest, BlameResult, CloneRepoRequest, CommitPageInfo, CommitPageRequest, ConflictRequest, ConflictResult, DiffRequest, DiffResult, DiscoveredRepo, DiscoverReposRequest, FileHistoryRequest, FileHistoryResult, ImagePreviewRequest, ImagePreviewResult, InitRepoRequest, RecentRepository, RepoChangeEvent, SearchQuery, SearchResults, SnapshotScope } from '@shared/git/models'
 import type { RebaseCommitsRequest, RebaseCommitsResult } from '@shared/git/rebase'
 import { isJournalableAction, journalLabel } from '@shared/git/undoPolicy'
 import type { ActionResult, GitAction, GitActionKind, RepositoryData } from '@/types/git'
@@ -93,6 +93,26 @@ export class MockGitService implements GitService {
   }> {
     const data = await this.load(options)
     return { ok: true, data, message: `Opened ${data.repository.name}` }
+  }
+
+  async cloneRepository(
+    _request: CloneRepoRequest,
+    options?: SnapshotRefreshOptions,
+  ): Promise<{ ok: boolean; data?: RepositoryData; message: string }> {
+    const data = await this.load(options)
+    return { ok: true, data, message: `Cloned ${data.repository.name}` }
+  }
+
+  async initRepository(
+    _request: InitRepoRequest,
+    options?: SnapshotRefreshOptions,
+  ): Promise<{ ok: boolean; data?: RepositoryData; message: string }> {
+    const data = await this.load(options)
+    return { ok: true, data, message: `Initialized ${data.repository.name}` }
+  }
+
+  async discoverRepositories(_request: DiscoverReposRequest): Promise<DiscoveredRepo[]> {
+    return []
   }
 
   async closeRepository(): Promise<void> {
@@ -303,6 +323,18 @@ export class MockGitService implements GitService {
 
   async execute(action: GitAction): Promise<ActionResult> {
     await delay(latencyFor(action.kind))
+    const mockCommand = (extra: string[] = []) => {
+      const argv = [action.kind, ...(action.target ? [action.target] : []), ...extra]
+      return {
+        argv,
+        command: `git ${argv.join(' ')}`,
+        stdout: '',
+        stderr: '',
+        exitCode: 0,
+        ok: true,
+        truncated: false,
+      }
+    }
 
     if (action.kind === 'undo') {
       if (this.undoLabels.length === 0) {
@@ -311,7 +343,7 @@ export class MockGitService implements GitService {
       const label = this.undoLabels.pop()!
       this.redoLabels.push(label)
       this.syncUndoState()
-      return { ok: true, message: `Undid ${label}` }
+      return { ok: true, message: `Undid ${label}`, commands: [mockCommand()] }
     }
 
     if (action.kind === 'redo') {
@@ -321,7 +353,7 @@ export class MockGitService implements GitService {
       const label = this.redoLabels.pop()!
       this.undoLabels.push(label)
       this.syncUndoState()
-      return { ok: true, message: `Redid ${label}` }
+      return { ok: true, message: `Redid ${label}`, commands: [mockCommand()] }
     }
 
     const message = ACTION_MESSAGES[action.kind]?.(action.target) ?? `Ran ${action.kind}`
@@ -330,7 +362,7 @@ export class MockGitService implements GitService {
       this.redoLabels = []
       this.syncUndoState()
     }
-    return { ok: true, message }
+    return { ok: true, message, commands: [mockCommand()] }
   }
 
   onRepositoryChanged(_cb: (event: RepoChangeEvent) => void): () => void {

@@ -8,15 +8,21 @@ export interface RepoTab {
   name: string
 }
 
+export const MAX_CLOSED_TABS = 25
+
 export const useRepoTabsStore = defineStore('repoTabs', {
   state: () => ({
     tabs: [] as RepoTab[],
     activePath: null as string | null,
+    closedStack: [] as RepoTab[],
   }),
 
   getters: {
     activeTab(state): RepoTab | null {
       return state.tabs.find((tab) => tab.path === state.activePath) ?? null
+    },
+    activeIndex(state): number {
+      return state.tabs.findIndex((tab) => tab.path === state.activePath)
     },
   },
 
@@ -56,7 +62,11 @@ export const useRepoTabsStore = defineStore('repoTabs', {
       if (index === -1) return null
 
       const wasActive = this.activePath === path
-      this.tabs.splice(index, 1)
+      const [removed] = this.tabs.splice(index, 1)
+      if (removed) {
+        this.closedStack.push({ ...removed })
+        if (this.closedStack.length > MAX_CLOSED_TABS) this.closedStack.shift()
+      }
       useRepoTabCacheStore().remove(path)
 
       if (!wasActive) {
@@ -68,6 +78,47 @@ export const useRepoTabsStore = defineStore('repoTabs', {
       this.activePath = next?.path ?? null
       this.persist()
       return next?.path ?? null
+    },
+
+    /** Pop the most recently closed tab (browser-style restore). */
+    reopenLastClosed(): RepoTab | null {
+      const tab = this.closedStack.pop() ?? null
+      if (!tab) return null
+      if (!this.tabs.some((t) => t.path === tab.path)) {
+        this.tabs.push({ ...tab })
+      }
+      this.activePath = tab.path
+      this.persist()
+      return { ...tab }
+    },
+
+    peekClosed(): RepoTab | null {
+      return this.closedStack.length > 0 ? { ...this.closedStack[this.closedStack.length - 1] } : null
+    },
+
+    /** Cycle to the next/previous tab in visual index order. Returns new active path. */
+    cycleTab(delta: 1 | -1): string | null {
+      if (this.tabs.length === 0) return null
+      const current = this.tabs.findIndex((tab) => tab.path === this.activePath)
+      const base = current === -1 ? (delta === 1 ? -1 : 0) : current
+      const next = (base + delta + this.tabs.length) % this.tabs.length
+      this.activePath = this.tabs[next].path
+      this.persist()
+      return this.activePath
+    },
+
+    /** Switch to tab by 0-based index. Out of range returns null. */
+    switchToIndex(index: number): string | null {
+      if (index < 0 || index >= this.tabs.length) return null
+      this.activePath = this.tabs[index].path
+      this.persist()
+      return this.activePath
+    },
+
+    /** Switch to the last tab (⌘9 convention). */
+    switchToLast(): string | null {
+      if (this.tabs.length === 0) return null
+      return this.switchToIndex(this.tabs.length - 1)
     },
 
     setActive(path: string): void {

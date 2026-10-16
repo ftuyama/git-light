@@ -4,6 +4,7 @@ mod git;
 mod image;
 mod log;
 mod refs;
+mod repos;
 mod watcher;
 
 use serde::Serialize;
@@ -282,6 +283,159 @@ async fn git_pick_and_open_repo(
             serde_json::to_value(envelope).unwrap_or(serde_json::json!({ "ok": false }))
         }
     })
+}
+
+#[tauri::command]
+async fn git_clone_repo(
+    app: AppHandle,
+    state: State<'_, AppState>,
+    request: repos::CloneRepoRequest,
+    options: Option<serde_json::Value>,
+) -> Result<OpenRepoEnvelope, String> {
+    let url = match repos::validate_clone_url(&request.url) {
+        Ok(url) => url,
+        Err(error) => return Ok(OpenRepoEnvelope::err(error)),
+    };
+    let parent = match std::fs::canonicalize(request.parent_path.trim()) {
+        Ok(p) => p,
+        Err(_) => {
+            return Ok(OpenRepoEnvelope::err(GitError::unknown(
+                "The destination folder could not be found.".to_string(),
+            )))
+        }
+    };
+    if !parent.is_dir() {
+        return Ok(OpenRepoEnvelope::err(GitError::unknown(
+            "The destination folder could not be found.".to_string(),
+        )));
+    }
+    let raw_name = request.name.unwrap_or_default();
+    let name = if raw_name.trim().is_empty() {
+        repos::derive_repo_name(&url)
+    } else {
+        repos::sanitize_dir_name(raw_name.trim())
+    };
+    let dest = match repos::destination_for_clone(&parent, &name) {
+        Ok(dest) => dest,
+        Err(error) => return Ok(OpenRepoEnvelope::err(error)),
+    };
+    if dest.exists() {
+        if !dest.is_dir() {
+            return Ok(OpenRepoEnvelope::err(GitError::unknown(
+                "The destination already exists.".to_string(),
+            )));
+        }
+        match repos::is_dir_empty(&dest) {
+            Ok(true) => {}
+            _ => {
+                return Ok(OpenRepoEnvelope::err(GitError::unknown(
+                    "The destination folder is not empty.".to_string(),
+                )))
+            }
+        }
+    }
+    let operation_id = uuid::Uuid::new_v4().to_string();
+    let cancel_rx = state.operations.lock().await.register(&operation_id);
+    let emit = |phase: &str, percent: Option<u32>, done: bool| {
+        let payload = ProgressPayload {
+            operation_id: operation_id.clone(),
+            kind: "clone".to_string(),
+            phase: phase.to_string(),
+            percent,
+            done,
+        };
+        let _ = app.emit("git:progress", payload);
+    };
+    emit("Cloning repository…", None, false);
+    let args = vec![
+        "clone".to_string(),
+        url.clone(),
+        dest.to_string_lossy().into_owned(),
+    ];
+    let result = actions::run_git_streaming(
+        &parent,
+        args,
+        actions::RunOptions {
+            timeout: Some(std::time::Duration::from_secs(300)),
+            ..Default::default()
+        },
+        Some(cancel_rx),
+        &|line| emit(line, None, false),
+    )
+    .await;
+    state.operations.lock().await.unregister(&operation_id);
+    emit("Clone finished.", None, true);
+    if let Err(error) = result {
+        return Ok(OpenRepoEnvelope::err(error));
+    }
+    Ok(do_open_repo(&app, &state, &dest.to_string_lossy(), &options).await)
+}
+
+#[tauri::command]
+async fn git_init_repo(
+    app: AppHandle,
+    state: State<'_, AppState>,
+    request: repos::InitRepoRequest,
+    options: Option<serde_json::Value>,
+) -> Result<OpenRepoEnvelope, String> {
+    let canonical = match std::fs::canonicalize(request.path.trim()) {
+        Ok(p) => p,
+        Err(_) => {
+            return Ok(OpenRepoEnvelope::err(GitError::unknown(
+                "The folder could not be found.".to_string(),
+            )))
+        }
+    };
+    if !canonical.is_dir() {
+        return Ok(OpenRepoEnvelope::err(GitError::unknown(
+            "The folder could not be found.".to_string(),
+        )));
+    }
+    // Idempotent: a folder that is already a repo just opens.
+    if git::validate_repo(&canonical).await.is_ok() {
+        return Ok(do_open_repo(&app, &state, &canonical.to_string_lossy(), &options).await);
+    }
+    let branch = match repos::validate_init_branch(request.default_branch.as_deref()) {
+        Ok(branch) => branch,
+        Err(error) => return Ok(OpenRepoEnvelope::err(error)),
+    };
+    let mut argv: Vec<&str> = vec!["init"];
+    if let Some(b) = branch.as_ref() {
+        argv.push("-b");
+        argv.push(b.as_str());
+    }
+    match git::git_text(&canonical, &argv).await {
+        Ok((true, _, _)) => {}
+        Ok((false, stdout, stderr)) => {
+            let detail = if stderr.trim().is_empty() {
+                stdout
+            } else {
+                stderr
+            };
+            return Ok(OpenRepoEnvelope::err(actions::classify_git_error(
+                &detail,
+                Some(1),
+            )));
+        }
+        Err(error) => return Ok(OpenRepoEnvelope::err(error)),
+    }
+    Ok(do_open_repo(&app, &state, &canonical.to_string_lossy(), &options).await)
+}
+
+#[tauri::command]
+async fn git_discover_repos(
+    request: repos::DiscoverReposRequest,
+) -> Result<Vec<repos::DiscoveredRepo>, String> {
+    let root = match std::fs::canonicalize(request.root.trim()) {
+        Ok(p) => p,
+        Err(_) => {
+            return Err("The folder could not be found.".to_string());
+        }
+    };
+    if !root.is_dir() {
+        return Err("The folder could not be found.".to_string());
+    }
+    Ok(repos::discover_repos(&root, request.max_depth.unwrap_or(2)))
 }
 
 #[tauri::command]
@@ -867,6 +1021,9 @@ fn main() {
             ping,
             git_open_repo,
             git_pick_and_open_repo,
+            git_clone_repo,
+            git_init_repo,
+            git_discover_repos,
             git_close_repo,
             git_snapshot,
             git_commit_page,

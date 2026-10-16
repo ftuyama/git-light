@@ -22,6 +22,7 @@ Use this file as a curated index. For complete landing-page content in one fetch
 ## Key capabilities
 
 - Multi-repository tabs with per-tab state cache
+- Clone from a URL (progress + cancel), init new repositories, folder discovery
 - Commit graph with virtualized SVG lanes, infinite scroll, and keyboard navigation
 - Branch sidebar: favorites, remotes, tags, stashes, worktrees; drag-and-drop merge/rebase
 - Working tree: flat or tree file list, per-hunk staging, merge conflict resolution
@@ -41,8 +42,7 @@ Use this file as a curated index. For complete landing-page content in one fetch
 
 ## Not yet supported
 
-- Clone repositories from the UI
-- Hosting provider authentication UI
+- Hosting provider authentication UI (OAuth sign-in, private-host browsing)
 
 ## Optional
 

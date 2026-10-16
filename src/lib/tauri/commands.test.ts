@@ -1,5 +1,13 @@
 import { describe, expect, it, vi } from 'vitest'
-import { tauriGitVersion, tauriOpenRepo, tauriPing, tauriRecentRepos } from './commands'
+import {
+  tauriCloneRepo,
+  tauriDiscoverRepos,
+  tauriGitVersion,
+  tauriInitRepo,
+  tauriOpenRepo,
+  tauriPing,
+  tauriRecentRepos,
+} from './commands'
 import type { InvokeFn } from './invoke'
 
 function fakeInvoker(
@@ -37,6 +45,36 @@ describe('tauri commands', () => {
     expect(invoker).toHaveBeenCalledWith('git_open_repo', {
       path: '/repo',
       options: { commitLimit: 50 },
+    })
+  })
+
+  it('clones a repo with url, parent and options', async () => {
+    const result = { ok: true }
+    const invoker = fakeInvoker(async () => result)
+    const request = { url: 'https://github.com/org/repo.git', parentPath: '/tmp/parent' }
+    await expect(
+      tauriCloneRepo({ request, options: { commitLimit: 50 } }, invoker),
+    ).resolves.toEqual(result)
+    expect(invoker).toHaveBeenCalledWith('git_clone_repo', {
+      request,
+      options: { commitLimit: 50 },
+    })
+  })
+
+  it('inits a repo with path and branch', async () => {
+    const result = { ok: true }
+    const invoker = fakeInvoker(async () => result)
+    const request = { path: '/tmp/new-repo', defaultBranch: 'main' }
+    await expect(tauriInitRepo({ request }, invoker)).resolves.toEqual(result)
+    expect(invoker).toHaveBeenCalledWith('git_init_repo', { request, options: undefined })
+  })
+
+  it('discovers repos under a root', async () => {
+    const found = [{ path: '/tmp/parent/a', name: 'a' }]
+    const invoker = fakeInvoker(async () => found)
+    await expect(tauriDiscoverRepos({ root: '/tmp/parent' }, invoker)).resolves.toEqual(found)
+    expect(invoker).toHaveBeenCalledWith('git_discover_repos', {
+      request: { root: '/tmp/parent' },
     })
   })
 })
