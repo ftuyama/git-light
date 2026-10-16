@@ -753,6 +753,35 @@ mod tests {
         PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("..")
     }
 
+    /// Hermetic repo with `main` checked out plus a `side` branch.
+    /// Snapshot tests must not depend on the ambient checkout: tag builds
+    /// (detached HEAD, no local branches) broke the fixture-based versions.
+    async fn temp_repo() -> (tempfile::TempDir, PathBuf) {
+        let dir = tempfile::tempdir().expect("tempdir");
+        let cwd = dir.path().to_path_buf();
+        for args in [
+            vec!["init", "-b", "main"],
+            vec!["config", "user.email", "t@t"],
+            vec!["config", "user.name", "t"],
+            vec!["config", "core.autocrlf", "false"],
+        ] {
+            let argv: Vec<&str> = args.iter().map(|s| *s).collect();
+            let (ok, _, err) = git_text(&cwd, &argv).await.expect("git spawn");
+            assert!(ok, "git {argv:?} failed: {err}");
+        }
+        std::fs::write(cwd.join("a.txt"), "one\n").unwrap();
+        for args in [
+            vec!["add", "-A"],
+            vec!["commit", "-m", "first"],
+            vec!["branch", "side"],
+        ] {
+            let argv: Vec<&str> = args.iter().map(|s| *s).collect();
+            let (ok, _, err) = git_text(&cwd, &argv).await.expect("git spawn");
+            assert!(ok, "git {argv:?} failed: {err}");
+        }
+        (dir, cwd)
+    }
+
     #[tokio::test]
     async fn validates_real_repo() {
         let info = validate_repo(&fixture_repo())
@@ -782,6 +811,7 @@ mod tests {
 
     #[tokio::test]
     async fn full_snapshot_lists_branches_and_remotes() {
+        let (_dir, cwd) = temp_repo().await;
         let opts = SnapshotOptions {
             commit_limit: 10,
             graph_all: true,
@@ -792,7 +822,7 @@ mod tests {
             with_worktrees: true,
             with_status: true,
         };
-        let snap = build_snapshot(&fixture_repo(), &opts, &std::collections::HashSet::new())
+        let snap = build_snapshot(&cwd, &opts, &std::collections::HashSet::new())
             .await
             .expect("full snapshot must work");
         assert!(!snap.commits.is_empty());
@@ -809,6 +839,7 @@ mod tests {
 
     #[tokio::test]
     async fn snapshot_marks_favorite_branches() {
+        let (_dir, cwd) = temp_repo().await;
         let favs: HashSet<String> = ["main".to_string()].into_iter().collect();
         let opts = SnapshotOptions {
             commit_limit: 1,
@@ -820,7 +851,7 @@ mod tests {
             with_worktrees: false,
             with_status: false,
         };
-        let snap = build_snapshot(&fixture_repo(), &opts, &favs)
+        let snap = build_snapshot(&cwd, &opts, &favs)
             .await
             .expect("snapshot must work");
         let main = snap
