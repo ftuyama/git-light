@@ -1,7 +1,7 @@
 {
   "name": "git-light",
   "version": "0.2.0",
-  "description": "Desktop Git client built with Electron, Vue 3, and TypeScript.",
+  "description": "Free, open-source desktop Git client (Electron, Vue 3, TypeScript) — graph-first alternative to GitKraken with commit graph, branches, staging and real local Git operations.",
   "author": "Git Light <ftuyama@users.noreply.github.com>",
   "license": "MIT",
   "productName": "Git Light",

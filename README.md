@@ -4,15 +4,32 @@
 
 # Git Light
 
-A desktop Git client with a graph-first interface — commit graph, branch sidebar, working tree panel, and real local repository operations.
+> Free, open-source desktop Git client — a lightweight **alternative to GitKraken**, GitHub Desktop and Sourcetree. Commit graph, branches, staging, merge/rebase and real local Git operations. No account required.
 
-**[ftuyama.github.io/git-light](https://ftuyama.github.io/git-light/)** · MIT License
+[![Latest release](https://img.shields.io/github/v/release/ftuyama/git-light)](https://github.com/ftuyama/git-light/releases) [![License: MIT](https://img.shields.io/github/license/ftuyama/git-light)](LICENSE) [![Downloads](https://img.shields.io/github/downloads/ftuyama/git-light/total)](https://github.com/ftuyama/git-light/releases) [![Stars](https://img.shields.io/github/stars/ftuyama/git-light?style=flat)](https://github.com/ftuyama/git-light/stargazers) [![Platforms](https://img.shields.io/badge/platform-macOS%20%7C%20Windows%20%7C%20Linux-blue)](https://github.com/ftuyama/git-light/releases)
+
+**[ftuyama.github.io/git-light](https://ftuyama.github.io/git-light/)** · MIT License · Built with Electron, Vue 3, TypeScript
 
 ![Git Light — AwesomeShop repository with repo tabs, commit graph, branch sidebar, and working tree](docs/screenshot.png)
 
 ## What is this?
 
 Git Light is an Electron app with a three-pane repository view that runs **real Git commands** against local repositories via a typed IPC layer. Open a folder, browse history, manage branches, stage files, commit, fetch/pull/push, and inspect diffs.
+
+## Why Git Light?
+
+Looking for a free, open-source **GitKraken alternative**? Git Light focuses on a fast commit graph and local-first Git — no account, no subscription, no vendor lock-in.
+
+| | Git Light | GitKraken | GitHub Desktop | Sourcetree |
+|---|---|---|---|---|
+| Free + open-source (MIT) | ✅ | ❌ | ✅* | ✅ free, ❌ closed |
+| No account required | ✅ | ❌ | ✅ | ✅ |
+| Commit graph + branch sidebar + working tree | ✅ | ✅ | partial | ✅ |
+| Real local `git` CLI backend | ✅ | ✅ | ✅ | ✅ |
+| macOS / Windows / Linux | ✅ | ✅ | ✅ / ✅ / ❌** | ✅ / ✅ / ❌ |
+| Lightweight, offline-first | ✅ | ❌ heavy | ✅ | ❌ heavy |
+
+\* GitHub Desktop is open-source but GitHub-centric. \*\* No official Linux build.
 
 ## Features
 
@@ -77,3 +94,11 @@ If Git Light is useful to you, consider supporting ongoing development:
 ## For developers
 
 See **[DEVELOPER.md](DEVELOPER.md)** for build instructions, scripts, and local development setup. Architecture, stack, and extension points are in **[ARCHITECTURE.md](ARCHITECTURE.md)**.
+
+## Keywords
+
+`git-client` `git-gui` `gitkraken-alternative` `github-desktop-alternative` `sourcetree-alternative` `commit-graph` `electron` `vue3` `typescript` `desktop-app` `developer-tools` `version-control` `macos` `windows` `linux`
+
+## Trademark notice
+
+Git Light is an independent open-source project, not affiliated with GitKraken, GitHub, or Atlassian. GitKraken, GitHub Desktop, and Sourcetree are trademarks of their respective owners, mentioned here for comparison only.
