@@ -1,0 +1,79 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <defs>
+    <filter id="glow" x="-60%" y="-60%" width="220%" height="220%">
+      <feGaussianBlur stdDeviation="14" result="b"/>
+      <feMerge>
+        <feMergeNode in="b"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <filter id="glow-big" x="-80%" y="-80%" width="260%" height="260%">
+      <feGaussianBlur stdDeviation="26" result="b"/>
+      <feMerge>
+        <feMergeNode in="b"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <radialGradient id="shine" cx="38%" cy="30%" r="80%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.55"/>
+      <stop offset="45%" stop-color="#ffffff" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="box" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#1c2536"/>
+      <stop offset="55%" stop-color="#121826"/>
+      <stop offset="100%" stop-color="#0b0f17"/>
+    </linearGradient>
+    <radialGradient id="box-sheen" cx="50%" cy="0%" r="90%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.10"/>
+      <stop offset="55%" stop-color="#ffffff" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <!-- dark rounded-box background, outer corners stay transparent -->
+  <rect x="8" y="8" width="1008" height="1008" rx="230" fill="url(#box)"/>
+  <rect x="8" y="8" width="1008" height="1008" rx="230" fill="url(#box-sheen)"/>
+  <rect x="9.5" y="9.5" width="1005" height="1005" rx="228" fill="none" stroke="#ffffff" stroke-opacity="0.09" stroke-width="3"/>
+
+  <!-- branches (glow underneath via blurred duplicates, sharp on top) -->
+  <g fill="none" stroke-linecap="round">
+    <g stroke-width="38" opacity="0.9" filter="url(#glow)">
+      <path d="M 182 432 C 200 520, 290 492, 390 512 C 460 526, 495 545, 518 558" stroke="#a371f7"/>
+      <path d="M 812 312 C 780 385, 705 372, 652 412 C 605 448, 556 485, 549 538" stroke="#58a6ff"/>
+      <path d="M 556 612 C 562 680, 622 692, 652 732 C 680 770, 686 795, 693 818" stroke="#3fb950"/>
+    </g>
+    <g stroke-width="30">
+      <path d="M 182 432 C 200 520, 290 492, 390 512 C 460 526, 495 545, 518 558" stroke="#b48cf9"/>
+      <path d="M 812 312 C 780 385, 705 372, 652 412 C 605 448, 556 485, 549 538" stroke="#79b8ff"/>
+      <path d="M 556 612 C 562 680, 622 692, 652 732 C 680 770, 686 795, 693 818" stroke="#56d364"/>
+    </g>
+  </g>
+
+  <!-- nodes -->
+  <!-- purple -->
+  <g filter="url(#glow)">
+    <circle cx="178" cy="368" r="76" fill="#5b2ea6"/>
+    <circle cx="178" cy="368" r="76" fill="none" stroke="#a371f7" stroke-width="7"/>
+    <circle cx="178" cy="368" r="50" fill="#a371f7"/>
+    <circle cx="178" cy="368" r="50" fill="url(#shine)"/>
+  </g>
+  <!-- blue / white core -->
+  <g filter="url(#glow-big)">
+    <circle cx="826" cy="248" r="82" fill="#2f7bff"/>
+    <circle cx="826" cy="248" r="82" fill="none" stroke="#7db3ff" stroke-width="7"/>
+    <circle cx="826" cy="248" r="54" fill="#ffffff"/>
+  </g>
+  <!-- green -->
+  <g filter="url(#glow)">
+    <circle cx="542" cy="571" r="78" fill="#158a2e"/>
+    <circle cx="542" cy="571" r="78" fill="none" stroke="#3fb950" stroke-width="7"/>
+    <circle cx="542" cy="571" r="50" fill="#56d364"/>
+    <circle cx="542" cy="571" r="50" fill="url(#shine)"/>
+  </g>
+  <!-- orange -->
+  <g filter="url(#glow)">
+    <circle cx="698" cy="880" r="76" fill="#b3540f"/>
+    <circle cx="698" cy="880" r="76" fill="none" stroke="#f0883e" stroke-width="7"/>
+    <circle cx="698" cy="880" r="50" fill="#f0883e"/>
+    <circle cx="698" cy="880" r="50" fill="url(#shine)"/>
+  </g>
+</svg>
