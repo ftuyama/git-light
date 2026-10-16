@@ -34,6 +34,9 @@ jobs:
         with:
           workspaces: './src-tauri -> target'
 
+      # Build the frontend first: tauri::generate_context!() in
+      # src-tauri/src/main.rs requires ../dist to exist at compile time.
+      - run: npm run build
       - run: cargo test --manifest-path src-tauri/Cargo.toml
       - run: cargo clippy --manifest-path src-tauri/Cargo.toml -- -D warnings
       - run: cargo fmt --check --manifest-path src-tauri/Cargo.toml
@@ -60,4 +63,6 @@ jobs:
           workspaces: './src-tauri -> target'
 
       # Runs the Windows-only tests (e.g. the .cmd rebase-editor e2e).
+      # Build the frontend first: tauri::generate_context!() requires ../dist at compile time.
+      - run: npm run build
       - run: cargo test --manifest-path src-tauri/Cargo.toml
