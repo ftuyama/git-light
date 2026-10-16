@@ -4,6 +4,7 @@ import { Globe } from '@lucide/vue'
 import GithubIcon from '@/components/icons/GithubIcon.vue'
 import KofiIcon from '@/components/icons/KofiIcon.vue'
 import { APP_LINKS, THIRD_PARTY_CREDITS, type AppLinkId } from '@shared/app/credits'
+import { openExternalUrl } from '@/lib/tauri/appBridge'
 import {
   APP_AUTHOR_URL,
   APP_DESCRIPTION,
@@ -20,7 +21,7 @@ const linkIcons: Record<AppLinkId, Component> = {
 }
 
 function openLink(url: string): void {
-  void window.electron?.openExternal(url)
+  void openExternalUrl(url)
 }
 </script>
 

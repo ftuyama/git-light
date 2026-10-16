@@ -25,6 +25,10 @@ const meta = computed(() => STATUS_META[props.file.status])
 const selected = computed(
   () => diffStore.selectedFilePath === props.file.path && diffStore.selectedFileStaged === props.file.staged,
 )
+const hasDiffStats = computed(() => props.file.additions > 0 || props.file.deletions > 0)
+const diffStatsTitle = computed(
+  () => `+${props.file.additions} −${props.file.deletions}`,
+)
 
 const menu = computed<MenuItem[]>(() => {
   const historyItem: MenuItem = {
@@ -150,10 +154,23 @@ function copyPath(): void {
           {{ file.directory }}
         </span>
       </template>
+      <span
+        v-if="hasDiffStats"
+        class="shrink-0 font-mono text-[11px] leading-none"
+        :title="diffStatsTitle"
+      >
+        <span v-if="file.additions > 0" class="text-[var(--color-success)]"
+          >+{{ file.additions }}</span
+        ><span v-if="file.additions > 0 && file.deletions > 0" class="text-[var(--color-fg-subtle)]">
+          {{ ' ' }}</span
+        ><span v-if="file.deletions > 0" class="text-[var(--color-danger)]"
+          >−{{ file.deletions }}</span
+        >
+      </span>
       <button
         v-if="!readonly && file.status !== 'conflicted'"
         type="button"
-        class="focus-ring ml-auto shrink-0 rounded px-1.5 py-0.5 text-[10px] font-medium opacity-0 transition-opacity group-hover/file:opacity-100"
+        class="focus-ring ml-auto shrink-0 rounded p-1 opacity-0 transition-opacity group-hover/file:opacity-100"
         :class="cn(
           selected && 'opacity-100',
           file.staged
@@ -164,8 +181,7 @@ function copyPath(): void {
         :aria-label="file.staged ? 'Unstage file' : 'Stage file'"
         @click.stop="repo.toggleStaged(file.id)"
       >
-        <component :is="file.staged ? Minus : Plus" :size="11" class="inline" />
-        {{ file.staged ? 'Unstage' : 'Stage' }}
+        <component :is="file.staged ? Minus : Plus" :size="13" />
       </button>
     </div>
   </ContextMenu>

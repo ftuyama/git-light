@@ -364,10 +364,26 @@
 
 @layer utilities {
   .app-drag {
-    -webkit-app-region: drag;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+  /* Tauri v2 draggable region (titleBarStyle Overlay). Dragging is driven
+     natively by the `data-tauri-drag-region` attribute — Tauri only treats
+     the element carrying the attribute as a drag handle, so interactive
+     children (buttons, inputs) keep receiving clicks.
+     NOTE: do NOT add `app-region: drag` / `-webkit-app-region: drag` here:
+     that hands the whole area to the OS window manager and swallows clicks
+     on child buttons (see tauri-apps/tauri#9860). Buttons opt out via
+     `.app-no-drag` below as belt-and-suspenders.
+     `user-select: none` prevents text selection from hijacking the
+     drag (window moves a bit then "grabs"). */
+  [data-tauri-drag-region] {
+    -webkit-user-select: none;
+    user-select: none;
   }
   .app-no-drag {
     -webkit-app-region: no-drag;
+    app-region: no-drag;
   }
   .focus-ring {
     outline: none;

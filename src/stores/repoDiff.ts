@@ -216,8 +216,10 @@ export const useRepoDiffStore = defineStore('repoDiff', {
       this.blame = null
       try {
         this.diff = await gitService.getDiff(this.diffRequestForPath(path))
-      } catch {
+      } catch (error) {
         this.diff = null
+        const detail = error instanceof Error ? error.message : String(error)
+        useToastStore().push(`Could not load diff: ${detail}`, 'error')
       } finally {
         this.diffLoading = false
       }
@@ -230,8 +232,10 @@ export const useRepoDiffStore = defineStore('repoDiff', {
       void this.loadFileHistory(path)
       try {
         this.blame = await gitService.getBlame(this.blameRequestForPath(path))
-      } catch {
+      } catch (error) {
         this.blame = null
+        const detail = error instanceof Error ? error.message : String(error)
+        useToastStore().push(`Could not load blame: ${detail}`, 'error')
       } finally {
         this.blameLoading = false
       }
@@ -298,8 +302,10 @@ export const useRepoDiffStore = defineStore('repoDiff', {
       this.blame = null
       try {
         this.conflict = await gitService.getConflict({ path })
-      } catch {
+      } catch (error) {
         this.conflict = null
+        const detail = error instanceof Error ? error.message : String(error)
+        useToastStore().push(`Could not load conflict: ${detail}`, 'error')
       } finally {
         this.conflictLoading = false
       }

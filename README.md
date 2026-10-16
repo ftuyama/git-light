@@ -8,13 +8,13 @@
 
 [![Latest release](https://img.shields.io/github/v/release/ftuyama/git-light)](https://github.com/ftuyama/git-light/releases) [![License: MIT](https://img.shields.io/github/license/ftuyama/git-light)](LICENSE) [![Downloads](https://img.shields.io/github/downloads/ftuyama/git-light/total)](https://github.com/ftuyama/git-light/releases) [![Stars](https://img.shields.io/github/stars/ftuyama/git-light?style=flat)](https://github.com/ftuyama/git-light/stargazers) [![Platforms](https://img.shields.io/badge/platform-macOS%20%7C%20Windows%20%7C%20Linux-blue)](https://github.com/ftuyama/git-light/releases)
 
-**[ftuyama.github.io/git-light](https://ftuyama.github.io/git-light/)** · MIT License · Built with Electron, Vue 3, TypeScript
+**[ftuyama.github.io/git-light](https://ftuyama.github.io/git-light/)** · MIT License · Built with Tauri 2, Vue 3, TypeScript, Rust
 
 ![Git Light — AwesomeShop repository with repo tabs, commit graph, branch sidebar, and working tree](docs/screenshot.png)
 
 ## What is this?
 
-Git Light is an Electron app with a three-pane repository view that runs **real Git commands** against local repositories via a typed IPC layer. Open a folder, browse history, manage branches, stage files, commit, fetch/pull/push, and inspect diffs.
+Git Light is a Tauri 2 app with a three-pane repository view that runs **real Git commands** against local repositories via typed Tauri commands. Open a folder, browse history, manage branches, stage files, commit, fetch/pull/push, and inspect diffs.
 
 ## Why Git Light?
 
@@ -48,7 +48,7 @@ Looking for a free, open-source **GitKraken alternative**? Git Light focuses on 
 | Command palette — fuzzy launcher for actions and branches (⌘K) | ✅ |
 | Bisect — start, mark good/bad, skip, reset with progress banner | ✅ |
 | Git LFS — track/untrack patterns, prune local objects | ✅ |
-| Integrated terminal (xterm + node-pty, ⌘T toggle in graph pane) | ✅ |
+| Open system terminal at the repo root (⌘T toolbar action) | ✅ |
 | Themes — Default, Dracula, Light, Claude, System (settings) | ✅ |
 | Collapsible sidebars with expand rails · commit graph zoom | ✅ |
 | UI mode — Basic (essential actions) or Advanced (full toolbar and sidebar) | ✅ |
@@ -97,7 +97,7 @@ See **[DEVELOPER.md](DEVELOPER.md)** for build instructions, scripts, and local 
 
 ## Keywords
 
-`git-client` `git-gui` `gitkraken-alternative` `github-desktop-alternative` `sourcetree-alternative` `commit-graph` `electron` `vue3` `typescript` `desktop-app` `developer-tools` `version-control` `macos` `windows` `linux`
+`git-client` `git-gui` `gitkraken-alternative` `github-desktop-alternative` `sourcetree-alternative` `commit-graph` `tauri` `vue3` `typescript` `rust` `desktop-app` `developer-tools` `version-control` `macos` `windows` `linux`
 
 ## Trademark notice
 

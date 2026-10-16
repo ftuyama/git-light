@@ -22,6 +22,7 @@ import BranchNameChipInput from './BranchNameChipInput.vue'
 import { useBranchInputFocus } from './composables/useBranchInputFocus'
 import type { MenuItem } from '@/components/ui/menu'
 import { relativeTime } from '@/lib/format'
+import { openExternalUrl } from '@/lib/tauri/appBridge'
 import { isHeadSymbolicRef } from '@/lib/git/headRef'
 import { formatRefLabel } from '@shared/git/refLabel'
 import { githubCommitUrl } from '@shared/git/githubUrl'
@@ -292,7 +293,7 @@ function openOnGithub(): void {
     toast.push('No GitHub remote configured for this repository', 'error')
     return
   }
-  void window.electron?.openExternal(url)
+  void openExternalUrl(url)
   toast.push('Opening commit on GitHub', 'info')
 }
 </script>

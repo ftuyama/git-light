@@ -2,7 +2,7 @@
 
 > Git Light is a free, MIT-licensed desktop Git client for macOS, Windows, and Linux with a graph-first interface — commit graph, branch sidebar, working tree, multi-repo tabs, and real local Git operations via the native Git CLI. No account or subscription required.
 
-Version: 0.2.0 · License: MIT · Author: ftuyama · Stack: Electron 41, Vue 3, TypeScript, Pinia, Tailwind CSS 4
+Version: 1.0.0 · License: MIT · Author: ftuyama · Stack: Tauri 2, Vue 3, TypeScript, Rust, Pinia, Tailwind CSS 4
 
 Website: https://ftuyama.github.io/git-light/
 Repository: https://github.com/ftuyama/git-light
@@ -12,9 +12,9 @@ Download: https://github.com/ftuyama/git-light/releases
 
 ## Overview
 
-Git Light is a desktop Git client with a graph-first interface. It provides a three-pane repository view that runs real Git commands against local repositories via a typed IPC layer. Open a folder, browse history, manage branches, stage files, commit, fetch/pull/push, and inspect diffs.
+Git Light is a desktop Git client with a graph-first interface. It provides a three-pane repository view that runs real Git commands against local repositories via typed Tauri commands. Open a folder, browse history, manage branches, stage files, commit, fetch/pull/push, and inspect diffs.
 
-Git Light is an Electron app. The renderer never shells out to Git directly — the main process runs the native `git` CLI and exposes typed IPC to the Vue 3 renderer.
+Git Light is a Tauri 2 app. The renderer never shells out to Git directly — the Rust backend runs the native `git` CLI and exposes typed commands to the Vue 3 renderer.
 
 ## Features
 
@@ -46,13 +46,13 @@ Search commits and files by message or path. Navigate history and drive the UI f
 Packaged builds compare against GitHub Releases on startup. Check manually anytime from the app menu.
 
 ### Real Git backend
-Native `git` CLI in the Electron main process via typed IPC — mock mode available for UI-only dev.
+Native `git` CLI in the Rust backend via typed Tauri commands — mock mode available for UI-only dev.
 
 ### Credits & attribution
 Settings credits panel with project links and open-source licenses. Native About dialog on all platforms.
 
-### Integrated terminal
-Toggle an in-app shell at the repo root with ⌘T — xterm.js backed by node-pty in the main process.
+### System terminal
+Open the OS terminal at the repo root with ⌘T.
 
 ### Themes & UI mode
 Default, Dracula, Light, Claude, or System appearance. Basic mode hides advanced actions for a simpler toolbar.
@@ -64,7 +64,7 @@ Collapsible sidebars with expand rails, resizable panes, and commit graph zoom f
 
 | Area | Status |
 |------|--------|
-| Real Git backend (`git` CLI in main process; renderer never shells out) | Supported |
+| Real Git backend (`git` CLI in Rust backend; renderer never shells out) | Supported |
 | Open local repos · recent repos · multi-repo tabs · startup screen | Supported |
 | Commit graph — lanes, refs, pagination, shift-compare, keyboard nav | Supported |
 | Branch sidebar — favorites, tags, stashes, worktrees; drag-and-drop merge/rebase | Supported |
@@ -74,7 +74,7 @@ Collapsible sidebars with expand rails, resizable panes, and commit graph zoom f
 | Merge / rebase / interactive rebase / cherry-pick (continue/abort banner) | Supported |
 | Merge conflict resolution (ours/theirs/per-block) | Supported |
 | Undo / redo (reflog-backed) · stash · search | Supported |
-| Integrated terminal (xterm + node-pty, ⌘T toggle in graph pane) | Supported |
+| Open system terminal at the repo root (⌘T toolbar action) | Supported |
 | Themes — Default, Dracula, Light, Claude, System (settings) | Supported |
 | Collapsible sidebars with expand rails · commit graph zoom | Supported |
 | UI mode — Basic (essential actions) or Advanced (full toolbar and sidebar) | Supported |
@@ -86,7 +86,7 @@ Collapsible sidebars with expand rails, resizable panes, and commit graph zoom f
 
 ## Tech stack
 
-Electron 41, Vue 3, TypeScript, Pinia, reka-ui, Tailwind CSS 4, xterm.js, node-pty, Vitest, electron-vite.
+Tauri 2, Vue 3, TypeScript, Rust, Pinia, reka-ui, Tailwind CSS 4, Vitest, Vite.
 
 ## Download & install
 
@@ -115,13 +115,13 @@ Git Light is a free, open-source desktop Git client for macOS, Windows, and Linu
 Yes. Git Light is MIT-licensed and free to download and use. Optional sponsorship is available on Ko-fi.
 
 ### What platforms does Git Light support?
-Packaged builds are available for macOS (.dmg), Windows (.exe), and Linux (.AppImage, .deb) on GitHub Releases. Developers can run it locally on any OS that supports Electron with Node.js and npm.
+Packaged builds are available for macOS (.dmg), Windows (.exe), and Linux (.AppImage, .deb) on GitHub Releases. Developers can run it locally on any OS that supports Tauri with Node.js, npm, and Rust.
 
 ### Does Git Light require an account?
 No sign-in, cloud sync, or subscription. Open a local folder and work with your existing Git repositories offline.
 
 ### How is Git Light different from GitKraken or Sourcetree?
-Git Light is a lightweight, open-source alternative focused on a fast commit graph and direct Git CLI operations — without vendor accounts or lock-in. Built with Electron, Vue 3, and TypeScript.
+Git Light is a lightweight, open-source alternative focused on a fast commit graph and direct Git CLI operations — without vendor accounts or lock-in. Built with Tauri 2, Vue 3, TypeScript, and Rust.
 
 ## Links
 

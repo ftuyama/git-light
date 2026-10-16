@@ -41,7 +41,7 @@ const allCommands = computed<PaletteCommand[]>(() => {
     { id: 'lfs-prune', title: 'Prune Git LFS Objects', keywords: 'large files binary clean', run: () => repo.lfsPrune() },
     { id: 'stage-all', title: 'Stage All Changes', keywords: 'add index', run: () => repo.runAction({ kind: 'stage-all' }) },
     { id: 'search', title: 'Search Commits and Files…', keywords: 'find grep', run: () => repo.openSearch() },
-    { id: 'terminal', title: 'Toggle Terminal', keywords: 'shell cli console', run: () => ui.toggleTerminal() },
+    { id: 'terminal', title: 'Open System Terminal', keywords: 'shell cli console', run: () => repo.runAction({ kind: 'open-terminal' }) },
     { id: 'sidebar-left', title: 'Toggle Left Sidebar', keywords: 'branches panel view', run: () => ui.toggleLeft() },
     { id: 'sidebar-right', title: 'Toggle Right Sidebar', keywords: 'working tree panel view', run: () => ui.toggleRight() },
     { id: 'settings', title: 'Open Settings…', keywords: 'preferences appearance theme', run: () => ui.openSettings() },

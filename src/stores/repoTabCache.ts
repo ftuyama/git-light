@@ -1,4 +1,5 @@
 import { defineStore } from 'pinia'
+import { toRaw } from 'vue'
 import type { CommitPageInfo } from '@shared/git/models'
 import type {
   Author,
@@ -47,9 +48,37 @@ type CacheableStore = Pick<
   | 'amend'
 >
 
+/**
+ * Recursively strips Vue reactivity (`reactive`/`ref` proxies) so the result
+ * can be handed to `structuredClone`. `structuredClone` throws
+ * `DataCloneError` on reactive proxies, which previously made every
+ * `cache.save()` — and therefore every tab switch — fail.
+ * Plain objects/arrays are rebuilt; class instances (e.g. `Date`) are passed
+ * through untouched for `structuredClone` to clone natively.
+ */
+function deepToRaw<T>(value: T): T {
+  const raw = toRaw(value)
+  if (Array.isArray(raw)) return raw.map(deepToRaw) as unknown as T
+  if (raw !== null && typeof raw === 'object') {
+    const proto: unknown = Object.getPrototypeOf(raw)
+    if (proto === Object.prototype || proto === null) {
+      const out: Record<string, unknown> = {}
+      for (const key of Object.keys(raw)) {
+        out[key] = deepToRaw((raw as Record<string, unknown>)[key])
+      }
+      return out as unknown as T
+    }
+  }
+  return raw
+}
+
 export function captureTabState(store: CacheableStore): CachedTabState | null {
   if (!store.repository) return null
-  return {
+  // Deep-clone: the cache must own its data. Storing live array/object refs
+  // means mutating the active repo (e.g. a refresh) also mutates the cache.
+  // `structuredClone` preserves Dates. Reactivity is stripped first via
+  // `deepToRaw` — cloning a reactive proxy throws `DataCloneError`.
+  const snapshot = {
     path: store.repository.path,
     repository: store.repository,
     commits: store.commits,
@@ -65,6 +94,7 @@ export function captureTabState(store: CacheableStore): CachedTabState | null {
     commitDescription: store.commitDescription,
     amend: store.amend,
   }
+  return structuredClone(deepToRaw(snapshot))
 }
 
 export function applyCachedTabState(store: CacheableStore, cached: CachedTabState): void {

@@ -6,7 +6,6 @@ import {
   clampColumnWidth,
   clampLeftSidebarSize,
   clampRightSidebarSize,
-  clampTerminalPanelSize,
   clampWorkingTreeChangesSize,
   shouldCollapseLeftSidebar,
   shouldCollapseRightSidebar,
@@ -32,14 +31,6 @@ let persistTimer: ReturnType<typeof setTimeout> | undefined
 let persistenceBound = false
 
 async function readPersisted(): Promise<Partial<UserPreferences> | null> {
-  if (window.electron?.store) {
-    const current = await window.electron.store.get<Partial<UserPreferences> | null>(
-      PREFERENCES_KEY,
-      null,
-    )
-    if (current) return current
-    return window.electron.store.get<Partial<UserPreferences> | null>(LEGACY_STORE_KEY, null)
-  }
   try {
     const raw =
       localStorage.getItem(PREFERENCES_KEY) ?? localStorage.getItem(LEGACY_STORE_KEY)
@@ -50,10 +41,6 @@ async function readPersisted(): Promise<Partial<UserPreferences> | null> {
 }
 
 function writePersisted(state: UserPreferences): void {
-  if (window.electron?.store) {
-    void window.electron.store.set(PREFERENCES_KEY, state)
-    return
-  }
   try {
     localStorage.setItem(PREFERENCES_KEY, JSON.stringify(state))
   } catch {
@@ -65,7 +52,6 @@ function snapshot(state: {
   leftSize: number
   rightSize: number
   workingTreeChangesSize: number
-  terminalPanelSize: number
   leftCollapsed: boolean
   rightCollapsed: boolean
   sections: Record<string, boolean>
@@ -89,7 +75,6 @@ function snapshot(state: {
     leftSize: state.leftSize,
     rightSize: state.rightSize,
     workingTreeChangesSize: state.workingTreeChangesSize,
-    terminalPanelSize: state.terminalPanelSize,
     leftCollapsed: state.leftCollapsed,
     rightCollapsed: state.rightCollapsed,
     sections: state.sections,
@@ -116,7 +101,6 @@ export const useUiStore = defineStore('ui', {
     leftSize: 18,
     rightSize: 24,
     workingTreeChangesSize: defaultPreferences().workingTreeChangesSize,
-    terminalPanelSize: defaultPreferences().terminalPanelSize,
     leftCollapsed: false,
     rightCollapsed: false,
     sections: { ...DEFAULT_SECTIONS } as Record<string, boolean>,
@@ -135,7 +119,6 @@ export const useUiStore = defineStore('ui', {
     diffWordWrap: false,
     signOffCommit: false,
     signCommit: false,
-    terminalOpen: false,
     commandPaletteOpen: false,
     settingsOpen: false,
     leftCollapseHint: false,
@@ -160,7 +143,6 @@ export const useUiStore = defineStore('ui', {
       this.leftSize = saved.leftSize
       this.rightSize = saved.rightSize
       this.workingTreeChangesSize = saved.workingTreeChangesSize
-      this.terminalPanelSize = saved.terminalPanelSize
       this.leftCollapsed = saved.leftCollapsed
       this.rightCollapsed = saved.rightCollapsed
       this.sections = { ...saved.sections }
@@ -187,7 +169,6 @@ export const useUiStore = defineStore('ui', {
         persistTimer = setTimeout(() => this.persistNow(), 200)
       })
       window.addEventListener('beforeunload', () => this.persistNow())
-      window.electron?.onWindowBlur?.(() => this.persistNow())
     },
     persistNow(): void {
       clearTimeout(persistTimer)
@@ -197,7 +178,6 @@ export const useUiStore = defineStore('ui', {
           leftSize: this.leftSize,
           rightSize: this.rightSize,
           workingTreeChangesSize: this.workingTreeChangesSize,
-          terminalPanelSize: this.terminalPanelSize,
           leftCollapsed: this.leftCollapsed,
           rightCollapsed: this.rightCollapsed,
           sections: this.sections,
@@ -246,12 +226,6 @@ export const useUiStore = defineStore('ui', {
     setWorkingTreeChangesSize(size: number): void {
       this.workingTreeChangesSize = clampWorkingTreeChangesSize(size)
     },
-    setTerminalPanelSize(size: number): void {
-      this.terminalPanelSize = clampTerminalPanelSize(size)
-    },
-    toggleTerminal(): void {
-      this.terminalOpen = !this.terminalOpen
-    },
     openCommandPalette(): void {
       this.commandPaletteOpen = true
     },
@@ -260,12 +234,6 @@ export const useUiStore = defineStore('ui', {
     },
     toggleCommandPalette(): void {
       this.commandPaletteOpen = !this.commandPaletteOpen
-    },
-    openTerminal(): void {
-      this.terminalOpen = true
-    },
-    closeTerminal(): void {
-      this.terminalOpen = false
     },
     toggleLeft(): void {
       this.leftCollapsed = !this.leftCollapsed
@@ -365,14 +333,12 @@ export const useUiStore = defineStore('ui', {
     },
     setUiMode(mode: UiMode): void {
       this.uiMode = mode
-      if (mode === 'basic') this.closeTerminal()
     },
     resetLayout(): void {
       const d = defaultPreferences()
       this.leftSize = d.leftSize
       this.rightSize = d.rightSize
       this.workingTreeChangesSize = d.workingTreeChangesSize
-      this.terminalPanelSize = d.terminalPanelSize
       this.leftCollapsed = d.leftCollapsed
       this.rightCollapsed = d.rightCollapsed
     },

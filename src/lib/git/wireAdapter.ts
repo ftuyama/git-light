@@ -33,26 +33,33 @@ function reviveRef(w: WireRef): Ref {
   return { ...w }
 }
 
+function reviveDate(value: string): Date {
+  const date = new Date(value)
+  // A malformed wire date must not propagate as `Invalid Date` into
+  // relative-time formatting — fall back to epoch instead.
+  return Number.isNaN(date.getTime()) ? new Date(0) : date
+}
+
 function reviveCommit(w: WireCommit): Commit {
   return {
     ...w,
     author: reviveAuthor(w.author),
     committer: reviveAuthor(w.committer),
-    date: new Date(w.date),
+    date: reviveDate(w.date),
     refs: w.refs.filter((r) => !isHeadSymbolicRef(r)).map(reviveRef),
   }
 }
 
 function reviveBranch(w: WireBranch): Branch {
-  return { ...w, lastActivity: new Date(w.lastActivity) }
+  return { ...w, lastActivity: reviveDate(w.lastActivity) }
 }
 
 function reviveTag(w: WireTag): Tag {
-  return { ...w, date: new Date(w.date) }
+  return { ...w, date: reviveDate(w.date) }
 }
 
 function reviveStash(w: WireStash): Stash {
-  return { ...w, date: new Date(w.date) }
+  return { ...w, date: reviveDate(w.date) }
 }
 
 function reviveWorktree(w: WireWorktree): Worktree {

@@ -121,12 +121,13 @@ const moreMenu = computed<MenuItem[]>(() => {
 
 <template>
   <header
-    class="app-drag flex h-14 shrink-0 items-center gap-1 border-b border-[var(--color-border)] bg-[var(--color-panel)] pl-2 pr-2"
+    data-tauri-drag-region
+    class="app-drag flex h-14 shrink-0 items-center gap-1 border-b border-[var(--color-border)] bg-[var(--color-panel)] pl-2 pr-2 select-none"
   >
     <div class="app-no-drag flex shrink-0 items-center gap-2">
       <DropdownMenu :items="repoMenu" align="start">
         <button
-          class="focus-ring flex h-8 max-w-[200px] items-center gap-1.5 rounded-md px-2 text-[13px] text-[var(--color-fg-muted)] transition-colors hover:bg-[var(--color-hover)] hover:text-[var(--color-fg)]"
+          class="app-no-drag focus-ring flex h-8 max-w-[200px] items-center gap-1.5 rounded-md px-2 text-[13px] text-[var(--color-fg-muted)] transition-colors hover:bg-[var(--color-hover)] hover:text-[var(--color-fg)]"
           :title="repo.repository?.path"
         >
           <FolderGit2 :size="15" class="shrink-0 text-[var(--color-accent)]" />
@@ -141,7 +142,7 @@ const moreMenu = computed<MenuItem[]>(() => {
 
       <DropdownMenu :items="branchMenu" align="start">
         <button
-          class="focus-ring flex h-8 items-center gap-2 rounded-md px-2 text-[13px] text-[var(--color-fg-muted)] transition-colors hover:bg-[var(--color-hover)] hover:text-[var(--color-fg)]"
+          class="app-no-drag focus-ring flex h-8 items-center gap-2 rounded-md px-2 text-[13px] text-[var(--color-fg-muted)] transition-colors hover:bg-[var(--color-hover)] hover:text-[var(--color-fg)]"
           :disabled="branchSwitching"
         >
           <Loader2 v-if="branchSwitching" :size="15" class="animate-spin" />
@@ -154,7 +155,7 @@ const moreMenu = computed<MenuItem[]>(() => {
       </DropdownMenu>
     </div>
 
-    <div class="app-drag min-w-2 flex-1" />
+    <div data-tauri-drag-region class="app-drag min-w-2 flex-1 self-stretch" />
 
     <div class="app-no-drag flex shrink-0 items-center gap-0.5">
       <IconButton
@@ -197,7 +198,7 @@ const moreMenu = computed<MenuItem[]>(() => {
       </DropdownMenu>
     </div>
 
-    <div class="app-drag min-w-2 flex-1" />
+    <div data-tauri-drag-region class="app-drag min-w-2 flex-1 self-stretch" />
 
     <div class="app-no-drag flex shrink-0 items-center gap-0.5">
       <IconButton caption="Cmd" :icon="Command" label="Command palette" shortcut="⌘K" @click="ui.toggleCommandPalette()" />
@@ -206,7 +207,7 @@ const moreMenu = computed<MenuItem[]>(() => {
         v-if="ui.isAdvanced"
         caption="Term"
         :icon="Terminal"
-        label="Toggle Terminal"
+        label="Open Terminal"
         shortcut="⌘T"
         @click="run('open-terminal')"
       />

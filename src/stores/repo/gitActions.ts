@@ -3,11 +3,11 @@ import type { Branch } from '@/types/git'
 import { credentialHintFor } from '@shared/git/credentialHints'
 import { isDestructiveAction } from '@shared/git/destructive'
 import { gitService } from '@/lib/git'
+import { saveBranchFavorites } from '@/lib/tauri/favorites'
 import { usePromptStore } from '@/stores/prompt'
 import { useRepoDiffStore } from '@/stores/repoDiff'
 import { useSelectionStore, PENDING_BRANCH_ROW } from '@/stores/selection'
 import { useToastStore } from '@/stores/toast'
-import { useUiStore } from '@/stores/ui'
 import { mergeMetaForMode, type MergeMode } from '@/lib/mergeMode'
 import {
   describeAction,
@@ -54,9 +54,8 @@ export const gitActions = {
     }
 
     if (action.kind === 'open-terminal') {
-      const ui = useUiStore()
-      if (!ui.isAdvanced) return true
-      ui.toggleTerminal()
+      // No embedded terminal: always open the system terminal.
+      await gitService.openTerminal(this.repository?.path)
       return true
     }
 
@@ -64,7 +63,26 @@ export const gitActions = {
       const full = action.target.startsWith('/')
         ? action.target
         : `${this.repository.path}/${action.target}`
-      await gitService.revealPath(full)
+      // Keep the resolved path inside the repo: reject parent traversal.
+      const parts = full.split('/')
+      const resolved: string[] = []
+      for (const part of parts) {
+        if (part === '..') {
+          if (resolved.length === 0 || resolved[resolved.length - 1] === '..') {
+            useToastStore().push('Invalid path.', 'error')
+            return false
+          }
+          resolved.pop()
+        } else {
+          resolved.push(part)
+        }
+      }
+      const safe = resolved.join('/')
+      if (!safe.startsWith(this.repository.path)) {
+        useToastStore().push('Invalid path.', 'error')
+        return false
+      }
+      await gitService.revealPath(safe)
       return true
     }
 
@@ -100,7 +118,17 @@ export const gitActions = {
       'fetch-all',
     ].includes(action.kind)
 
-    const result = await gitService.execute(action)
+    const result = await (async () => {
+      try {
+        return await gitService.execute(action)
+      } finally {
+        this.operation = null
+        this.operationPhase = null
+        this.busyAction = null
+        this.branchSwitching = false
+        this.canCancel = false
+      }
+    })()
 
     const hint = !result.ok && result.errorCode ? credentialHintFor(result.errorCode) : undefined
     const toastMessage = hint ? `${result.message} — ${hint}` : result.message
@@ -121,11 +149,6 @@ export const gitActions = {
       await this.refreshSnapshot(['status', 'branches'])
     }
 
-    this.operation = null
-    this.operationPhase = null
-    this.busyAction = null
-    this.branchSwitching = false
-    this.canCancel = false
     return result.ok
   },
 
@@ -487,9 +510,8 @@ export const gitActions = {
     const branch = this.branches.find((b) => b.id === branchId)
     if (!branch || !this.repository) return
     branch.isFavorite = !branch.isFavorite
-    const key = `branch-favorites:${this.repository.path}`
     const favorites = this.branches.filter((b) => b.isFavorite).map((b) => b.name)
-    void window.electron?.store.set(key, favorites)
+    void saveBranchFavorites(this.repository.path, favorites)
   },
 
   checkoutBranch(this: GitActionsStore, name: string): void {

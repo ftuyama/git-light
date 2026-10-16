@@ -31,7 +31,8 @@ function removeRecent(path: string, event: Event): void {
   <div
     class="relative flex h-screen w-screen flex-col items-center justify-center bg-[var(--color-app)] px-6"
   >
-    <div class="absolute top-3 right-3">
+    <div data-tauri-drag-region class="app-drag absolute inset-x-0 top-0 h-12" aria-hidden="true" />
+    <div class="app-no-drag absolute top-3 right-3">
       <AppSettingsMenu />
     </div>
 

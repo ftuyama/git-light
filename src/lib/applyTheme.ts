@@ -1,4 +1,5 @@
 import { resolveTheme, themeAppColor, type ThemePreference } from '@/lib/themes'
+import { setWindowBackground } from '@/lib/tauri/appBridge'
 
 let systemThemeUnwatch: (() => void) | null = null
 
@@ -19,16 +20,12 @@ export function syncThemePreference(preference: ThemePreference): void {
 
   applyTheme(preference)
 
-  if (window.electron?.setWindowBackgroundColor) {
-    void window.electron.setWindowBackgroundColor(themeAppColor(preference))
-  }
+  void setWindowBackground(themeAppColor(preference))
 
   if (preference === 'system') {
     systemThemeUnwatch = watchSystemTheme(() => {
       applyTheme('system')
-      if (window.electron?.setWindowBackgroundColor) {
-        void window.electron.setWindowBackgroundColor(themeAppColor('system'))
-      }
+      void setWindowBackground(themeAppColor('system'))
     })
   }
 }

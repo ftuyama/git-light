@@ -6,59 +6,84 @@ on:
       - 'v*'
 
 jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm run test
+      - run: npm run sync-version -- --check
+
+      - name: Install Rust stable
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy, rustfmt
+
+      - name: Install Linux dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf xdg-utils
+
+      - name: Rust cache
+        uses: swatinem/rust-cache@v2
+        with:
+          workspaces: './src-tauri -> target'
+
+      - run: cargo test --manifest-path src-tauri/Cargo.toml
+      - run: cargo clippy --manifest-path src-tauri/Cargo.toml -- -D warnings
+      - run: cargo fmt --check --manifest-path src-tauri/Cargo.toml
+
   build:
+    needs: [verify]
+    permissions:
+      contents: write
     strategy:
       fail-fast: false
       matrix:
         include:
-          - os: macos-latest
-            script: dist:mac
-            artifacts: dist/*.dmg
-          - os: windows-latest
-            script: dist:win
-            artifacts: dist/*.exe
-          - os: ubuntu-latest
-            script: dist:linux
-            artifacts: |
-              dist/*.AppImage
-              dist/*.deb
-    runs-on: ${{ matrix.os }}
+          - platform: macos-latest
+            args: ''
+          - platform: windows-latest
+            args: ''
+          - platform: ubuntu-22.04
+            args: ''
+    runs-on: ${{ matrix.platform }}
     steps:
       - uses: actions/checkout@v4
+
+      - name: Install Linux dependencies
+        if: matrix.platform == 'ubuntu-22.04'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf xdg-utils
 
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
           cache: npm
 
+      - name: Install Rust stable
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Rust cache
+        uses: swatinem/rust-cache@v2
+        with:
+          workspaces: './src-tauri -> target'
+
       - run: npm ci
 
-      - name: Build installer
-        run: npm run ${{ matrix.script }}
-
-      - name: Verify macOS code signature
-        if: matrix.os == 'macos-latest'
-        run: npm run verify:mac-signing
-
-      - uses: actions/upload-artifact@v4
-        with:
-          name: release-${{ matrix.os }}
-          path: ${{ matrix.artifacts }}
-
-  publish:
-    needs: build
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-    steps:
-      - uses: actions/download-artifact@v4
-        with:
-          pattern: release-*
-          merge-multiple: true
-          path: dist
-
-      - uses: softprops/action-gh-release@v2
-        with:
-          files: dist/*
+      - uses: tauri-apps/tauri-action@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tagName: ${{ github.ref_name }}
+          releaseName: 'Git Light ${{ github.ref_name }}'
+          releaseBody: 'See the assets to download this version and install.'
+          releaseDraft: false
+          prerelease: false
+          args: ${{ matrix.args }}

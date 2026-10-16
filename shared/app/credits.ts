@@ -24,7 +24,7 @@ export const APP_LINKS: { id: AppLinkId; label: string; url: string }[] = [
 
 export const THIRD_PARTY_CREDITS: ThirdPartyCredit[] = [
   { name: 'Vue', url: 'https://vuejs.org/', license: 'MIT' },
-  { name: 'Electron', url: 'https://www.electronjs.org/', license: 'MIT' },
+  { name: 'Tauri', url: 'https://tauri.app/', license: 'MIT/Apache-2.0' },
   { name: 'Pinia', url: 'https://pinia.vuejs.org/', license: 'MIT' },
   { name: 'Tailwind CSS', url: 'https://tailwindcss.com/', license: 'MIT' },
   { name: 'Lucide', url: 'https://lucide.dev/', license: 'ISC' },
@@ -32,7 +32,6 @@ export const THIRD_PARTY_CREDITS: ThirdPartyCredit[] = [
   { name: 'date-fns', url: 'https://date-fns.org/', license: 'MIT' },
   { name: 'TanStack Virtual', url: 'https://tanstack.com/virtual', license: 'MIT' },
   { name: 'splitpanes', url: 'https://antoniandre.github.io/splitpanes/', license: 'MIT' },
-  { name: 'xterm.js', url: 'https://xtermjs.org/', license: 'MIT' },
   { name: 'Reka UI', url: 'https://reka-ui.com/', license: 'MIT' },
 ]
 

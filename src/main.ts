@@ -1,6 +1,8 @@
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
 import type { RecentRepository } from '@shared/git/models'
+import { isTauri } from '@/lib/backend'
+import { useMockGitServiceIfRequested } from '@/lib/git'
 import App from './App.vue'
 import { syncThemePreference } from './lib/applyTheme'
 import { useUiStore } from './stores/ui'
@@ -8,7 +10,6 @@ import { useRepositoryStore } from './stores/repository'
 import { useRepoTabsStore } from './stores/repoTabs'
 import { preloadSavedTabs } from './stores/repo/tabPreload'
 import 'splitpanes/dist/splitpanes.css'
-import '@xterm/xterm/css/xterm.css'
 import './assets/theme.css'
 
 function startupRepositoryCandidates(
@@ -34,7 +35,11 @@ async function restoreSession(
   open: (path: string) => Promise<boolean>,
 ): Promise<string | null> {
   for (const path of startupRepositoryCandidates(tabs, lastPath, recentRepos)) {
-    if (await open(path)) return path
+    try {
+      if (await open(path)) return path
+    } catch (err) {
+      console.error(`[git-light] failed to restore ${path}:`, err)
+    }
   }
   return null
 }
@@ -43,29 +48,69 @@ async function bootstrap(): Promise<void> {
   const app = createApp(App)
   const pinia = createPinia()
   app.use(pinia)
+  app.config.errorHandler = (err) => console.error('[git-light] render error:', err)
+
+  // Mount first so a backend/startup failure can never leave a black screen:
+  // the default store state renders StartupView.
+  app.mount('#app')
+
+  let useMock = false
+  try {
+    useMock = await useMockGitServiceIfRequested()
+  } catch (err) {
+    console.error('[git-light] mock backend setup failed:', err)
+  }
 
   const ui = useUiStore(pinia)
-  await ui.hydrate()
-  syncThemePreference(ui.theme)
+  try {
+    await ui.hydrate()
+  } catch (err) {
+    console.error('[git-light] UI prefs hydrate failed:', err)
+  }
+  try {
+    syncThemePreference(ui.theme)
+  } catch (err) {
+    console.error('[git-light] theme sync failed:', err)
+  }
 
   const tabs = useRepoTabsStore(pinia)
-  tabs.hydrate(ui.openRepoTabs, ui.lastRepositoryPath)
+  try {
+    tabs.hydrate(ui.openRepoTabs, ui.lastRepositoryPath)
+  } catch (err) {
+    console.error('[git-light] tabs hydrate failed:', err)
+  }
 
   const repo = useRepositoryStore(pinia)
-  await repo.init()
-  tabs.syncFromRecent(repo.recentRepos)
+  try {
+    await repo.init()
+  } catch (err) {
+    console.error('[git-light] backend init failed (is the Tauri IPC reachable?):', err)
+    return
+  }
+  try {
+    tabs.syncFromRecent(repo.recentRepos)
+  } catch (err) {
+    console.error('[git-light] tabs sync failed:', err)
+  }
 
-  const useMock =
-    import.meta.env.DEV && import.meta.env.VITE_USE_MOCK === 'true' && typeof repo.loadMock === 'function'
-  if (useMock) {
-    void repo.loadMock()
+  if (useMock && typeof repo.loadMock === 'function') {
+    try {
+      await repo.loadMock()
+    } catch (err) {
+      console.error('[git-light] mock load failed:', err)
+    }
   } else {
-    const openedPath = await restoreSession(
-      tabs.activePath ?? ui.lastRepositoryPath,
-      tabs.tabs,
-      repo.recentRepos,
-      (path) => repo.openRepository(path, { silent: true }),
-    )
+    let openedPath: string | null = null
+    try {
+      openedPath = await restoreSession(
+        tabs.activePath ?? ui.lastRepositoryPath,
+        tabs.tabs,
+        repo.recentRepos,
+        (path) => repo.openRepository(path, { silent: true }),
+      )
+    } catch (err) {
+      console.error('[git-light] session restore failed:', err)
+    }
     if (openedPath) {
       ui.setLastRepositoryPath(openedPath)
       tabs.setActive(openedPath)
@@ -77,7 +122,17 @@ async function bootstrap(): Promise<void> {
     }
   }
 
-  app.mount('#app')
+  if (isTauri()) {
+    // Startup update check (3s delay, snooze-aware).
+    window.setTimeout(() => {
+      void import('@/lib/tauri/updateCheck')
+        .then(({ runUpdateCheck }) => runUpdateCheck('startup'))
+        .catch((err) => console.error('[git-light] update check failed:', err))
+    }, 3000)
+    void import('@/lib/tauri/appMenu')
+      .then(({ setupAppMenu }) => setupAppMenu())
+      .catch((err) => console.error('[git-light] app menu setup failed:', err))
+  }
 }
 
-void bootstrap()
+bootstrap().catch((err) => console.error('[git-light] bootstrap failed:', err))

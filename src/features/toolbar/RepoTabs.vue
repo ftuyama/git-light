@@ -7,15 +7,22 @@ import AppSettingsMenu from '@/features/settings/AppSettingsMenu.vue'
 import { useRepoMenu } from '@/features/toolbar/useRepoMenu'
 import { useRepositoryStore } from '@/stores/repository'
 import { useRepoTabsStore } from '@/stores/repoTabs'
+import { useToastStore } from '@/stores/toast'
 
 const repo = useRepositoryStore()
 const tabsStore = useRepoTabsStore()
 const { repoMenu } = useRepoMenu()
 const { tabs, activePath } = storeToRefs(tabsStore)
 
-function selectTab(path: string): void {
+async function selectTab(path: string): Promise<void> {
   if (path === activePath.value) return
-  void repo.switchRepository(path)
+  try {
+    const ok = await repo.switchRepository(path)
+    if (!ok) useToastStore().push(`Could not open ${path}.`, 'error')
+  } catch (err) {
+    console.error('[git-light] switch repository failed:', err)
+    useToastStore().push(`Could not open ${path}.`, 'error')
+  }
 }
 
 async function closeTab(path: string, event: MouseEvent): Promise<void> {
@@ -38,9 +45,10 @@ function openNewRepository(): void {
 
 <template>
   <header
-    class="app-drag flex shrink-0 items-start border-b border-[var(--color-border)] bg-[var(--color-app)]"
+    data-tauri-drag-region
+    class="app-drag flex shrink-0 items-start border-b border-[var(--color-border)] bg-[var(--color-app)] select-none"
   >
-    <div class="w-20 shrink-0" aria-hidden="true" />
+    <div data-tauri-drag-region class="app-drag w-20 shrink-0 self-stretch" aria-hidden="true" />
 
     <div class="app-no-drag flex min-w-0 items-start gap-1 pr-3">
       <DropdownMenu :items="repoMenu" align="start">
@@ -59,7 +67,7 @@ function openNewRepository(): void {
           role="tab"
           :aria-selected="tab.path === activePath"
           :title="tab.path"
-          class="focus-ring group relative flex h-8 max-w-[220px] shrink-0 items-center gap-2 rounded-t border px-3 text-xs transition-colors"
+          class="app-no-drag focus-ring group relative flex h-8 max-w-[220px] shrink-0 items-center gap-2 rounded-t border px-3 text-xs transition-colors"
           :class="
             tab.path === activePath
               ? 'border-[var(--color-border)] border-b-[var(--color-panel)] bg-[var(--color-panel)] text-[var(--color-fg)]'
@@ -82,7 +90,7 @@ function openNewRepository(): void {
           <span
             role="button"
             tabindex="-1"
-            class="focus-ring flex h-4 w-4 shrink-0 items-center justify-center rounded-sm opacity-0 transition-opacity group-hover:opacity-100"
+            class="app-no-drag focus-ring flex h-4 w-4 shrink-0 items-center justify-center rounded-sm opacity-0 transition-opacity group-hover:opacity-100"
             :class="tab.path === activePath ? 'opacity-60 hover:opacity-100' : ''"
             aria-label="Close repository tab"
             @click="closeTab(tab.path, $event)"
@@ -93,7 +101,7 @@ function openNewRepository(): void {
 
         <button
           type="button"
-          class="focus-ring flex h-8 w-8 shrink-0 items-center justify-center rounded text-[var(--color-fg-subtle)] transition-colors hover:bg-[var(--color-hover)] hover:text-[var(--color-fg)]"
+          class="app-no-drag focus-ring flex h-8 w-8 shrink-0 items-center justify-center rounded text-[var(--color-fg-subtle)] transition-colors hover:bg-[var(--color-hover)] hover:text-[var(--color-fg)]"
           aria-label="Open repository"
           @click="openNewRepository"
         >
@@ -102,7 +110,7 @@ function openNewRepository(): void {
       </div>
     </div>
 
-    <div class="app-drag min-w-8 flex-1 self-stretch" />
+    <div data-tauri-drag-region class="app-drag min-w-8 flex-1 self-stretch" />
 
     <div class="app-no-drag flex shrink-0 items-start pr-2">
       <AppSettingsMenu />

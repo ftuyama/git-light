@@ -1,6 +1,6 @@
 /**
- * Typed Git error taxonomy shared between the Electron main process and the
- * renderer. The main process throws/normalizes these; the renderer reconstructs
+ * Typed Git error taxonomy shared between the Tauri backend and the
+ * renderer. The backend throws/normalizes these; the renderer reconstructs
  * them from the serialized payload so the UI can show actionable messages
  * instead of raw stderr.
  */

@@ -20,7 +20,7 @@ const options: {
     id: 'basic',
     label: 'Basic',
     description:
-      'Essential Git actions only. Hides stash, rebase, cherry-pick, tags, terminal, and more.',
+      'Essential Git actions only. Hides stash, rebase, cherry-pick, tags, and more.',
     icon: Zap,
   },
   {

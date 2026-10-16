@@ -16,5 +16,5 @@ export const KEYBOARD_SHORTCUTS: ShortcutEntry[] = [
   { keys: '⌘⇧Z', description: 'Redo operation' },
   { keys: '⌘B', description: 'Toggle left sidebar' },
   { keys: '↑ / ↓ / J / K', description: 'Navigate commit graph' },
-  { keys: '⌘T', description: 'Toggle integrated terminal', advanced: true },
+  { keys: '⌘T', description: 'Open system terminal', advanced: true },
 ]
