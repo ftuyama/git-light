@@ -717,13 +717,19 @@ pub fn create_rebase_editor_bundle(
         .iter()
         .filter_map(|(_, _, _, m)| m.clone())
         .collect();
+    // Windows: emit forward slashes in every generated path. Native
+    // backslash paths routinely contain `\r`, `\n`, `\t` sequences
+    // (e.g. `C:\Users\runneradmin\...`) that shell layers can interpret as
+    // escapes, mangling the command (`'unneradmin' is not recognized...`).
+    // cmd.exe, `copy`, and redirections all accept forward slashes.
+    let slash = |p: &Path| p.display().to_string().replace('\\', "/");
     let (seq_editor, msg_editor) = if cfg!(target_os = "windows") {
         let seq = dir.join("seq-editor.cmd");
         std::fs::write(
             &seq,
             format!(
                 "@echo off\r\ncopy /Y \"{}\" \"%~1\" >NUL\r\n",
-                todo_path.display()
+                slash(&todo_path)
             ),
         )
         .map_err(|e| GitError::unknown(e.to_string()))?;
@@ -743,16 +749,16 @@ pub fn create_rebase_editor_bundle(
         std::fs::write(
             &msg,
             format!(
-                "@echo off\r\nset /p IDX<\"{}\"\r\ncopy /Y \"{}\\msg-%IDX%\" \"%~1\" >NUL\r\nset /a NEXT=%IDX%+1\r\necho %NEXT%>\"{}\"\r\n",
-                dir.join("reword-index").display(),
-                msg_dir.display(),
-                dir.join("reword-index").display()
+                "@echo off\r\nset /p IDX<\"{}\"\r\ncopy /Y \"{}/msg-%IDX%\" \"%~1\" >NUL\r\nset /a NEXT=%IDX%+1\r\necho %NEXT%>\"{}\"\r\n",
+                slash(&dir.join("reword-index")),
+                slash(&msg_dir),
+                slash(&dir.join("reword-index"))
             ),
         )
         .map_err(|e| GitError::unknown(e.to_string()))?;
         (
-            format!("cmd /C \"{}\"", seq.display()),
-            format!("cmd /C \"{}\"", msg.display()),
+            format!("cmd /C \"{}\"", slash(&seq)),
+            format!("cmd /C \"{}\"", slash(&msg)),
         )
     } else {
         let seq = dir.join("seq-editor.sh");
@@ -2116,6 +2122,13 @@ mod tests {
             None,
         )
         .await;
+        if let Err(e) = &result {
+            eprintln!(
+                "rebase bundle failed: dir={} env={:?} err={e:?}",
+                bundle.dir.display(),
+                bundle.env
+            );
+        }
         drop(bundle);
         result.expect("rebase driven by .cmd editors");
         let log = run(vec!["log".into(), "--format=%s".into()])
@@ -2144,6 +2157,16 @@ mod tests {
         run(vec!["config".into(), "user.name".into(), "t".into()])
             .await
             .expect("config");
+        // Deterministic LF checkouts: Windows runners default to
+        // `core.autocrlf=true`, which would check out `a.txt` as CRLF and
+        // break exact-content assertions below.
+        run(vec![
+            "config".into(),
+            "core.autocrlf".into(),
+            "false".into(),
+        ])
+        .await
+        .expect("config");
         std::fs::write(cwd.join("a.txt"), "one\n").unwrap();
         run(vec!["add".into(), "-A".into()]).await.expect("add");
         run(vec!["commit".into(), "-m".into(), "first".into()])

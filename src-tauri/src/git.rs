@@ -764,9 +764,11 @@ mod tests {
 
     #[tokio::test]
     async fn rejects_non_repo() {
-        let err = validate_repo(Path::new("/tmp"))
-            .await
-            .expect_err("must fail");
+        // `/tmp` does not exist on Windows (canonicalize fails with
+        // `RepositoryNotFound`). Use a guaranteed-existing,
+        // guaranteed-not-a-repo directory instead.
+        let dir = tempfile::tempdir().expect("tempdir");
+        let err = validate_repo(dir.path()).await.expect_err("must fail");
         assert_eq!(err.code, "NotARepository");
     }
 
