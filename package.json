@@ -1,7 +1,7 @@
 {
   "name": "git-light",
-  "version": "0.2.0",
-  "description": "Free, open-source desktop Git client (Electron, Vue 3, TypeScript) — graph-first alternative to GitKraken with commit graph, branches, staging and real local Git operations.",
+  "version": "1.0.0",
+  "description": "Free, open-source desktop Git client (Tauri 2, Vue 3, TypeScript, Rust) — graph-first alternative to GitKraken with commit graph, branches, staging and real local Git operations.",
   "author": "Git Light <ftuyama@users.noreply.github.com>",
   "license": "MIT",
   "productName": "Git Light",
@@ -9,103 +9,59 @@
     "type": "git",
     "url": "https://github.com/ftuyama/git-light.git"
   },
-  "main": "out/main/main.js",
+  "main": "index.html",
+  "engines": {
+    "node": ">=20"
+  },
   "resolutions": {
     "vite": "^7.3.6"
   },
   "scripts": {
-    "dev": "node scripts/brand-electron.mjs && electron-vite dev",
-    "postinstall": "node scripts/brand-electron.mjs",
-    "build": "electron-vite build",
-    "preview": "electron-vite preview",
+    "dev": "tauri dev",
+    "dev:tauri": "vite --port 1420",
+    "build:tauri": "vite build",
+    "tauri": "tauri",
+    "dist:tauri": "tauri build",
+    "rust:check": "cargo check --manifest-path src-tauri/Cargo.toml",
+    "rust:clippy": "cargo clippy --manifest-path src-tauri/Cargo.toml -- -D warnings",
+    "rust:fmt": "cargo fmt",
+    "rust:fmt:check": "cargo fmt --check",
+    "rust:test": "cargo test --manifest-path src-tauri/Cargo.toml",
+    "check": "npm run typecheck && npm run test && npm run sync-version -- --check && npm run rust:clippy && npm run rust:fmt:check",
+    "build": "vite build",
+    "preview": "vite preview",
     "typecheck": "vue-tsc --noEmit -p tsconfig.json --composite false",
     "sync-version": "node scripts/sync-version.mjs",
     "test": "vitest run",
-    "test:watch": "vitest",
-    "dist": "npm run build && electron-builder --publish never",
-    "dist:mac": "npm run build && node scripts/dist-mac.mjs",
-    "dist:win": "npm run build && electron-builder --win --publish never",
-    "dist:linux": "npm run build && electron-builder --linux --publish never",
-    "verify:mac-signing": "node scripts/verify-mac-signing.mjs",
-    "dist:analyze": "node scripts/dist-analyze.mjs"
-  },
-  "build": {
-    "appId": "com.gitlight.app",
-    "productName": "Git Light",
-    "asar": true,
-    "asarUnpack": [
-      "**/node_modules/node-pty/**"
-    ],
-    "electronLanguages": [
-      "en"
-    ],
-    "files": [
-      "out/**/*",
-      "!**/*.map",
-      "!**/{README,README.md,CHANGELOG,CHANGELOG.md,LICENSE,LICENSE.md}",
-      "!**/{test,tests,__tests__,docs,example,examples}/**/*"
-    ],
-    "directories": {
-      "output": "dist"
-    },
-    "mac": {
-      "target": "dmg",
-      "icon": "build/icon.png",
-      "entitlements": "build/entitlements.mac.plist",
-      "entitlementsInherit": "build/entitlements.mac.plist",
-      "gatekeeperAssess": false
-    },
-    "win": {
-      "target": "nsis",
-      "icon": "build/icon.png"
-    },
-    "linux": {
-      "target": [
-        "AppImage",
-        "deb"
-      ],
-      "icon": "build/icon.png",
-      "category": "Development"
-    },
-    "nsis": {
-      "oneClick": false,
-      "allowToChangeInstallationDirectory": true
-    },
-    "dmg": {
-      "title": "Git Light ${version}"
-    }
+    "test:watch": "vitest"
   },
   "devDependencies": {
-    "@faker-js/faker": "^10.5.0",
-    "@lucide/vue": "^1.21.0",
-    "@tailwindcss/vite": "^4.3.1",
-    "@tanstack/vue-virtual": "^3.13.29",
-    "@types/node": "^26.0.1",
-    "@vitejs/plugin-vue": "^6.0.7",
-    "@vueuse/core": "^14.2.1",
-    "chokidar": "^5.0.0",
+    "@faker-js/faker": "^10.6.0",
+    "@lucide/vue": "^1.58.0",
+    "@tailwindcss/vite": "^4.3.3",
+    "@tanstack/vue-virtual": "^3.13.47",
+    "@tauri-apps/cli": "^2.12.3",
+    "@types/node": "^26.6.5",
+    "@vitejs/plugin-vue": "^6.0.10",
     "clsx": "^2.1.1",
     "date-fns": "^4.4.0",
-    "electron": "^41.7.1",
-    "electron-builder": "^26.15.3",
-    "electron-vite": "^5.0.0",
-    "highlight.js": "^11.11.1",
-    "motion-v": "^2.3.0",
+    "highlight.js": "^11.12.0",
+    "motion-v": "^2.8.0",
     "pinia": "^3.0.4",
-    "reka-ui": "^2.10.1",
+    "reka-ui": "^2.11.0",
     "splitpanes": "^4.1.2",
-    "tailwind-merge": "^3.6.0",
-    "tailwindcss": "^4.3.1",
+    "tailwind-merge": "^3.7.0",
+    "tailwindcss": "^4.3.3",
     "typescript": "^6.0.3",
-    "vite": "^7.3.6",
+    "vite": "^7.3.7",
     "vitest": "^4.1.9",
-    "vue": "^3.5.39",
-    "vue-tsc": "^3.3.5"
+    "vue": "^3.5.44",
+    "vue-tsc": "^3.3.13"
   },
   "dependencies": {
-    "@xterm/addon-fit": "^0.11.0",
-    "@xterm/xterm": "^6.0.0",
-    "electron-store": "^8.2.0",
-    "node-pty": "^1.1.0"
+    "@tauri-apps/api": "^2.12.4",
+    "@tauri-apps/plugin-dialog": "^2.8.3",
+    "@tauri-apps/plugin-opener": "^2.7.2",
+    "@tauri-apps/plugin-os": "^2.4.0"
   }
 }

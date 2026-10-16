@@ -1,8 +1,8 @@
 node_modules
-out
 dist
-dist-electron
+src-tauri/target
+src-tauri/gen
 *.log
 .DS_Store
-.vite
 coverage
+tmp/

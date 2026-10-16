@@ -1,6 +1,6 @@
 # Developer guide
 
-**Requirements:** Node.js 20+, Git installed on your PATH
+**Requirements:** Node.js 20+, Rust stable (via rustup) + `cargo`, Git installed on your PATH
 
 ## Build from source
 
@@ -11,17 +11,11 @@ npm install
 npm run dev
 ```
 
-## Running from Cursor or VS Code
-
-If the app window does not open, your terminal may have inherited `ELECTRON_RUN_AS_NODE=1` from the editor:
-
-```bash
-env -u ELECTRON_RUN_AS_NODE -u ELECTRON_NO_ATTACH_CONSOLE npm run dev
-```
+`npm run dev` = `tauri dev` (Vite on :1420 + native window).
 
 ## Mock data mode (browser / UI-only)
 
-To run the generated AwesomeShop mock data without Electron Git:
+To run the generated AwesomeShop mock data without the Tauri backend:
 
 ```bash
 VITE_USE_MOCK=true npm run dev
@@ -31,17 +25,20 @@ VITE_USE_MOCK=true npm run dev
 
 | Command | Description |
 |---------|-------------|
-| `npm run dev` | Start Electron + Vite dev server |
-| `npm run build` | Production build |
+| `npm run dev` | Start Tauri dev window + Vite dev server |
+| `npm run dev:tauri` | Vite only in Tauri mode (no native window) |
+| `npm run build` | Frontend-only production build (`dist/`, web preview) |
+| `npm run build:tauri` | Frontend build used by Tauri (`tauri.conf.json` `beforeBuildCommand`, outputs `dist/`) |
+| `npm run dist:tauri` | Full Tauri bundle (`tauri build`) |
 | `npm run preview` | Preview production build |
-| `npm run dist` | Build installer for current platform |
-| `npm run dist:mac` | Build a macOS `.dmg` installer (requires macOS) |
-| `npm run dist:win` | Build a Windows `.exe` installer (requires Windows or cross-compile) |
-| `npm run dist:linux` | Build Linux `.AppImage` and `.deb` packages |
-| `npm run dist:analyze` | Print DMG / `.app` / ASAR size breakdown (run after `dist:mac`) |
 | `npm run typecheck` | TypeScript check |
-| `npm run test` | Unit tests (graph layout, parsers, rebase, conflicts, undo) |
+| `npm run test` | Unit tests (graph layout, Tauri bridges, shared contracts) |
 | `npm run test:watch` | Run tests in watch mode |
+| `npm run rust:check` | `cargo check` (Tauri backend) |
+| `npm run rust:clippy` | `cargo clippy -D warnings` |
+| `npm run rust:fmt:check` | `cargo fmt --check` |
+| `npm run rust:test` | `cargo test` |
+| `npm run check` | `typecheck` + `clippy` + `fmt:check` |
 
 ## Architecture
 
@@ -86,7 +83,11 @@ Before bumping the version:
 
 ### 2. Bump the version
 
-Update `"version"` in [package.json](package.json) and the matching entries in `package-lock.json` (top-level `"version"` and `"packages".""`).
+Update `"version"` in [package.json](package.json) only, then sync derived markers:
+
+```bash
+npm run sync-version
+```
 
 Use [semver](https://semver.org/):
 
@@ -102,7 +103,7 @@ Then sync version markers across docs:
 npm run sync-version
 ```
 
-The app reads `package.json` at build time (`shared/app/metadata.ts`); `docs/index.html` and `docs/llms.txt` are updated by `sync-version`.
+The app reads `package.json` at build time (`shared/app/metadata.ts`); `sync-version` propagates the version to `package-lock.json`, `src-tauri/Cargo.toml`, `src-tauri/tauri.conf.json`, `docs/index.html`, `docs/llms.txt` and `docs/llms-full.txt`.
 
 Confirm the tag does not already exist:
 
@@ -137,19 +138,19 @@ git push origin main
 git push origin vX.Y.Z
 ```
 
-The [Release workflow](.github/workflows/release.yml) runs on `macos-latest` when a `v*` tag is pushed. It runs `npm ci`, `npm run dist:mac`, and uploads `dist/*.dmg` to the GitHub Release via `softprops/action-gh-release`.
+The [Release workflow](.github/workflows/release.yml) runs on every OS in the matrix when a `v*` tag is pushed. It runs `npm ci` plus the typecheck/test/clippy/fmt gates, then builds Tauri bundles via `tauri-apps/tauri-action` and attaches them to the GitHub Release.
 
 Monitor the run under **Actions** on GitHub. When it succeeds, the DMG appears on the release page.
 
 ### 5. Verify the release
 
-1. Open the new release on GitHub and confirm the `.dmg` asset is attached.
-2. Download and install the DMG on a Mac. Notarized builds open normally; ad-hoc signed builds may require **Right-click → Open** on first launch.
+1. Open the new release on GitHub and confirm the platform assets are attached (`.dmg` on macOS, installer on Windows, `.AppImage`/`.deb` on Linux).
+2. Download and install the asset for your platform. Notarized macOS builds open normally; ad-hoc signed builds may require **Right-click → Open** on first launch.
 3. Launch the app and use **Git Light → Check for Updates…** — it should report you are on the latest version.
 
 ### macOS code signing
 
-Release builds are packaged by [`scripts/dist-mac.mjs`](scripts/dist-mac.mjs):
+Release builds are signed by Tauri at `tauri build` time from environment secrets:
 
 | CI secrets configured | Result |
 |------------------------|--------|
@@ -157,7 +158,7 @@ Release builds are packaged by [`scripts/dist-mac.mjs`](scripts/dist-mac.mjs):
 | Apple certificate only | Developer ID signed DMG |
 | Apple certificate + notarization secrets | Developer ID signed + notarized DMG (opens normally for all users) |
 
-CI verifies every release with `npm run verify:mac-signing` so broken bundles cannot ship.
+CI verifies every release with the typecheck/test/clippy/fmt gates in `release.yml` so broken bundles cannot ship.
 
 #### Notarized releases (recommended)
 
@@ -167,39 +168,39 @@ CI verifies every release with `npm run verify:mac-signing` so broken bundles ca
 
 | Secret | Value |
 |--------|--------|
-| `APPLE_CERTIFICATE_BASE64` | Base64-encoded `.p12` (`base64 -i cert.p12 \| pbcopy`) |
+| `APPLE_CERTIFICATE` | Base64-encoded `.p12` (`base64 -i cert.p12 \| pbcopy`) |
 | `APPLE_CERTIFICATE_PASSWORD` | Password for the `.p12` export |
+| `APPLE_SIGNING_IDENTITY` | Developer ID Application identity |
 | `APPLE_ID` | Apple ID email used for notarization |
-| `APPLE_APP_SPECIFIC_PASSWORD` | App-specific password from [appleid.apple.com](https://appleid.apple.com) |
+| `APPLE_PASSWORD` | App-specific password from [appleid.apple.com](https://appleid.apple.com) |
 | `APPLE_TEAM_ID` | Team ID from Apple Developer → Membership |
 
-4. Add the secrets to the **Build signed DMG** step in [`.github/workflows/release.yml`](.github/workflows/release.yml):
+4. Add the secrets to the Tauri build step in [`.github/workflows/release.yml`](.github/workflows/release.yml):
 
 ```yaml
 env:
-  CSC_LINK: ${{ secrets.APPLE_CERTIFICATE_BASE64 }}
-  CSC_KEY_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+  APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
+  APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+  APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
   APPLE_ID: ${{ secrets.APPLE_ID }}
-  APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+  APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
   APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
 ```
 
 5. Push a release tag — CI signs and notarizes automatically.
 
-To test notarized packaging locally, export the same env vars and run `npm run dist:mac`.
+To test signed packaging locally, export the same env vars and run `npm run dist:tauri`.
 
-### Build a DMG locally (optional)
+### Build a bundle locally (optional)
 
-To test packaging before pushing a tag (requires macOS):
+To test packaging before pushing a tag:
 
 ```bash
-npm run dist:mac
-npm run verify:mac-signing
-npm run dist:analyze
+npm run dist:tauri
 ```
 
-Output lands in `dist/` (e.g. `dist/Git Light-0.1.3-arm64.dmg`). `dist:analyze` reports DMG size, installed `.app` size, ASAR contents, locale count, and renderer asset sizes. Local builds use ad-hoc signing unless Apple certificate env vars are set.
+Output lands in `src-tauri/target/release/bundle/` (e.g. `.dmg` on macOS). Local builds use ad-hoc signing unless Apple certificate env vars are set.
 
-### Cursor release command
+### Release command
 
-In Cursor, you can run the **`/release`** command (see [.cursor/commands/release.md](.cursor/commands/release.md)) to automate doc sync, version bump, verification, commit, and tagging. You still need to push the commit and tag yourself to trigger CI.
+Release automation lives in `scripts/sync-version.mjs` (invoked via `npm run sync-version`). There is no `.cursor/commands/release.md` in this repo; follow the steps above to bump, verify, commit, and tag. You still need to push the commit and tag yourself to trigger CI.

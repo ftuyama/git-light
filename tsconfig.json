@@ -24,7 +24,8 @@
     "src/**/*.ts",
     "src/**/*.d.ts",
     "src/**/*.vue",
-    "electron/**/*.ts",
-    "shared/**/*.ts"
+    "shared/**/*.ts",
+    "vite.config.ts",
+    "vitest.config.ts"
   ]
 }

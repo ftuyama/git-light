@@ -18,15 +18,27 @@ export async function preloadSavedTabs(
 
   for (const tab of tabs) {
     if (tab.path === activePath) continue
-    const result = await gitService.openRepository(tab.path, graphSnapshotOptions())
-    if (!result.ok || !result.data) continue
-    store.applySnapshot(result.data)
-    cache.save(store)
+    try {
+      const result = await gitService.openRepository(tab.path, graphSnapshotOptions())
+      if (!result.ok || !result.data) continue
+      store.applySnapshot(result.data)
+      try {
+        cache.save(store)
+      } catch (err) {
+        console.error('[git-light] tab preload cache save failed:', err)
+      }
+    } catch (err) {
+      console.error(`[git-light] tab preload failed for ${tab.path}:`, err)
+    }
   }
 
   const activeCached = cache.get(activePath)
   if (activeCached) {
     applyCachedTabState(store, activeCached)
   }
-  await gitService.openRepository(activePath, graphSnapshotOptions())
+  try {
+    await gitService.openRepository(activePath, graphSnapshotOptions())
+  } catch (err) {
+    console.error('[git-light] tab preload refresh failed:', err)
+  }
 }

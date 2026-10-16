@@ -48,6 +48,23 @@ const showWorkingTree = computed(
 const compareFiles = computed(() => diffStore.compareFiles)
 const commitFiles = computed(() => diffStore.commitFiles)
 
+function summarizeFiles(files: { additions: number; deletions: number }[]): {
+  count: number
+  additions: number
+  deletions: number
+} {
+  let additions = 0
+  let deletions = 0
+  for (const f of files) {
+    additions += f.additions
+    deletions += f.deletions
+  }
+  return { count: files.length, additions, deletions }
+}
+
+const commitFileStats = computed(() => summarizeFiles(commitFiles.value))
+const compareFileStats = computed(() => summarizeFiles(compareFiles.value))
+
 const workingTreeStagedSize = computed(() => 100 - workingTreeChangesSize.value)
 
 const changedFileCount = computed(() => new Set(repo.workingTree.map((f) => f.path)).size)
@@ -116,6 +133,18 @@ watch(compareRange, (range) => {
           class="flex h-9 shrink-0 items-center gap-2 px-3 text-[11px] font-semibold tracking-wide text-[var(--color-fg-muted)] uppercase"
         >
           <span class="flex-1">Changed files</span>
+          <span
+            v-if="compareFiles.length"
+            class="shrink-0 font-mono text-[10px] font-medium normal-case tracking-normal"
+          >
+            <span class="text-[var(--color-fg-muted)]"
+              >{{ compareFileStats.count }}
+              {{ compareFileStats.count === 1 ? 'file' : 'files' }}</span
+            >
+            <span class="text-[var(--color-fg-subtle)]"> · </span>
+            <span class="text-[var(--color-success)]">+{{ compareFileStats.additions }}</span>
+            <span class="ml-1 text-[var(--color-danger)]">−{{ compareFileStats.deletions }}</span>
+          </span>
           <FileListViewToggle />
         </header>
 
@@ -152,6 +181,18 @@ watch(compareRange, (range) => {
           class="flex h-9 shrink-0 items-center gap-2 px-3 text-[11px] font-semibold tracking-wide text-[var(--color-fg-muted)] uppercase"
         >
           <span class="flex-1">Files</span>
+          <span
+            v-if="commitFiles.length"
+            class="shrink-0 font-mono text-[10px] font-medium normal-case tracking-normal"
+          >
+            <span class="text-[var(--color-fg-muted)]"
+              >{{ commitFileStats.count }}
+              {{ commitFileStats.count === 1 ? 'file' : 'files' }}</span
+            >
+            <span class="text-[var(--color-fg-subtle)]"> · </span>
+            <span class="text-[var(--color-success)]">+{{ commitFileStats.additions }}</span>
+            <span class="ml-1 text-[var(--color-danger)]">−{{ commitFileStats.deletions }}</span>
+          </span>
           <FileListViewToggle />
         </header>
 
@@ -202,6 +243,18 @@ watch(compareRange, (range) => {
           class="flex h-9 shrink-0 items-center gap-2 px-3 text-[11px] font-semibold tracking-wide text-[var(--color-fg-muted)] uppercase"
         >
           <span class="flex-1">Files</span>
+          <span
+            v-if="commitFiles.length"
+            class="shrink-0 font-mono text-[10px] font-medium normal-case tracking-normal"
+          >
+            <span class="text-[var(--color-fg-muted)]"
+              >{{ commitFileStats.count }}
+              {{ commitFileStats.count === 1 ? 'file' : 'files' }}</span
+            >
+            <span class="text-[var(--color-fg-subtle)]"> · </span>
+            <span class="text-[var(--color-success)]">+{{ commitFileStats.additions }}</span>
+            <span class="ml-1 text-[var(--color-danger)]">−{{ commitFileStats.deletions }}</span>
+          </span>
           <FileListViewToggle />
         </header>
 

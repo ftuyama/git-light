@@ -1,0 +1,18 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  // Stack: Tauri 2 + Vue 3 + TypeScript + Rust. package.json is the version source of truth.
+  "formatter": true,
+  "plugins": ["@upstash/context7-opencode"],
+  "watcher": {
+    "ignore": ["target/**", "src-tauri/target/**", "src-tauri/gen/**", "dist/**", "out/**", "node_modules/**", "coverage/**"]
+  },
+  "permissions": [
+    { "action": "shell", "resource": "cargo *", "effect": "allow" },
+    { "action": "shell", "resource": "rustc *", "effect": "allow" },
+    { "action": "shell", "resource": "rustup *", "effect": "allow" },
+    { "action": "shell", "resource": "npx tauri *", "effect": "allow" },
+    { "action": "shell", "resource": "npm run *", "effect": "allow" },
+    { "action": "shell", "resource": "npm run sync-version *", "effect": "allow" }
+  ],
+  "instructions": ["AGENTS.md"]
+}

@@ -292,11 +292,6 @@ export class MockGitService implements GitService {
   }
 
   async execute(action: GitAction): Promise<ActionResult> {
-    try {
-      await window.electron?.git.action(action)
-    } catch {
-      /* browser tests */
-    }
     await delay(latencyFor(action.kind))
 
     if (action.kind === 'undo') {

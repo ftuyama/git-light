@@ -1,0 +1,28 @@
+[package]
+name = "git-light"
+version = "1.0.0"
+description = "Free, open-source desktop Git client — graph-first alternative to GitKraken."
+authors = ["Git Light <ftuyama@users.noreply.github.com>"]
+edition = "2021"
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = [] }
+tauri-plugin-os = "2"
+tauri-plugin-dialog = "2"
+tauri-plugin-opener = "2"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+chrono = "0.4"
+notify = "6"
+uuid = { version = "1", features = ["v4"] }
+tokio = { version = "1", features = ["process", "rt-multi-thread", "time", "macros", "sync", "io-util"] }
+
+[dev-dependencies]
+tempfile = "3"
+
+[features]
+default = ["custom-protocol"]
+custom-protocol = ["tauri/custom-protocol"]

@@ -87,45 +87,78 @@ export const lifecycleActions = {
     }
 
     const cache = useRepoTabCacheStore()
-    cache.save(this)
+    // Best-effort: a cache failure must never break switching tabs.
+    try {
+      cache.save(this)
+    } catch (err) {
+      console.error('[git-light] tab cache save failed:', err)
+    }
 
     resetPerRepoUiState()
     this.resetCommitBox()
     this.searchOpen = false
 
-    const cached = cache.get(path)
+    let cached = undefined
+    try {
+      cached = cache.get(path)
+    } catch (err) {
+      console.error('[git-light] tab cache read failed:', err)
+    }
     if (cached) {
       applyCachedTabState(this, cached)
       this.screen = 'main'
       useRepoTabsStore().setActive(path)
       useUiStore().setLastRepositoryPath(path)
 
-      void gitService.openRepository(path, graphSnapshotOptions()).then((result) => {
-        if (result.ok && result.data) {
-          this.applySnapshot(result.data)
-          cache.save(this)
-          return
+      // Revalidate in the background; never let this reject unhandled.
+      void (async () => {
+        try {
+          const result = await gitService.openRepository(path, graphSnapshotOptions())
+          if (result.ok && result.data) {
+            this.applySnapshot(result.data)
+            try {
+              cache.save(this)
+            } catch (err) {
+              console.error('[git-light] tab cache save failed:', err)
+            }
+            return
+          }
+          cache.remove(path)
+          await this.openRepository(path)
+        } catch (err) {
+          console.error('[git-light] tab background refresh failed:', err)
         }
-        cache.remove(path)
-        void this.openRepository(path, { silent: true })
-      })
+      })()
       return true
     }
 
-    return this.openRepository(path, { silent: true })
+    // User-initiated: report failures instead of staying silent.
+    return this.openRepository(path)
   },
 
   async openRepository(this: LifecycleStore, path: string, options?: { silent?: boolean }): Promise<boolean> {
     const toast = useToastStore()
     const previousPath = this.repository?.path
     if (previousPath && previousPath !== path) {
-      useRepoTabCacheStore().save(this)
+      try {
+        useRepoTabCacheStore().save(this)
+      } catch (err) {
+        console.error('[git-light] tab cache save failed:', err)
+      }
       resetPerRepoUiState()
       this.resetCommitBox()
       this.searchOpen = false
     }
     this.loading = true
-    const result = await gitService.openRepository(path, graphSnapshotOptions())
+    let result: { ok: boolean; data?: RepositoryData; message: string }
+    try {
+      result = await gitService.openRepository(path, graphSnapshotOptions())
+    } catch (err) {
+      console.error('[git-light] open repository failed:', err)
+      this.loading = false
+      if (!options?.silent) toast.push(`Could not open ${path}.`, 'error')
+      return false
+    }
     this.loading = false
     if (!result.ok || !result.data) {
       if (!options?.silent) toast.push(result.message, 'error')
@@ -135,7 +168,11 @@ export const lifecycleActions = {
     this.screen = 'main'
     const name = result.data.repository?.name ?? path
     useRepoTabsStore().addTab(path, name)
-    useRepoTabCacheStore().save(this)
+    try {
+      useRepoTabCacheStore().save(this)
+    } catch (err) {
+      console.error('[git-light] tab cache save failed:', err)
+    }
     this.recentRepos = await gitService.recentRepos()
     useRepoTabsStore().syncFromRecent(this.recentRepos)
     useUiStore().setLastRepositoryPath(path)

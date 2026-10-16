@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { useMemoize } from '@vueuse/core'
 import { Check, Loader2, X } from '@lucide/vue'
 import Button from '@/components/ui/Button.vue'
 import { useRepositoryStore } from '@/stores/repository'
@@ -16,9 +15,15 @@ const conflict = computed(() => diffStore.conflict)
 const blockCount = computed(() => conflict.value?.blocks.length ?? 0)
 const language = computed(() => guessLanguage(path.value ?? ''))
 
-const highlight = useMemoize((content: string, lang: string) =>
-  highlightLine(content, lang),
-)
+const highlightCache = new Map<string, string>()
+function highlight(content: string, lang: string): string {
+  const key = `${lang}\n${content}`
+  const cached = highlightCache.get(key)
+  if (cached !== undefined) return cached
+  const result = highlightLine(content, lang)
+  highlightCache.set(key, result)
+  return result
+}
 
 function lineRows(text: string): string[] {
   if (!text) return ['']

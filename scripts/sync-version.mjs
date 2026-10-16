@@ -2,13 +2,15 @@
 /**
  * Sync version markers from package.json (source of truth).
  *
- * Release workflow: .cursor/commands/release.md (Phase 3)
+ * Release workflow: scripts/sync-version.mjs (invoked via `npm run sync-version`)
  *
  * Targets:
  * - package-lock.json — top-level "version" and packages[""].version
  * - docs/index.html — vX.Y.Z markers (hero badge and footer) and JSON-LD softwareVersion
  * - docs/llms.txt — "Current version:" line in prose
  * - docs/llms-full.txt — Version: line near top
+ * - src-tauri/Cargo.toml — [package] version
+ * - src-tauri/tauri.conf.json — top-level version
  *
  * The app reads package.json at build time (shared/app/metadata.ts); no sync needed there.
  *
@@ -28,6 +30,8 @@ const packageLockPath = join(root, 'package-lock.json')
 const docsPath = join(root, 'docs/index.html')
 const llmsPath = join(root, 'docs/llms.txt')
 const llmsFullPath = join(root, 'docs/llms-full.txt')
+const cargoPath = join(root, 'src-tauri/Cargo.toml')
+const tauriConfPath = join(root, 'src-tauri/tauri.conf.json')
 
 const packageJson = JSON.parse(readFileSync(packageJsonPath, 'utf8'))
 const version = packageJson.version
@@ -156,6 +160,30 @@ if (!llmsFullVersionMatch) {
     )
   })
 }
+
+// src-tauri/Cargo.toml — [package] version
+const cargo = readFileSync(cargoPath, 'utf8')
+const cargoMatch = cargo.match(/^version\s*=\s*"(\d+\.\d+\.\d+)"$/m)
+if (!cargoMatch) {
+  console.warn('No version found in src-tauri/Cargo.toml')
+} else {
+  if (cargoMatch[1] !== version) {
+    mismatches.push(`src-tauri/Cargo.toml (version): expected ${version}`)
+  }
+
+  syncTarget('src-tauri/Cargo.toml', cargoPath, () => {
+    writeFileSync(cargoPath, cargo.replace(/^version\s*=\s*"\d+\.\d+\.\d+"$/m, `version = "${version}"`))
+  })
+}
+
+// src-tauri/tauri.conf.json — top-level version
+const tauriConf = JSON.parse(readFileSync(tauriConfPath, 'utf8'))
+expectVersion('src-tauri/tauri.conf.json (version)', tauriConf.version)
+
+syncTarget('src-tauri/tauri.conf.json', tauriConfPath, () => {
+  tauriConf.version = version
+  writeFileSync(tauriConfPath, `${JSON.stringify(tauriConf, null, 2)}\n`)
+})
 
 if (checkOnly) {
   if (mismatches.length > 0) {

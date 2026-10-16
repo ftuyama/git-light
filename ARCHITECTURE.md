@@ -1,32 +1,32 @@
 # Architecture
 
-Git Light is an Electron desktop app with a Vue 3 renderer. The UI depends on a `GitService` interface; the renderer never talks to Git directly.
+Git Light is a Tauri 2 desktop app with a Vue 3 renderer. The UI depends on a `GitService` interface; the renderer never talks to Git directly — it invokes typed Tauri commands backed by a Rust git layer.
 
 ## Stack
 
 | Layer | Technology |
 |-------|------------|
-| Shell | Electron 41 |
+| Shell | Tauri 2 (Rust backend + native window) |
 | UI | Vue 3, Pinia, Tailwind v4, reka-ui |
-| Build | electron-vite, TypeScript |
-| Git | Native `git` CLI in main process |
-| Terminal | xterm.js + node-pty (in-app panel) |
-| File watch | chokidar (debounced 150ms) |
+| Build | Vite + `tauri-cli`, TypeScript |
+| Git | Native `git` CLI spawned by Rust (`tokio::process`, argv arrays only) |
+| Terminal | System terminal (external, via `git_open_terminal_external`) |
+| File watch | `notify` crate → debounced `git:changed` events → scoped snapshot refresh |
 
 ## Process model
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │  Renderer (Vue)                                              │
-│  features/ → stores/repository + repoDiff → lib/git/IpcGitService       │
+│  features/ → stores/repository + repoDiff → lib/tauri/tauriGitService    │
 └───────────────────────────┬─────────────────────────────────┘
-                            │ contextBridge (typed IPC)
+                            │ tauri::invoke (typed commands)
 ┌───────────────────────────▼─────────────────────────────────┐
-│  Main process                                                │
-│  registerIpc → GitProvider → GitCliProvider + parsers          │
-│              → RepositoryWatcher (chokidar)                    │
-│              → ActionRouter (GitAction → git argv)           │
-│              → ReflogJournal (undo/redo stack)               │
+│  Rust backend (src-tauri/)                                   │
+│  main.rs commands → git.rs / log.rs / refs.rs / diff.rs /     │
+│    actions.rs / watcher.rs                                    │
+│              → snapshot builder + parsers                     │
+│              → tauri-plugin-dialog / opener / os │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -38,13 +38,11 @@ Git Light is an Electron desktop app with a Vue 3 renderer. The UI depends on a 
 |--------|---------|
 | `metadata.ts` | App name, version, homepage, repository URL (from `package.json`) |
 | `credits.ts` | App links, third-party attribution list, `formatAboutCredits()` for native About panel |
-| `ipc.ts` | Non-git IPC channels (electron-store, open external, window focus/blur, terminal PTY) |
 
 ### Git layer (`shared/git/`)
 
 | Module | Purpose |
 |--------|---------|
-| `ipc.ts` | Channel names + `IpcContract` request/response tuples |
 | `models.ts` | Wire types (ISO date strings, serializable snapshots) |
 | `actions.ts` | `GitActionKind` + `GitAction` — single source of truth |
 | `errors.ts` | `GitError`, `classifyGitError()`, serialized error payloads |
@@ -66,39 +64,42 @@ Git Light is an Electron desktop app with a Vue 3 renderer. The UI depends on a 
 
 `shared/perf.ts` provides lightweight timing helpers for dev profiling.
 
-## Renderer git layer (`src/lib/git/`)
+## Renderer git layer (`src/lib/tauri/` + `src/lib/git/`)
 
 | File | Role |
 |------|------|
-| `GitService.ts` | Interface the store depends on |
-| `IpcGitService.ts` | Production implementation via `window.electron.git` |
-| `MockGitService.ts` | Generated data; used when `VITE_USE_MOCK=true` or outside Electron |
+| `GitService.ts` (`src/lib/git/`) | Interface the store depends on |
+| `tauriGitService.ts` (`src/lib/tauri/`) | Production implementation via `@tauri-apps/api` `invoke` |
+| `invoke.ts` (`src/lib/tauri/`) | Typed Tauri command wrappers (injectable invoker/listener) |
+| `commands.ts` (`src/lib/tauri/`) | Health/version/recents/open command wrappers |
+| `appBridge.ts` (`src/lib/tauri/`) | External URLs + window background (opener plugin) |
+| `appMenu.ts` (`src/lib/tauri/`) | Native app/window menu (About, Check for Updates, Help) |
+| `updater.ts` + `updateCheck.ts` (`src/lib/tauri/`) | GitHub Releases check, semver compare, snooze |
+| `favorites.ts` (`src/lib/tauri/`) | Pinned-branch persistence bridge |
+| `MockGitService.ts` | Generated data; used when `VITE_USE_MOCK=true` (browser/dev) |
 | `wireAdapter.ts` | Revives wire snapshots into domain types (`Date`, etc.) |
 | `themes.ts` / `applyTheme.ts` | Theme catalog, system preference resolution, CSS variable application |
 | `avatarCache.ts` | Cached author avatar images for commit rows |
 
-## Main process (`electron/`)
+Backend selection: `src/lib/backend.ts` (`isTauri()`) picks `tauriGitService`
+in Tauri, mock when `VITE_USE_MOCK=true`.
+
+## Rust backend (`src-tauri/src/`)
 
 | File | Role |
 |------|------|
-| `main.ts` | Window lifecycle, About panel options, app menu, theme-aware window background, startup update check (packaged builds) |
-| `menu.ts` | Application menu (About, Check for Updates, Help links) |
-| `updateCheck.ts` | Compares semver against GitHub Releases; opens DMG directly, shows release notes, supports per-version “Remind Me Later” snooze |
-| `preload.ts` | Exposes typed `window.electron` bridge |
-| `terminal/registerTerminalIpc.ts` | node-pty sessions; create/write/resize/kill + data/exit push events |
+| `main.rs` | Tauri builder, `#[tauri::command]` handlers, plugin init (dialog/opener/os), update-check compatible release flow |
+| `git.rs` | Snapshot builder, repo validation, recents + favorites |
+| `log.rs` | Commit log fetch + parse, author registry, avatar URLs |
+| `refs.rs` | Branches/tags/stashes/worktrees/remotes/status parsers |
+| `diff.rs` | Diff/commit-files/search, conflict markers, rebase commits |
+| `actions.rs` | Action router (`git_execute_action`), journal (undo/redo), cancellable runner with progress, rebase editor bundle |
+| `watcher.rs` | `notify`-based repo watcher → debounced scoped `git:changed` events |
 
-### Git layer (`electron/git/`)
-
-| File | Role |
-|------|------|
-| `GitCliProvider.ts` | Spawns `git` with argument arrays only |
-| `GitProvider.ts` | Open/validate repo, snapshot, pagination, execute, diff, search |
-| `ActionRouter.ts` | Maps each `GitActionKind` to git commands |
-| `ReflogJournal.ts` | Tracks reflog entries for undo/redo |
-| `rebaseSequenceEditor.ts` | Writes interactive rebase todo lists |
-| `RepoCache.ts` | TTL cache for status/branches |
-| `RepositoryWatcher.ts` | Debounced filesystem events → `git:changed` |
-| `parsers/` | Parse porcelain log, status, branches, diffs, conflicts, blame, file history, rebase commits, etc. |
+Config: `src-tauri/tauri.conf.json` (`beforeDevCommand: npm run dev:tauri`,
+`frontendDist: ../dist`), `src-tauri/capabilities/default.json`,
+`src-tauri/build.rs` (`tauri-build`). Tests live in `#[cfg(test)]` modules;
+run `cargo test --manifest-path src-tauri/Cargo.toml`.
 
 ## Renderer stores (`src/stores/`)
 
@@ -108,7 +109,7 @@ Git Light is an Electron desktop app with a Vue 3 renderer. The UI depends on a 
 | `repoDiff` | Selected file, diff/conflict loading, commit/compare file lists |
 | `selection` | Selected/hovered commit, shift-compare range |
 | `branchDrag` | Branch drag-and-drop state and integrate dialog payload |
-| `ui` | Layout prefs, graph columns, sidebar sections, theme, terminal panel |
+| `ui` | Layout prefs, graph columns, sidebar sections, theme |
 | `interactiveRebase` | Interactive rebase dialog state |
 | `prompt` / `toast` | Modal and toast UI |
 | `repoTabs` | Open repository tabs, active tab, persistence |
@@ -134,13 +135,12 @@ App.vue
 ├── StartupView          (no repo open)
 └── main view
     ├── RepoTabs         multi-repo tab bar + repo switcher
-    ├── Toolbar          remote/history actions, terminal toggle
+    ├── Toolbar          remote/history actions, open external terminal
     ├── OperationBanner  merge/rebase/cherry-pick/revert in progress
     ├── SidebarRail      expand affordance when left/right pane collapsed
     ├── Splitpanes
     │   ├── BranchSidebar       (drag-drop integrate dialog)
     │   ├── CommitGraph         (virtualized graph + diff/conflict overlay)
-    │   │   └── optional TerminalPanel (resizable bottom split, xterm)
     │   └── WorkingTreePanel
     ├── StatusBar        ahead/behind, progress, cancel
     ├── PromptHost       confirm / prompt dialogs
@@ -152,75 +152,35 @@ App.vue
 
 ## Data flow
 
-1. User opens repo → `git:open-repo` → `GitProvider.open()` → full snapshot over IPC.
+1. User opens repo → `git_open_repo` → `git::build_snapshot()` → full snapshot over `invoke`.
 2. `wireAdapter` revives dates; store runs `computeGraphLayout` on commits.
-3. Mutations dispatch `GitAction` → `ActionRouter` → git CLI → cache invalidation → `git:changed` → scoped `refreshSnapshot`.
-4. External edits trigger chokidar → same refresh path.
-5. Undo/redo reads `ReflogJournal` and dispatches reset/checkout actions per `undoPolicy`.
+3. Mutations dispatch `GitAction` → Tauri command → git CLI → scoped `refreshSnapshot`.
+4. External edits trigger watcher → same refresh path.
+5. Undo/redo uses the Rust-side journal (checkpoint before each journalable action) with reset/checkout restore per `undoPolicy`.
 
 ## Persistence
 
 | Key | Storage |
 |-----|---------|
-| `git-light:preferences` | Panel sizes, collapsed state, theme, graph/sidebar/terminal prefs, open repo tabs (electron-store via preload; localStorage fallback in browser) |
-| `recent-repos` | Recent repository list (electron-store, main) |
-| `branch-favorites:{path}` | Per-repo pinned branches |
+| `git-light:preferences` | Panel sizes, collapsed state, theme, graph/sidebar prefs, open repo tabs (localStorage) |
+| `recent-repos` | Recent repository list (Rust side: app-data `recent-repos.json`) |
+| `branch-favorites` | Per-repo pinned branches (Rust side: app-data `favorites.json`) |
+| `git-light:update-snooze` | Skipped update version for the startup check (localStorage) |
 
 ## Testing
 
-- `shared/git/avatar.test.ts` — Gravatar URL helpers
-- `shared/app/credits.test.ts` — About panel credits text and link lists
-- `electron/updateCheck.test.ts` — semver comparison for update checks
-- `electron/git/ActionRouter.test.ts` — action → git argv routing
-- `electron/git/ReflogJournal.test.ts` — undo/redo journal
-- `electron/git/rebaseSequenceEditor.test.ts` — interactive rebase todo writer
-- `electron/git/parsers/blameParser.test.ts` — blame porcelain parser
-- `electron/git/parsers/fileHistoryParser.test.ts` — file history log parser
-- `electron/git/parsers/logParser.test.ts` — porcelain log parser
-- `electron/git/parsers/statusParser.test.ts` — status porcelain parser
-- `electron/git/parsers/commitFilesParser.test.ts` — commit file list parser
-- `electron/git/parsers/conflictParser.test.ts` — merge conflict markers
-- `electron/git/parsers/rebaseCommitsParser.test.ts` — rebase commit list
-- `shared/git/refLabel.test.ts` — ref label formatting
-- `shared/git/snapshotScopes.test.ts` — post-action snapshot refresh scopes
-- `shared/git/destructive.test.ts` — destructive action classification
-- `shared/git/credentialHints.test.ts` — auth/network error recovery hints
-- `shared/git/githubUrl.test.ts` — GitHub URL parsing
-- `shared/git/undoPolicy.test.ts` — undo/redo eligibility
-- `shared/diff/buildPatch.test.ts` — patch builder for hunk staging
-- `shared/diff/guessLanguage.test.ts` — syntax-highlight language detection
-- `src/lib/graph/computeGraphLayout.test.ts` — graph layout algorithm
-- `src/lib/graph/graphEdgePath.test.ts` — SVG edge path generation
-- `src/lib/graph/pendingGraphRow.test.ts` — pending-changes graph row
-- `src/lib/graph/remapHeadLaneLeft.test.ts` — head lane remapping
-- `src/lib/graph/compareRange.test.ts` — shift-compare range normalization
-- `src/lib/graph/commitLaneBranchPreview.test.ts` — branch lane preview on hover
-- `src/lib/graph/syncBranchLaneColors.test.ts` — branch lane color sync
-- `src/lib/themes.test.ts` — theme preference resolution
-- `src/lib/sidebarLayout.test.ts` — sidebar collapse/expand layout
-- `src/lib/avatarCache.test.ts` — author avatar image cache
-- `src/features/branch-sidebar/branchRefUtils.test.ts` — branch ref name helpers
-- `src/features/branch-sidebar/sortBranches.test.ts` — branch sort order
-- `src/features/working-tree/buildFileTree.test.ts` — working-tree file tree
-- `src/lib/diff/buildBlameBlocks.test.ts` — blame author block grouping
-- `src/lib/diff/buildSplitRows.test.ts` — split diff row builder
-- `src/lib/diff/estimateWrappedRowHeight.test.ts` — wrapped diff line height estimation
-- `src/lib/diff/highlight.test.ts` — syntax highlighting helpers
-- `src/lib/diff/pairedLineIndices.test.ts` — split diff line pairing
-- `src/lib/mergeMode.test.ts` — merge mode preference helpers
-- `src/lib/preferences.uiMode.test.ts` — basic/advanced UI mode visibility
+Frontend unit tests live next to the code as `*.test.ts` under `src/` and `shared/` (graph layout, diff helpers, Tauri bridges, shared contracts, stores). Rust tests live in `#[cfg(test)]` modules inside `src-tauri/src/` — parsers (log/refs/diff), journal policy, runner, plus live integration tests against temp repos and the repo itself.
 
-Run: `npm run test`
+Run: `npm run test` + `cargo test --manifest-path src-tauri/Cargo.toml`
 
 ## Extension points
 
-- **New git operation:** add kind to `shared/git/actions.ts`, route in `ActionRouter.ts`, wire UI.
-- **New snapshot field:** extend wire model + parser + `wireAdapter` + store state.
+- **New git operation:** add kind to `shared/git/actions.ts`, route it in `src-tauri/src/actions.rs`, wire UI.
+- **New snapshot field:** extend wire model + Rust parser + `wireAdapter` + store state.
 - **Replace CLI backend:** implement `GitService` without touching Vue features.
 
 ## Security notes
 
-- Renderer uses `contextIsolation: true` and `nodeIntegration: false`; only preload exposes IPC.
-- **`sandbox: false`** is intentional today: the preload script and Electron 41 + chokidar file watching were validated with sandbox disabled. Enabling sandbox would require auditing preload surface area and retesting git IPC + `electron-store`. Revisit before a hardened release build.
+- Tauri renderer has no Node access; git runs only in Rust via argv arrays (no shell interpolation). Frontend allowlist lives in `src-tauri/capabilities/default.json`.
 - Git commands use argv arrays (no shell interpolation).
-- Paths passed to git are validated with `assertPathInsideRepo`.
+- Paths passed to git are validated (`assertPathInsideRepo` in TS, `validate_repo` in Rust).

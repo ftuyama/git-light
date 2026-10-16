@@ -131,9 +131,10 @@ useKeyboardShortcuts([
 </script>
 
 <template>
-  <StartupView v-if="screen === 'startup'" />
+  <TooltipProvider :delay-duration="320" :skip-delay-duration="120">
+    <StartupView v-if="screen === 'startup'" />
 
-  <TooltipProvider v-else :delay-duration="320" :skip-delay-duration="120">
+    <template v-else>
     <div class="flex h-screen w-screen flex-col overflow-hidden bg-[var(--color-app)]">
       <RepoTabs />
       <Toolbar />
@@ -186,7 +187,8 @@ useKeyboardShortcuts([
     <SearchOverlay />
     <FileHistoryDialog />
     <InteractiveRebaseDialog />
-  </TooltipProvider>
+    </template>
 
-  <AppSettingsDialog />
+    <AppSettingsDialog />
+  </TooltipProvider>
 </template>

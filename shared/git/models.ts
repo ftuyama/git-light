@@ -1,7 +1,7 @@
 /**
  * Wire models exchanged over IPC. These mirror the renderer domain types in
  * `src/types/git.ts` but use ISO-8601 string dates so the payload is trivially
- * serializable and unambiguous across the process boundary. `IpcGitService`
+ * serializable and unambiguous across the process boundary. `TauriGitService`
  * revives the strings into `Date` objects for the UI layer.
  */
 
