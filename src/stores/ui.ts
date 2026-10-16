@@ -12,6 +12,7 @@ import {
   DEFAULT_COLUMNS,
   DEFAULT_COLUMN_WIDTHS,
   DEFAULT_SECTIONS,
+  DEFAULT_VISIBLE_SECTIONS,
   defaultPreferences,
   mergePreferences,
   PREFERENCES_KEY,
@@ -55,6 +56,7 @@ function snapshot(state: {
   leftCollapsed: boolean
   rightCollapsed: boolean
   sections: Record<string, boolean>
+  visibleSections: Record<string, boolean>
   columns: UserPreferences['columns']
   columnWidths: UserPreferences['columnWidths']
   graphScopeAll: boolean
@@ -78,6 +80,7 @@ function snapshot(state: {
     leftCollapsed: state.leftCollapsed,
     rightCollapsed: state.rightCollapsed,
     sections: state.sections,
+    visibleSections: state.visibleSections,
     columns: state.columns,
     columnWidths: state.columnWidths,
     graphScopeAll: state.graphScopeAll,
@@ -104,6 +107,7 @@ export const useUiStore = defineStore('ui', {
     leftCollapsed: false,
     rightCollapsed: false,
     sections: { ...DEFAULT_SECTIONS } as Record<string, boolean>,
+    visibleSections: { ...DEFAULT_VISIBLE_SECTIONS } as Record<string, boolean>,
     columns: { ...DEFAULT_COLUMNS },
     columnWidths: { ...DEFAULT_COLUMN_WIDTHS },
     graphScopeAll: true,
@@ -146,6 +150,7 @@ export const useUiStore = defineStore('ui', {
       this.leftCollapsed = saved.leftCollapsed
       this.rightCollapsed = saved.rightCollapsed
       this.sections = { ...saved.sections }
+      this.visibleSections = { ...saved.visibleSections }
       this.columns = saved.columns
       this.columnWidths = saved.columnWidths
       this.graphScopeAll = saved.graphScopeAll
@@ -181,6 +186,7 @@ export const useUiStore = defineStore('ui', {
           leftCollapsed: this.leftCollapsed,
           rightCollapsed: this.rightCollapsed,
           sections: this.sections,
+          visibleSections: this.visibleSections,
           columns: this.columns,
           columnWidths: this.columnWidths,
           graphScopeAll: this.graphScopeAll,
@@ -265,6 +271,21 @@ export const useUiStore = defineStore('ui', {
       if (key in this.sections) return this.sections[key]!
       if (key in DEFAULT_SECTIONS) return DEFAULT_SECTIONS[key as SectionKey]
       return true
+    },
+    isSectionVisible(key: string): boolean {
+      if (key in this.visibleSections) return this.visibleSections[key]!
+      if (key in DEFAULT_VISIBLE_SECTIONS)
+        return DEFAULT_VISIBLE_SECTIONS[key as SectionKey]
+      return true
+    },
+    toggleSectionVisible(key: string): void {
+      this.visibleSections = {
+        ...this.visibleSections,
+        [key]: !this.isSectionVisible(key),
+      }
+    },
+    setSectionVisible(key: string, visible: boolean): void {
+      this.visibleSections = { ...this.visibleSections, [key]: visible }
     },
     isColumnVisible(key: CommitColumnKey): boolean {
       return this.columns[key] ?? DEFAULT_COLUMNS[key]

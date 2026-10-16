@@ -1,4 +1,4 @@
-import type { BlameRequest, BlameResult, CommitPageInfo, CommitPageRequest, ConflictRequest, ConflictResult, DiffRequest, DiffResult, FileHistoryRequest, FileHistoryResult, RecentRepository, RepoChangeEvent, SearchQuery, SearchResults, SnapshotScope } from '@shared/git/models'
+import type { BlameRequest, BlameResult, CommitPageInfo, CommitPageRequest, ConflictRequest, ConflictResult, DiffRequest, DiffResult, FileHistoryRequest, FileHistoryResult, ImagePreviewRequest, ImagePreviewResult, RecentRepository, RepoChangeEvent, SearchQuery, SearchResults, SnapshotScope } from '@shared/git/models'
 import type { RebaseCommitsRequest, RebaseCommitsResult } from '@shared/git/rebase'
 import { isJournalableAction, journalLabel } from '@shared/git/undoPolicy'
 import type { ActionResult, GitAction, GitActionKind, RepositoryData } from '@/types/git'
@@ -140,6 +140,16 @@ export class MockGitService implements GitService {
       hunks: [],
       additions: 0,
       deletions: 0,
+    }
+  }
+
+  async getImagePreview(request: ImagePreviewRequest): Promise<ImagePreviewResult> {
+    return {
+      path: request.path,
+      mime: 'image/png',
+      oldImage: null,
+      newImage: null,
+      tooLarge: false,
     }
   }
 

@@ -102,12 +102,12 @@ onUnmounted(() => {
 
 <template>
   <span
-    class="block h-[22px] min-w-0 max-w-full"
+    class="block h-[22px] w-fit min-w-0 max-w-full"
     :style="expanded ? { width: `${anchorRect.width}px` } : undefined"
   >
     <span
       ref="anchorRef"
-      class="relative z-20 inline-flex h-[22px] w-full max-w-full min-w-0 items-center gap-1 overflow-hidden rounded-md px-2 text-[12px] font-medium"
+      class="relative z-20 inline-flex h-[22px] w-auto max-w-full min-w-0 items-center gap-1 overflow-hidden rounded-md px-2 text-[12px] font-medium"
       :class="[expanded ? 'invisible' : '', muted ? 'opacity-45' : '']"
       :style="chipStyle"
       @mouseenter="expand"

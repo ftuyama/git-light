@@ -31,7 +31,7 @@ const menu = computed(() => {
 
 <template>
   <ContextMenu v-if="menu" :items="menu">
-    <div class="min-w-0 max-w-full" @contextmenu.stop>
+    <div class="w-fit min-w-0 max-w-full" @contextmenu.stop>
       <RefChip
         :ref-data="refData"
         :color="color"

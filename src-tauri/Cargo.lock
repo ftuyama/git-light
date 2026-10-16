@@ -1320,6 +1320,7 @@ dependencies = [
 name = "git-light"
 version = "1.0.0"
 dependencies = [
+ "base64 0.22.1",
  "chrono",
  "notify",
  "serde",

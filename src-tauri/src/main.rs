@@ -1,6 +1,7 @@
 mod actions;
 mod diff;
 mod git;
+mod image;
 mod log;
 mod refs;
 mod watcher;
@@ -695,6 +696,33 @@ async fn git_get_diff(
 
 #[derive(serde::Deserialize)]
 #[serde(rename_all = "camelCase")]
+struct ImagePreviewFetchRequest {
+    path: String,
+    source: String,
+    sha: Option<String>,
+    to_sha: Option<String>,
+}
+
+#[tauri::command]
+async fn git_get_image_preview(
+    state: State<'_, AppState>,
+    request: ImagePreviewFetchRequest,
+) -> Result<image::ImagePreviewResult, GitError> {
+    let cwd = current_repo(&state)?;
+    image::fetch_image_preview(
+        &cwd,
+        &image::ImageFetch {
+            source: parse_diff_source(&request.source)?,
+            path: request.path,
+            sha: request.sha,
+            to_sha: request.to_sha,
+        },
+    )
+    .await
+}
+
+#[derive(serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
 struct BlameFetchRequest {
     path: String,
     source: String,
@@ -848,6 +876,7 @@ fn main() {
             git_reveal_path,
             git_open_terminal_external,
             git_get_diff,
+            git_get_image_preview,
             git_get_blame,
             git_get_file_history,
             git_get_conflict,

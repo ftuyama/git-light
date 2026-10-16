@@ -10,6 +10,7 @@ import { useRepositoryStore } from './stores/repository'
 import { useRepoTabsStore } from './stores/repoTabs'
 import { preloadSavedTabs } from './stores/repo/tabPreload'
 import 'splitpanes/dist/splitpanes.css'
+import 'file-icons-js/css/style.css'
 import './assets/theme.css'
 
 function startupRepositoryCandidates(

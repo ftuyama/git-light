@@ -279,6 +279,7 @@ pub fn parse_commits(stdout: &str, authors: &mut AuthorRegistry) -> Vec<WireComm
             date,
             refs: parse_decorations(decorations),
             is_cherry_pick: is_cherry_pick(&body_text),
+            is_stash_base: false,
         });
     }
     commits

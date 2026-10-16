@@ -2,8 +2,8 @@ use std::collections::{HashMap, HashSet};
 use std::path::Path;
 
 use crate::git::{
-    GitError, NumstatEntry, RepoState, WireBranch, WireBranchKind, WireFileStatus, WireRemote,
-    WireStash, WireTag, WireWorkingTreeFile, WireWorktree,
+    GitError, NumstatEntry, RepoState, WireAuthor, WireBranch, WireBranchKind, WireCommit,
+    WireFileStatus, WireRemote, WireStash, WireTag, WireWorkingTreeFile, WireWorktree,
 };
 use crate::log::hash_string as hash_string_pub;
 
@@ -250,6 +250,7 @@ pub fn parse_stashes(stdout: &str) -> Vec<WireStash> {
             date,
             files_changed: 0,
             base_sha: None,
+            base_subject: None,
         });
         index += 1;
     }
@@ -673,23 +674,100 @@ pub async fn fetch_stashes(cwd: &Path) -> Vec<WireStash> {
     if stashes.is_empty() {
         return stashes;
     }
-    // Resolve each stash's base commit (first parent) in one batch.
-    let refs: Vec<String> = stashes.iter().map(|s| format!("{}^1", s.id)).collect();
-    let mut args: Vec<&str> = vec!["rev-parse", "--verify"];
-    let owned: Vec<String> = refs;
-    args.extend(owned.iter().map(String::as_str));
-    if let Ok((_, base_out, _)) = git_text(cwd, &args).await {
-        let bases: Vec<&str> = base_out.split('\n').map(str::trim).collect();
-        for (i, stash) in stashes.iter_mut().enumerate() {
-            let sha = bases.get(i).copied().unwrap_or("");
-            stash.base_sha = if is_full_sha(sha) {
+    // Resolve each stash's base commit (first parent). `rev-parse --verify`
+    // accepts exactly one revision ("fatal: Needed a single revision"
+    // otherwise), so resolve one stash at a time.
+    for stash in stashes.iter_mut() {
+        let rev = format!("{}^1", stash.id);
+        if let Ok((ok, out, _)) = git_text(cwd, &["rev-parse", "--verify", rev.as_str()]).await {
+            let sha = out.trim();
+            stash.base_sha = if ok && is_full_sha(sha) {
                 Some(sha.to_string())
             } else {
                 None
             };
         }
     }
+    // Resolve each base's subject in one batch so the UI can explain a stash
+    // whose base is outside the loaded commit window (pagination or a base
+    // orphaned by amend/rebase). Failures leave `base_subject` empty.
+    let resolved: Vec<String> = stashes.iter().filter_map(|s| s.base_sha.clone()).collect();
+    if !resolved.is_empty() {
+        let mut args: Vec<&str> = vec!["log", "--no-walk", "--format=%s%x00"];
+        args.extend(resolved.iter().map(String::as_str));
+        if let Ok((ok, subject_out, _)) = git_text(cwd, &args).await {
+            if ok {
+                let subjects: Vec<&str> = subject_out.split('\0').collect();
+                let mut cursor = 0;
+                for stash in stashes.iter_mut() {
+                    if stash.base_sha.is_none() {
+                        continue;
+                    }
+                    if let Some(line) = subjects.get(cursor).map(|s| s.trim()) {
+                        if !line.is_empty() {
+                            stash.base_subject = Some(line.to_string());
+                        }
+                    }
+                    cursor += 1;
+                }
+            }
+        }
+    }
     stashes
+}
+
+/// Base SHAs of `stashes` absent from `commits` (deduped, order kept).
+/// These are bases outside the loaded window: orphaned by amend/rebase, or
+/// deeper than the commit limit — the stashes GitKraken still anchors.
+pub fn missing_stash_base_shas(commits: &[WireCommit], stashes: &[WireStash]) -> Vec<String> {
+    let present: HashSet<&str> = commits.iter().map(|c| c.sha.as_str()).collect();
+    let mut seen = HashSet::new();
+    stashes
+        .iter()
+        .filter_map(|s| s.base_sha.as_deref())
+        .filter(|sha| !present.contains(*sha))
+        .filter(|sha| seen.insert(*sha))
+        .map(str::to_string)
+        .collect()
+}
+
+/// Fetch commit objects for stash bases missing from the loaded window so the
+/// graph can anchor every stash onto its base (GitKraken parity). Returns the
+/// extra commits flagged `is_stash_base` plus their authors. A failed lookup
+/// (e.g. a pruned base) yields nothing — those stashes keep the floating
+/// fallback with the base hint.
+pub async fn fetch_missing_stash_bases(
+    cwd: &Path,
+    commits: &[WireCommit],
+    stashes: &[WireStash],
+) -> (Vec<WireCommit>, Vec<WireAuthor>) {
+    use crate::git::git_text;
+    use crate::log::{parse_commits, AuthorRegistry};
+    let missing = missing_stash_base_shas(commits, stashes);
+    if missing.is_empty() {
+        return (Vec::new(), Vec::new());
+    }
+    let mut args: Vec<String> = vec![
+        "log".to_string(),
+        "--no-walk".to_string(),
+        "--date=iso-strict".to_string(),
+        format!("--format={}", crate::log::log_format()),
+        "--decorate=full".to_string(),
+    ];
+    args.extend(missing);
+    let arg_refs: Vec<&str> = args.iter().map(String::as_str).collect();
+    let Ok((ok, stdout, _)) = git_text(cwd, &arg_refs).await else {
+        return (Vec::new(), Vec::new());
+    };
+    if !ok {
+        return (Vec::new(), Vec::new());
+    }
+    let mut registry = AuthorRegistry::default();
+    let mut bases = parse_commits(&stdout, &mut registry);
+    for base in bases.iter_mut() {
+        base.is_stash_base = true;
+    }
+    (bases, registry.all())
 }
 
 pub async fn fetch_worktrees(cwd: &Path, main_path: &Path) -> Vec<WireWorktree> {
@@ -805,6 +883,89 @@ mod tests {
         assert_eq!(stashes[0].branch, "main");
         assert_eq!(stashes[0].date, "2023-11-14T22:13:20.000Z");
         assert_eq!(stashes[0].base_sha, None);
+        assert_eq!(stashes[0].base_subject, None);
+    }
+
+    #[tokio::test]
+    async fn resolves_base_for_every_stash() {
+        // Regression test: `rev-parse --verify` accepts exactly one revision,
+        // so resolving all stashes in a single call returned no base at all.
+        let dir = std::env::temp_dir().join(format!("git-light-stash-test-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&dir);
+        std::fs::create_dir_all(&dir).unwrap();
+        let run = |args: &[&str]| {
+            std::process::Command::new("git")
+                .args(args)
+                .current_dir(&dir)
+                .output()
+                .unwrap()
+        };
+        assert!(run(&["init"]).status.success());
+        run(&["config", "user.name", "T"]);
+        run(&["config", "user.email", "t@t"]);
+        run(&["config", "commit.gpgsign", "false"]);
+        std::fs::write(dir.join("f.txt"), "one\n").unwrap();
+        run(&["add", "."]);
+        assert!(run(&["commit", "-m", "one"]).status.success());
+        std::fs::write(dir.join("f.txt"), "two\n").unwrap();
+        assert!(run(&["stash", "push", "-m", "first"]).status.success());
+        std::fs::write(dir.join("f.txt"), "three\n").unwrap();
+        assert!(run(&["stash", "push", "-m", "second"]).status.success());
+        let stashes = fetch_stashes(&dir).await;
+        assert_eq!(stashes.len(), 2);
+        assert!(
+            stashes.iter().all(|s| s.base_sha.is_some()),
+            "missing base: {:?}",
+            stashes.iter().map(|s| &s.base_sha).collect::<Vec<_>>()
+        );
+        let _ = std::fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn missing_stash_bases_skips_loaded_and_dedups() {
+        use crate::git::{WireAuthor, WireCommit};
+        let author = || WireAuthor {
+            name: "A".to_string(),
+            email: "a@example.com".to_string(),
+            avatar_url: String::new(),
+            initials: "A".to_string(),
+            color: "#fff".to_string(),
+        };
+        let commit = |sha: &str| WireCommit {
+            sha: sha.to_string(),
+            short_sha: sha.chars().take(7).collect(),
+            is_merge: false,
+            parents: Vec::new(),
+            subject: "subject".to_string(),
+            body: None,
+            author: author(),
+            committer: author(),
+            date: "2023-11-14T22:13:20.000Z".to_string(),
+            refs: Vec::new(),
+            is_cherry_pick: false,
+            is_stash_base: false,
+        };
+        let stash = |base: Option<&str>| WireStash {
+            id: "stash@{0}".to_string(),
+            index: 0,
+            message: "WIP on main: subject".to_string(),
+            branch: "main".to_string(),
+            date: "2023-11-14T22:13:20.000Z".to_string(),
+            files_changed: 0,
+            base_sha: base.map(str::to_string),
+            base_subject: None,
+        };
+        let commits = vec![commit("aaa")];
+        let stashes = vec![
+            stash(Some("aaa")),
+            stash(Some("bbb")),
+            stash(Some("bbb")),
+            stash(None),
+        ];
+        assert_eq!(
+            missing_stash_base_shas(&commits, &stashes),
+            vec!["bbb".to_string()]
+        );
     }
 
     #[test]

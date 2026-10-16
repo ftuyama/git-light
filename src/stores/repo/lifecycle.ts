@@ -279,7 +279,12 @@ export const lifecycleActions = {
         beforeSha: oldestSha,
         limit: ui.clampedCommitGraphLimit,
         graphScope: ui.graphScope,
-        skip: ui.graphScope === 'all' ? this.commits.length : undefined,
+        // Backfilled stash bases are not part of the log window: counting
+        // them in `skip` would permanently skip real commits on scope 'all'.
+        skip:
+          ui.graphScope === 'all'
+            ? this.commits.filter((c) => !c.isStashBase).length
+            : undefined,
       })
       if (result.commits.length === 0) {
         this.commitPage = { ...this.commitPage, hasMore: false }

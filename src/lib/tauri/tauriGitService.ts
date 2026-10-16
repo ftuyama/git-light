@@ -11,6 +11,8 @@ import type {
   DiffResult,
   FileHistoryRequest,
   FileHistoryResult,
+  ImagePreviewRequest,
+  ImagePreviewResult,
   OperationProgress,
   RecentRepository,
   RepoChangeEvent,
@@ -163,6 +165,10 @@ export class TauriGitService implements GitService {
 
   async getDiff(request: DiffRequest): Promise<DiffResult> {
     return (await this.invoker('git_get_diff', { request })) as DiffResult
+  }
+
+  async getImagePreview(request: ImagePreviewRequest): Promise<ImagePreviewResult> {
+    return (await this.invoker('git_get_image_preview', { request })) as ImagePreviewResult
   }
 
   async getBlame(request: BlameRequest): Promise<BlameResult> {

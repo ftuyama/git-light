@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import {
+  ContextMenuCheckboxItem,
   ContextMenuContent,
   ContextMenuItem,
+  ContextMenuItemIndicator,
   ContextMenuPortal,
   ContextMenuRoot,
   ContextMenuSeparator,
@@ -10,7 +12,7 @@ import {
   ContextMenuSubTrigger,
   ContextMenuTrigger,
 } from 'reka-ui'
-import { ChevronRight } from '@lucide/vue'
+import { Check, ChevronRight } from '@lucide/vue'
 import {
   MENU_CONTENT_CLASS,
   MENU_ITEM_CLASS,
@@ -45,24 +47,51 @@ defineProps<{ items: MenuItem[] }>()
             </ContextMenuSubTrigger>
             <ContextMenuPortal>
               <ContextMenuSubContent :class="MENU_SUB_CONTENT_CLASS">
-                <ContextMenuItem
-                  v-for="(child, childIndex) in item.children"
-                  :key="childIndex"
-                  :class="child.danger ? MENU_ITEM_DANGER_CLASS : MENU_ITEM_CLASS"
-                  @select="child.onSelect?.()"
-                >
-                  <component v-if="child.icon" :is="child.icon" :size="15" />
-                  <span class="flex-1">{{ child.label }}</span>
-                  <kbd
-                    v-if="child.shortcut"
-                    class="font-mono text-[10px] text-[var(--color-fg-subtle)] group-data-[highlighted]:text-white/70"
+                <template v-for="(child, childIndex) in item.children" :key="childIndex">
+                  <ContextMenuCheckboxItem
+                    v-if="child.checked !== undefined"
+                    :model-value="child.checked"
+                    :class="MENU_ITEM_CLASS"
+                    :disabled="child.disabled"
+                    @select.prevent="child.onSelect?.()"
                   >
-                    {{ child.shortcut }}
-                  </kbd>
-                </ContextMenuItem>
+                    <ContextMenuItemIndicator class="flex w-4 items-center justify-center">
+                      <Check :size="14" />
+                    </ContextMenuItemIndicator>
+                    <span class="flex-1">{{ child.label }}</span>
+                  </ContextMenuCheckboxItem>
+                  <ContextMenuItem
+                    v-else
+                    :class="child.danger ? MENU_ITEM_DANGER_CLASS : MENU_ITEM_CLASS"
+                    :disabled="child.disabled"
+                    @select="child.onSelect?.()"
+                  >
+                    <component v-if="child.icon" :is="child.icon" :size="15" />
+                    <span class="flex-1">{{ child.label }}</span>
+                    <kbd
+                      v-if="child.shortcut"
+                      class="font-mono text-[10px] text-[var(--color-fg-subtle)] group-data-[highlighted]:text-white/70"
+                    >
+                      {{ child.shortcut }}
+                    </kbd>
+                  </ContextMenuItem>
+                </template>
               </ContextMenuSubContent>
             </ContextMenuPortal>
           </ContextMenuSub>
+          <ContextMenuCheckboxItem
+            v-else-if="item.checked !== undefined"
+            :model-value="item.checked"
+            :class="MENU_ITEM_CLASS"
+            :disabled="item.disabled"
+            @select.prevent="item.onSelect?.()"
+          >
+            <ContextMenuItemIndicator class="flex w-4 items-center justify-center">
+              <Check :size="14" />
+            </ContextMenuItemIndicator>
+            <component v-if="item.icon" :is="item.icon" :size="15" />
+            <span class="flex-1">{{ item.label }}</span>
+          </ContextMenuCheckboxItem>
           <ContextMenuItem
             v-else
             :class="item.danger ? MENU_ITEM_DANGER_CLASS : MENU_ITEM_CLASS"

@@ -3,11 +3,13 @@ import { computed, provide, ref } from 'vue'
 import { ChevronLeft, Loader2 } from '@lucide/vue'
 import IconButton from '@/components/ui/IconButton.vue'
 import SearchInput from '@/components/ui/SearchInput.vue'
+import ContextMenu from '@/components/ui/ContextMenu.vue'
 import SidebarSection from './SidebarSection.vue'
 import BranchSidebarSectionContent from './BranchSidebarSectionContent.vue'
 import BranchIntegrateDialog from './BranchIntegrateDialog.vue'
 import { useBranchDragStore } from '@/stores/branchDrag'
 import { useBranchSidebarData } from './useBranchSidebarData'
+import { useSidebarSectionMenu } from './useSidebarSectionMenu'
 import { useRepositoryStore } from '@/stores/repository'
 import { useUiStore } from '@/stores/ui'
 import { SECTION_KEYS, SECTION_LABELS, ADVANCED_SECTION_KEYS, type SectionKey } from '@/lib/preferences'
@@ -22,6 +24,7 @@ const search = ref<InstanceType<typeof SearchInput>>()
 const sidebarData = useBranchSidebarData(query)
 provide('branchSidebarData', sidebarData)
 const { normalizedQuery, filteredLocal, remoteBranches, hasLocalMatches } = sidebarData
+const { sectionMenu } = useSidebarSectionMenu()
 
 defineExpose({
   focusSearch: () => search.value?.focus(),
@@ -29,6 +32,7 @@ defineExpose({
 
 const visibleSectionKeys = computed(() =>
   SECTION_KEYS.filter((key) => {
+    if (!ui.isSectionVisible(key)) return false
     if (key === 'favorites' && normalizedQuery.value) return false
     if (!ui.isAdvanced && ADVANCED_SECTION_KEYS.includes(key as (typeof ADVANCED_SECTION_KEYS)[number])) {
       return false
@@ -113,6 +117,14 @@ async function confirmIntegrate(mode: 'merge' | 'rebase', mergeMode?: MergeMode)
       class="px-4 py-6 text-center text-xs text-[var(--color-fg-subtle)]"
     >
       No branches match &ldquo;{{ query.trim() }}&rdquo;
+    </div>
+
+    <div v-else-if="visibleSectionKeys.length === 0" class="min-h-0 flex-1 overflow-y-auto py-1">
+      <ContextMenu :items="sectionMenu">
+        <div class="px-4 py-6 text-center text-xs text-[var(--color-fg-subtle)]">
+          All panels hidden &mdash; right-click to show panels
+        </div>
+      </ContextMenu>
     </div>
 
     <div v-else class="min-h-0 flex-1 overflow-y-auto py-1">

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { ChevronDown } from '@lucide/vue'
+import { ChevronDown, GitCommitHorizontal } from '@lucide/vue'
 import { storeToRefs } from 'pinia'
 import Button from '@/components/ui/Button.vue'
 import DropdownMenu from '@/components/ui/DropdownMenu.vue'
@@ -83,6 +83,7 @@ const pushMenu = computed<MenuItem[]>(() => {
       <Button
         variant="primary"
         block
+        :icon="GitCommitHorizontal"
         :disabled="!repo.canCommit"
         :busy="commitBusy"
         @click="repo.commit()"

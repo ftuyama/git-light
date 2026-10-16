@@ -175,6 +175,14 @@ const connectorStyle = computed((): Record<string, string> | null => {
   }
 })
 
+const connectorOverlayStyle = computed((): Record<string, string> | null => {
+  if (!connectorStyle.value) return null
+  return {
+    ...connectorStyle.value,
+    width: `calc(100% + ${connectorStyle.value.width})`,
+  }
+})
+
 const showPreviewConnector = computed(
   () => props.graphNode != null && (previewBranch.value != null || isCreatingBranchHere.value),
 )
@@ -190,6 +198,14 @@ const previewConnectorStyle = computed((): Record<string, string> | null => {
   return {
     backgroundColor: props.graphNode.color,
     width: `${width}px`,
+  }
+})
+
+const previewConnectorOverlayStyle = computed((): Record<string, string> | null => {
+  if (!previewConnectorStyle.value) return null
+  return {
+    ...previewConnectorStyle.value,
+    width: `calc(100% + ${previewConnectorStyle.value.width})`,
   }
 })
 
@@ -327,55 +343,64 @@ function openOnGithub(): void {
             :style="{ left: '100%', ...previewConnectorStyle }"
           />
         </div>
-        <div v-else-if="previewBranch" class="relative min-w-0 flex-1">
-          <BranchRefChip
-            class="min-w-0 overflow-hidden"
-            :ref-data="previewBranch.ref"
-            :color="chipColor"
-            :has-local="previewBranch.hasLocal"
-            :has-remote="previewBranch.hasRemote"
-            muted
-          />
-          <div
-            v-if="previewConnectorStyle"
-            class="pointer-events-none absolute top-1/2 z-10 h-[2px] -translate-y-1/2 opacity-25"
-            :style="{ left: '100%', ...previewConnectorStyle }"
-          />
-        </div>
-        <template v-if="hasBranchRef && primaryRef && !isCreatingBranchHere">
-          <div class="relative min-w-0 flex-1">
+        <div v-else-if="previewBranch" class="relative flex min-w-0 flex-1 items-center">
+          <div class="w-fit min-w-0 max-w-full shrink">
             <BranchRefChip
-              class="min-w-0 overflow-hidden"
-              :ref-data="primaryRef.ref"
+              :ref-data="previewBranch.ref"
               :color="chipColor"
-              :has-local="primaryRef.hasLocal"
-              :has-remote="primaryRef.hasRemote"
-            />
-            <div
-              v-if="connectorStyle"
-              class="pointer-events-none absolute top-1/2 z-10 h-[2px] -translate-y-1/2"
-              :class="isCurrentBranchRef ? 'opacity-90' : 'opacity-40'"
-              :style="{ left: '100%', ...connectorStyle }"
+              :has-local="previewBranch.hasLocal"
+              :has-remote="previewBranch.hasRemote"
+              muted
             />
           </div>
-          <span
-            v-if="hiddenCount"
-            class="absolute top-1/2 right-1 shrink-0 -translate-y-1/2 rounded px-0.5 text-[10px] text-[var(--color-fg-subtle)] group-hover/refs:text-[var(--color-fg-muted)]"
-          >
-            +{{ hiddenCount }}
-          </span>
-          <div
-            v-if="hiddenCount"
-            class="pointer-events-none absolute top-full left-1 z-50 mt-1 hidden min-w-max flex-col gap-1 rounded-md border border-[var(--color-border-strong)] bg-[var(--color-elevated)] px-2 py-1.5 shadow-lg shadow-black/40 group-hover/refs:flex"
-          >
-            <BranchRefChip
-              v-for="(entry, i) in hiddenRefs"
-              :key="i"
-              :ref-data="entry.ref"
-              :color="chipColor"
-              :has-local="entry.hasLocal"
-              :has-remote="entry.hasRemote"
+          <div class="relative h-[2px] min-w-0 flex-1">
+            <div
+              v-if="previewConnectorOverlayStyle"
+              class="pointer-events-none absolute top-1/2 left-0 z-10 h-[2px] -translate-y-1/2 opacity-25"
+              :style="previewConnectorOverlayStyle"
             />
+          </div>
+        </div>
+        <template v-if="hasBranchRef && primaryRef && !isCreatingBranchHere">
+          <div class="relative flex min-w-0 flex-1 items-center gap-1">
+            <div class="w-fit min-w-0 max-w-full shrink">
+              <BranchRefChip
+                :ref-data="primaryRef.ref"
+                :color="chipColor"
+                :has-local="primaryRef.hasLocal"
+                :has-remote="primaryRef.hasRemote"
+              />
+            </div>
+            <div class="group/extra contents">
+              <span
+                v-if="hiddenCount"
+                class="flex h-[22px] min-w-[22px] shrink-0 cursor-default items-center justify-center rounded-md border border-[var(--color-border-strong)] bg-[var(--color-panel-raised)] px-1 text-[11px] font-semibold text-[var(--color-fg-muted)] transition-opacity group-hover/extra:opacity-0"
+                :title="`+${hiddenCount} more`"
+              >
+                +{{ hiddenCount }}
+              </span>
+              <div
+                v-if="hiddenCount"
+                class="absolute top-full left-0 z-50 mt-1 hidden min-w-max flex-col items-start gap-1 group-hover/extra:flex"
+              >
+                <BranchRefChip
+                  v-for="(entry, i) in hiddenRefs"
+                  :key="i"
+                  :ref-data="entry.ref"
+                  :color="chipColor"
+                  :has-local="entry.hasLocal"
+                  :has-remote="entry.hasRemote"
+                />
+              </div>
+            </div>
+            <div class="relative h-[2px] min-w-0 flex-1">
+              <div
+                v-if="connectorOverlayStyle"
+                class="pointer-events-none absolute top-1/2 left-0 z-10 h-[2px] -translate-y-1/2"
+                :class="isCurrentBranchRef ? 'opacity-90' : 'opacity-40'"
+                :style="connectorOverlayStyle"
+              />
+            </div>
           </div>
         </template>
       </div>

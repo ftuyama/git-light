@@ -1,17 +1,29 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { Columns2, Loader2, Pilcrow, Rows3, UserSearch, X } from '@lucide/vue'
+import type { ImagePreviewRequest } from '@shared/git/models'
 import { useRepoDiffStore } from '@/stores/repoDiff'
 import { useUiStore } from '@/stores/ui'
+import { isImagePath } from '@/lib/imageFiles'
 import Tooltip from '@/components/ui/Tooltip.vue'
 import SplitDiffView from './SplitDiffView.vue'
 import UnifiedDiffView from './UnifiedDiffView.vue'
+import ImageDiffView from './ImageDiffView.vue'
 import WordWrapIcon from './WordWrapIcon.vue'
 
 const diffStore = useRepoDiffStore()
 const ui = useUiStore()
 
 const diff = computed(() => diffStore.diff)
+
+const isImageDiff = computed(() => Boolean(diff.value?.binary && isImagePath(diff.value.path)))
+
+const imageRequest = computed<ImagePreviewRequest | null>(() => {
+  const path = diffStore.selectedFilePath
+  if (!path || !isImageDiff.value) return null
+  const req = diffStore.diffRequestForPath(path) as ImagePreviewRequest & { ignoreWhitespace?: boolean }
+  return { path: req.path, source: req.source, sha: req.sha, toSha: req.toSha }
+})
 
 function toggleIgnoreWhitespace(value: boolean): void {
   ui.setIgnoreWhitespace(value)
@@ -102,7 +114,7 @@ function toggleIgnoreWhitespace(value: boolean): void {
           </button>
         </Tooltip>
       </div>
-      <div class="flex items-center rounded border border-[var(--color-border)] p-0.5">
+      <div v-if="!isImageDiff" class="flex items-center rounded border border-[var(--color-border)] p-0.5">
         <Tooltip label="Ignore Leading/Trailing Space">
           <button
             type="button"
@@ -133,7 +145,7 @@ function toggleIgnoreWhitespace(value: boolean): void {
         </Tooltip>
       </div>
       <span class="flex-1" />
-      <span v-if="diff" class="font-mono text-[10px] text-[var(--color-fg-muted)]">
+      <span v-if="diff && !isImageDiff" class="font-mono text-[10px] text-[var(--color-fg-muted)]">
         +{{ diff.additions }} −{{ diff.deletions }}
       </span>
     </div>
@@ -152,6 +164,13 @@ function toggleIgnoreWhitespace(value: boolean): void {
         class="flex flex-1 items-center justify-center px-4 text-center text-xs text-[var(--color-fg-subtle)]"
       >
         File is too large to diff in the UI.
+      </div>
+
+      <div
+        v-else-if="diff?.binary && isImageDiff && imageRequest"
+        class="flex min-h-0 flex-1 flex-col"
+      >
+        <ImageDiffView :key="imageRequest.path + imageRequest.source + (imageRequest.sha ?? '') + (imageRequest.toSha ?? '')" :request="imageRequest" />
       </div>
 
       <div

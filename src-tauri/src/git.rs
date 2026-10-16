@@ -167,6 +167,10 @@ pub struct WireCommit {
     pub refs: Vec<WireRef>,
     pub is_merge: bool,
     pub is_cherry_pick: bool,
+    /// Stash base backfilled outside the loaded window (GitKraken-style
+    /// anchoring). Excluded from pagination cursors, never from display.
+    #[serde(default)]
+    pub is_stash_base: bool,
 }
 
 /// Mirrors branch/tag/stash/worktree/status wire models in `shared/git/models.ts`.
@@ -219,6 +223,10 @@ pub struct WireStash {
     pub files_changed: u32,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub base_sha: Option<String>,
+    /// Subject of the base commit (`git show -s --format=%s <base>`);
+    /// lets the UI explain a floating stash whose base left the loaded window.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub base_subject: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize)]
@@ -457,6 +465,22 @@ pub async fn git_text(cwd: &Path, args: &[&str]) -> Result<(bool, String, String
     ))
 }
 
+/// Spawn `git` with argv only (never through a shell) and return raw bytes.
+/// Needed for binary blobs (`git show <rev>:<path>`); `git_text` would
+/// corrupt them via UTF-8 lossy conversion.
+pub async fn git_bytes(cwd: &Path, args: &[&str]) -> Result<(bool, Vec<u8>), GitError> {
+    let mut full: Vec<&str> = vec!["-c", "core.quotepath=false", "-c", "color.ui=false"];
+    full.extend(args);
+    let mut cmd = tokio::process::Command::new("git");
+    cmd.args(&full).current_dir(cwd).stdin(Stdio::null());
+    child_env(&mut cmd);
+    let output = cmd
+        .output()
+        .await
+        .map_err(|e| GitError::unknown(format!("failed to spawn git: {e}")))?;
+    Ok((output.status.success(), output.stdout))
+}
+
 /// Resolve + validate that `path` is a non-bare git working tree.
 pub async fn validate_repo(path: &Path) -> Result<RepoInfo, GitError> {
     let canonical = std::fs::canonicalize(path).map_err(|_| {
@@ -577,7 +601,9 @@ pub async fn build_snapshot(
             }
         },
         async {
-            if opts.with_stashes {
+            // Stash bases are also needed when loading commits: missing bases
+            // are backfilled below so every stash anchors onto its base.
+            if opts.with_stashes || opts.with_commits {
                 crate::refs::fetch_stashes(&cwd).await
             } else {
                 Vec::new()
@@ -624,7 +650,7 @@ pub async fn build_snapshot(
         })
         .unwrap_or_default();
     let state = crate::refs::read_repo_state(&info.git_dir);
-    let (commits, authors, page) = match bundle {
+    let (mut commits, mut authors, page) = match bundle {
         Some(b) => (
             b.commits,
             b.authors,
@@ -643,6 +669,29 @@ pub async fn build_snapshot(
                 total: Some(0),
             },
         ),
+    };
+    if opts.with_commits {
+        // Backfill stash bases missing from the loaded window (orphaned by
+        // amend/rebase, or deeper than the limit) so stashes anchor onto
+        // their base like GitKraken instead of floating at the top.
+        // `page.oldest_sha` stays the window edge, keeping pagination intact.
+        let (mut bases, base_authors) =
+            crate::refs::fetch_missing_stash_bases(&cwd, &commits, &stashes).await;
+        if !bases.is_empty() {
+            let mut known: std::collections::HashSet<String> =
+                authors.iter().map(|a| a.email.to_lowercase()).collect();
+            for author in base_authors {
+                if known.insert(author.email.to_lowercase()) {
+                    authors.push(author);
+                }
+            }
+            commits.append(&mut bases);
+        }
+    }
+    let snapshot_stashes = if opts.with_stashes {
+        stashes
+    } else {
+        Vec::new()
     };
     Ok(WireSnapshot {
         repository: WireRepository {
@@ -666,7 +715,7 @@ pub async fn build_snapshot(
         page,
         branches,
         tags,
-        stashes,
+        stashes: snapshot_stashes,
         worktrees,
         working_tree,
         authors,

@@ -9,6 +9,8 @@ import type {
   DiffResult,
   FileHistoryRequest,
   FileHistoryResult,
+  ImagePreviewRequest,
+  ImagePreviewResult,
   OperationProgress,
   RecentRepository,
   RepoChangeEvent,
@@ -49,6 +51,7 @@ export interface GitService {
     page: CommitPageInfo
   }>
   getDiff(request: DiffRequest): Promise<DiffResult>
+  getImagePreview(request: ImagePreviewRequest): Promise<ImagePreviewResult>
   getBlame(request: BlameRequest): Promise<BlameResult>
   getFileHistory(request: FileHistoryRequest): Promise<FileHistoryResult>
   getConflict(request: ConflictRequest): Promise<ConflictResult>

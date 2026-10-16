@@ -6,6 +6,7 @@ import type { MenuItem } from '@/components/ui/menu'
 import { cn } from '@/lib/utils'
 import type { FileListView } from '@/lib/preferences'
 import { STATUS_META } from './fileStatus'
+import FileTypeIcon from './FileTypeIcon.vue'
 import type { WorkingTreeFile } from '@/types/git'
 import { useRepositoryStore } from '@/stores/repository'
 import { useRepoDiffStore } from '@/stores/repoDiff'
@@ -142,6 +143,7 @@ function copyPath(): void {
         />
         <template v-else>{{ meta.letter }}</template>
       </span>
+      <FileTypeIcon :path="file.path" />
       <span
         v-if="view === 'path'"
         class="min-w-0 flex-1 truncate text-[13px] text-[var(--color-fg)]"

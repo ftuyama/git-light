@@ -26,6 +26,39 @@ const shortMessage = computed(() =>
   props.stash.branch ? `WIP on ${props.stash.branch}` : 'WIP',
 )
 
+/**
+ * Stashes anchor above their base commit (`buildGraphRows`). When the base
+ * is outside the loaded window — pagination, or a base orphaned by a later
+ * amend/rebase — the row falls back to the top with no connector line.
+ * Surface the base explicitly so a floating stash reads as explainable
+ * instead of misplaced.
+ */
+const baseShort = computed(() =>
+  props.stash.baseSha ? props.stash.baseSha.slice(0, 7) : null,
+)
+const isAnchored = computed(
+  () =>
+    props.stash.baseSha != null &&
+    repo.commits.some((c) => c.sha === props.stash.baseSha),
+)
+const anchorHint = computed(() => {
+  if (isAnchored.value) return null
+  if (baseShort.value == null) return 'base desconhecida'
+  const subject = props.stash.baseSubject ? ` · ${props.stash.baseSubject}` : ''
+  return `base ${baseShort.value}${subject} · fora da vista`
+})
+const anchorTitle = computed(() => {
+  if (isAnchored.value) return null
+  const subject = props.stash.baseSubject
+    ? `“${props.stash.baseSubject}”. `
+    : ''
+  return (
+    `Stash criado sobre ${baseShort.value ?? 'base desconhecida'} ${subject}` +
+    `Esse commit não está na janela carregada (carregue mais commits) ou foi ` +
+    `reescrito por amend/rebase — nesse caso aplique o stash manualmente no commit sucessor.`
+  )
+})
+
 const menu = computed<MenuItem[]>(() => [
   {
     label: 'Apply Stash',
@@ -84,6 +117,13 @@ const menu = computed<MenuItem[]>(() => [
           "
         >
           {{ shortMessage }}
+        </span>
+        <span
+          v-if="anchorHint"
+          class="shrink-0 truncate text-[11px] text-[var(--color-fg-subtle)]"
+          :title="anchorTitle ?? undefined"
+        >
+          {{ anchorHint }}
         </span>
         <span
           v-if="stash.filesChanged > 0"

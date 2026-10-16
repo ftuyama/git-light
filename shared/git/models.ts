@@ -34,6 +34,8 @@ export interface WireCommit {
   refs: WireRef[]
   isMerge: boolean
   isCherryPick?: boolean
+  /** Backfilled stash base outside the loaded window; excluded from pagination cursors. */
+  isStashBase?: boolean
 }
 
 export type WireBranchKind = 'local' | 'remote'
@@ -72,6 +74,8 @@ export interface WireStash {
   filesChanged: number
   /** First-parent (base) commit the stash was created on; null when unresolvable. */
   baseSha: string | null
+  /** Subject of the base commit; present when the base was resolved. */
+  baseSubject?: string | null
 }
 
 export interface WireWorktree {
@@ -256,6 +260,29 @@ export interface DiffResult {
   hunks: DiffHunk[]
   additions: number
   deletions: number
+}
+
+/* ------------------------- Image preview models ------------------------ */
+
+export interface ImagePreviewRequest {
+  path: string
+  source: DiffSource
+  /** For source==='commit' or 'range'. */
+  sha?: string
+  toSha?: string
+}
+
+export interface ImagePreviewSide {
+  dataUrl: string
+  sizeBytes: number
+}
+
+export interface ImagePreviewResult {
+  path: string
+  mime: string
+  oldImage?: ImagePreviewSide | null
+  newImage?: ImagePreviewSide | null
+  tooLarge: boolean
 }
 
 /* ----------------------------- Blame models ---------------------------- */

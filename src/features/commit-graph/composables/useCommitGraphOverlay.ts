@@ -93,7 +93,10 @@ export function useCommitGraphOverlay(options: {
           const seg = segments[i]
           const x1 = laneX(seg.fromLane, laneWidth)
           const x2 = laneX(seg.toLane, laneWidth)
-          const cornerRadius = Math.min(6, laneWidth.value * 0.35)
+          const cornerRadius = Math.min(
+            seg.kind === 'merge' ? 9 : 6,
+            laneWidth.value * 0.35,
+          )
           const d = graphEdgePath(x1, y1, x2, y2, cornerRadius, seg.kind)
           edges.push({ key: `${band}-${i}`, d, color: seg.color })
         }
@@ -123,9 +126,10 @@ export function useCommitGraphOverlay(options: {
       }
     }
 
-    // Dotted connector anchored at the base commit circle: up the base lane
-    // to the stash row, then into the stash box. Stashes without a loaded
-    // base commit stay floating with no line.
+    // Dotted connector anchored at the base commit circle: horizontal off
+    // the base commit, then a rounded corner into the stash lane and up to
+    // the stash box. Stashes without a loaded base commit stay floating
+    // with no line.
     {
       const stashVirtualByStash = stashVirtualIndexByStash(rows.value)
       const firstVisible = items[0].index
@@ -148,7 +152,7 @@ export function useCommitGraphOverlay(options: {
         const baseY = rowCenterY(baseVirtual, rowHeight)
         edges.push({
           key: `stash-${stashIndex}`,
-          d: `M${baseX} ${baseY} L${baseX} ${stashY} L${boxX} ${stashY}`,
+          d: graphEdgePath(baseX, baseY, boxX, stashY, 9, 'merge'),
           color: 'var(--color-info)',
           dashed: true,
         })

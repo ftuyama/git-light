@@ -32,6 +32,8 @@ export interface Commit {
   refs: Ref[]
   isMerge: boolean
   isCherryPick?: boolean
+  /** Backfilled stash base outside the loaded window; excluded from pagination cursors. */
+  isStashBase?: boolean
 }
 
 export type BranchKind = 'local' | 'remote'
@@ -71,6 +73,8 @@ export interface Stash {
   filesChanged: number
   /** First-parent (base) commit the stash was created on; null when unresolvable. */
   baseSha: string | null
+  /** Subject of the base commit; present when the base was resolved. */
+  baseSubject?: string | null
 }
 
 export interface Worktree {

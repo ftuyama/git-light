@@ -6,6 +6,49 @@ beforeEach(() => {
   setActivePinia(createPinia())
 })
 
+describe('sidebar section visibility', () => {
+  it('shows every section by default', () => {
+    const ui = useUiStore()
+    for (const key of [
+      'favorites',
+      'localBranches',
+      'remoteBranches',
+      'tags',
+      'stashes',
+      'worktrees',
+    ]) {
+      expect(ui.isSectionVisible(key)).toBe(true)
+    }
+  })
+
+  it('toggles and sets section visibility without touching collapse state', () => {
+    const ui = useUiStore()
+    expect(ui.isSectionOpen('tags')).toBe(false)
+
+    ui.toggleSectionVisible('tags')
+    expect(ui.isSectionVisible('tags')).toBe(false)
+    expect(ui.isSectionOpen('tags')).toBe(false)
+
+    ui.setSectionVisible('tags', true)
+    expect(ui.isSectionVisible('tags')).toBe(true)
+  })
+
+  it('allows hiding every section', () => {
+    const ui = useUiStore()
+    for (const key of [
+      'favorites',
+      'localBranches',
+      'remoteBranches',
+      'tags',
+      'stashes',
+      'worktrees',
+    ]) {
+      ui.setSectionVisible(key, false)
+      expect(ui.isSectionVisible(key)).toBe(false)
+    }
+  })
+})
+
 describe('auto sidebar toggle for diff view', () => {
   it('collapses an expanded sidebar and requests instant panes', () => {
     const ui = useUiStore()

@@ -2,8 +2,11 @@ export type GraphEdgeKind = 'straight' | 'merge' | 'laneChange' | 'converge'
 
 /**
  * Builds an SVG path for a graph edge between two row centers.
- * Merge edges use a rigid rectangle anchored just below the merge commit
- * (short vertical drop, horizontal at 90°, then down on the target branch).
+ * GitKraken-style single rounded corner (matches prefetch canvas `arcTo`):
+ * - merge: horizontal off the merge commit, then a rounded corner down
+ *   into the merge-parent lane (corner near the source row).
+ * - converge / laneChange: vertical down the source lane, then a rounded
+ *   corner into the target lane (corner near the target row).
  */
 export function graphEdgePath(
   x1: number,
@@ -20,25 +23,22 @@ export function graphEdgePath(
   const dx = x2 - x1
   const dy = y2 - y1
   const absDx = Math.abs(dx)
+  const absDy = Math.abs(dy)
+  const r = Math.min(cornerRadius, absDx, absDy)
+  if (!(r > 0)) {
+    return `M${x1} ${y1} L${x2} ${y2}`
+  }
+
+  const sx = Math.sign(dx)
+  const sy = dy === 0 ? 1 : Math.sign(dy)
 
   if (kind === 'merge') {
-    const drop = Math.min(cornerRadius, absDx / 2, dy / 2 - 0.5)
-    const yRail = y1 + Math.max((drop > 0 ? drop : 2) - 8, 1)
-    return `M${x1} ${y1} L${x1} ${yRail} L${x2} ${yRail} L${x2} ${y2}`
+    const xH = x2 - sx * r
+    const yV = y1 + sy * r
+    return `M${x1} ${y1} L${xH} ${y1} Q${x2} ${y1} ${x2} ${yV} L${x2} ${y2}`
   }
 
-  if (kind === 'laneChange' && dx > 0) {
-    const inset = Math.min(cornerRadius, absDx / 2, dy / 2 - 0.5)
-    const yRail = inset > 0 ? y1 + 2 * inset : y1 + dy / 2
-    return `M${x1} ${y1} L${x1} ${yRail} L${x2} ${yRail} L${x2} ${y2}`
-  }
-
-  if (kind === 'converge') {
-    const inset = Math.min(cornerRadius, absDx / 2, dy / 2 - 0.5)
-    const yRail = inset > 0 ? y2 - 2 * inset : y1 + dy / 2
-    return `M${x1} ${y1} L${x1} ${yRail} L${x2} ${yRail} L${x2} ${y2}`
-  }
-
-  const y = y1 + dy / 2
-  return `M${x1} ${y1} L${x1} ${y} L${x2} ${y} L${x2} ${y2}`
+  const yV = y2 - sy * r
+  const xH = x1 + sx * r
+  return `M${x1} ${y1} L${x1} ${yV} Q${x1} ${y2} ${xH} ${y2} L${x2} ${y2}`
 }

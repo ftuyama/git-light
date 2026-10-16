@@ -32,6 +32,15 @@ export const SECTION_LABELS: Record<SectionKey, string> = {
 
 export const ADVANCED_SECTION_KEYS = ['tags', 'stashes', 'worktrees'] as const satisfies readonly SectionKey[]
 
+export const DEFAULT_VISIBLE_SECTIONS: Record<SectionKey, boolean> = {
+  favorites: true,
+  localBranches: true,
+  remoteBranches: true,
+  tags: true,
+  stashes: true,
+  worktrees: true,
+}
+
 export interface CommitColumnPrefs {
   author: boolean
   sha: boolean
@@ -131,6 +140,7 @@ export interface UserPreferences {
   leftCollapsed: boolean
   rightCollapsed: boolean
   sections: Record<string, boolean>
+  visibleSections: Record<string, boolean>
   columns: CommitColumnPrefs
   columnWidths: CommitColumnWidths
   graphScopeAll: boolean
@@ -207,6 +217,7 @@ export function defaultPreferences(): UserPreferences {
     leftCollapsed: false,
     rightCollapsed: false,
     sections: { ...DEFAULT_SECTIONS },
+    visibleSections: { ...DEFAULT_VISIBLE_SECTIONS },
     columns: { ...DEFAULT_COLUMNS },
     columnWidths: { ...DEFAULT_COLUMN_WIDTHS },
     graphScopeAll: true,
@@ -237,6 +248,7 @@ export function mergePreferences(saved: Partial<UserPreferences> | null): UserPr
     leftCollapsed: saved.leftCollapsed ?? defaults.leftCollapsed,
     rightCollapsed: saved.rightCollapsed ?? defaults.rightCollapsed,
     sections: { ...DEFAULT_SECTIONS, ...(saved.sections ?? {}) },
+    visibleSections: { ...DEFAULT_VISIBLE_SECTIONS, ...(saved.visibleSections ?? {}) },
     columns: { ...DEFAULT_COLUMNS, ...(saved.columns ?? {}) },
     columnWidths: { ...DEFAULT_COLUMN_WIDTHS, ...(saved.columnWidths ?? {}) },
     graphScopeAll: saved.graphScopeAll ?? defaults.graphScopeAll,

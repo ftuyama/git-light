@@ -87,6 +87,16 @@ function stashBaseLane(stashIndex: number): number {
 function stashNodeX(stashIndex: number): number {
   return laneX(stashBaseLane(stashIndex)) + laneWidth.value
 }
+
+/** Tooltip for the dotted stash box; names the base when it is floating. */
+function stashBoxTitle(stashIndex: number): string {
+  const stash = repo.stashes[stashIndex]
+  if (!stash?.baseSha) return 'Stash (base desconhecida)'
+  const anchored = repo.commits.some((c) => c.sha === stash.baseSha)
+  if (anchored) return `Stash sobre ${stash.baseSha.slice(0, 7)}`
+  const subject = stash.baseSubject ? ` “${stash.baseSubject}”` : ''
+  return `Stash sobre ${stash.baseSha.slice(0, 7)}${subject} — fora da vista carregada`
+}
 </script>
 
 <template>
@@ -216,8 +226,8 @@ function stashNodeX(stashIndex: number): number {
               :stroke="edge.color"
               stroke-width="2"
               fill="none"
-              stroke-linecap="butt"
-              stroke-linejoin="miter"
+              :stroke-linecap="edge.dashed ? 'round' : 'butt'"
+              stroke-linejoin="round"
               :stroke-dasharray="edge.dashed ? '5 4' : undefined"
             />
             <template v-for="node in visibleNodes" :key="`sel-${node.key}`">
@@ -275,7 +285,7 @@ function stashNodeX(stashIndex: number): number {
                   border: '2px dotted var(--color-info)',
                   borderRadius: '5px',
                 }"
-                title="Stash"
+                :title="stashBoxTitle(node.stashIndex ?? -1)"
               >
                 <Inbox :size="13" class="text-[var(--color-info)]" />
               </div>
