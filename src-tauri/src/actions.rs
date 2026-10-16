@@ -717,19 +717,23 @@ pub fn create_rebase_editor_bundle(
         .iter()
         .filter_map(|(_, _, _, m)| m.clone())
         .collect();
-    // Windows: emit forward slashes in every generated path. Native
-    // backslash paths routinely contain `\r`, `\n`, `\t` sequences
-    // (e.g. `C:\Users\runneradmin\...`) that shell layers can interpret as
-    // escapes, mangling the command (`'unneradmin' is not recognized...`).
-    // cmd.exe, `copy`, and redirections all accept forward slashes.
+    // Windows: drive the editors with PowerShell (`-File` + single-quoted
+    // literal paths). This avoids cmd.exe command-line parsing entirely —
+    // quoted `cmd /C` invocations get mangled for TEMP paths under
+    // `C:\Users\...` (`'unneradmin' is not recognized as an internal or
+    // external command`, even with forward slashes). Forward slashes need
+    // no escaping in PowerShell; an embedded `'` is doubled. `-LiteralPath`
+    // avoids wildcard parsing, and `$ErrorActionPreference = 'Stop'`
+    // promotes cmdlet failures to terminating errors so git sees exit 1.
     let slash = |p: &Path| p.display().to_string().replace('\\', "/");
+    let pslit = |p: &Path| slash(p).replace('\'', "''");
     let (seq_editor, msg_editor) = if cfg!(target_os = "windows") {
-        let seq = dir.join("seq-editor.cmd");
+        let seq = dir.join("seq-editor.ps1");
         std::fs::write(
             &seq,
             format!(
-                "@echo off\r\ncopy /Y \"{}\" \"%~1\" >NUL\r\n",
-                slash(&todo_path)
+                "$ErrorActionPreference = 'Stop'\nCopy-Item -LiteralPath '{}' -Destination $args[0] -Force\n",
+                pslit(&todo_path)
             ),
         )
         .map_err(|e| GitError::unknown(e.to_string()))?;
@@ -745,20 +749,26 @@ pub fn create_rebase_editor_bundle(
         }
         std::fs::write(dir.join("reword-index"), "0")
             .map_err(|e| GitError::unknown(e.to_string()))?;
-        let msg = dir.join("msg-editor.cmd");
+        let msg = dir.join("msg-editor.ps1");
         std::fs::write(
             &msg,
             format!(
-                "@echo off\r\nset /p IDX<\"{}\"\r\ncopy /Y \"{}/msg-%IDX%\" \"%~1\" >NUL\r\nset /a NEXT=%IDX%+1\r\necho %NEXT%>\"{}\"\r\n",
-                slash(&dir.join("reword-index")),
-                slash(&msg_dir),
-                slash(&dir.join("reword-index"))
+                "$ErrorActionPreference = 'Stop'\n$idx = [int](Get-Content -LiteralPath '{}' -Raw)\nCopy-Item -LiteralPath ('{}/msg-' + $idx) -Destination $args[0] -Force\nSet-Content -LiteralPath '{}' -Value ($idx + 1) -NoNewline\n",
+                pslit(&dir.join("reword-index")),
+                pslit(&msg_dir),
+                pslit(&dir.join("reword-index"))
             ),
         )
         .map_err(|e| GitError::unknown(e.to_string()))?;
         (
-            format!("cmd /C \"{}\"", slash(&seq)),
-            format!("cmd /C \"{}\"", slash(&msg)),
+            format!(
+                "powershell -NoProfile -NonInteractive -ExecutionPolicy Bypass -File \"{}\"",
+                slash(&seq)
+            ),
+            format!(
+                "powershell -NoProfile -NonInteractive -ExecutionPolicy Bypass -File \"{}\"",
+                slash(&msg)
+            ),
         )
     } else {
         let seq = dir.join("seq-editor.sh");
@@ -2076,7 +2086,7 @@ mod tests {
         assert!(!dir.exists(), "bundle dir must be cleaned up on drop");
     }
 
-    /// End-to-end proof that the Windows `.cmd` editors drive a real
+    /// End-to-end proof that the Windows `.ps1` editors drive a real
     /// `git rebase -i`. Runtime-gated (not `#[cfg]`) so it type-checks on
     /// every platform; it only executes on Windows CI.
     #[tokio::test]
@@ -2111,26 +2121,33 @@ mod tests {
             ),
         ])
         .expect("bundle");
+        // `allow_failure` keeps the full stdout/stderr for diagnosis;
+        // the exit-code assertion below preserves the test's strength.
         let result = run_git(
             &cwd,
             vec!["rebase".into(), "-i".into(), "--root".into()],
             RunOptions {
                 extra_env: bundle.env.clone(),
+                allow_failure: true,
                 ..RunOptions::default()
             },
             None,
             None,
         )
-        .await;
-        if let Err(e) = &result {
+        .await
+        .expect("spawn rebase");
+        if result.exit_code != Some(0) {
             eprintln!(
-                "rebase bundle failed: dir={} env={:?} err={e:?}",
+                "rebase bundle failed: dir={} env={:?} exit={:?} stdout={:?} stderr={:?}",
                 bundle.dir.display(),
-                bundle.env
+                bundle.env,
+                result.exit_code,
+                result.stdout,
+                result.stderr
             );
         }
         drop(bundle);
-        result.expect("rebase driven by .cmd editors");
+        assert_eq!(result.exit_code, Some(0), "rebase driven by .ps1 editors");
         let log = run(vec!["log".into(), "--format=%s".into()])
             .await
             .expect("log");
