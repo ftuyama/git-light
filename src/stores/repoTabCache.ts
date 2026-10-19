@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { toRaw } from 'vue'
 import type { CommitPageInfo } from '@shared/git/models'
+import { normalizeRepoPath } from '@/lib/git/repoPath'
 import type {
   Author,
   Branch,
@@ -122,16 +123,31 @@ export const useRepoTabCacheStore = defineStore('repoTabCache', {
   }),
 
   actions: {
+    /**
+     * Resolve a lookup path against the stored keys, tolerating the spelling
+     * differences the backend canonicalizes away (trailing slash, macOS
+     * `/private` prefix, case). Without this a tab saved under its canonical
+     * path would be invisible when looked up by the raw picked path.
+     */
+    resolveKey(path: string): string | undefined {
+      if (path in this.byPath) return path
+      const target = normalizeRepoPath(path).toLowerCase()
+      return Object.keys(this.byPath).find(
+        (key) => normalizeRepoPath(key).toLowerCase() === target,
+      )
+    },
+
     has(path: string): boolean {
-      return path in this.byPath
+      return this.resolveKey(path) !== undefined
     },
 
     get(path: string): CachedTabState | undefined {
-      const entry = this.byPath[path]
+      const key = this.resolveKey(path) ?? path
+      const entry = this.byPath[key]
       if (entry) {
         // Refresh LRU order + timestamp so frequently visited tabs survive.
-        delete this.byPath[path]
-        this.byPath[path] = entry
+        delete this.byPath[key]
+        this.byPath[key] = entry
       }
       return entry
     },

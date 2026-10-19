@@ -69,4 +69,17 @@ export async function preloadSavedTabs(
       console.error(`[git-light] tab preload failed for ${tab.path}:`, err)
     }
   }
+
+  // Re-align the backend with the repo actually on screen. Each preload
+  // `git_open_repo` re-pointed the backend's single open repository, so when
+  // the loop ends `current` is the last preloaded tab — watcher events,
+  // auto-fetch and diffs would otherwise run against the wrong repository.
+  const visiblePath = store.repository?.path
+  if (preloaded > 0 && visiblePath && typeof gitService.activateRepository === 'function') {
+    try {
+      await gitService.activateRepository(visiblePath)
+    } catch (err) {
+      console.error('[git-light] tab preload activation failed:', err)
+    }
+  }
 }

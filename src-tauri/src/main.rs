@@ -266,6 +266,78 @@ async fn git_open_repo(
     Ok(do_open_repo(&app, &state, &path, &options).await)
 }
 
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+struct ActivateRepoEnvelope {
+    ok: bool,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    path: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    error: Option<GitError>,
+}
+
+/// Re-points the backend's single open repository at `path` without rebuilding
+/// a snapshot. The frontend calls this on every tab switch so the later IPCs
+/// (`git_snapshot`, diffs, actions, watcher events) always run against the
+/// repository that is on screen — without it, a switch to a cached tab leaves
+/// `current` on the previous repo and its data leaks into the visible one.
+async fn do_activate_repo(
+    app: &AppHandle,
+    state: &State<'_, AppState>,
+    path: &str,
+) -> Result<PathBuf, GitError> {
+    let canonical = std::fs::canonicalize(path).map_err(|_| {
+        GitError::new(
+            "RepositoryNotFound",
+            "The repository could not be found.".to_string(),
+        )
+    })?;
+    git::validate_repo(&canonical)
+        .await
+        .map_err(|_| {
+            GitError::new(
+                "RepositoryNotFound",
+                "The repository could not be found.".to_string(),
+            )
+        })
+        .map(|_| ())?;
+    {
+        let current = state
+            .current
+            .lock()
+            .map_err(|_| GitError::unknown("Repository state is unavailable.".to_string()))?;
+        if *current == Some(canonical.clone()) {
+            return Ok(canonical);
+        }
+    }
+    set_current(state, Some(canonical.clone()));
+    state.journal.lock().await.clear();
+    if let Ok(mut watcher) = state.watcher.lock() {
+        watcher.watch(app, &canonical);
+    }
+    Ok(canonical)
+}
+
+#[tauri::command]
+async fn git_activate_repo(
+    app: AppHandle,
+    state: State<'_, AppState>,
+    path: String,
+) -> Result<ActivateRepoEnvelope, String> {
+    match do_activate_repo(&app, &state, &path).await {
+        Ok(canonical) => Ok(ActivateRepoEnvelope {
+            ok: true,
+            path: Some(canonical.to_string_lossy().into_owned()),
+            error: None,
+        }),
+        Err(error) => Ok(ActivateRepoEnvelope {
+            ok: false,
+            path: None,
+            error: Some(error),
+        }),
+    }
+}
+
 #[tauri::command]
 async fn git_pick_and_open_repo(
     app: AppHandle,
@@ -1021,6 +1093,7 @@ fn main() {
             git_version,
             ping,
             git_open_repo,
+            git_activate_repo,
             git_pick_and_open_repo,
             git_clone_repo,
             git_init_repo,

@@ -61,6 +61,15 @@ export interface GitService {
   ): Promise<{ ok: boolean; data?: RepositoryData; message: string; errorCode?: GitErrorCode }>
   discoverRepositories(request: DiscoverReposRequest): Promise<DiscoveredRepo[]>
   closeRepository(): Promise<void>
+  /**
+   * Optional: re-points the backend's single open repository at `path`
+   * without rebuilding a snapshot, returning the canonical path it now
+   * serves. Backends that accept an explicit repo path per call do not need
+   * a global "current" concept and may omit this.
+   */
+  activateRepository?(
+    path: string,
+  ): Promise<{ ok: boolean; path?: string; message: string }>
   loadMoreCommits(request: CommitPageRequest): Promise<{
     commits: RepositoryData['commits']
     page: CommitPageInfo

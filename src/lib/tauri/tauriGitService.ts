@@ -186,6 +186,24 @@ export class TauriGitService implements GitService {
     this.page = { oldestSha: null, hasMore: false, total: null }
   }
 
+  async activateRepository(
+    path: string,
+  ): Promise<{ ok: boolean; path?: string; message: string }> {
+    const result = (await this.invoker('git_activate_repo', { path })) as {
+      ok: boolean
+      path?: string
+      error?: ReturnType<GitError['serialize']>
+    }
+    if (!result.ok) {
+      return {
+        ok: false,
+        path: result.path,
+        message: result.error?.message ?? 'The repository could not be found.',
+      }
+    }
+    return { ok: true, path: result.path, message: '' }
+  }
+
   async refreshSnapshot(
     scopes?: SnapshotScope[],
     options?: SnapshotRefreshOptions,

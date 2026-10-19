@@ -6,6 +6,9 @@ const fakeBackend = vi.hoisted(() => ({
   openRepositoryImpl: null as null | ((
     path: string,
   ) => Promise<{ ok: boolean; data?: RepositoryData; message: string }>),
+  refreshSnapshotImpl: null as null | ((scopes?: unknown) => Promise<RepositoryData>),
+  activateImpl: null as null | (() => Promise<{ ok: boolean; path?: string; message: string }>),
+  changeHandler: null as null | ((event: { path: string; scopes: unknown[] }) => void),
 }))
 
 vi.mock('@/lib/git', () => ({
@@ -15,12 +18,24 @@ vi.mock('@/lib/git', () => ({
     },
     recentRepos: async () => [],
     removeRecent: async () => [],
-    onRepositoryChanged: () => () => {},
+    onRepositoryChanged: (cb: (event: { path: string; scopes: unknown[] }) => void) => {
+      fakeBackend.changeHandler = cb
+      return () => {}
+    },
     onProgress: () => () => {},
+    activateRepository: async (path: string) => {
+      if (!fakeBackend.activateImpl) return { ok: false, message: 'no impl' }
+      void path
+      return fakeBackend.activateImpl()
+    },
     openRepository: (path: string, _options?: unknown) => {
       void _options
       if (!fakeBackend.openRepositoryImpl) throw new Error('no openRepository impl set')
       return fakeBackend.openRepositoryImpl(path)
+    },
+    refreshSnapshot: async (scopes?: unknown) => {
+      if (!fakeBackend.refreshSnapshotImpl) throw new Error('no refreshSnapshot impl set')
+      return fakeBackend.refreshSnapshotImpl(scopes)
     },
   },
 }))
@@ -71,6 +86,12 @@ beforeEach(() => {
     data: repoData(path, path.split('/').pop() ?? path),
     message: `Opened ${path}`,
   })
+  fakeBackend.refreshSnapshotImpl = async (scopes?: unknown) => {
+    void scopes
+    throw new Error('unexpected refreshSnapshot call')
+  }
+  fakeBackend.activateImpl = async () => ({ ok: true, message: '' })
+  fakeBackend.changeHandler = null
 })
 
 async function openRepo(path: string): Promise<void> {
@@ -101,6 +122,11 @@ describe('tab switching (switchRepository)', () => {
     await openRepo('/repo-a')
     await openRepo('/repo-b')
     expect(tabs.activePath).toBe('/repo-b')
+
+    // The backend may still be serving the previous repo when the revalidation
+    // lands: the refresh must discard it instead of painting repo-b over the
+    // /repo-a tab (this is what mixed stashes/files between tabs used to be).
+    fakeBackend.refreshSnapshotImpl = async () => repoData('/repo-b', 'repo-b')
 
     const ok = await repo.switchRepository('/repo-a')
 
@@ -146,5 +172,80 @@ describe('tab switching (switchRepository)', () => {
     const cached = cache.get('/repo-a')
     expect(cached?.repository.path).toBe('/repo-a')
     expect(cached?.commits[0]?.date).toBeInstanceOf(Date)
+  })
+
+  it('finds cache entries saved under a different path spelling', async () => {
+    const cache = useRepoTabCacheStore()
+    await openRepo('/repo-a')
+    const cached = cache.get('/repo-a')
+    expect(cached).toBeDefined()
+    const entry = { ...cached!, path: '/repo-a/' }
+    cache.set(entry)
+
+    expect(cache.has('/repo-a')).toBe(true)
+    expect(cache.get('/repo-a/')?.repository.path).toBe('/repo-a')
+  })
+
+  it('discards snapshot refreshes that belong to a different repository', async () => {
+    const repo = useRepositoryStore()
+    await openRepo('/repo-a')
+    fakeBackend.refreshSnapshotImpl = async () => repoData('/repo-z', 'repo-z')
+
+    await repo.refreshSnapshot(['status'])
+
+    // The scoped snapshot for /repo-z must not leak into the /repo-a tab.
+    expect(repo.repository?.path).toBe('/repo-a')
+  })
+
+  it('ignores watcher change events for a repository that is not on screen', async () => {
+    const repo = useRepositoryStore()
+    await repo.init()
+    await openRepo('/repo-a')
+    expect(fakeBackend.changeHandler).toBeTruthy()
+    fakeBackend.refreshSnapshotImpl = async () => repoData('/repo-z', 'repo-z')
+
+    const handler = fakeBackend.changeHandler
+    if (!handler) throw new Error('onRepositoryChanged was not registered')
+    handler({ path: '/repo-z', scopes: ['stashes'] })
+    // scheduleSnapshotRefresh debounces for 150ms before invoking.
+    await new Promise((resolve) => setTimeout(resolve, 300))
+
+    expect(repo.repository?.path).toBe('/repo-a')
+  })
+})
+
+describe('stale open/switch results', () => {
+  it('never applies an openRepository result superseded by another switch', async () => {
+    const repo = useRepositoryStore()
+    await openRepo('/repo-a')
+    useRepoTabsStore().addTab('/repo-b', 'repo-b')
+    useRepoTabCacheStore().remove('/repo-b')
+
+    let resolveSlow!: (value: { ok: boolean; data?: RepositoryData; message: string }) => void
+    const slowOpen = new Promise<{ ok: boolean; data?: RepositoryData; message: string }>(
+      (resolve) => {
+        resolveSlow = resolve
+      },
+    )
+    fakeBackend.openRepositoryImpl = (path: string) =>
+      path === '/repo-slow'
+        ? slowOpen
+        : Promise.resolve({
+            ok: true,
+            data: repoData(path, path.split('/').pop() ?? path),
+            message: `Opened ${path}`,
+          })
+
+    const slow = repo.openRepository('/repo-slow')
+    // The fast switch completes while the slow open is still in flight.
+    const switched = await repo.switchRepository('/repo-b')
+    expect(switched).toBe(true)
+    expect(repo.repository?.path).toBe('/repo-b')
+
+    resolveSlow({ ok: true, data: repoData('/repo-slow', 'repo-slow'), message: 'Opened slow' })
+    await expect(slow).resolves.toBe(false)
+    // The losing open must not win the store / tab bar.
+    expect(repo.repository?.path).toBe('/repo-b')
+    expect(useRepoTabsStore().activePath).toBe('/repo-b')
   })
 })
