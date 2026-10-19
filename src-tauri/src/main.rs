@@ -270,30 +270,67 @@ fn snapshot_options_from(value: &Option<serde_json::Value>) -> git::SnapshotOpti
     }
 }
 
+/// `GIT_LIGHT_PERF=1` (or any debug build) turns on phase timings for the
+/// repository commands. They go to stderr, which *is* visible in the terminal
+/// running `npm run dev` (the Tauri webview console is not piped there).
+fn perf_enabled() -> bool {
+    cfg!(debug_assertions) || matches!(std::env::var("GIT_LIGHT_PERF").as_deref(), Ok("1"))
+}
+
+fn perf_log(label: &str, start: std::time::Instant) {
+    if perf_enabled() {
+        eprintln!(
+            "[git-light perf] {label}: {:.1}ms",
+            start.elapsed().as_secs_f64() * 1000.0
+        );
+    }
+}
+
+/// Frontend perf samples (store phases, graph layout, ...) printed on the
+/// terminal. The webview console is invisible during `tauri dev`, so this
+/// bridge is how `[git-light perf]` lines from the app reach stderr.
+#[tauri::command]
+fn git_perf_log(label: String, ms: Option<f64>) {
+    if !perf_enabled() {
+        return;
+    }
+    match ms {
+        Some(ms) => eprintln!("[git-light perf] {label}: {ms:.1}ms"),
+        None => eprintln!("[git-light perf] {label}"),
+    }
+}
+
 async fn do_open_repo(
     app: &AppHandle,
     state: &State<'_, AppState>,
     path: &str,
     options: &Option<serde_json::Value>,
 ) -> OpenRepoEnvelope {
+    let started = std::time::Instant::now();
     let info = match resolve_repo_info(state, Path::new(path)).await {
         Ok(info) => info,
         Err(error) => return OpenRepoEnvelope::err(error),
     };
+    perf_log("open: resolve_repo_info", started);
     let opts = snapshot_options_from(options);
     let repo_path = info.path.to_string_lossy().into_owned();
     let favorites = favorites_for(&read_favorites(app).await, &repo_path);
+    let snapshot_at = std::time::Instant::now();
     let snapshot = git::build_snapshot_with_info(&info, &opts, &favorites).await;
+    perf_log("open: build_snapshot", snapshot_at);
     match snapshot {
         Ok(mut snapshot) => {
             set_current(state, Some(info.path.clone()));
             state.journal.lock().await.clear();
+            let watch_at = std::time::Instant::now();
             if let Ok(mut watcher) = state.watcher.lock() {
                 watcher.watch(app, &info.path);
             }
+            perf_log("open: watcher.watch", watch_at);
             apply_journal_state(state, &mut snapshot).await;
             let merged = git::merge_recent(read_recents(app).await, &repo_path, git::now_millis());
             write_recents(app, &merged).await;
+            perf_log("open: total", started);
             OpenRepoEnvelope::ok(snapshot)
         }
         Err(error) => OpenRepoEnvelope::err(error),
@@ -330,6 +367,7 @@ async fn do_activate_repo(
     state: &State<'_, AppState>,
     path: &str,
 ) -> Result<PathBuf, GitError> {
+    let started = std::time::Instant::now();
     // Served from the validation cache when the repository was opened before,
     // which is the common case for a tab switch: no git process at all.
     let root = resolve_repo_info(state, Path::new(path))
@@ -341,6 +379,7 @@ async fn do_activate_repo(
             )
         })?
         .path;
+    perf_log("activate: resolve_repo_info", started);
     {
         let current = state
             .current
@@ -352,9 +391,12 @@ async fn do_activate_repo(
     }
     set_current(state, Some(root.clone()));
     state.journal.lock().await.clear();
+    let watch_at = std::time::Instant::now();
     if let Ok(mut watcher) = state.watcher.lock() {
         watcher.watch(app, &root);
     }
+    perf_log("activate: watcher.watch", watch_at);
+    perf_log("activate: total", started);
     Ok(root)
 }
 
@@ -575,13 +617,17 @@ async fn do_preload_repo(
     path: &str,
     options: &Option<serde_json::Value>,
 ) -> OpenRepoEnvelope {
+    let started = std::time::Instant::now();
     let info = match resolve_repo_info(state, Path::new(path)).await {
         Ok(info) => info,
         Err(error) => return OpenRepoEnvelope::err(error),
     };
     let favorites = favorites_for(&read_favorites(app).await, &info.path.to_string_lossy());
     match git::build_snapshot_with_info(&info, &snapshot_options_from(options), &favorites).await {
-        Ok(snapshot) => OpenRepoEnvelope::ok(snapshot),
+        Ok(snapshot) => {
+            perf_log("preload: total", started);
+            OpenRepoEnvelope::ok(snapshot)
+        }
         Err(error) => OpenRepoEnvelope::err(error),
     }
 }
@@ -1182,6 +1228,7 @@ fn main() {
             git_snapshot,
             git_commit_page,
             git_cancel,
+            git_perf_log,
             git_recent_repos,
             git_remove_recent,
             git_reveal_path,

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { provide, ref, computed } from 'vue'
+import { provide, ref, computed, watch } from 'vue'
 import { ChevronLeft, Loader2 } from '@lucide/vue'
 import IconButton from '@/components/ui/IconButton.vue'
 import SearchInput from '@/components/ui/SearchInput.vue'
@@ -21,6 +21,19 @@ const ui = useUiStore()
 const branchDrag = useBranchDragStore()
 const query = ref('')
 const search = ref<InstanceType<typeof SearchInput>>()
+
+/**
+ * The shared scroller plus a tick that windowed sections (SidebarVirtualList)
+ * watch to re-measure their offset when sections above them change height.
+ */
+const scroller = ref<HTMLElement | null>(null)
+const layoutTick = ref(0)
+provide('branchSidebarScroller', scroller)
+provide('branchSidebarLayoutTick', layoutTick)
+
+watch([() => ui.sections, () => ui.visibleSections], () => {
+  layoutTick.value++
+})
 
 const sidebarData = useBranchSidebarData(query)
 provide('branchSidebarData', sidebarData)
@@ -131,7 +144,7 @@ async function confirmIntegrate(mode: 'merge' | 'rebase', mergeMode?: MergeMode)
       </ContextMenu>
     </div>
 
-    <div v-else class="min-h-0 flex-1 overflow-y-auto py-1">
+    <div v-else ref="scroller" class="min-h-0 flex-1 overflow-y-auto py-1">
       <SidebarSection
         v-for="sectionKey in openSectionKeys"
         :key="sectionKey"

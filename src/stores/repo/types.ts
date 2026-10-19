@@ -11,7 +11,7 @@ import type {
 } from '@/types/git'
 import type { GraphLayout } from '@/lib/graph/computeGraphLayout'
 
-export type AppScreen = 'startup' | 'main'
+export type AppScreen = 'restoring' | 'startup' | 'main'
 
 export interface RepositoryState {
   screen: AppScreen
@@ -24,6 +24,14 @@ export interface RepositoryState {
    * first open stays on StartupView, which has its own busy state).
    */
   pendingRepoPath: string | null
+  /**
+   * A switch whose first paint is expected to block the main thread (a cached
+   * tab with thousands of sidebar rows). The loading skeleton shows for these
+   * without waiting out the anti-flicker delay: the paint that covers the
+   * outgoing repository happens after the skeleton has been drawn, so the user
+   * sees a loading state instead of a frozen screen.
+   */
+  pendingRepoHeavy: boolean
   refreshing: boolean
   branchSwitching: boolean
   repository: Repository | null

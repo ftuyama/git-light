@@ -28,7 +28,13 @@ const commitButtonLabel = computed(() => {
 })
 
 const summaryPlaceholder = computed(() =>
-  amend.value ? 'Summary (empty keeps previous message)' : 'Summary (required)',
+  amend.value ? 'Commit Summary (empty keeps previous message)' : 'Commit Summary',
+)
+
+/** Git convention: keep the subject at or under 72 characters. */
+const SUMMARY_MAX_LENGTH = 72
+const summaryRemaining = computed(() =>
+  Math.max(0, SUMMARY_MAX_LENGTH - commitMessage.value.length),
 )
 
 const pushMenu = computed<MenuItem[]>(() => {
@@ -50,19 +56,28 @@ const pushMenu = computed<MenuItem[]>(() => {
     <div
       class="rounded-lg border border-[var(--color-border-strong)] bg-[var(--color-app)] focus-within:border-[var(--color-accent-strong)]"
     >
-      <input
-        v-model="commitMessage"
-        type="text"
-        :placeholder="summaryPlaceholder"
-        spellcheck="false"
-        class="w-full bg-transparent px-3 pt-2.5 text-[14px] font-medium text-[var(--color-fg)] placeholder:text-[var(--color-fg-subtle)] focus:outline-none"
-      />
+      <div class="relative">
+        <input
+          v-model="commitMessage"
+          type="text"
+          :placeholder="summaryPlaceholder"
+          :maxlength="SUMMARY_MAX_LENGTH"
+          spellcheck="false"
+          class="w-full bg-transparent px-3 pt-2.5 pb-2 pr-10 text-[14px] font-medium text-[var(--color-fg)] placeholder:text-[var(--color-fg-subtle)] focus:outline-none"
+        />
+        <span
+          class="pointer-events-none absolute top-2.5 right-3 text-[11px] tabular-nums text-[var(--color-fg-subtle)]"
+          :title="`Up to ${SUMMARY_MAX_LENGTH} characters`"
+        >
+          {{ summaryRemaining }}
+        </span>
+      </div>
       <textarea
         v-model="commitDescription"
         placeholder="Description"
         rows="2"
         spellcheck="false"
-        class="w-full resize-none bg-transparent px-3 pb-3 text-[13px] text-[var(--color-fg-muted)] placeholder:text-[var(--color-fg-subtle)] focus:outline-none"
+        class="w-full resize-none border-t border-[var(--color-border)] bg-transparent px-3 pt-1 pb-3 text-[13px] text-[var(--color-fg-muted)] placeholder:text-[var(--color-fg-subtle)] focus:outline-none"
       />
     </div>
 

@@ -310,8 +310,8 @@ watch(compareRange, (range) => {
             >
               <span class="flex-1">Changes ({{ unstaged.length }})</span>
               <button
-                class="focus-ring flex items-center gap-1 rounded px-1.5 py-0.5 text-[11px] font-medium text-[var(--color-success)] normal-case hover:bg-[var(--color-success)]/10 disabled:opacity-40"
-                :disabled="unstaged.length === 0"
+                v-if="unstaged.length"
+                class="focus-ring flex items-center gap-1 rounded px-1.5 py-0.5 text-[11px] font-medium text-[var(--color-success)] normal-case hover:bg-[var(--color-success)]/10"
                 @click="repo.stageAll()"
               >
                 <CheckCheck :size="13" /> Stage All

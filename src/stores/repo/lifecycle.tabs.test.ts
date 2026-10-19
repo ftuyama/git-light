@@ -80,6 +80,25 @@ function repoData(path: string, name: string): RepositoryData {
   }
 }
 
+/** A tab with enough sidebar rows to count as a "heavy" cached switch. */
+function heavyRepoData(path: string, name: string, branchCount: number): RepositoryData {
+  const data = repoData(path, name)
+  data.branches = Array.from({ length: branchCount }, (_, index) => ({
+    id: `${name}-b${index}`,
+    name: `branch-${index}`,
+    kind: 'local' as const,
+    group: '',
+    tipSha: `${name}-sha`,
+    ahead: 0,
+    behind: 0,
+    isCurrent: false,
+    isFavorite: false,
+    lastActivity: new Date('2026-01-01T00:00:00Z'),
+    laneColorIndex: 0,
+  }))
+  return data
+}
+
 beforeEach(() => {
   setActivePinia(createPinia())
   fakeBackend.openRepositoryImpl = async (path: string) => ({
@@ -165,6 +184,10 @@ describe('tab switching (switchRepository)', () => {
     resolveOpen?.({ ok: true, data: repoData('/repo-b', 'repo-b'), message: 'Opened /repo-b' })
     await expect(switching).resolves.toBe(true)
 
+    // The skeleton outlives the open by one frame: it must stay up until the
+    // new snapshot has actually painted (the paint itself is what blocks).
+    expect(repo.pendingRepoPath).toBe('/repo-b')
+    await new Promise((resolve) => setTimeout(resolve, 150))
     expect(repo.pendingRepoPath).toBeNull()
     expect(repo.repository?.path).toBe('/repo-b')
   })
@@ -241,6 +264,37 @@ describe('tab switching (switchRepository)', () => {
     expect(repo.pendingRepoPath).toBeNull()
     expect(repo.repository).toBeNull()
     expect(repo.screen).toBe('startup')
+  })
+
+  it('raises the skeleton before painting a heavy cached tab, then clears it', async () => {
+    const repo = useRepositoryStore()
+    const tabs = useRepoTabsStore()
+    await openRepo('/repo-a')
+    fakeBackend.openRepositoryImpl = async (path: string) => ({
+      ok: true,
+      data: path === '/repo-heavy' ? heavyRepoData(path, 'repo-heavy', 350) : repoData(path, 'repo-a'),
+      message: `Opened ${path}`,
+    })
+    await openRepo('/repo-heavy')
+    await repo.switchRepository('/repo-a')
+    expect(repo.pendingRepoPath).toBeNull()
+
+    // Back to the heavy tab: the cached entry is big enough to block the first
+    // paint, so the skeleton must be up *before* the store is patched.
+    const switching = repo.switchRepository('/repo-heavy')
+    expect(repo.pendingRepoPath).toBe('/repo-heavy')
+    expect(repo.pendingRepoHeavy).toBe(true)
+    // The outgoing repository is still on screen behind the skeleton.
+    expect(repo.repository?.path).toBe('/repo-a')
+    expect(tabs.activePath).toBe('/repo-a')
+
+    // After the paint frame the tab is active and nothing is covered anymore.
+    await expect(switching).resolves.toBe(true)
+    await new Promise((resolve) => setTimeout(resolve, 150))
+    expect(repo.repository?.path).toBe('/repo-heavy')
+    expect(tabs.activePath).toBe('/repo-heavy')
+    expect(repo.pendingRepoPath).toBeNull()
+    expect(repo.pendingRepoHeavy).toBe(false)
   })
 
   it('never flags a cached tab: it paints the snapshot before returning', async () => {

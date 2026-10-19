@@ -12,6 +12,7 @@ import StatusBar from '@/features/status-bar/StatusBar.vue'
 import SidebarRail from '@/features/layout/SidebarRail.vue'
 import ToastViewport from '@/features/layout/ToastViewport.vue'
 import StartupView from '@/features/startup/StartupView.vue'
+import RestoreSplash from '@/features/startup/RestoreSplash.vue'
 import RepoLoadingSkeleton from '@/features/layout/RepoLoadingSkeleton.vue'
 import OperationBanner from '@/features/layout/OperationBanner.vue'
 import PromptHost from '@/features/layout/PromptHost.vue'
@@ -51,7 +52,7 @@ const toast = useToastStore()
 const graphZoom = useCommitGraphZoom()
 const { leftSize, rightSize, leftCollapsed, rightCollapsed, leftCollapseHint, rightCollapseHint, suppressPaneAnimation } =
   storeToRefs(ui)
-const { screen, pendingRepoPath, loading: repoLoading } = storeToRefs(repo)
+const { screen, pendingRepoPath, pendingRepoHeavy } = storeToRefs(repo)
 
 const branchSidebar = ref<InstanceType<typeof BranchSidebar>>()
 
@@ -81,10 +82,19 @@ const showBlameOverlay = computed(
  * A cold tab switch keeps the outgoing repository in the store until the new
  * snapshot lands, so cover the panes with a skeleton for that round-trip — but
  * only once it has been slow enough to notice, or fast switches would flash
- * (see `useDelayedFlag`). Cached switches paint instantly and never get here.
+ * (see `useDelayedFlag`).
+ *
+ * A *heavy* cached switch (`pendingRepoHeavy`: thousands of sidebar rows) is
+ * different: the store raises the skeleton one frame before it paints, and the
+ * paint itself is what blocks, so waiting out the delay would mean the skeleton
+ * never reaches the screen.
  */
-const showRepoSwitchSkeleton = useDelayedFlag(
-  computed(() => pendingRepoPath.value !== null && repoLoading.value),
+const showColdSkeleton = useDelayedFlag(
+  computed(() => pendingRepoPath.value !== null && !pendingRepoHeavy.value),
+)
+
+const showRepoSwitchSkeleton = computed(
+  () => pendingRepoHeavy.value || showColdSkeleton.value,
 )
 
 const switchingRepoName = computed(() => {
@@ -217,15 +227,20 @@ useKeyboardShortcuts(dynamicShortcuts)
 <template>
   <TooltipProvider :delay-duration="320" :skip-delay-duration="120">
     <StartupView v-if="screen === 'startup'" />
+    <RestoreSplash v-else-if="screen === 'restoring'" />
 
     <template v-else>
     <div class="flex h-screen w-screen flex-col overflow-hidden bg-[var(--color-app)]">
       <RepoTabs />
       <OperationBanner />
 
-      <RepoLoadingSkeleton v-if="showRepoSwitchSkeleton" :repo-name="switchingRepoName" />
-
-      <template v-else>
+      <!--
+        The skeleton is an overlay, not a replacement for the panes: tearing
+        them down threw away mounted components (and made the first paint of a
+        big repository slower), while as an overlay it also covers the *outgoing*
+        repository for the whole (main-thread blocking) render.
+      -->
+      <div class="relative flex min-h-0 flex-1 flex-col">
         <Toolbar />
 
         <div class="relative flex min-h-0 flex-1">
@@ -265,8 +280,14 @@ useKeyboardShortcuts(dynamicShortcuts)
           <SidebarRail v-if="rightCollapsed" side="right" @expand="ui.toggleRight()" />
 
           <BlameOverlay v-if="showBlameOverlay" />
+
+          <RepoLoadingSkeleton
+            v-if="showRepoSwitchSkeleton"
+            class="absolute inset-0 z-30"
+            :repo-name="switchingRepoName"
+          />
         </div>
-      </template>
+      </div>
 
       <GitOutputDrawer />
       <StatusBar />

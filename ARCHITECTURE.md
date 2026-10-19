@@ -148,7 +148,7 @@ App.vue
     ├── OperationBanner  merge/rebase/cherry-pick/revert in progress
     ├── SidebarRail      expand affordance when left/right pane collapsed
     ├── Splitpanes
-    │   ├── BranchSidebar       (drag-drop integrate dialog, section context menus)
+    │   ├── BranchSidebar       (drag-drop integrate dialog, section context menus, windowed rows)
     │   ├── CommitGraph         (virtualized graph + diff/conflict overlay; ImageDiffView with zoom/pan/lightbox)
     │   └── WorkingTreePanel    (FileTypeIcon per path)
     ├── GitOutputDrawer  per-tab executed git commands (stdout/stderr, ok/error)

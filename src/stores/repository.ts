@@ -8,9 +8,13 @@ import type { RepositoryState } from './repo/types'
 
 export const useRepositoryStore = defineStore('repository', {
   state: (): RepositoryState => ({
-    screen: 'startup',
+    // Start in `restoring` so a session with a previous repository opens it
+    // directly instead of flashing the startup picker first. `bootstrap`
+    // drops to `startup` when there is nothing to restore (see main.ts).
+    screen: 'restoring',
     loading: false,
     pendingRepoPath: null,
+    pendingRepoHeavy: false,
     refreshing: false,
     branchSwitching: false,
     repository: null,

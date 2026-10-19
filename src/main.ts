@@ -9,6 +9,7 @@ import { useUiStore } from './stores/ui'
 import { useRepositoryStore } from './stores/repository'
 import { useRepoTabsStore } from './stores/repoTabs'
 import { preloadSavedTabs } from './stores/repo/tabPreload'
+import { attachPerfToTerminal } from '@/lib/tauri/perfBridge'
 import 'splitpanes/dist/splitpanes.css'
 import 'file-icons-js/css/style.css'
 import './assets/theme.css'
@@ -46,6 +47,11 @@ async function restoreSession(
 }
 
 async function bootstrap(): Promise<void> {
+  // Diagnostics first: everything below (session restore, first snapshot,
+  // tab preloading) emits perf samples, and the terminal bridge is what makes
+  // them visible outside devtools.
+  attachPerfToTerminal()
+
   const app = createApp(App)
   const pinia = createPinia()
   app.use(pinia)
@@ -86,6 +92,9 @@ async function bootstrap(): Promise<void> {
     await repo.init()
   } catch (err) {
     console.error('[git-light] backend init failed (is the Tauri IPC reachable?):', err)
+    // No backend, no restore: fall back to the startup picker instead of
+    // leaving the restore splash on screen forever.
+    repo.screen = 'startup'
     return
   }
   try {
@@ -99,6 +108,7 @@ async function bootstrap(): Promise<void> {
       await repo.loadMock()
     } catch (err) {
       console.error('[git-light] mock load failed:', err)
+      repo.screen = 'startup'
     }
   } else {
     let openedPath: string | null = null
@@ -121,10 +131,16 @@ async function bootstrap(): Promise<void> {
         const visiblePath = openedPath
         window.setTimeout(() => void preloadSavedTabs(repo, tabs.tabs, visiblePath), 500)
       }
-    } else if (ui.lastRepositoryPath) {
-      ui.setLastRepositoryPath(null)
+    } else {
+      if (ui.lastRepositoryPath) ui.setLastRepositoryPath(null)
+      // Nothing restorable: this is a genuine first open, so show the picker.
+      repo.screen = 'startup'
     }
   }
+
+  // Safety net: any path that neither opened a repository nor reached the
+  // startup screen must not strand the user on the restore splash.
+  if (repo.screen === 'restoring' && !repo.repository) repo.screen = 'startup'
 
   if (isTauri()) {
     // Startup update check (3s delay, snooze-aware).

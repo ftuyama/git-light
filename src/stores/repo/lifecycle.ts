@@ -1,5 +1,7 @@
 import type { CommitPageInfo, DiscoveredRepo, OperationProgress, SnapshotOptions, SnapshotScope } from '@shared/git/models'
 import type { CloneRepoRequest, InitRepoRequest } from '@shared/git/models'
+import { nextTick } from 'vue'
+import { perfAsync, perfRecord, perfSync } from '@shared/perf'
 import type { RepositoryData } from '@/types/git'
 import { gitService } from '@/lib/git'
 import { useToastStore } from '@/stores/toast'
@@ -50,6 +52,126 @@ let progressUnsub: (() => void) | null = null
  * would paint the wrong repository into the visible tab.
  */
 let switchToken = 0
+
+/** Start of the user-visible switch, for the click→painted perf sample. */
+let switchStartedAt = 0
+
+/**
+ * Sidebar rows a cached tab mounts on its first paint before that paint is
+ * assumed to block the main thread long enough that a delayed skeleton would
+ * never appear. Above this the skeleton is raised *before* the paint instead of
+ * after it, otherwise the outgoing repository stays frozen on screen for the
+ * whole render and no loading state is ever visible.
+ */
+const HEAVY_TAB_ROWS = 300
+
+function cachedTabRows(cached: CachedTabState): number {
+  return (
+    cached.branches.length +
+    cached.tags.length +
+    cached.stashes.length +
+    cached.worktrees.length +
+    cached.workingTree.length
+  )
+}
+
+/**
+ * Resolves once Vue flushed *and* the browser presented a frame.
+ *
+ * Needed to get a just-raised skeleton on screen before a paint that blocks the
+ * main thread: a single `nextTick` only puts the overlay in the DOM, and the
+ * frame that would show it is the very frame the blocking render delays — so the
+ * loading state and the new repository would reach the screen together, i.e. no
+ * skeleton at all. Two animation frames guarantee the previous frame was
+ * painted. Frames are throttled while the window is occluded, so the wait is
+ * capped.
+ */
+async function nextFrame(): Promise<void> {
+  await nextTick()
+  // Node (unit tests) has no rAF; a macrotask is the closest equivalent.
+  const raf =
+    typeof globalThis.requestAnimationFrame === 'function'
+      ? globalThis.requestAnimationFrame
+      : (cb: () => void) => setTimeout(cb, 16)
+  await new Promise<void>((resolve) => {
+    let settled = false
+    const finish = (): void => {
+      if (settled) return
+      settled = true
+      resolve()
+    }
+    const timer = setTimeout(finish, 250)
+    raf(() =>
+      raf(() => {
+        clearTimeout(timer)
+        finish()
+      }),
+    )
+  })
+}
+
+/**
+ * Ticket of the skeleton currently raised, if any.
+ *
+ * Two switches in flight can name the same repository (leave erp, come back),
+ * so a bare path match is not enough to decide who owns the flags: a late
+ * release from the first switch would drop the skeleton the second one just
+ * raised. Every raise bumps the ticket and only the matching ticket may clear.
+ */
+let skeletonTicket = 0
+
+/** Raises the skeleton for `path` and returns the ticket that owns it. */
+function raiseSkeleton(
+  store: Pick<RepositoryState, 'pendingRepoPath' | 'pendingRepoHeavy'>,
+  path: string,
+  heavy: boolean,
+): number {
+  skeletonTicket += 1
+  store.pendingRepoPath = path
+  store.pendingRepoHeavy = heavy
+  return skeletonTicket
+}
+
+/** Cancels any skeleton (and any pending release) without touching the repo. */
+function cancelSkeleton(
+  store: Pick<RepositoryState, 'pendingRepoPath' | 'pendingRepoHeavy'>,
+): void {
+  skeletonTicket += 1
+  store.pendingRepoPath = null
+  store.pendingRepoHeavy = false
+}
+
+function clearSkeleton(
+  store: Pick<RepositoryState, 'pendingRepoPath' | 'pendingRepoHeavy'>,
+  ticket: number,
+): void {
+  if (ticket !== skeletonTicket) return
+  store.pendingRepoPath = null
+  store.pendingRepoHeavy = false
+}
+
+/**
+ * Drops the skeleton once the new repository's first paint has flushed.
+ *
+ * The flush itself can take seconds on a big repository (thousands of sidebar
+ * rows), which is exactly the window the skeleton has to cover.
+ */
+function releaseSkeletonAfterPaint(
+  store: Pick<RepositoryState, 'pendingRepoPath' | 'pendingRepoHeavy'>,
+  ticket: number,
+): void {
+  void (async () => {
+    try {
+      await nextFrame()
+    } finally {
+      clearSkeleton(store, ticket)
+      if (switchStartedAt > 0) {
+        perfRecord('switch: click→painted', performance.now() - switchStartedAt)
+        switchStartedAt = 0
+      }
+    }
+  })()
+}
 
 export const lifecycleActions = {
   async init(this: LifecycleStore): Promise<void> {
@@ -144,7 +266,7 @@ export const lifecycleActions = {
       // and abandon any switch still in flight — it would otherwise paint
       // itself over this tab (and leave its skeleton up) when it lands.
       ++switchToken
-      this.pendingRepoPath = null
+      cancelSkeleton(this)
       useRepoTabsStore().setActive(path)
       return true
     }
@@ -154,7 +276,8 @@ export const lifecycleActions = {
     const token = ++switchToken
     // Any switch supersedes the skeleton of a slower one still in flight (a
     // cached tab paints instantly, so nothing should stay covered).
-    this.pendingRepoPath = null
+    cancelSkeleton(this)
+    switchStartedAt = performance.now()
 
     const cache = useRepoTabCacheStore()
     // Best-effort: a cache failure must never break switching tabs. Save
@@ -202,9 +325,15 @@ export const lifecycleActions = {
   /**
    * Paints an already-cached tab snapshot and revalidates it in the background.
    *
-   * The snapshot is applied synchronously so the tab is usable the instant it
-   * is clicked; `git_activate_repo` (validation + watcher restart, ~100-250ms)
-   * runs afterwards. Refreshes are gated on it (`whenBackendRepoReady`) so a
+   * A light tab is applied synchronously so it is usable the instant it is
+   * clicked. A *heavy* tab (thousands of sidebar rows: the branch/tag lists are
+   * not virtualized) would block the main thread for seconds inside that same
+   * click, leaving the outgoing repository frozen on screen with no visible
+   * loading state — so for those the skeleton is raised first, one frame is
+   * handed back to the browser, and only then the snapshot is applied.
+   *
+   * `git_activate_repo` (validation + watcher restart, ~100-250ms) runs
+   * afterwards. Refreshes are gated on it (`whenBackendRepoReady`) so a
    * snapshot fetch can never answer for the repo we just left.
    *
    * `cached.repository.path` is the canonical spelling the backend resolved
@@ -213,47 +342,83 @@ export const lifecycleActions = {
   restoreCachedTab(this: LifecycleStore, cached: CachedTabState, token: number): boolean {
     const activePath = cached.repository.path || cached.path
 
-    resetPerRepoUiState()
-    this.resetCommitBox()
-    this.searchOpen = false
-    applyCachedTabState(this, cached)
-    this.screen = 'main'
-    useRepoTabsStore().setActive(activePath)
-    useUiStore().setLastRepositoryPath(activePath)
-    this.restartAutoFetch()
+    const paint = (): void => {
+      resetPerRepoUiState()
+      this.resetCommitBox()
+      this.searchOpen = false
+      perfSync(
+        `switch: cached paint (${cached.branches.length}b/${cached.commits.length}c)`,
+        () => applyCachedTabState(this, cached),
+      )
+      this.screen = 'main'
+      useRepoTabsStore().setActive(activePath)
+      useUiStore().setLastRepositoryPath(activePath)
+      this.restartAutoFetch()
 
-    const activation = markBackendRepoPending(this.activateBackend(activePath))
+      const activation = markBackendRepoPending(this.activateBackend(activePath))
 
-    // Revalidate in the background; never let this reject unhandled.
-    // Guarded by the switch token: if the user switched again meanwhile,
-    // the stale result must not overwrite the now-active repo (`refreshSnapshot`
-    // has an additional per-repo path guard at the data level). Fresh
-    // caches (<30s) only refresh working-tree status, which is the only
-    // scope that changes frequently while a tab is inactive.
-    const age = Date.now() - (cached.savedAt ?? 0)
-    void (async () => {
-      try {
-        await activation
-        if (switchToken !== token) return
-        if (age < 30_000) {
-          await this.refreshSnapshot(['status'])
-          return
-        }
-        const result = await gitService.openRepository(activePath, graphSnapshotOptions())
-        if (switchToken !== token) return
-        if (result.ok && result.data) {
-          this.applySnapshot(result.data)
-          try {
-            useRepoTabCacheStore().save(this)
-          } catch (err) {
-            console.error('[git-light] tab cache save failed:', err)
+      // Revalidate in the background; never let this reject unhandled.
+      // Guarded by the switch token: if the user switched again meanwhile,
+      // the stale result must not overwrite the now-active repo
+      // (`refreshSnapshot` has an additional per-repo path guard at the data
+      // level). Fresh caches (<30s) only refresh working-tree status, which is
+      // the only scope that changes frequently while a tab is inactive.
+      const age = Date.now() - (cached.savedAt ?? 0)
+      void (async () => {
+        try {
+          await activation
+          if (switchToken !== token) return
+          if (age < 30_000) {
+            await this.refreshSnapshot(['status'])
+            return
           }
-          return
+          const result = await gitService.openRepository(activePath, graphSnapshotOptions())
+          if (switchToken !== token) return
+          if (result.ok && result.data) {
+            this.applySnapshot(result.data)
+            try {
+              useRepoTabCacheStore().save(this)
+            } catch (err) {
+              console.error('[git-light] tab cache save failed:', err)
+            }
+            return
+          }
+          useRepoTabCacheStore().remove(activePath)
+          if (sameRepoPath(this.repository?.path, activePath)) await this.openRepository(activePath)
+        } catch (err) {
+          console.error('[git-light] tab background refresh failed:', err)
         }
-        useRepoTabCacheStore().remove(activePath)
-        if (sameRepoPath(this.repository?.path, activePath)) await this.openRepository(activePath)
-      } catch (err) {
-        console.error('[git-light] tab background refresh failed:', err)
+      })()
+    }
+
+    if (cachedTabRows(cached) < HEAVY_TAB_ROWS) {
+      paint()
+      if (switchStartedAt > 0) {
+        // Light cached tab: the patch returns without a blocking render, so
+        // this is patch time, not paint time (the heavy path measures paint).
+        perfRecord('switch: click→patched', performance.now() - switchStartedAt)
+        switchStartedAt = 0
+      }
+      return true
+    }
+
+    // Heavy: raise the skeleton, let it reach the screen, then paint into the
+    // blocked frame. `whenBackendRepoReady` keeps repo-scoped commands off the
+    // backend until the activation below settles.
+    const ticket = raiseSkeleton(this, activePath, true)
+    void (async () => {
+      await nextFrame()
+      // Only a *newer switch* may cancel this paint. The skeleton ticket is not
+      // consulted here: a late release from an earlier switch can legitimately
+      // drop the overlay, but this switch still owns the repository state.
+      if (switchToken !== token) {
+        clearSkeleton(this, ticket)
+        return
+      }
+      try {
+        paint()
+      } finally {
+        releaseSkeletonAfterPaint(this, ticket)
       }
     })()
     return true
@@ -278,7 +443,7 @@ export const lifecycleActions = {
     // A switch keeps the outgoing repository in the store until the snapshot
     // lands; `pendingRepoPath` is what the UI turns into a loading skeleton
     // instead of painting that stale repository for the round-trip.
-    if (isSwitch) this.pendingRepoPath = path
+    const skeleton = isSwitch ? raiseSkeleton(this, path, false) : null
     let result: { ok: boolean; data?: RepositoryData; message: string }
     try {
       const opening = gitService.openRepository(path, graphSnapshotOptions())
@@ -287,28 +452,34 @@ export const lifecycleActions = {
       // destructive actions above all) for that round-trip, exactly like a
       // cached switch holds them for `git_activate_repo`.
       if (isSwitch) markBackendRepoPending(opening)
-      result = await opening
+      result = await perfAsync('switch: git_open_repo', () => opening)
     } catch (err) {
       console.error('[git-light] open repository failed:', err)
       this.loading = false
+      // The ticket names this open, so a superseded or failed open drops its own
+      // skeleton instead of leaving the tab the user moved on to covered.
+      if (skeleton !== null) clearSkeleton(this, skeleton)
       // A newer switch is in charge of the UI; stay quiet.
       if (switchToken !== token) return false
       if (!options?.silent) toast.push(`Could not open ${path}.`, 'error')
       return false
-    } finally {
-      // The flag names the path this call is loading, so clearing it here (not
-      // behind the token guard) means a switch that got superseded still drops
-      // its own skeleton instead of covering the tab the user moved on to.
-      if (this.pendingRepoPath === path) this.pendingRepoPath = null
     }
     this.loading = false
     if (!result.ok || !result.data) {
+      if (skeleton !== null) clearSkeleton(this, skeleton)
       if (switchToken !== token) return false
       if (!options?.silent) toast.push(result.message, 'error')
       return false
     }
-    if (switchToken !== token) return false
-    this.applySnapshot(result.data)
+    if (switchToken !== token) {
+      if (skeleton !== null) clearSkeleton(this, skeleton)
+      return false
+    }
+    const data = result.data
+    perfSync(
+      `switch: applySnapshot (${data.commits.length}c/${data.branches.length}b)`,
+      () => this.applySnapshot(data),
+    )
     this.screen = 'main'
     // Use the canonical path the backend resolved: every later lookup (tab
     // identity, cache keys, favorites) keys off this spelling.
@@ -326,6 +497,10 @@ export const lifecycleActions = {
     useUiStore().setLastRepositoryPath(activePath)
     if (!options?.silent) toast.push(result.message, 'success')
     this.restartAutoFetch()
+    // Keep the skeleton up until the snapshot's first paint has flushed: the
+    // flush that mounts a big repository can block the main thread, and the
+    // skeleton is the only thing explaining the wait.
+    if (skeleton !== null) releaseSkeletonAfterPaint(this, skeleton)
     return true
   },
 
@@ -444,7 +619,7 @@ export const lifecycleActions = {
     // Invalidate any open/switch still in flight: its result must not repaint
     // a repository the user has just closed.
     ++switchToken
-    this.pendingRepoPath = null
+    cancelSkeleton(this)
     await gitService.closeRepository()
     this.repository = null
     this.commits = []

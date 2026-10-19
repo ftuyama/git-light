@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { nextTick, onBeforeUnmount, ref, watch } from 'vue'
 import { FileText, GitCommitHorizontal, Loader2, Search, X } from '@lucide/vue'
 import SearchInput from '@/components/ui/SearchInput.vue'
 import { gitService } from '@/lib/git'
@@ -15,6 +15,7 @@ const selection = useSelectionStore()
 const ui = useUiStore()
 
 const query = ref('')
+const input = ref<InstanceType<typeof SearchInput>>()
 const loading = ref(false)
 const commits = ref<SearchCommitHit[]>([])
 const files = ref<string[]>([])
@@ -27,6 +28,10 @@ watch(
       commits.value = []
       files.value = []
       selection.setGraphFilter('')
+      nextTick(() => input.value?.focus())
+      window.addEventListener('keydown', onKeydown)
+    } else {
+      window.removeEventListener('keydown', onKeydown)
     }
   },
 )
@@ -69,24 +74,25 @@ function selectFile(path: string): void {
 function onKeydown(event: KeyboardEvent): void {
   if (event.key === 'Escape') close()
 }
+
+onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
 </script>
 
 <template>
   <Teleport to="body">
     <div
       v-if="repo.searchOpen"
-      class="fixed inset-0 z-[180] flex items-start justify-center bg-black/50 p-6 pt-[12vh] backdrop-blur-[1px]"
-      @click.self="close()"
-      @keydown="onKeydown"
+      class="pointer-events-none fixed inset-0 z-[180] flex items-start justify-center p-6 pt-[12vh]"
     >
       <div
-        class="w-full max-w-xl overflow-hidden rounded-xl border border-[var(--color-border-strong)] bg-[var(--color-panel)] shadow-2xl"
+        class="pointer-events-auto w-full max-w-xl overflow-hidden rounded-xl border border-[var(--color-border-strong)] bg-[var(--color-panel)] shadow-2xl"
         role="dialog"
         aria-label="Search repository"
       >
         <div class="flex items-center gap-2 border-b border-[var(--color-border)] p-3">
           <Search :size="18" class="shrink-0 text-[var(--color-fg-subtle)]" />
           <SearchInput
+            ref="input"
             v-model="query"
             class="flex-1"
             placeholder="Search commits and files…"
@@ -149,7 +155,7 @@ function onKeydown(event: KeyboardEvent): void {
             No results. Press Enter to search.
           </div>
 
-          <div v-else class="py-8 text-center text-sm text-[var(--color-fg-subtle)]">
+          <div v-else class="px-3 py-2 text-center text-[11px] text-[var(--color-fg-subtle)]">
             Type to search commits and tracked files.
           </div>
         </div>
