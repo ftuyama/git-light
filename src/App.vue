@@ -36,7 +36,11 @@ import { useSelectionStore } from '@/stores/selection'
 import { useRepositoryStore } from '@/stores/repository'
 import { useRepoDiffStore } from '@/stores/repoDiff'
 import { useRepoTabsStore } from '@/stores/repoTabs'
-import { useToastStore } from '@/stores/toast'
+import {
+  closeActiveRepositoryTab as closeActiveTab,
+  reopenClosedRepositoryTab as reopenTab,
+  switchToRepositoryTab as switchToTab,
+} from '@/composables/useRepoActions'
 import { useKeyboardShortcuts, type ShortcutHandler } from '@/composables/useKeyboardShortcuts'
 import { COMMAND_META, type CommandId } from '@/lib/keybindings'
 import { sameRepoPath } from '@/lib/git/repoPath'
@@ -48,7 +52,6 @@ const repo = useRepositoryStore()
 const selection = useSelectionStore()
 const diffStore = useRepoDiffStore()
 const tabsStore = useRepoTabsStore()
-const toast = useToastStore()
 const graphZoom = useCommitGraphZoom()
 const { leftSize, rightSize, leftCollapsed, rightCollapsed, leftCollapseHint, rightCollapseHint, suppressPaneAnimation } =
   storeToRefs(ui)
@@ -144,32 +147,6 @@ function onResized(payload: SplitpanesResizedPayload): void {
     if (key === 'left') ui.setLeftSize(size)
     if (key === 'right') ui.setRightSize(size)
   })
-}
-
-async function switchToTab(path: string | null): Promise<void> {
-  if (!path) return
-  try {
-    const ok = await repo.switchRepository(path)
-    if (!ok) toast.push(`Could not open ${path}.`, 'error')
-  } catch (err) {
-    console.error('[git-light] switch tab failed:', err)
-    toast.push(`Could not open ${path}.`, 'error')
-  }
-}
-
-async function closeActiveTab(): Promise<void> {
-  const active = tabsStore.activePath
-  if (!active) return
-  const nextPath = tabsStore.removeTab(active)
-  void repo.removeRecent(active)
-  if (nextPath) await switchToTab(nextPath)
-  else await repo.closeRepository()
-}
-
-async function reopenTab(): Promise<void> {
-  const restored = tabsStore.reopenLastClosed()
-  if (!restored) return
-  await switchToTab(restored.path)
 }
 
 const dynamicShortcuts = computed<ShortcutHandler[]>(() => {

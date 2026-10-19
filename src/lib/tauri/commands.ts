@@ -64,3 +64,8 @@ export async function tauriDiscoverRepos(
 ): Promise<DiscoveredRepo[]> {
   return (await invoker('git_discover_repos', { request: req })) as DiscoveredRepo[]
 }
+
+/** Relaunch the application process. */
+export async function tauriAppRelaunch(invoker: InvokeFn = defaultInvoke): Promise<void> {
+  await invoker('app_relaunch', undefined)
+}

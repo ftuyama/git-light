@@ -98,9 +98,11 @@ curl -fsSL --retry 3 -o "$TMP_DIR/$ASSET" "$ASSET_URL" || {
 }
 
 # --- Verify checksum (if the release has CHECKSUMS.txt) ------------------------
+# CHECKSUMS.txt contains an entry for every release asset, but only the macOS
+# tarball was downloaded — so extract just that entry before running shasum -c.
 if curl -fsSL -o "$TMP_DIR/CHECKSUMS.txt" "$BASE/releases/download/$TAG/CHECKSUMS.txt" 2>/dev/null; then
   say "Verifying checksum..."
-  ( cd "$TMP_DIR" && shasum -a 256 -c CHECKSUMS.txt --status ) || {
+  ( cd "$TMP_DIR" && grep -E "^[0-9a-fA-F]{64}[[:space:]]+${ASSET}\$" CHECKSUMS.txt | shasum -a 256 -c --status ) || {
     say "Error: checksum mismatch — the download may be corrupted. Aborting."
     exit 1
   }

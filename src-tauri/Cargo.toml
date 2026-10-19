@@ -1,6 +1,6 @@
 [package]
 name = "git-light"
-version = "1.0.1"
+version = "1.0.2"
 description = "Free, open-source desktop Git client — graph-first alternative to GitKraken."
 authors = ["Git Light <ftuyama@users.noreply.github.com>"]
 edition = "2021"
