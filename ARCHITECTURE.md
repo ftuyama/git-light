@@ -70,6 +70,7 @@ Git Light is a Tauri 2 desktop app with a Vue 3 renderer. The UI depends on a `G
 |------|------|
 | `GitService.ts` (`src/lib/git/`) | Interface the store depends on |
 | `tauriGitService.ts` (`src/lib/tauri/`) | Production implementation via `@tauri-apps/api` `invoke` |
+| `backendGate.ts` (`src/lib/tauri/`) | Holds repo-scoped commands until an in-flight `git_activate_repo` settles (cached tabs paint before the backend re-points) |
 | `invoke.ts` (`src/lib/tauri/`) | Typed Tauri command wrappers (injectable invoker/listener) |
 | `commands.ts` (`src/lib/tauri/`) | Health/version/recents/open/clone/init/discover command wrappers |
 | `appBridge.ts` (`src/lib/tauri/`) | External URLs + window background (opener plugin) |
@@ -132,6 +133,7 @@ The `repository` store composes actions from `src/stores/repo/`:
 | `graphLayout.ts` | Runs `computeGraphLayout` on commit list |
 | `refreshScheduler.ts` | Debounced snapshot refresh after `git:changed` |
 | `diffReloadScheduler.ts` | Debounced diff reload when selection changes |
+| `tabPreload.ts` | Warms the tab cache (`git_preload_repo`, no re-point) at startup, on hover, and on tab add |
 | `actionHelpers.ts` | Shared action dispatch + error handling |
 
 ## UI layout
@@ -159,11 +161,12 @@ App.vue
 
 ## Data flow
 
-1. User opens repo → `git_open_repo` → `git::build_snapshot()` → full snapshot over `invoke`.
+1. User opens repo → `git_open_repo` → `resolve_repo_info` (validated `RepoInfo`, cached per path for the run) → `git::build_snapshot_with_info()` → full snapshot over `invoke`.
 2. `wireAdapter` revives dates; store runs `computeGraphLayout` on commits.
-3. Mutations dispatch `GitAction` → Tauri command → git CLI → scoped `refreshSnapshot`.
-4. External edits trigger watcher → same refresh path.
-5. Undo/redo uses the Rust-side journal (checkpoint before each journalable action) with reset/checkout restore per `undoPolicy`.
+3. Switching to a cached tab paints `repoTabCache` synchronously and calls `git_activate_repo` in the background; `backendGate.ts` holds repo-scoped commands until it settles, while inactive tabs are warmed with `git_preload_repo` (never touches `current`/watcher/recents).
+4. Mutations dispatch `GitAction` → Tauri command → git CLI → scoped `refreshSnapshot`.
+5. External edits trigger watcher → same refresh path.
+6. Undo/redo uses the Rust-side journal (checkpoint before each journalable action) with reset/checkout restore per `undoPolicy`.
 
 ## Persistence
 

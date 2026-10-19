@@ -48,7 +48,7 @@ impl GitError {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct RepoInfo {
     pub path: PathBuf,
     pub git_dir: PathBuf,
@@ -492,14 +492,30 @@ pub async fn validate_repo(path: &Path) -> Result<RepoInfo, GitError> {
             "The repository could not be found.".to_string(),
         )
     })?;
-    let (ok, stdout, _) = git_text(&canonical, &["rev-parse", "--git-dir"]).await?;
+    // One spawn answers both "is this a repo?" and "is it bare?". The two
+    // values are printed in argument order, one per line.
+    let (ok, stdout, _) = git_text(
+        &canonical,
+        &["rev-parse", "--git-dir", "--is-bare-repository"],
+    )
+    .await?;
     if !ok {
         return Err(GitError::new(
             "NotARepository",
             "This folder is not a Git repository.".to_string(),
         ));
     }
+    let mut lines = stdout.lines();
+    let raw = lines.next().unwrap_or("").trim().to_string();
+    let is_bare = lines.next().map(|l| l.trim() == "true").unwrap_or(false);
+    if is_bare {
+        return Err(GitError::new(
+            "BareRepository",
+            "Bare repositories are not supported yet.".to_string(),
+        ));
+    }
     // Resolve the working-tree root (handles opening a subfolder directly).
+    // A bare repository has no work tree, which is why this runs last.
     let worktree_root = match git_text(&canonical, &["rev-parse", "--show-toplevel"]).await {
         Ok((true, out, _)) => {
             let trimmed = out.trim();
@@ -511,33 +527,37 @@ pub async fn validate_repo(path: &Path) -> Result<RepoInfo, GitError> {
         }
         _ => canonical.clone(),
     };
-    let raw = stdout.trim().to_string();
     let git_dir = if Path::new(&raw).is_absolute() {
         PathBuf::from(raw)
     } else {
         canonical.join(raw)
     };
-    let (bare_ok, bare_out, _) =
-        git_text(&canonical, &["rev-parse", "--is-bare-repository"]).await?;
-    if bare_ok && bare_out.trim() == "true" {
-        return Err(GitError::new(
-            "BareRepository",
-            "Bare repositories are not supported yet.".to_string(),
-        ));
-    }
     if !git_dir.exists() {
         return Err(GitError::new(
             "RepositoryNotFound",
             "The .git directory is missing.".to_string(),
         ));
     }
-    let (_, version_out, _) = git_text(&canonical, &["--version"]).await?;
-    let git_version = version_out.replace("git version ", "").trim().to_string();
     Ok(RepoInfo {
         path: worktree_root,
         git_dir,
-        git_version,
+        git_version: cached_git_version(&canonical).await?,
     })
+}
+
+/// `git --version` cannot change while the app runs, so it is spawned once per
+/// process (it used to be a spawn on every repository validation). The cell
+/// only memoizes success, so a transient spawn failure is retried.
+static GIT_VERSION: tokio::sync::OnceCell<String> = tokio::sync::OnceCell::const_new();
+
+async fn cached_git_version(cwd: &Path) -> Result<String, GitError> {
+    let version = GIT_VERSION
+        .get_or_try_init(|| async {
+            let (_, out, _) = git_text(cwd, &["--version"]).await?;
+            Ok::<String, GitError>(out.replace("git version ", "").trim().to_string())
+        })
+        .await?;
+    Ok(version.clone())
 }
 
 #[derive(Debug, Clone)]
@@ -570,12 +590,14 @@ impl SnapshotOptions {
 
 /// Full snapshot: metadata + scoped lists. Absent scopes (or unknown shapes)
 /// default to a full snapshot, mirroring `snapshotInner`.
-pub async fn build_snapshot(
-    path: &Path,
+/// Builds a snapshot for an already-validated repository, letting callers that
+/// resolved `RepoInfo` themselves (and cached it for later tab switches) skip
+/// the validation spawns entirely.
+pub async fn build_snapshot_with_info(
+    info: &RepoInfo,
     opts: &SnapshotOptions,
     favorites: &std::collections::HashSet<String>,
 ) -> Result<WireSnapshot, GitError> {
-    let info = validate_repo(path).await?;
     let cwd = info.path.clone();
 
     let (commits_out, branches_out, working_tree_out) = tokio::join!(
@@ -607,7 +629,7 @@ pub async fn build_snapshot(
     let branches = branches_out?.unwrap_or_default();
     let working_tree = working_tree_out?.unwrap_or_default();
 
-    let (tags, stashes, worktrees, remotes) = tokio::join!(
+    let (tags, stashes, worktrees, remotes, head, identity) = tokio::join!(
         async {
             if opts.with_tags {
                 crate::refs::fetch_tags(&cwd).await
@@ -632,9 +654,21 @@ pub async fn build_snapshot(
             }
         },
         crate::refs::fetch_remotes(&cwd),
+        async {
+            // Branch label and full sha need separate `rev-parse` calls
+            // (options apply to every revision argument), but they are
+            // independent, so they share one round-trip.
+            tokio::join!(
+                git_text(&cwd, &["rev-parse", "--abbrev-ref", "HEAD"]),
+                git_text(&cwd, &["rev-parse", "HEAD"]),
+            )
+        },
+        // One spawn for both config keys instead of two.
+        git_text(&cwd, &["config", "--get-regexp", "^user\\.(name|email)$"]),
     );
 
-    let (_, branch_out, _) = git_text(&cwd, &["rev-parse", "--abbrev-ref", "HEAD"]).await?;
+    let (branch_res, head_res) = head;
+    let (_, branch_out, _) = branch_res?;
     let branch = branch_out.trim();
     let detached = branch == "HEAD" || branch.is_empty();
     let current_branch = if detached {
@@ -642,15 +676,24 @@ pub async fn build_snapshot(
     } else {
         branch.to_string()
     };
-    let (head_ok, head_out, _) = git_text(&cwd, &["rev-parse", "HEAD"]).await?;
+    let (head_ok, head_out, _) = head_res?;
     let head_sha = if head_ok {
         head_out.trim().to_string()
     } else {
         String::new()
     };
-    let (_, name_out, _) = git_text(&cwd, &["config", "user.name"]).await?;
-    let (_, email_out, _) = git_text(&cwd, &["config", "user.email"]).await?;
-    let (name, email) = (name_out.trim().to_string(), email_out.trim().to_string());
+    // `--get-regexp` prints `user.name <value>` / `user.email <value>` in
+    // config precedence order, so the last occurrence wins.
+    let (_, identity_out, _) = identity?;
+    let mut name = String::new();
+    let mut email = String::new();
+    for line in identity_out.lines() {
+        if let Some(value) = line.strip_prefix("user.name ") {
+            name = value.trim().to_string();
+        } else if let Some(value) = line.strip_prefix("user.email ") {
+            email = value.trim().to_string();
+        }
+    }
     let mut identity_registry = crate::log::AuthorRegistry::default();
     let commit_author = identity_registry.resolve(&name, &email);
     let remote_url = remotes
@@ -712,7 +755,7 @@ pub async fn build_snapshot(
         repository: WireRepository {
             name: repo_name_from_path(&info.path),
             path: info.path.to_string_lossy().into_owned(),
-            git_version: info.git_version,
+            git_version: info.git_version.clone(),
             current_branch,
             detached,
             head_sha,
@@ -844,6 +887,17 @@ mod tests {
             assert!(ok, "git {argv:?} failed: {err}");
         }
         (dir, cwd)
+    }
+
+    /// Path-based snapshot used by the tests. The app resolves `RepoInfo`
+    /// itself (and caches it), so this two-step form is its only caller.
+    async fn build_snapshot(
+        path: &Path,
+        opts: &SnapshotOptions,
+        favorites: &std::collections::HashSet<String>,
+    ) -> Result<WireSnapshot, GitError> {
+        let info = validate_repo(path).await?;
+        build_snapshot_with_info(&info, opts, favorites).await
     }
 
     #[tokio::test]

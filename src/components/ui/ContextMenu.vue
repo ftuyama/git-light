@@ -40,6 +40,7 @@ defineProps<{ items: MenuItem[] }>()
             <ContextMenuSubTrigger
               :class="MENU_ITEM_CLASS"
               class="data-[state=open]:bg-[var(--color-hover)]"
+              @pointerenter="item.onHover?.()"
             >
               <component v-if="item.icon" :is="item.icon" :size="15" />
               <span class="flex-1">{{ item.label }}</span>
@@ -54,6 +55,7 @@ defineProps<{ items: MenuItem[] }>()
                     :class="MENU_ITEM_CLASS"
                     :disabled="child.disabled"
                     @select.prevent="child.onSelect?.()"
+                    @pointerenter="child.onHover?.()"
                   >
                     <ContextMenuItemIndicator class="flex w-4 items-center justify-center">
                       <Check :size="14" />
@@ -65,6 +67,7 @@ defineProps<{ items: MenuItem[] }>()
                     :class="child.danger ? MENU_ITEM_DANGER_CLASS : MENU_ITEM_CLASS"
                     :disabled="child.disabled"
                     @select="child.onSelect?.()"
+                    @pointerenter="child.onHover?.()"
                   >
                     <component v-if="child.icon" :is="child.icon" :size="15" />
                     <span class="flex-1">{{ child.label }}</span>
@@ -85,6 +88,7 @@ defineProps<{ items: MenuItem[] }>()
             :class="MENU_ITEM_CLASS"
             :disabled="item.disabled"
             @select.prevent="item.onSelect?.()"
+            @pointerenter="item.onHover?.()"
           >
             <ContextMenuItemIndicator class="flex w-4 items-center justify-center">
               <Check :size="14" />
@@ -97,6 +101,7 @@ defineProps<{ items: MenuItem[] }>()
             :class="item.danger ? MENU_ITEM_DANGER_CLASS : MENU_ITEM_CLASS"
             :disabled="item.disabled"
             @select="item.onSelect?.()"
+            @pointerenter="item.onHover?.()"
           >
             <component v-if="item.icon" :is="item.icon" :size="15" />
             <span class="flex-1">{{ item.label }}</span>

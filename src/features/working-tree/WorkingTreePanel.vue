@@ -295,6 +295,7 @@ watch(compareRange, (range) => {
         <p class="min-w-0 flex-1 truncate text-[12px] text-[var(--color-fg-muted)]">
           {{ changesSummary }}
         </p>
+        <FileListViewToggle />
       </header>
 
       <Splitpanes
@@ -308,7 +309,6 @@ watch(compareRange, (range) => {
               class="flex h-9 shrink-0 items-center gap-2 px-3 text-[11px] font-semibold tracking-wide text-[var(--color-fg-muted)] uppercase"
             >
               <span class="flex-1">Changes ({{ unstaged.length }})</span>
-              <FileListViewToggle />
               <button
                 class="focus-ring flex items-center gap-1 rounded px-1.5 py-0.5 text-[11px] font-medium text-[var(--color-success)] normal-case hover:bg-[var(--color-success)]/10 disabled:opacity-40"
                 :disabled="unstaged.length === 0"
@@ -353,10 +353,9 @@ watch(compareRange, (range) => {
               class="flex h-9 shrink-0 items-center gap-2 px-3 text-[11px] font-semibold tracking-wide text-[var(--color-fg-muted)] uppercase"
             >
               <span class="flex-1">Staged ({{ staged.length }})</span>
-              <FileListViewToggle />
               <button
-                class="focus-ring flex items-center gap-1 rounded px-1.5 py-0.5 text-[11px] font-medium text-[var(--color-fg-muted)] normal-case hover:bg-[var(--color-hover)] disabled:opacity-40"
-                :disabled="staged.length === 0"
+                v-if="staged.length"
+                class="focus-ring flex items-center gap-1 rounded px-1.5 py-0.5 text-[11px] font-medium text-[var(--color-fg-muted)] normal-case hover:bg-[var(--color-hover)]"
                 @click="repo.unstageAll()"
               >
                 <X :size="13" /> Unstage All

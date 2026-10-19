@@ -116,7 +116,10 @@ async function bootstrap(): Promise<void> {
       ui.setLastRepositoryPath(openedPath)
       tabs.setActive(openedPath)
       if (tabs.tabs.length > 1) {
-        void preloadSavedTabs(repo, tabs.tabs, openedPath)
+        // Warm the other tabs after the visible repository has painted: doing
+        // it inline competes with the first snapshot for git processes.
+        const visiblePath = openedPath
+        window.setTimeout(() => void preloadSavedTabs(repo, tabs.tabs, visiblePath), 500)
       }
     } else if (ui.lastRepositoryPath) {
       ui.setLastRepositoryPath(null)

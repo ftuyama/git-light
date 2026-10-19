@@ -70,6 +70,21 @@ export interface GitService {
   activateRepository?(
     path: string,
   ): Promise<{ ok: boolean; path?: string; message: string }>
+  /**
+   * Optional: builds a snapshot for `path` without making it the backend's
+   * current repository (no watcher, journal or recents changes). Used to warm
+   * inactive tabs; a preload must never re-point the repo that is on screen.
+   */
+  preloadRepository?(
+    path: string,
+    options?: SnapshotRefreshOptions,
+  ): Promise<{
+    ok: boolean
+    data?: RepositoryData
+    page?: CommitPageInfo
+    message: string
+    errorCode?: GitErrorCode
+  }>
   loadMoreCommits(request: CommitPageRequest): Promise<{
     commits: RepositoryData['commits']
     page: CommitPageInfo

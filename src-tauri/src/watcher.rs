@@ -145,10 +145,16 @@ impl RepoWatcher {
 
     pub fn stop(&mut self) {
         if let Some(mut worker) = self.worker.take() {
+            // Ask the worker to exit, then let it go. It observes the stop flag
+            // on its next loop tick (every 150ms) and drops its own `notify`
+            // watcher on the way out. Joining here would block the caller —
+            // and therefore every tab switch and `git_close_repo` — for up to a
+            // full debounce tick. A detached worker can still emit one
+            // `git:changed` for the repo it watched; the frontend already
+            // ignores events whose path is not the visible repository.
             let _ = worker.stop_tx.send(());
-            if let Some(thread) = worker.thread.take() {
-                let _ = thread.join();
-            }
+            // Dropping the handle detaches the thread.
+            drop(worker.thread.take());
         }
     }
 }

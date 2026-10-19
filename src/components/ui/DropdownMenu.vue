@@ -52,6 +52,7 @@ withDefaults(
             <DropdownMenuSubTrigger
               :class="MENU_ITEM_CLASS"
               class="data-[state=open]:bg-[var(--color-hover)]"
+              @pointerenter="item.onHover?.()"
             >
               <component v-if="item.icon" :is="item.icon" :size="15" />
               <span class="flex-1">{{ item.label }}</span>
@@ -65,6 +66,7 @@ withDefaults(
                     :model-value="child.checked"
                     :class="MENU_ITEM_CLASS"
                     @select.prevent="child.onSelect?.()"
+                    @pointerenter="child.onHover?.()"
                   >
                     <DropdownMenuItemIndicator class="flex w-4 items-center justify-center">
                       <Check :size="14" />
@@ -76,6 +78,7 @@ withDefaults(
                     :class="child.danger ? MENU_ITEM_DANGER_CLASS : MENU_ITEM_CLASS"
                     :disabled="child.disabled"
                     @select="child.onSelect?.()"
+                    @pointerenter="child.onHover?.()"
                   >
                     <component v-if="child.icon" :is="child.icon" :size="15" />
                     <span class="flex-1">{{ child.label }}</span>
@@ -95,6 +98,7 @@ withDefaults(
             :model-value="item.checked"
             :class="MENU_ITEM_CLASS"
             @select.prevent="item.onSelect?.()"
+            @pointerenter="item.onHover?.()"
           >
             <DropdownMenuItemIndicator class="flex w-4 items-center justify-center">
               <Check :size="14" />
@@ -107,6 +111,7 @@ withDefaults(
             :class="item.danger ? MENU_ITEM_DANGER_CLASS : MENU_ITEM_CLASS"
             :disabled="item.disabled"
             @select="item.onSelect?.()"
+            @pointerenter="item.onHover?.()"
           >
             <component v-if="item.icon" :is="item.icon" :size="15" />
             <span class="flex-1">{{ item.label }}</span>

@@ -10,6 +10,12 @@ export interface MenuItem {
   disabled?: boolean
   checked?: boolean
   onSelect?: () => void
+  /**
+   * Optional: called when the row is hovered/highlighted by the pointer. Used
+   * to warm data the row would act on (e.g. preloading a repository tab)
+   * before the user commits to clicking it.
+   */
+  onHover?: () => void
   children?: MenuItem[]
 }
 

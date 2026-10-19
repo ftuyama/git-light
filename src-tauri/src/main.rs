@@ -9,7 +9,7 @@ mod repos;
 mod watcher;
 
 use serde::Serialize;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::sync::Mutex;
 use tauri::{AppHandle, Emitter, Manager, State};
 use tauri_plugin_dialog::DialogExt;
@@ -21,6 +21,10 @@ struct AppState {
     journal: tokio::sync::Mutex<actions::Journal>,
     operations: tokio::sync::Mutex<actions::Operations>,
     watcher: std::sync::Mutex<watcher::RepoWatcher>,
+    /// Canonical path -> validated repository info for this app run. Tab
+    /// switches, snapshots and actions reuse it so `git rev-parse` only ever
+    /// runs the first time a repository is touched.
+    validated: Mutex<std::collections::HashMap<PathBuf, git::RepoInfo>>,
 }
 
 impl Default for AppState {
@@ -30,6 +34,7 @@ impl Default for AppState {
             journal: tokio::sync::Mutex::new(actions::Journal::default()),
             operations: tokio::sync::Mutex::new(actions::Operations::default()),
             watcher: std::sync::Mutex::new(watcher::RepoWatcher::default()),
+            validated: Mutex::new(std::collections::HashMap::new()),
         }
     }
 }
@@ -196,6 +201,35 @@ fn set_current(state: &State<'_, AppState>, path: Option<PathBuf>) {
     }
 }
 
+/// Validated `RepoInfo` for `path`, cached per canonical path for the rest of
+/// the run. Validation spawns git, so re-resolving a repository we already
+/// opened (every tab switch, every snapshot, every action) would otherwise
+/// cost a `rev-parse` round-trip each time.
+async fn resolve_repo_info(
+    state: &State<'_, AppState>,
+    path: &Path,
+) -> Result<git::RepoInfo, GitError> {
+    let canonical = std::fs::canonicalize(path).map_err(|_| {
+        GitError::new(
+            "RepositoryNotFound",
+            "The repository could not be found.".to_string(),
+        )
+    })?;
+    if let Ok(cache) = state.validated.lock() {
+        if let Some(info) = cache.get(&canonical) {
+            return Ok(info.clone());
+        }
+    }
+    let info = git::validate_repo(&canonical).await?;
+    if let Ok(mut cache) = state.validated.lock() {
+        // Keyed by both the path as given and the resolved work-tree root, so
+        // opening a subfolder of a known repo is a cache hit next time too.
+        cache.insert(canonical, info.clone());
+        cache.insert(info.path.clone(), info.clone());
+    }
+    Ok(info)
+}
+
 fn snapshot_options_from(value: &Option<serde_json::Value>) -> git::SnapshotOptions {
     let get = |key: &str| value.as_ref().and_then(|v| v.get(key));
     let commit_limit = get("commitLimit")
@@ -227,28 +261,23 @@ async fn do_open_repo(
     path: &str,
     options: &Option<serde_json::Value>,
 ) -> OpenRepoEnvelope {
-    let canonical = match std::fs::canonicalize(path) {
-        Ok(p) => p,
-        Err(_) => {
-            return OpenRepoEnvelope::err(GitError::new(
-                "RepositoryNotFound",
-                "The repository could not be found.".to_string(),
-            ))
-        }
+    let info = match resolve_repo_info(state, Path::new(path)).await {
+        Ok(info) => info,
+        Err(error) => return OpenRepoEnvelope::err(error),
     };
     let opts = snapshot_options_from(options);
-    let favorites = favorites_for(&read_favorites(app), &canonical.to_string_lossy());
-    let snapshot = git::build_snapshot(&canonical, &opts, &favorites).await;
+    let repo_path = info.path.to_string_lossy().into_owned();
+    let favorites = favorites_for(&read_favorites(app), &repo_path);
+    let snapshot = git::build_snapshot_with_info(&info, &opts, &favorites).await;
     match snapshot {
         Ok(mut snapshot) => {
-            set_current(state, Some(canonical.clone()));
+            set_current(state, Some(info.path.clone()));
             state.journal.lock().await.clear();
             if let Ok(mut watcher) = state.watcher.lock() {
-                watcher.watch(app, &canonical);
+                watcher.watch(app, &info.path);
             }
             apply_journal_state(state, &mut snapshot).await;
-            let path_str = canonical.to_string_lossy().into_owned();
-            let merged = git::merge_recent(read_recents(app), &path_str, git::now_millis());
+            let merged = git::merge_recent(read_recents(app), &repo_path, git::now_millis());
             write_recents(app, &merged);
             OpenRepoEnvelope::ok(snapshot)
         }
@@ -286,36 +315,32 @@ async fn do_activate_repo(
     state: &State<'_, AppState>,
     path: &str,
 ) -> Result<PathBuf, GitError> {
-    let canonical = std::fs::canonicalize(path).map_err(|_| {
-        GitError::new(
-            "RepositoryNotFound",
-            "The repository could not be found.".to_string(),
-        )
-    })?;
-    git::validate_repo(&canonical)
+    // Served from the validation cache when the repository was opened before,
+    // which is the common case for a tab switch: no git process at all.
+    let root = resolve_repo_info(state, Path::new(path))
         .await
         .map_err(|_| {
             GitError::new(
                 "RepositoryNotFound",
                 "The repository could not be found.".to_string(),
             )
-        })
-        .map(|_| ())?;
+        })?
+        .path;
     {
         let current = state
             .current
             .lock()
             .map_err(|_| GitError::unknown("Repository state is unavailable.".to_string()))?;
-        if *current == Some(canonical.clone()) {
-            return Ok(canonical);
+        if *current == Some(root.clone()) {
+            return Ok(root);
         }
     }
-    set_current(state, Some(canonical.clone()));
+    set_current(state, Some(root.clone()));
     state.journal.lock().await.clear();
     if let Ok(mut watcher) = state.watcher.lock() {
-        watcher.watch(app, &canonical);
+        watcher.watch(app, &root);
     }
-    Ok(canonical)
+    Ok(root)
 }
 
 #[tauri::command]
@@ -465,7 +490,7 @@ async fn git_init_repo(
         )));
     }
     // Idempotent: a folder that is already a repo just opens.
-    if git::validate_repo(&canonical).await.is_ok() {
+    if resolve_repo_info(&state, &canonical).await.is_ok() {
         return Ok(do_open_repo(&app, &state, &canonical.to_string_lossy(), &options).await);
     }
     let branch = match repos::validate_init_branch(request.default_branch.as_deref()) {
@@ -508,7 +533,11 @@ async fn git_discover_repos(
     if !root.is_dir() {
         return Err("The folder could not be found.".to_string());
     }
-    Ok(repos::discover_repos(&root, request.max_depth.unwrap_or(2)))
+    tokio::task::spawn_blocking(move || {
+        repos::discover_repos(&root, request.max_depth.unwrap_or(2))
+    })
+    .await
+    .map_err(|_| "The folder scan failed.".to_string())
 }
 
 #[tauri::command]
@@ -521,6 +550,37 @@ async fn git_close_repo(state: State<'_, AppState>) -> Result<(), String> {
     Ok(())
 }
 
+/// Builds a snapshot for a repository that is *not* on screen, for background
+/// tab preloading. Unlike `git_open_repo` this never touches `current`, the
+/// journal, the watcher or the recents list, so a preload can never leave the
+/// backend answering for a repository the user is not looking at.
+async fn do_preload_repo(
+    app: &AppHandle,
+    state: &State<'_, AppState>,
+    path: &str,
+    options: &Option<serde_json::Value>,
+) -> OpenRepoEnvelope {
+    let info = match resolve_repo_info(state, Path::new(path)).await {
+        Ok(info) => info,
+        Err(error) => return OpenRepoEnvelope::err(error),
+    };
+    let favorites = favorites_for(&read_favorites(app), &info.path.to_string_lossy());
+    match git::build_snapshot_with_info(&info, &snapshot_options_from(options), &favorites).await {
+        Ok(snapshot) => OpenRepoEnvelope::ok(snapshot),
+        Err(error) => OpenRepoEnvelope::err(error),
+    }
+}
+
+#[tauri::command]
+async fn git_preload_repo(
+    app: AppHandle,
+    state: State<'_, AppState>,
+    path: String,
+    options: Option<serde_json::Value>,
+) -> Result<OpenRepoEnvelope, String> {
+    Ok(do_preload_repo(&app, &state, &path, &options).await)
+}
+
 #[tauri::command]
 async fn git_snapshot(
     app: AppHandle,
@@ -531,9 +591,12 @@ async fn git_snapshot(
     match current {
         None => Err(GitError::unknown("No repository open.".to_string())),
         Some(path) => {
-            let favorites = favorites_for(&read_favorites(&app), &path.to_string_lossy());
+            let info = resolve_repo_info(&state, &path).await?;
+            let repo_path = info.path.to_string_lossy().into_owned();
+            let favorites = favorites_for(&read_favorites(&app), &repo_path);
             let mut snapshot =
-                git::build_snapshot(&path, &snapshot_options_from(&options), &favorites).await?;
+                git::build_snapshot_with_info(&info, &snapshot_options_from(&options), &favorites)
+                    .await?;
             apply_journal_state(&state, &mut snapshot).await;
             Ok(snapshot)
         }
@@ -627,7 +690,7 @@ async fn git_execute_action(
             "The repository folder was deleted.".to_string(),
         )));
     }
-    let git_dir = match git::validate_repo(&cwd).await {
+    let git_dir = match resolve_repo_info(&state, &cwd).await {
         Ok(info) => info.git_dir,
         Err(error) => return Ok(actions::ActionEnvelope::err(error)),
     };
@@ -1099,6 +1162,7 @@ fn main() {
             git_init_repo,
             git_discover_repos,
             git_close_repo,
+            git_preload_repo,
             git_snapshot,
             git_commit_page,
             git_cancel,

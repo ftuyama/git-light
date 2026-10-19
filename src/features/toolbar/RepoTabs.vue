@@ -7,6 +7,7 @@ import AppSettingsMenu from '@/features/settings/AppSettingsMenu.vue'
 import { useRepoMenu } from '@/features/toolbar/useRepoMenu'
 import { useRepositoryStore } from '@/stores/repository'
 import { useRepoTabsStore } from '@/stores/repoTabs'
+import { preloadTabInBackground } from '@/stores/repo/tabPreload'
 import { useToastStore } from '@/stores/toast'
 
 const repo = useRepositoryStore()
@@ -75,6 +76,7 @@ function openNewRepository(): void {
           "
           @click="selectTab(tab.path)"
           @auxclick.prevent="closeTab(tab.path, $event)"
+          @pointerenter="preloadTabInBackground(tab.path)"
         >
           <span
             v-if="tab.path === activePath"

@@ -31,6 +31,7 @@ import type { ActionResult, GitAction, RepositoryData } from '@/types/git'
 import type { GitService, SnapshotRefreshOptions } from '../git/GitService'
 import { wireSnapshotToRepositoryData, reviveCommits, reviveWorkingTreeFile } from '../git/wireAdapter'
 import { defaultInvoke, defaultListen, type InvokeFn, type ListenFn } from './invoke'
+import { whenBackendRepoReady } from './backendGate'
 
 function envelopeToResult(envelope: ActionEnvelope): ActionResult {
   if (envelope.error) {
@@ -67,16 +68,50 @@ function subscribe<T>(
 }
 
 /**
+ * Commands that must not wait for the backend repo gate. They either never
+ * touch the current repository, or they are the re-point itself — awaiting the
+ * gate from inside `git_activate_repo` would deadlock on its own promise.
+ */
+const REPO_GATE_EXEMPT = new Set([
+  'git_activate_repo',
+  'git_open_repo',
+  'git_pick_and_open_repo',
+  'git_clone_repo',
+  'git_init_repo',
+  'git_close_repo',
+  'git_recent_repos',
+  'git_remove_recent',
+  'git_discover_repos',
+  'git_reveal_path',
+  'git_open_terminal_external',
+  'git_cancel',
+  'git_get_favorites',
+  'git_set_favorites',
+  // Builds a snapshot for a non-visible tab without touching `current`, so it
+  // neither needs nor disturbs a pending re-point.
+  'git_preload_repo',
+])
+
+/**
  * Renderer-side GitService backed by Tauri `invoke` commands served by
  * `src-tauri`. The Vue layer stays backend-agnostic via the `GitService` interface.
  */
 export class TauriGitService implements GitService {
   private page: CommitPageInfo = { oldestSha: null, hasMore: false, total: null }
+  private readonly invoker: InvokeFn
+  private readonly listenFn: ListenFn
 
-  constructor(
-    private readonly invoker: InvokeFn = defaultInvoke,
-    private readonly listenFn: ListenFn = defaultListen,
-  ) {}
+  constructor(invoker: InvokeFn = defaultInvoke, listenFn: ListenFn = defaultListen) {
+    this.listenFn = listenFn
+    // A cached tab paints before its backend re-point settles. Every
+    // repo-scoped command waits for `git_activate_repo` to answer, so a click
+    // in that window (diff, blame, and destructive actions above all) can
+    // never reach the repository the user just left.
+    this.invoker = async (cmd, args) => {
+      if (!REPO_GATE_EXEMPT.has(cmd)) await whenBackendRepoReady()
+      return invoker(cmd, args)
+    }
+  }
 
   get commitPage(): CommitPageInfo {
     return this.page
@@ -202,6 +237,34 @@ export class TauriGitService implements GitService {
       }
     }
     return { ok: true, path: result.path, message: '' }
+  }
+
+  async preloadRepository(
+    path: string,
+    options?: SnapshotRefreshOptions,
+  ): Promise<{
+    ok: boolean
+    data?: RepositoryData
+    page?: CommitPageInfo
+    message: string
+    errorCode?: GitError['code']
+  }> {
+    const result = (await this.invoker('git_preload_repo', { path, options })) as {
+      ok: boolean
+      snapshot?: Parameters<typeof wireSnapshotToRepositoryData>[0]
+      error?: ReturnType<GitError['serialize']>
+    }
+    if (!result.ok || !result.snapshot) {
+      return {
+        ok: false,
+        message: result.error?.message ?? 'Failed to preload repository.',
+        errorCode: result.error?.code,
+      }
+    }
+    const data = wireSnapshotToRepositoryData(result.snapshot)
+    // Deliberately leaves `this.page` alone: it belongs to the repository the
+    // user is looking at, not to the one being warmed in the background.
+    return { ok: true, data, page: data.page, message: `Preloaded ${data.repository.name}` }
   }
 
   async refreshSnapshot(

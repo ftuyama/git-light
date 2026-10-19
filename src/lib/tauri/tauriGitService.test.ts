@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import type {
   CommitPageInfo,
   OpenRepoResult,
@@ -7,6 +7,7 @@ import type {
 } from '@shared/git/models'
 import { TauriGitService } from './tauriGitService'
 import type { InvokeFn, ListenFn } from './invoke'
+import { markBackendRepoPending, resetBackendGate } from './backendGate'
 
 const author = {
   name: 'Ada',
@@ -147,6 +148,26 @@ describe('TauriGitService', () => {
     expect(invoker).toHaveBeenCalledWith('git_reveal_path', { path: '/repo/file' })
   })
 
+  it('preloads a tab without taking over pagination state', async () => {
+    const wire = snapshotFixture()
+    wire.page = { oldestSha: 'abc', hasMore: true, total: null }
+    const { service, invoker } = setup(async (cmd) => {
+      if (cmd === 'git_preload_repo') return { ok: true, snapshot: wire }
+      return { ok: true, snapshot: snapshotFixture() }
+    })
+    const preloaded = await service.preloadRepository('/other', { commitLimit: 50 })
+    expect(invoker).toHaveBeenCalledWith('git_preload_repo', {
+      path: '/other',
+      options: { commitLimit: 50 },
+    })
+    expect(preloaded.ok).toBe(true)
+    expect(preloaded.data?.repository.name).toBe('repo')
+    // The returned page describes the preloaded tab...
+    expect(preloaded.page?.oldestSha).toBe('abc')
+    // ...while the service's page still belongs to the visible repository.
+    expect(service.commitPage.oldestSha).toBeNull()
+  })
+
   it('fetches diff/blame/history/conflict through typed commands', async () => {
     const { service, invoker } = setup(async (cmd) => ({ cmd }))
     await service.getDiff({ path: 'a.ts', source: 'worktree' })
@@ -220,5 +241,65 @@ describe('TauriGitService', () => {
     const { service, invoker } = setup(async () => found)
     await expect(service.discoverRepositories({ root: '/tmp' })).resolves.toEqual(found)
     expect(invoker).toHaveBeenCalledWith('git_discover_repos', { request: { root: '/tmp' } })
+  })
+})
+
+function deferred<T>() {
+  let resolve!: (value: T) => void
+  let reject!: (reason?: unknown) => void
+  const promise = new Promise<T>((res, rej) => {
+    resolve = res
+    reject = rej
+  })
+  return { promise, resolve, reject }
+}
+
+describe('backend repo gate', () => {
+  afterEach(() => resetBackendGate())
+
+  it('holds repo-scoped commands until the pending re-point settles', async () => {
+    const { service, invoker } = setup(async (cmd) => ({ cmd }))
+    const rePoint = deferred<string>()
+    markBackendRepoPending(rePoint.promise)
+
+    const pending = service.getDiff({ path: 'a.ts', source: 'worktree' })
+    await new Promise((resolve) => setTimeout(resolve, 0))
+    expect(invoker).not.toHaveBeenCalled()
+
+    rePoint.resolve('/repo-b')
+    await pending
+    expect(invoker).toHaveBeenCalledWith('git_get_diff', {
+      request: { path: 'a.ts', source: 'worktree' },
+    })
+  })
+
+  it('lets the re-point itself and repo-independent commands through', async () => {
+    const { service, invoker } = setup(async (cmd) =>
+      cmd === 'git_activate_repo' ? { ok: true, path: '/repo-b' } : ({ cmd }),
+    )
+    const rePoint = deferred<string>()
+    markBackendRepoPending(rePoint.promise)
+
+    await expect(service.activateRepository('/repo-b')).resolves.toMatchObject({
+      ok: true,
+      path: '/repo-b',
+    })
+    await service.recentRepos()
+    expect(invoker).toHaveBeenCalledWith('git_activate_repo', { path: '/repo-b' })
+    expect(invoker).toHaveBeenCalledWith('git_recent_repos', undefined)
+    rePoint.resolve('/repo-b')
+  })
+
+  it('opens the gate when the re-point fails', async () => {
+    const { service, invoker } = setup(async (cmd) => ({ cmd }))
+    const rePoint = deferred<string>()
+    markBackendRepoPending(rePoint.promise)
+
+    const pending = service.getBlame({ path: 'a.ts', source: 'index' })
+    rePoint.reject(new Error('activation failed'))
+    await pending
+    expect(invoker).toHaveBeenCalledWith('git_get_blame', {
+      request: { path: 'a.ts', source: 'index' },
+    })
   })
 })

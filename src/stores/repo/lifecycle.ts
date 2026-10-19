@@ -12,7 +12,8 @@ import { scheduleDiffReload } from './diffReloadScheduler'
 import { resetPerRepoUiState } from './resetPerRepoUi'
 import { isAutoFetchInFlight } from './gitActions'
 import { useRepoTabsStore } from '@/stores/repoTabs'
-import { applyCachedTabState, useRepoTabCacheStore } from '@/stores/repoTabCache'
+import { applyCachedTabState, useRepoTabCacheStore, type CachedTabState } from '@/stores/repoTabCache'
+import { markBackendRepoPending, whenBackendRepoReady } from '@/lib/tauri/backendGate'
 import type { RepositoryState } from './types'
 import { sameRepoPath } from '@/lib/git/repoPath'
 
@@ -27,6 +28,7 @@ type LifecycleStore = RepositoryState & {
   ): Promise<void>
   resetCommitBox(): void
   switchRepository(path: string): Promise<boolean>
+  restoreCachedTab(cached: CachedTabState, token: number): boolean
   activateBackend(path: string): Promise<string | null>
   openRepository(path: string, options?: { silent?: boolean }): Promise<boolean>
   adoptOpenedRepository(result: { ok: boolean; data?: RepositoryData; message: string }): Promise<boolean>
@@ -155,67 +157,84 @@ export const lifecycleActions = {
       console.error('[git-light] tab cache save failed:', err)
     }
 
-    // Re-point the backend at the tab being shown BEFORE restoring its cached
-    // state: otherwise the revalidation below — and every watcher event,
-    // auto-fetch tick, and diff — would still run against the previous repo
-    // and spray its stashes/files into this tab.
-    const canonical = await this.activateBackend(path)
-    if (switchToken !== token) return true
-    const activePath = canonical ?? path
+    // A cached tab paints immediately and re-points the backend in the
+    // background (`restoreCachedTab`); a cold tab has nothing to show until
+    // the snapshot arrives, and `git_open_repo` re-points the backend itself,
+    // so no separate activation round-trip is needed here.
+    let cached: CachedTabState | undefined
+    try {
+      cached = cache.get(path)
+    } catch (err) {
+      console.error('[git-light] tab cache read failed:', err)
+    }
+    if (cached) return this.restoreCachedTab(cached, token)
 
     resetPerRepoUiState()
     this.resetCommitBox()
     this.searchOpen = false
 
-    let cached = undefined
-    try {
-      cached = cache.get(activePath)
-    } catch (err) {
-      console.error('[git-light] tab cache read failed:', err)
-    }
-    if (cached) {
-      applyCachedTabState(this, cached)
-      this.screen = 'main'
-      useRepoTabsStore().setActive(path)
-      useUiStore().setLastRepositoryPath(path)
-      this.restartAutoFetch()
-
-      // Revalidate in the background; never let this reject unhandled.
-      // Guarded by the switch token: if the user switched again meanwhile,
-      // the stale result must not overwrite the now-active repo (`refreshSnapshot`
-      // has an additional per-repo path guard at the data level). Fresh
-      // caches (<30s) only refresh working-tree status, which is the only
-      // scope that changes frequently while a tab is inactive.
-      const age = Date.now() - (cached.savedAt ?? 0)
-      void (async () => {
-        try {
-          if (switchToken !== token) return
-          if (age < 30_000) {
-            await this.refreshSnapshot(['status'])
-            return
-          }
-          const result = await gitService.openRepository(activePath, graphSnapshotOptions())
-          if (switchToken !== token) return
-          if (result.ok && result.data) {
-            this.applySnapshot(result.data)
-            try {
-              cache.save(this)
-            } catch (err) {
-              console.error('[git-light] tab cache save failed:', err)
-            }
-            return
-          }
-          cache.remove(activePath)
-          if (sameRepoPath(this.repository?.path, activePath)) await this.openRepository(activePath)
-        } catch (err) {
-          console.error('[git-light] tab background refresh failed:', err)
-        }
-      })()
-      return true
-    }
-
     // User-initiated: report failures instead of staying silent.
-    return this.openRepository(activePath)
+    return this.openRepository(path)
+  },
+
+  /**
+   * Paints an already-cached tab snapshot and revalidates it in the background.
+   *
+   * The snapshot is applied synchronously so the tab is usable the instant it
+   * is clicked; `git_activate_repo` (validation + watcher restart, ~100-250ms)
+   * runs afterwards. Refreshes are gated on it (`whenBackendRepoReady`) so a
+   * snapshot fetch can never answer for the repo we just left.
+   *
+   * `cached.repository.path` is the canonical spelling the backend resolved
+   * when the tab was last opened, so it is also the path to activate.
+   */
+  restoreCachedTab(this: LifecycleStore, cached: CachedTabState, token: number): boolean {
+    const activePath = cached.repository.path || cached.path
+
+    resetPerRepoUiState()
+    this.resetCommitBox()
+    this.searchOpen = false
+    applyCachedTabState(this, cached)
+    this.screen = 'main'
+    useRepoTabsStore().setActive(activePath)
+    useUiStore().setLastRepositoryPath(activePath)
+    this.restartAutoFetch()
+
+    const activation = markBackendRepoPending(this.activateBackend(activePath))
+
+    // Revalidate in the background; never let this reject unhandled.
+    // Guarded by the switch token: if the user switched again meanwhile,
+    // the stale result must not overwrite the now-active repo (`refreshSnapshot`
+    // has an additional per-repo path guard at the data level). Fresh
+    // caches (<30s) only refresh working-tree status, which is the only
+    // scope that changes frequently while a tab is inactive.
+    const age = Date.now() - (cached.savedAt ?? 0)
+    void (async () => {
+      try {
+        await activation
+        if (switchToken !== token) return
+        if (age < 30_000) {
+          await this.refreshSnapshot(['status'])
+          return
+        }
+        const result = await gitService.openRepository(activePath, graphSnapshotOptions())
+        if (switchToken !== token) return
+        if (result.ok && result.data) {
+          this.applySnapshot(result.data)
+          try {
+            useRepoTabCacheStore().save(this)
+          } catch (err) {
+            console.error('[git-light] tab cache save failed:', err)
+          }
+          return
+        }
+        useRepoTabCacheStore().remove(activePath)
+        if (sameRepoPath(this.repository?.path, activePath)) await this.openRepository(activePath)
+      } catch (err) {
+        console.error('[git-light] tab background refresh failed:', err)
+      }
+    })()
+    return true
   },
 
   async openRepository(this: LifecycleStore, path: string, options?: { silent?: boolean }): Promise<boolean> {
@@ -410,6 +429,12 @@ export const lifecycleActions = {
     if (!this.repository) return
     const token = switchToken
     const targetPath = this.repository.path
+    // A cached tab is painted before its backend re-point settles. Waiting
+    // here keeps `git_snapshot` from answering for the repository we just
+    // left (its data would be discarded by the path guard below anyway, at
+    // the cost of a full wasted snapshot).
+    await whenBackendRepoReady()
+    if (switchToken !== token || !sameRepoPath(this.repository?.path, targetPath)) return
     try {
       const includesCommits = !scopes || scopes.includes('commits')
       const data = await gitService.refreshSnapshot(scopes, {

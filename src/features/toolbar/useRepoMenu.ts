@@ -5,6 +5,7 @@ import type { MenuItem } from '@/components/ui/menu'
 import { useRepositoryStore } from '@/stores/repository'
 import { useRepoTabsStore } from '@/stores/repoTabs'
 import { usePromptStore } from '@/stores/prompt'
+import { preloadTabInBackground } from '@/stores/repo/tabPreload'
 
 async function pickFolder(): Promise<string | null> {
   try {
@@ -65,6 +66,9 @@ export function useRepoMenu() {
     const items: MenuItem[] = tabsStore.tabs.map((tab) => ({
       label: tab.name,
       icon: tab.path === tabsStore.activePath ? Check : FolderGit2,
+      // Warm the tab while the pointer is still over the menu row, so a click
+      // that follows finds it cached (a no-op when it already is).
+      onHover: () => void preloadTabInBackground(tab.path),
       onSelect: () => void repo.switchRepository(tab.path),
     }))
 
