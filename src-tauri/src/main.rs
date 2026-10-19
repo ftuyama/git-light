@@ -1,4 +1,5 @@
 mod actions;
+mod app_updater;
 mod diff;
 mod git;
 mod image;
@@ -1043,7 +1044,8 @@ fn main() {
             git_get_rebase_commits,
             git_execute_action,
             git_get_favorites,
-            git_set_favorites
+            git_set_favorites,
+            app_updater::app_self_update
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

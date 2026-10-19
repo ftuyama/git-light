@@ -609,6 +609,44 @@
         margin-bottom: 2rem;
       }
 
+      /* Quick install (macOS one-liner) */
+      .quick-install {
+        max-width: 640px;
+        margin: 0 auto 2rem;
+        text-align: left;
+      }
+
+      .quick-install-code {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        background: var(--panel-raised);
+        border: 1px solid var(--border-strong);
+        border-radius: 0.75rem;
+        padding: 0.75rem 1rem;
+      }
+
+      .quick-install-code code {
+        flex: 1;
+        min-width: 0;
+        overflow-x: auto;
+        font-family: var(--font-mono);
+        font-size: 0.8125rem;
+        line-height: 1.6;
+        color: var(--fg);
+        white-space: nowrap;
+        scrollbar-width: none;
+      }
+
+      .quick-install-code code::-webkit-scrollbar { display: none; }
+
+      .quick-install-note {
+        display: block;
+        margin-top: 0.5rem;
+        font-size: 0.75rem;
+        color: var(--fg-subtle);
+      }
+
       /* Install */
       .install-box {
         background: var(--panel);
@@ -1199,6 +1237,13 @@
           <span class="eyebrow">Get the app</span>
           <h2>Download Git Light</h2>
           <p class="section-sub">Free desktop app for macOS, Windows, and Linux — open source, no account required.</p>
+          <div class="quick-install">
+            <div class="quick-install-code">
+              <code id="quick-install-cmd">curl -fsSL https://raw.githubusercontent.com/ftuyama/git-light/main/scripts/install.sh | sh</code>
+              <button id="quick-install-copy" class="btn btn-ghost" type="button" aria-label="Copy install command">Copy</button>
+            </div>
+            <small class="quick-install-note">Recommended on macOS — installs to /Applications with no Gatekeeper prompts, and re-running it updates the app. Windows/Linux: use the buttons below or the guide.</small>
+          </div>
           <div class="os-downloads">
             <a
               id="dl-mac"
@@ -1260,10 +1305,26 @@
                     macOS
                   </h4>
                   <ol>
-                    <li>Download the <strong>.dmg</strong> above (Apple Silicon).</li>
-                    <li>Open it and drag <strong>Git Light</strong> into <strong>Applications</strong>.</li>
+                    <li><strong>Recommended:</strong> run the one-line command above in Terminal — installs to Applications with no Gatekeeper prompts. Re-run it to update.</li>
+                    <li>Or download the <strong>.dmg</strong> above (Apple Silicon), open it and drag <strong>Git Light</strong> into <strong>Applications</strong>.</li>
                     <li>Launch the app — then use <strong>Git Light → Check for Updates…</strong> anytime to stay current.</li>
                   </ol>
+                  <details>
+                    <summary>macOS says "move it to the Trash" or refuses to open?</summary>
+                    <div class="guide-body">
+                      <p>
+                        Browsers attach a quarantine flag to downloaded files, which macOS blocks for
+                        apps without an Apple Developer ID. Nothing is wrong with your download:
+                      </p>
+                      <p>
+                        <strong>Easiest fix:</strong> run the one-line install command instead — its
+                        downloads skip the quarantine flag entirely. If you already installed from the
+                        <code>.dmg</code>, run once in Terminal:
+                      </p>
+                      <pre><code>codesign --force --deep --sign - "/Applications/Git Light.app"
+xattr -dr com.apple.quarantine "/Applications/Git Light.app"</code></pre>
+                    </div>
+                  </details>
                 </div>
                 <div class="guide-os">
                   <h4>
@@ -1398,6 +1459,30 @@
           .catch(function () {
             /* Fallback hrefs (releases/latest) remain in place. */
           });
+
+        /* Copy quick-install command */
+        var copyBtn = document.getElementById('quick-install-copy');
+        if (copyBtn) {
+          copyBtn.addEventListener('click', function () {
+            var cmd = document.getElementById('quick-install-cmd');
+            if (!cmd) return;
+            var done = function () {
+              copyBtn.textContent = 'Copied!';
+              setTimeout(function () { copyBtn.textContent = 'Copy'; }, 2000);
+            };
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+              navigator.clipboard.writeText(cmd.textContent.trim()).then(done, function () {});
+            } else {
+              var ta = document.createElement('textarea');
+              ta.value = cmd.textContent.trim();
+              document.body.appendChild(ta);
+              ta.select();
+              document.execCommand('copy');
+              document.body.removeChild(ta);
+              done();
+            }
+          });
+        }
 
         /* Scroll reveal */
         var revealEls = document.querySelectorAll(

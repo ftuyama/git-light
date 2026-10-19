@@ -50,15 +50,32 @@ Git Light is a lightweight app for browsing history, managing branches, staging 
 
 ## Download
 
-Get the latest installer for your platform from **[GitHub Releases](https://github.com/ftuyama/git-light/releases)**:
+**macOS (recommended, no Gatekeeper prompts):**
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/ftuyama/git-light/main/scripts/install.sh | sh
+```
+
+Installs to /Applications from GitHub Releases, checksum-verified. Re-running it installs the latest version (acts as updater). Browsers flag `.dmg` downloads with a quarantine notice; this doesn't.
+
+**Native installers** — from **[GitHub Releases](https://github.com/ftuyama/git-light/releases/latest)**:
 
 | Platform | File | Install |
 |----------|------|---------|
-| macOS | `.dmg` | Drag to Applications |
+| macOS | `.dmg` | Drag to Applications; if macOS blocks it, see the [note below](#macos-gatekeeper-note) |
 | Windows | `.exe` | Run the installer |
 | Linux | `.AppImage` or `.deb` | Make executable and run / `sudo dpkg -i git-light_*.deb` |
 
-Updates: **Git Light → Check for Updates…** in the app menu.
+### macOS Gatekeeper note
+
+Builds are ad-hoc signed, so macOS 15+ may refuse a browser-downloaded app ("move to the Trash"). Nothing is wrong with the download. Either use the `curl | sh` install above, or run once:
+
+```bash
+codesign --force --deep --sign - "/Applications/Git Light.app"
+xattr -dr com.apple.quarantine "/Applications/Git Light.app"
+```
+
+Updates: **Git Light → Check for Updates…** in the app menu (macOS installs and restarts in place).
 
 ## Sponsor
 

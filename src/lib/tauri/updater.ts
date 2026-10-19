@@ -61,6 +61,41 @@ export function pickMacDmgDownloadUrl(
   return dmgs[0]?.browser_download_url ?? null
 }
 
+/** Prefer an architecture-matching `.app.tar.gz` asset; fall back to any, else null. */
+export function pickMacTarGzUrl(assets: GitHubAsset[], arch: string): string | null {
+  const tarballs = assets.filter((asset) =>
+    asset.name.toLowerCase().endsWith('.app.tar.gz'),
+  )
+  if (tarballs.length === 0) return null
+  for (const hint of archHintsFor(arch)) {
+    const match = tarballs.find((asset) => asset.name.toLowerCase().includes(hint))
+    if (match) return match.browser_download_url
+  }
+  return tarballs[0]?.browser_download_url ?? null
+}
+
+/** Locate the release `CHECKSUMS.txt` asset, if present. */
+export function pickChecksumsUrl(assets: GitHubAsset[]): string | null {
+  const checksums = assets.find(
+    (asset) => asset.name.toLowerCase() === 'checksums.txt',
+  )
+  return checksums?.browser_download_url ?? null
+}
+
+/** Look up the sha256 entry for `assetName` inside a CHECKSUMS.txt payload. */
+export function lookupChecksum(
+  checksumsText: string,
+  assetName: string,
+): string | null {
+  for (const line of checksumsText.split('\n')) {
+    // GitHub's sha256sum output: "<hex>  <filename>"
+    const match = /^([0-9a-fA-F]{64})\s{1,2}\*?(.+)$/.exec(line.trim())
+    if (!match) continue
+    if (match[2] === assetName) return match[1].toLowerCase()
+  }
+  return null
+}
+
 /** Prefer an arch-matching NSIS `-setup.exe`; fall back to `.msi`, else null. */
 export function pickWindowsInstallerUrl(
   assets: GitHubAsset[],
@@ -145,6 +180,17 @@ export interface UpdateCheckDeps {
   writeSnooze: (snooze: UpdateSnooze) => void
   askDownload: (message: string, detail: string) => Promise<'download' | 'later'>
   openDownload: (url: string) => Promise<void>
+  /**
+   * macOS only: download + verify + swap the app bundle in place.
+   * Returns `'installed'` when the self-update took over, `'open-download'` to
+   * fall back to the browser flow. Undefined on other platforms.
+   */
+  installSelfUpdate?: (
+    release: GitHubRelease,
+    arch: string,
+  ) => Promise<'installed' | 'open-download'>
+  /** Explains what "Download" does in the platform-appropriate way. */
+  selfUpdateHint?: string
   arch: string
   platform: string
 }
@@ -165,12 +211,16 @@ export async function checkForUpdates(deps: UpdateCheckDeps): Promise<void> {
   const releaseNotes = formatReleaseNotes(release.body)
   const detailLines = [`You are running v${currentVersion}.`]
   if (releaseNotes) detailLines.push('', "What's new:", releaseNotes)
-  detailLines.push('', 'Download starts the installer from GitHub.')
+  detailLines.push('', deps.selfUpdateHint ?? 'Download starts the installer from GitHub.')
   const choice = await deps.askDownload(
     `Version ${latestVersion} is available.`,
     detailLines.join('\n'),
   )
   if (choice === 'download') {
+    if (deps.installSelfUpdate) {
+      const outcome = await deps.installSelfUpdate(release, deps.arch)
+      if (outcome === 'installed') return // install succeeded; app restarts on its own
+    }
     await deps.openDownload(resolveDownloadUrl(release, deps.platform, deps.arch))
     return
   }

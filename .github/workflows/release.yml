@@ -95,3 +95,23 @@ jobs:
           releaseDraft: false
           prerelease: false
           args: ${{ matrix.args }}
+
+  # Publish CHECKSUMS.txt with sha256 for every asset. scripts/install.sh and the
+  # in-app updater verify downloads against it.
+  checksums:
+    needs: [build]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Generate and upload CHECKSUMS.txt
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          mkdir download && cd download
+          gh release download "$TAG" --repo ftuyama/git-light --clobber
+          sha256sum * > CHECKSUMS.txt
+          rm -- *.dmg *.tar.gz *.exe *.msi *.AppImage *.deb *.rpm
+          gh release upload "$TAG" CHECKSUMS.txt --repo ftuyama/git-light --clobber

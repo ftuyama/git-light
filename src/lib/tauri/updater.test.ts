@@ -3,10 +3,19 @@ import {
   checkForUpdates,
   compareSemver,
   formatReleaseNotes,
+  lookupChecksum,
+  pickChecksumsUrl,
   pickLinuxInstallerUrl,
   pickMacDmgDownloadUrl,
+  pickMacTarGzUrl,
   pickWindowsInstallerUrl,
+  type GitHubAsset,
 } from './updater'
+
+const asset = (name: string): GitHubAsset => ({
+  name,
+  browser_download_url: `https://example.com/${name}`,
+})
 
 describe('tauri updater', () => {
   it('compares semver versions', () => {
@@ -178,5 +187,69 @@ describe('tauri updater', () => {
       platform: 'darwin',
     })
     expect(writeSnooze).toHaveBeenCalledWith({ version: '0.3.0' })
+  })
+
+  it('picks the arch-matching app.tar.gz for in-place updates', () => {
+    const assets = [asset('Git.Light_0.3.0_aarch64.app.tar.gz'), asset('Git-Light_0.3.0_x64.dmg')]
+    expect(pickMacTarGzUrl(assets, 'arm64')).toBe('https://example.com/Git.Light_0.3.0_aarch64.app.tar.gz')
+    expect(pickMacTarGzUrl([], 'arm64')).toBeNull()
+  })
+
+  it('locates CHECKSUMS.txt', () => {
+    const assets = [asset('CHECKSUMS.txt'), asset('Git.Light_0.3.0_aarch64.dmg')]
+    expect(pickChecksumsUrl(assets)).toBe('https://example.com/CHECKSUMS.txt')
+    expect(pickChecksumsUrl([asset('other.dmg')])).toBeNull()
+  })
+
+  it('looks up the sha256 entry inside CHECKSUMS.txt', () => {
+    const text = [
+      '3f6a5c92823b4a4c5f11a33f3bc9837df3a1d6b6a2b7f60f0d17e0eba3d5c9ef  Git.Light_0.3.0_aarch64.app.tar.gz',
+      'not-a-hash-line',
+    ].join('\n')
+    expect(
+      lookupChecksum(text, 'Git.Light_0.3.0_aarch64.app.tar.gz'),
+    ).toBe('3f6a5c92823b4a4c5f11a33f3bc9837df3a1d6b6a2b7f60f0d17e0eba3d5c9ef')
+    expect(lookupChecksum(text, 'missing.pkg')).toBeNull()
+  })
+
+  it('routes macOS to the in-place self-update and keeps other platforms on the browser flow', async () => {
+    const release = {
+      tag_name: 'v0.3.0',
+      html_url: 'https://releases',
+      body: null,
+      assets: [asset('Git.Light_0.3.0_aarch64.app.tar.gz'), asset('CHECKSUMS.txt')],
+    }
+    const installSelfUpdate = vi.fn(async () => 'installed' as const)
+    const openDownload = vi.fn()
+    await checkForUpdates({
+      source: 'menu',
+      currentVersion: '0.2.0',
+      fetchRelease: async () => release,
+      readSnooze: () => null,
+      writeSnooze: vi.fn(),
+      askDownload: async () => 'download' as const,
+      openDownload,
+      installSelfUpdate,
+      arch: 'arm64',
+      platform: 'darwin',
+    })
+    expect(installSelfUpdate).toHaveBeenCalledWith(release, 'arm64')
+    expect(openDownload).not.toHaveBeenCalled()
+
+    // Falls back to the browser when no tarball exists.
+    const openFallback = vi.fn()
+    await checkForUpdates({
+      source: 'menu',
+      currentVersion: '0.2.0',
+      fetchRelease: async () => ({ ...release, assets: [asset('Git-Light_0.3.0_arm64.dmg')] }),
+      readSnooze: () => null,
+      writeSnooze: vi.fn(),
+      askDownload: async () => 'download' as const,
+      openDownload: openFallback,
+      installSelfUpdate: async () => 'open-download' as const,
+      arch: 'arm64',
+      platform: 'darwin',
+    })
+    expect(openFallback).toHaveBeenCalled()
   })
 })
