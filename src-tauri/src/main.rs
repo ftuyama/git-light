@@ -122,22 +122,30 @@ fn recents_file(app: &AppHandle) -> Option<PathBuf> {
         .map(|dir| dir.join("recent-repos.json"))
 }
 
-fn read_recents(app: &AppHandle) -> Vec<RecentRepository> {
-    recents_file(app)
-        .and_then(|f| std::fs::read_to_string(f).ok())
-        .map(|s| git::parse_recent_repos(&s))
-        .unwrap_or_default()
+/// App-data JSON files are read from `async` commands (open/activate/snapshot),
+/// so they go through `tokio::fs`: a synchronous read here would block a
+/// runtime worker thread for the duration of the disk access.
+async fn read_recents(app: &AppHandle) -> Vec<RecentRepository> {
+    let Some(file) = recents_file(app) else {
+        return Vec::new();
+    };
+    match tokio::fs::read_to_string(file).await {
+        Ok(raw) => git::parse_recent_repos(&raw),
+        Err(_) => Vec::new(),
+    }
 }
 
-fn write_recents(app: &AppHandle, list: &[RecentRepository]) {
-    if let Some(file) = recents_file(app) {
-        if let Some(parent) = file.parent() {
-            let _ = std::fs::create_dir_all(parent);
-        }
-        if let Ok(raw) = serde_json::to_string_pretty(list) {
-            let _ = std::fs::write(file, raw);
-        }
+async fn write_recents(app: &AppHandle, list: &[RecentRepository]) {
+    let Some(file) = recents_file(app) else {
+        return;
+    };
+    let Ok(raw) = serde_json::to_string_pretty(list) else {
+        return;
+    };
+    if let Some(parent) = file.parent() {
+        let _ = tokio::fs::create_dir_all(parent).await;
     }
+    let _ = tokio::fs::write(file, raw).await;
 }
 
 fn favorites_file(app: &AppHandle) -> Option<PathBuf> {
@@ -147,22 +155,29 @@ fn favorites_file(app: &AppHandle) -> Option<PathBuf> {
         .map(|dir| dir.join("favorites.json"))
 }
 
-fn read_favorites(app: &AppHandle) -> git::FavoritesMap {
-    favorites_file(app)
-        .and_then(|f| std::fs::read_to_string(f).ok())
-        .map(|s| git::parse_favorites_file(&s))
-        .unwrap_or_default()
+/// See [`read_recents`]: same reasoning for the favorites file, which the
+/// snapshot builder reads on every open, refresh and preload.
+async fn read_favorites(app: &AppHandle) -> git::FavoritesMap {
+    let Some(file) = favorites_file(app) else {
+        return Default::default();
+    };
+    match tokio::fs::read_to_string(file).await {
+        Ok(raw) => git::parse_favorites_file(&raw),
+        Err(_) => Default::default(),
+    }
 }
 
-fn write_favorites(app: &AppHandle, map: &git::FavoritesMap) {
-    if let Some(file) = favorites_file(app) {
-        if let Some(parent) = file.parent() {
-            let _ = std::fs::create_dir_all(parent);
-        }
-        if let Ok(raw) = serde_json::to_string_pretty(map) {
-            let _ = std::fs::write(file, raw);
-        }
+async fn write_favorites(app: &AppHandle, map: &git::FavoritesMap) {
+    let Some(file) = favorites_file(app) else {
+        return;
+    };
+    let Ok(raw) = serde_json::to_string_pretty(map) else {
+        return;
+    };
+    if let Some(parent) = file.parent() {
+        let _ = tokio::fs::create_dir_all(parent).await;
     }
+    let _ = tokio::fs::write(file, raw).await;
 }
 
 fn favorites_for(map: &git::FavoritesMap, repo_path: &str) -> std::collections::HashSet<String> {
@@ -176,8 +191,8 @@ struct FavoritesFetchRequest {
 }
 
 #[tauri::command]
-fn git_get_favorites(app: AppHandle, request: FavoritesFetchRequest) -> Vec<String> {
-    git::favorite_names(&read_favorites(&app), &request.repo_path)
+async fn git_get_favorites(app: AppHandle, request: FavoritesFetchRequest) -> Vec<String> {
+    git::favorite_names(&read_favorites(&app).await, &request.repo_path)
 }
 
 #[derive(serde::Deserialize)]
@@ -188,10 +203,10 @@ struct SetFavoritesRequest {
 }
 
 #[tauri::command]
-fn git_set_favorites(app: AppHandle, request: SetFavoritesRequest) -> Vec<String> {
-    let mut map = read_favorites(&app);
+async fn git_set_favorites(app: AppHandle, request: SetFavoritesRequest) -> Vec<String> {
+    let mut map = read_favorites(&app).await;
     git::set_favorite_names(&mut map, &request.repo_path, &request.names);
-    write_favorites(&app, &map);
+    write_favorites(&app, &map).await;
     request.names
 }
 
@@ -209,7 +224,7 @@ async fn resolve_repo_info(
     state: &State<'_, AppState>,
     path: &Path,
 ) -> Result<git::RepoInfo, GitError> {
-    let canonical = std::fs::canonicalize(path).map_err(|_| {
+    let canonical = tokio::fs::canonicalize(path).await.map_err(|_| {
         GitError::new(
             "RepositoryNotFound",
             "The repository could not be found.".to_string(),
@@ -267,7 +282,7 @@ async fn do_open_repo(
     };
     let opts = snapshot_options_from(options);
     let repo_path = info.path.to_string_lossy().into_owned();
-    let favorites = favorites_for(&read_favorites(app), &repo_path);
+    let favorites = favorites_for(&read_favorites(app).await, &repo_path);
     let snapshot = git::build_snapshot_with_info(&info, &opts, &favorites).await;
     match snapshot {
         Ok(mut snapshot) => {
@@ -277,8 +292,8 @@ async fn do_open_repo(
                 watcher.watch(app, &info.path);
             }
             apply_journal_state(state, &mut snapshot).await;
-            let merged = git::merge_recent(read_recents(app), &repo_path, git::now_millis());
-            write_recents(app, &merged);
+            let merged = git::merge_recent(read_recents(app).await, &repo_path, git::now_millis());
+            write_recents(app, &merged).await;
             OpenRepoEnvelope::ok(snapshot)
         }
         Err(error) => OpenRepoEnvelope::err(error),
@@ -394,7 +409,7 @@ async fn git_clone_repo(
         Ok(url) => url,
         Err(error) => return Ok(OpenRepoEnvelope::err(error)),
     };
-    let parent = match std::fs::canonicalize(request.parent_path.trim()) {
+    let parent = match tokio::fs::canonicalize(request.parent_path.trim()).await {
         Ok(p) => p,
         Err(_) => {
             return Ok(OpenRepoEnvelope::err(GitError::unknown(
@@ -476,7 +491,7 @@ async fn git_init_repo(
     request: repos::InitRepoRequest,
     options: Option<serde_json::Value>,
 ) -> Result<OpenRepoEnvelope, String> {
-    let canonical = match std::fs::canonicalize(request.path.trim()) {
+    let canonical = match tokio::fs::canonicalize(request.path.trim()).await {
         Ok(p) => p,
         Err(_) => {
             return Ok(OpenRepoEnvelope::err(GitError::unknown(
@@ -524,7 +539,7 @@ async fn git_init_repo(
 async fn git_discover_repos(
     request: repos::DiscoverReposRequest,
 ) -> Result<Vec<repos::DiscoveredRepo>, String> {
-    let root = match std::fs::canonicalize(request.root.trim()) {
+    let root = match tokio::fs::canonicalize(request.root.trim()).await {
         Ok(p) => p,
         Err(_) => {
             return Err("The folder could not be found.".to_string());
@@ -564,7 +579,7 @@ async fn do_preload_repo(
         Ok(info) => info,
         Err(error) => return OpenRepoEnvelope::err(error),
     };
-    let favorites = favorites_for(&read_favorites(app), &info.path.to_string_lossy());
+    let favorites = favorites_for(&read_favorites(app).await, &info.path.to_string_lossy());
     match git::build_snapshot_with_info(&info, &snapshot_options_from(options), &favorites).await {
         Ok(snapshot) => OpenRepoEnvelope::ok(snapshot),
         Err(error) => OpenRepoEnvelope::err(error),
@@ -593,7 +608,7 @@ async fn git_snapshot(
         Some(path) => {
             let info = resolve_repo_info(&state, &path).await?;
             let repo_path = info.path.to_string_lossy().into_owned();
-            let favorites = favorites_for(&read_favorites(&app), &repo_path);
+            let favorites = favorites_for(&read_favorites(&app).await, &repo_path);
             let mut snapshot =
                 git::build_snapshot_with_info(&info, &snapshot_options_from(&options), &favorites)
                     .await?;
@@ -722,17 +737,18 @@ async fn git_execute_action(
 }
 
 #[tauri::command]
-fn git_recent_repos(app: AppHandle) -> Vec<RecentRepository> {
-    read_recents(&app)
+async fn git_recent_repos(app: AppHandle) -> Vec<RecentRepository> {
+    read_recents(&app).await
 }
 
 #[tauri::command]
-fn git_remove_recent(app: AppHandle, path: String) -> Vec<RecentRepository> {
+async fn git_remove_recent(app: AppHandle, path: String) -> Vec<RecentRepository> {
     let list: Vec<RecentRepository> = read_recents(&app)
+        .await
         .into_iter()
         .filter(|r| r.path != path)
         .collect();
-    write_recents(&app, &list);
+    write_recents(&app, &list).await;
     list
 }
 
@@ -744,7 +760,7 @@ async fn git_reveal_path(path: String) -> Result<(), String> {
     }
     // Only reveal paths that exist: blocks probing and normalizes the value
     // passed to the file manager.
-    let target = match std::fs::canonicalize(trimmed) {
+    let target = match tokio::fs::canonicalize(trimmed).await {
         Ok(p) => p,
         Err(_) => return Err("Could not reveal path.".to_string()),
     };

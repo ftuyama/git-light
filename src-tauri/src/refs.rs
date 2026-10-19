@@ -674,46 +674,64 @@ pub async fn fetch_stashes(cwd: &Path) -> Vec<WireStash> {
     if stashes.is_empty() {
         return stashes;
     }
-    // Resolve each stash's base commit (first parent). `rev-parse --verify`
-    // accepts exactly one revision ("fatal: Needed a single revision"
-    // otherwise), so resolve one stash at a time.
-    for stash in stashes.iter_mut() {
-        let rev = format!("{}^1", stash.id);
-        if let Ok((ok, out, _)) = git_text(cwd, &["rev-parse", "--verify", rev.as_str()]).await {
-            let sha = out.trim();
-            stash.base_sha = if ok && is_full_sha(sha) {
-                Some(sha.to_string())
-            } else {
-                None
-            };
+    // Resolve every stash's base (first parent) in a single `rev-parse`: it
+    // prints one line per revision argument, in argument order, so the
+    // selectors come back positionally. `--verify` cannot be used here — it
+    // accepts exactly one revision — but nothing needs it: an unresolvable
+    // selector makes that line echo the argument itself (or fail the whole
+    // call), and either way `is_full_sha` rejects it and the base stays unset.
+    let revs: Vec<String> = stashes.iter().map(|s| format!("{}^1", s.id)).collect();
+    let mut args: Vec<&str> = vec!["rev-parse"];
+    args.extend(revs.iter().map(String::as_str));
+    if let Ok((_, out, _)) = git_text(cwd, &args).await {
+        for (stash, line) in stashes.iter_mut().zip(out.lines()) {
+            let sha = line.trim();
+            if is_full_sha(sha) {
+                stash.base_sha = Some(sha.to_string());
+            }
         }
     }
     // Resolve each base's subject in one batch so the UI can explain a stash
     // whose base is outside the loaded commit window (pagination or a base
-    // orphaned by amend/rebase). Failures leave `base_subject` empty.
-    let resolved: Vec<String> = stashes.iter().filter_map(|s| s.base_sha.clone()).collect();
+    // orphaned by amend/rebase). Looked up by sha, not by position: `git log
+    // --no-walk` dedupes the revisions it is given and orders them by date.
+    // Failures leave `base_subject` empty.
+    let mut resolved: Vec<String> = stashes.iter().filter_map(|s| s.base_sha.clone()).collect();
+    resolved.sort_unstable();
+    resolved.dedup();
     if !resolved.is_empty() {
-        let mut args: Vec<&str> = vec!["log", "--no-walk", "--format=%s%x00"];
+        let mut args: Vec<&str> = vec!["log", "--no-walk", "--format=%H%x00%s%x00"];
         args.extend(resolved.iter().map(String::as_str));
-        if let Ok((ok, subject_out, _)) = git_text(cwd, &args).await {
-            if ok {
-                let subjects: Vec<&str> = subject_out.split('\0').collect();
-                let mut cursor = 0;
-                for stash in stashes.iter_mut() {
-                    if stash.base_sha.is_none() {
-                        continue;
+        if let Ok((true, subject_out, _)) = git_text(cwd, &args).await {
+            let subjects = parse_sha_field(&subject_out);
+            for stash in stashes.iter_mut() {
+                if let Some(sha) = stash.base_sha.as_deref() {
+                    if let Some(subject) = subjects.get(sha).filter(|s| !s.is_empty()) {
+                        stash.base_subject = Some(subject.clone());
                     }
-                    if let Some(line) = subjects.get(cursor).map(|s| s.trim()) {
-                        if !line.is_empty() {
-                            stash.base_subject = Some(line.to_string());
-                        }
-                    }
-                    cursor += 1;
                 }
             }
         }
     }
     stashes
+}
+
+/// Parses `git log --format=%H%x00<value>%x00` output into sha -> value.
+/// Records are NUL-separated (`git log` puts a newline between them, which is
+/// trimmed off the next sha), and the value is kept as its first trimmed line.
+fn parse_sha_field(out: &str) -> HashMap<String, String> {
+    let mut map = HashMap::new();
+    let mut fields = out.split('\0');
+    while let Some(sha_field) = fields.next() {
+        let sha = sha_field.trim();
+        let Some(value) = fields.next() else {
+            break;
+        };
+        if is_full_sha(sha) {
+            map.insert(sha.to_string(), value.trim().to_string());
+        }
+    }
+    map
 }
 
 /// Base SHAs of `stashes` absent from `commits` (deduped, order kept).
@@ -918,6 +936,55 @@ mod tests {
             "missing base: {:?}",
             stashes.iter().map(|s| &s.base_sha).collect::<Vec<_>>()
         );
+        let _ = std::fs::remove_dir_all(&dir);
+    }
+
+    #[tokio::test]
+    async fn attributes_each_stash_base_and_subject() {
+        // Stashes created on different commits: the batched resolutions must
+        // map each base back to its own stash. Subjects come from a second
+        // batch that `git log --no-walk` reorders by date and dedupes, so a
+        // positional pairing would swap the two subjects here.
+        let dir =
+            std::env::temp_dir().join(format!("git-light-stash-base-test-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&dir);
+        std::fs::create_dir_all(&dir).unwrap();
+        let run = |args: &[&str]| {
+            std::process::Command::new("git")
+                .args(args)
+                .current_dir(&dir)
+                .output()
+                .unwrap()
+        };
+        let sha = |args: &[&str]| {
+            String::from_utf8(run(args).stdout)
+                .unwrap()
+                .trim()
+                .to_string()
+        };
+        assert!(run(&["init"]).status.success());
+        run(&["config", "user.name", "T"]);
+        run(&["config", "user.email", "t@t"]);
+        run(&["config", "commit.gpgsign", "false"]);
+        std::fs::write(dir.join("f.txt"), "one\n").unwrap();
+        run(&["add", "."]);
+        assert!(run(&["commit", "-m", "first"]).status.success());
+        let first = sha(&["rev-parse", "HEAD"]);
+        std::fs::write(dir.join("f.txt"), "dirty\n").unwrap();
+        assert!(run(&["stash", "push", "-m", "on-first"]).status.success());
+        std::fs::write(dir.join("f.txt"), "two\n").unwrap();
+        run(&["add", "."]);
+        assert!(run(&["commit", "-m", "second"]).status.success());
+        let second = sha(&["rev-parse", "HEAD"]);
+        std::fs::write(dir.join("f.txt"), "dirty again\n").unwrap();
+        assert!(run(&["stash", "push", "-m", "on-second"]).status.success());
+
+        let stashes = fetch_stashes(&dir).await;
+        assert_eq!(stashes.len(), 2);
+        assert_eq!(stashes[0].base_sha.as_deref(), Some(second.as_str()));
+        assert_eq!(stashes[1].base_sha.as_deref(), Some(first.as_str()));
+        assert_eq!(stashes[0].base_subject.as_deref(), Some("second"));
+        assert_eq!(stashes[1].base_subject.as_deref(), Some("first"));
         let _ = std::fs::remove_dir_all(&dir);
     }
 
