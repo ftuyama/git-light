@@ -5,6 +5,7 @@ import { storeToRefs } from 'pinia'
 import Button from '@/components/ui/Button.vue'
 import SettingsCreditsPanel from './SettingsCreditsPanel.vue'
 import SettingsRow from './SettingsRow.vue'
+import SettingsSegmentedRow from './SettingsSegmentedRow.vue'
 import ThemePicker from './ThemePicker.vue'
 import UiModePicker from './UiModePicker.vue'
 import ShortcutRecorder from './ShortcutRecorder.vue'
@@ -20,13 +21,19 @@ import {
   ADVANCED_SECTION_KEYS,
   AUTO_FETCH_INTERVAL_OPTIONS,
   COLUMN_LABELS,
+  COLUMN_WIDTH_LABELS,
+  COLUMN_WIDTH_LIMITS,
   COMMIT_GRAPH_LIMIT_MAX,
   COMMIT_GRAPH_LIMIT_MIN,
   SECTION_KEYS,
   SECTION_LABELS,
+  SIDEBAR_SECTION_STATE_LABELS,
+  SIDEBAR_SECTION_STATES,
   formatAutoFetchInterval,
   type CommitColumnKey,
+  type CommitColumnWidthKey,
   type SectionKey,
+  type SidebarSectionState,
 } from '@/lib/preferences'
 import { useUiStore } from '@/stores/ui'
 import { useRepositoryStore } from '@/stores/repository'
@@ -41,6 +48,12 @@ type SettingsCategory = 'appearance' | 'layout' | 'changes' | 'commits' | 'commi
 const activeCategory = ref<SettingsCategory>('appearance')
 
 const columnKeys = Object.keys(COLUMN_LABELS) as CommitColumnKey[]
+const columnWidthKeys = Object.keys(COLUMN_WIDTH_LABELS) as CommitColumnWidthKey[]
+
+const sectionStateOptions = SIDEBAR_SECTION_STATES.map((state) => ({
+  value: state,
+  label: SIDEBAR_SECTION_STATE_LABELS[state],
+}))
 
 const sidebarSectionKeys = computed(() =>
   ui.isAdvanced
@@ -68,12 +81,17 @@ const preferenceGroups: SettingsGroup[] = [
     ],
   },
   {
+    label: 'UI',
+    items: [
+      { id: 'commit-graph', label: 'Commit Graph', icon: GitCommitHorizontal },
+      { id: 'sidebar', label: 'Sidebar', icon: PanelLeft },
+    ],
+  },
+  {
     label: 'Repository',
     items: [
       { id: 'changes', label: 'Changes', icon: Rows3 },
       { id: 'commits', label: 'Commits', icon: PenLine },
-      { id: 'commit-graph', label: 'Commit Graph', icon: GitCommitHorizontal },
-      { id: 'sidebar', label: 'Sidebar', icon: PanelLeft },
       { id: 'sync', label: 'Sync', icon: RefreshCw },
     ],
   },
@@ -154,6 +172,21 @@ function onCommitGraphLimit(value: number): void {
   refreshGraphIfOpen()
 }
 
+function onSectionState(key: SectionKey, state: string): void {
+  ui.setSectionState(key, state as SidebarSectionState)
+}
+
+function onColumnWidth(key: CommitColumnWidthKey, value: number): void {
+  ui.setColumnWidth(key, value)
+}
+
+function columnWidthHint(key: CommitColumnWidthKey): string {
+  const { min, max } = COLUMN_WIDTH_LIMITS[key]
+  const range = `${min}–${max} px`
+  if (key === 'refs' || key === 'graph' || key === 'commit') return range
+  return ui.isColumnVisible(key) ? range : `${range} · hidden`
+}
+
 function onAutoFetchIntervalSec(value: number): void {
   ui.setAutoFetchIntervalSec(value)
   // Apply immediately: restart the background timer with the new delay.
@@ -185,9 +218,13 @@ onUnmounted(() => document.removeEventListener('keydown', onKeydown))
         <nav
           class="flex w-44 shrink-0 flex-col overflow-y-auto border-r border-[var(--color-border)] bg-[var(--color-panel-raised)] py-3"
         >
-          <div v-for="group in preferenceGroups" :key="group.label">
+          <div
+            v-for="group in preferenceGroups"
+            :key="group.label"
+            class="mt-5 first:mt-0"
+          >
             <p
-              class="mt-2 mb-1 px-4 text-[11px] font-semibold tracking-wide text-[var(--color-fg-subtle)] uppercase first:mt-0"
+              class="mb-1 px-4 text-[11px] font-semibold tracking-wide text-[var(--color-fg-subtle)] uppercase"
             >
               {{ group.label }}
             </p>
@@ -380,6 +417,9 @@ onUnmounted(() => document.removeEventListener('keydown', onKeydown))
                 >
                   Columns
                 </h3>
+                <p class="px-3 pb-1 text-[12px] text-[var(--color-fg-muted)]">
+                  Choose which optional columns are shown in the graph rows.
+                </p>
                 <SettingsRow
                   v-for="key in columnKeys"
                   :key="key"
@@ -389,10 +429,51 @@ onUnmounted(() => document.removeEventListener('keydown', onKeydown))
                   @update:model-value="ui.setColumnVisible(key, $event)"
                 />
               </section>
+              <section class="mt-5 space-y-0.5">
+                <div class="flex items-center justify-between gap-3 px-3 pb-1">
+                  <h3
+                    class="text-[11px] font-semibold tracking-wide text-[var(--color-fg-subtle)] uppercase"
+                  >
+                    Column widths
+                  </h3>
+                  <Button variant="secondary" size="sm" @click="ui.resetColumnWidths()">
+                    Reset widths
+                  </Button>
+                </div>
+                <p class="px-3 pb-1 text-[12px] text-[var(--color-fg-muted)]">
+                  Exact pixel widths, or drag the column edges in the graph header.
+                </p>
+                <div
+                  v-for="key in columnWidthKeys"
+                  :key="key"
+                  class="flex items-center justify-between gap-4 rounded-lg px-3 py-2 transition-colors hover:bg-[var(--color-hover)]"
+                >
+                  <div class="min-w-0">
+                    <div class="text-[13px] font-medium text-[var(--color-fg)]">
+                      {{ COLUMN_WIDTH_LABELS[key] }}
+                    </div>
+                    <p class="mt-0.5 text-[12px] leading-snug text-[var(--color-fg-muted)]">
+                      {{ columnWidthHint(key) }}
+                    </p>
+                  </div>
+                  <input
+                    type="number"
+                    class="focus-ring w-20 shrink-0 rounded-md border border-[var(--color-border)] bg-[var(--color-app)] px-2 py-1 text-right text-[13px] text-[var(--color-fg)]"
+                    :min="COLUMN_WIDTH_LIMITS[key].min"
+                    :max="COLUMN_WIDTH_LIMITS[key].max"
+                    :value="ui.columnWidths[key]"
+                    :aria-label="`${COLUMN_WIDTH_LABELS[key]} column width`"
+                    @change="
+                      onColumnWidth(key, Number(($event.target as HTMLInputElement).value))
+                    "
+                  />
+                </div>
+              </section>
             </template>
             <template v-else-if="activeCategory === 'sidebar'">
               <p class="mb-3 px-3 text-[12px] text-[var(--color-fg-muted)]">
-                Choose which sections are expanded in the branch sidebar.
+                Choose how each branch sidebar section is shown: expanded, collapsed to its header,
+                or hidden entirely.
               </p>
               <section class="space-y-0.5">
                 <h3
@@ -400,13 +481,14 @@ onUnmounted(() => document.removeEventListener('keydown', onKeydown))
                 >
                   Sections
                 </h3>
-                <SettingsRow
+                <SettingsSegmentedRow
                   v-for="key in sidebarSectionKeys"
                   :key="key"
                   :label="SECTION_LABELS[key]"
                   :description="sectionDescriptions[key]"
-                  :model-value="ui.isSectionOpen(key)"
-                  @update:model-value="ui.setSectionOpen(key, $event)"
+                  :model-value="ui.sectionState(key)"
+                  :options="sectionStateOptions"
+                  @update:model-value="onSectionState(key, $event)"
                 />
               </section>
             </template>

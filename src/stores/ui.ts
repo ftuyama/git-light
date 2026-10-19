@@ -24,6 +24,7 @@ import {
   type FileListView,
   type RepoTabPref,
   type SectionKey,
+  type SidebarSectionState,
   type UiMode,
   type UserPreferences,
 } from '@/lib/preferences'
@@ -311,8 +312,23 @@ export const useUiStore = defineStore('ui', {
     setColumnWidth(key: CommitColumnWidthKey, width: number): void {
       this.columnWidths[key] = clampColumnWidth(key, width)
     },
+    resetColumnWidths(): void {
+      this.columnWidths = { ...DEFAULT_COLUMN_WIDTHS }
+    },
     setSectionOpen(key: string, open: boolean): void {
       this.sections = { ...this.sections, [key]: open }
+    },
+    sectionState(key: string): SidebarSectionState {
+      if (!this.isSectionVisible(key)) return 'hidden'
+      return this.isSectionOpen(key) ? 'expanded' : 'collapsed'
+    },
+    setSectionState(key: string, state: SidebarSectionState): void {
+      if (state === 'hidden') {
+        this.setSectionVisible(key, false)
+        return
+      }
+      this.setSectionVisible(key, true)
+      this.setSectionOpen(key, state === 'expanded')
     },
     setLeftVisible(visible: boolean): void {
       this.leftCollapsed = !visible

@@ -33,6 +33,16 @@ export const SECTION_LABELS: Record<SectionKey, string> = {
 
 export const ADVANCED_SECTION_KEYS = ['tags', 'stashes', 'worktrees'] as const satisfies readonly SectionKey[]
 
+export type SidebarSectionState = 'expanded' | 'collapsed' | 'hidden'
+
+export const SIDEBAR_SECTION_STATES: readonly SidebarSectionState[] = ['expanded', 'collapsed', 'hidden']
+
+export const SIDEBAR_SECTION_STATE_LABELS: Record<SidebarSectionState, string> = {
+  expanded: 'Expanded',
+  collapsed: 'Collapsed',
+  hidden: 'Hidden',
+}
+
 export const DEFAULT_VISIBLE_SECTIONS: Record<SectionKey, boolean> = {
   favorites: true,
   localBranches: true,
@@ -218,6 +228,15 @@ export const DEFAULT_COLUMN_WIDTHS: CommitColumnWidths = {
   author: 96,
   sha: 56,
   when: 96,
+}
+
+export const COLUMN_WIDTH_LABELS: Record<CommitColumnWidthKey, string> = {
+  refs: 'Branch / tag',
+  graph: 'Graph',
+  commit: 'Commit',
+  author: 'Author',
+  sha: 'SHA',
+  when: 'When',
 }
 
 export const COLUMN_WIDTH_LIMITS: Record<CommitColumnWidthKey, { min: number; max: number }> = {

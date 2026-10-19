@@ -47,6 +47,46 @@ describe('sidebar section visibility', () => {
       expect(ui.isSectionVisible(key)).toBe(false)
     }
   })
+
+  it('derives a tri-state per section', () => {
+    const ui = useUiStore()
+    expect(ui.sectionState('tags')).toBe('collapsed')
+
+    ui.setSectionState('tags', 'expanded')
+    expect(ui.sectionState('tags')).toBe('expanded')
+
+    ui.setSectionState('tags', 'collapsed')
+    expect(ui.sectionState('tags')).toBe('collapsed')
+
+    ui.setSectionState('tags', 'hidden')
+    expect(ui.sectionState('tags')).toBe('hidden')
+    expect(ui.isSectionVisible('tags')).toBe(false)
+  })
+
+  it('restores the remembered open state when unhiding a section', () => {
+    const ui = useUiStore()
+    ui.setSectionState('localBranches', 'expanded')
+    ui.setSectionState('localBranches', 'hidden')
+    ui.setSectionState('localBranches', 'hidden')
+    expect(ui.sectionState('localBranches')).toBe('hidden')
+
+    ui.setSectionState('localBranches', 'expanded')
+    expect(ui.sectionState('localBranches')).toBe('expanded')
+  })
+})
+
+describe('commit graph column widths', () => {
+  it('clamps and resets widths', () => {
+    const ui = useUiStore()
+    ui.setColumnWidth('graph', 1)
+    expect(ui.columnWidths.graph).toBe(56)
+
+    ui.setColumnWidth('graph', 10_000)
+    expect(ui.columnWidths.graph).toBe(360)
+
+    ui.resetColumnWidths()
+    expect(ui.columnWidths.graph).toBe(300)
+  })
 })
 
 describe('auto sidebar toggle for diff view', () => {
