@@ -29,6 +29,7 @@
     "rust:test": "cargo test --manifest-path src-tauri/Cargo.toml",
     "check": "npm run typecheck && npm run test && npm run sync-version -- --check && npm run rust:clippy && npm run rust:fmt:check",
     "build": "vite build",
+    "site": "python3 -m http.server 4173 --directory docs",
     "preview": "vite preview",
     "typecheck": "vue-tsc --noEmit -p tsconfig.json --composite false",
     "sync-version": "node scripts/sync-version.mjs",

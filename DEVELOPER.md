@@ -31,6 +31,7 @@ VITE_USE_MOCK=true npm run dev
 | `npm run build:tauri` | Frontend build used by Tauri (`tauri.conf.json` `beforeBuildCommand`, outputs `dist/`) |
 | `npm run dist:tauri` | Full Tauri bundle (`tauri build`) |
 | `npm run preview` | Preview production build |
+| `npm run site` | Serve the website (`docs/`, GitHub Pages source) at http://localhost:4173 with Python's SimpleHTTPServer |
 | `npm run typecheck` | TypeScript check |
 | `npm run test` | Unit tests (graph layout, Tauri bridges, shared contracts) |
 | `npm run test:watch` | Run tests in watch mode |

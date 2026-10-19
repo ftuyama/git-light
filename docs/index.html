@@ -640,6 +640,17 @@
 
       .quick-install-code code::-webkit-scrollbar { display: none; }
 
+      .quick-install-code .command {
+        color: var(--accent);
+        font-weight: 600;
+      }
+
+      #quick-install-copy svg {
+        width: 14px;
+        height: 14px;
+        flex-shrink: 0;
+      }
+
       .quick-install-note {
         display: block;
         margin-top: 0.5rem;
@@ -1045,14 +1056,12 @@
           <div class="hero-actions">
             <a
               class="btn btn-primary"
-              href="https://github.com/ftuyama/git-light/releases"
-              target="_blank"
-              rel="noopener noreferrer"
+              href="#install"
             >
               <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
                 <path d="M12 2.25a.75.75 0 0 1 .75.75v11.69l3.22-3.22a.75.75 0 1 1 1.06 1.06l-4.5 4.5a.75.75 0 0 1-1.06 0l-4.5-4.5a.75.75 0 1 1 1.06-1.06l3.22 3.22V3a.75.75 0 0 1 .75-.75zm-9 13.5a.75.75 0 0 1 .75.75v2.25a1.5 1.5 0 0 0 1.5 1.5h13.5a1.5 1.5 0 0 0 1.5-1.5V16.5a.75.75 0 0 1 1.5 0v2.25a3 3 0 0 1-3 3H5.25a3 3 0 0 1-3-3V16.5a.75.75 0 0 1 .75-.75z"/>
               </svg>
-              Download latest release
+              Download
             </a>
             <a
               class="btn btn-ghost"
@@ -1239,15 +1248,18 @@
           <p class="section-sub">Free desktop app for macOS, Windows, and Linux — open source, no account required.</p>
           <div class="quick-install">
             <div class="quick-install-code">
-              <code id="quick-install-cmd">curl -fsSL https://raw.githubusercontent.com/ftuyama/git-light/main/scripts/install.sh | sh</code>
-              <button id="quick-install-copy" class="btn btn-ghost" type="button" aria-label="Copy install command">Copy</button>
+              <code id="quick-install-cmd"><span class="command">curl -fsSL</span> https://raw.githubusercontent.com/ftuyama/git-light/main/scripts/install.sh <span class="command">| sh</span></code>
+              <button id="quick-install-copy" class="btn btn-primary" type="button" aria-label="Copy install command">
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2" /><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" /></svg>
+                Copy
+              </button>
             </div>
-            <small class="quick-install-note">Recommended on macOS — installs to /Applications with no Gatekeeper prompts, and re-running it updates the app. Windows/Linux: use the buttons below or the guide.</small>
+            <small class="quick-install-note">Easy install with one command — no Gatekeeper prompts.</small>
           </div>
           <div class="os-downloads">
             <a
               id="dl-mac"
-              class="btn btn-primary os-btn"
+              class="btn btn-ghost os-btn"
               href="https://github.com/ftuyama/git-light/releases/latest"
               target="_blank"
               rel="noopener noreferrer"
@@ -1283,16 +1295,6 @@
                 <span class="os-label">Download for Linux</span>
                 <span class="os-sub">.AppImage · .deb</span>
               </span>
-            </a>
-          </div>
-          <div class="download-actions">
-            <a
-              class="btn btn-ghost"
-              href="https://github.com/ftuyama/git-light/releases"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              All releases
             </a>
           </div>
           <div class="install-guide">
@@ -1350,18 +1352,22 @@ xattr -dr com.apple.quarantine "/Applications/Git Light.app"</code></pre>
                 </div>
               </div>
             </details>
-          </div>
-          </div>
-
-          <h2 style="margin-top: 3rem">Build from source</h2>
-          <p class="section-sub">Clone the repo, install dependencies, and launch in development mode.</p>
-          <div class="install-box">
-            <div class="install-header">terminal</div>
-            <pre><span class="comment"># Clone and run</span>
+            <details class="guide" name="install-guide">
+              <summary>All releases</summary>
+              <div class="guide-body">
+                <p>Past versions, checksums and platform-specific installers (.dmg, .exe, .msi, .AppImage, .deb, .rpm) live on the <a href="https://github.com/ftuyama/git-light/releases" target="_blank" rel="noopener noreferrer"><strong>GitHub Releases page</strong></a>.</p>
+              </div>
+            </details>
+          <details class="guide" name="install-guide">
+            <summary>Build from source</summary>
+            <div class="guide-body">
+              <pre><span class="comment"># Clone and run</span>
 <span class="cmd">git clone</span> https://github.com/ftuyama/git-light.git
 <span class="cmd">cd</span> git-light
 <span class="cmd">npm install</span>
 <span class="cmd">npm run dev</span></pre>
+            </div>
+          </details>
           </div>
         </div>
       </section>
