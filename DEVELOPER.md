@@ -30,6 +30,7 @@ VITE_USE_MOCK=true npm run dev
 | `npm run build` | Frontend-only production build (`dist/`, web preview) |
 | `npm run build:tauri` | Frontend build used by Tauri (`tauri.conf.json` `beforeBuildCommand`, outputs `dist/`) |
 | `npm run dist:tauri` | Full Tauri bundle (`tauri build`) |
+| `npm run icons` | Regenerate app icons (`src-tauri/icons/`) from `docs/icon.svg` via the [icon manifest](src-tauri/app-icon.json) |
 | `npm run preview` | Preview production build |
 | `npm run site` | Serve the website (`docs/`, GitHub Pages source) at http://localhost:4173 with Python's SimpleHTTPServer |
 | `npm run typecheck` | TypeScript check |

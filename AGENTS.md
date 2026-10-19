@@ -12,6 +12,7 @@ Frontend (Node 20+):
 - `npm run test` — `vitest run`
 - `npm run sync-version` — syncs version to `package-lock.json`, `docs/`, `src-tauri/Cargo.toml`, `src-tauri/tauri.conf.json`
 - `npm run sync-version -- --check` — check only, writes nothing
+- `npm run icons` — regenerate `src-tauri/icons/` from `docs/icon.svg` (source of truth) + `src-tauri/app-icon.json` manifest; never edit icon binaries by hand
 
 Backend (Rust):
 
@@ -34,7 +35,7 @@ Check before commit/release: `npm run typecheck`, `npm run test`, `cargo clippy`
 - New Tauri commands: `#[tauri::command]` in a dedicated module + register in `generate_handler!` in `main.rs` + typed wrapper in `src/lib/tauri/`. Never `Command::new` with interpolated strings in the frontend; argv arrays in Rust.
 - Rust errors: return `Result<T, GitError>` (`git::GitError`), not a bare `String`, except UI helpers.
 - Version: edit only `package.json`, then run `npm run sync-version`. Never edit `Cargo.toml`/`tauri.conf.json`/`docs/*/version` manually.
-- Do not edit generated output: `src-tauri/gen/`, `src-tauri/target/`, `dist/`, `out/`, `node_modules/`.
+- Do not edit generated output: `src-tauri/gen/`, `src-tauri/target/`, `src-tauri/icons/`, `dist/`, `out/`, `node_modules/`.
 - Rust tests in `#[cfg(test)]` in the same module; parser/git tests in `vitest` in the frontend.
 
 ## Docs

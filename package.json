@@ -21,6 +21,7 @@
     "dev:tauri": "vite --port 1420",
     "build:tauri": "vite build",
     "tauri": "tauri",
+    "icons": "tauri icon src-tauri/app-icon.json",
     "dist:tauri": "tauri build",
     "rust:check": "cargo check --manifest-path src-tauri/Cargo.toml",
     "rust:clippy": "cargo clippy --manifest-path src-tauri/Cargo.toml -- -D warnings",
