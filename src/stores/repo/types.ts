@@ -16,6 +16,14 @@ export type AppScreen = 'startup' | 'main'
 export interface RepositoryState {
   screen: AppScreen
   loading: boolean
+  /**
+   * Repository a switch is loading right now. A cold tab switch leaves the
+   * outgoing repository in `repository` until its snapshot lands, which would
+   * show the wrong repo for the whole round-trip; the UI renders a loading
+   * skeleton while this is set instead. Null when no switch is in flight (a
+   * first open stays on StartupView, which has its own busy state).
+   */
+  pendingRepoPath: string | null
   refreshing: boolean
   branchSwitching: boolean
   repository: Repository | null

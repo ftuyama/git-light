@@ -80,6 +80,21 @@ export const useRepoTabsStore = defineStore('repoTabs', {
       return next?.path ?? null
     },
 
+    /** Reorder a tab relative to another tab. Unknown paths and self-drops are ignored. */
+    moveTab(fromPath: string, toPath: string, position: 'before' | 'after'): void {
+      if (fromPath === toPath) return
+      const fromIndex = this.tabs.findIndex((tab) => tab.path === fromPath)
+      const toIndex = this.tabs.findIndex((tab) => tab.path === toPath)
+      if (fromIndex === -1 || toIndex === -1) return
+
+      const [moved] = this.tabs.splice(fromIndex, 1)
+      if (!moved) return
+      let insertIndex = fromIndex < toIndex ? toIndex - 1 : toIndex
+      if (position === 'after') insertIndex += 1
+      this.tabs.splice(insertIndex, 0, moved)
+      this.persist()
+    },
+
     /** Pop the most recently closed tab (browser-style restore). */
     reopenLastClosed(): RepoTab | null {
       const tab = this.closedStack.pop() ?? null

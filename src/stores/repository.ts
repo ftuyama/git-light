@@ -10,6 +10,7 @@ export const useRepositoryStore = defineStore('repository', {
   state: (): RepositoryState => ({
     screen: 'startup',
     loading: false,
+    pendingRepoPath: null,
     refreshing: false,
     branchSwitching: false,
     repository: null,

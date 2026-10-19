@@ -47,6 +47,31 @@ describe('repo tabs cycling and restore', () => {
     expect(tabs.reopenLastClosed()).toBeNull()
   })
 
+  it('reorders tabs relative to another tab', () => {
+    seedTabs(['/a', '/b', '/c'])
+    const tabs = useRepoTabsStore()
+
+    tabs.moveTab('/a', '/c', 'after')
+    expect(tabs.tabs.map((tab) => tab.path)).toEqual(['/b', '/c', '/a'])
+
+    tabs.moveTab('/a', '/b', 'before')
+    expect(tabs.tabs.map((tab) => tab.path)).toEqual(['/a', '/b', '/c'])
+
+    tabs.moveTab('/c', '/a', 'before')
+    expect(tabs.tabs.map((tab) => tab.path)).toEqual(['/c', '/a', '/b'])
+  })
+
+  it('ignores unknown paths and self-drops when reordering', () => {
+    seedTabs(['/a', '/b'])
+    const tabs = useRepoTabsStore()
+
+    tabs.moveTab('/a', '/a', 'after')
+    tabs.moveTab('/missing', '/a', 'before')
+    tabs.moveTab('/a', '/missing', 'after')
+
+    expect(tabs.tabs.map((tab) => tab.path)).toEqual(['/a', '/b'])
+  })
+
   it('does not duplicate a restored tab that is already open', () => {
     seedTabs(['/a'])
     const tabs = useRepoTabsStore()

@@ -143,6 +143,7 @@ App.vue
 ├── StartupView          (no repo open: open/recent + CloneDialog + InitDialog + folder discovery)
 └── main view
     ├── RepoTabs         multi-repo tab bar + repo switcher (reopen closed, cycle, jump-to-index)
+    ├── RepoLoadingSkeleton  cold tab switch: three-pane skeleton (delayed 120ms) until the snapshot lands
     ├── Toolbar          remote/history actions, open external terminal
     ├── OperationBanner  merge/rebase/cherry-pick/revert in progress
     ├── SidebarRail      expand affordance when left/right pane collapsed

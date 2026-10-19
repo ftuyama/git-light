@@ -12,6 +12,7 @@ import StatusBar from '@/features/status-bar/StatusBar.vue'
 import SidebarRail from '@/features/layout/SidebarRail.vue'
 import ToastViewport from '@/features/layout/ToastViewport.vue'
 import StartupView from '@/features/startup/StartupView.vue'
+import RepoLoadingSkeleton from '@/features/layout/RepoLoadingSkeleton.vue'
 import OperationBanner from '@/features/layout/OperationBanner.vue'
 import PromptHost from '@/features/layout/PromptHost.vue'
 import CommandPalette from '@/features/palette/CommandPalette.vue'
@@ -37,6 +38,8 @@ import { useRepoTabsStore } from '@/stores/repoTabs'
 import { useToastStore } from '@/stores/toast'
 import { useKeyboardShortcuts, type ShortcutHandler } from '@/composables/useKeyboardShortcuts'
 import { COMMAND_META, type CommandId } from '@/lib/keybindings'
+import { sameRepoPath } from '@/lib/git/repoPath'
+import { useDelayedFlag } from '@/composables/useDelayedFlag'
 import { useCommitGraphZoom } from '@/features/commit-graph/composables/useCommitGraphZoom'
 
 const ui = useUiStore()
@@ -48,7 +51,7 @@ const toast = useToastStore()
 const graphZoom = useCommitGraphZoom()
 const { leftSize, rightSize, leftCollapsed, rightCollapsed, leftCollapseHint, rightCollapseHint, suppressPaneAnimation } =
   storeToRefs(ui)
-const { screen } = storeToRefs(repo)
+const { screen, pendingRepoPath, loading: repoLoading } = storeToRefs(repo)
 
 const branchSidebar = ref<InstanceType<typeof BranchSidebar>>()
 
@@ -73,6 +76,26 @@ const showBlameOverlay = computed(
     Boolean(diffStore.selectedFilePath) &&
     !diffStore.selectedFileIsConflicted,
 )
+
+/**
+ * A cold tab switch keeps the outgoing repository in the store until the new
+ * snapshot lands, so cover the panes with a skeleton for that round-trip — but
+ * only once it has been slow enough to notice, or fast switches would flash
+ * (see `useDelayedFlag`). Cached switches paint instantly and never get here.
+ */
+const showRepoSwitchSkeleton = useDelayedFlag(
+  computed(() => pendingRepoPath.value !== null && repoLoading.value),
+)
+
+const switchingRepoName = computed(() => {
+  const path = pendingRepoPath.value
+  if (!path) return undefined
+  return (
+    tabsStore.tabs.find((tab) => sameRepoPath(tab.path, path))?.name ??
+    path.split('/').filter(Boolean).pop() ??
+    path
+  )
+})
 
 const isFileDiffActive = computed(() => diffStore.selectedFilePath !== null)
 
@@ -198,47 +221,52 @@ useKeyboardShortcuts(dynamicShortcuts)
     <template v-else>
     <div class="flex h-screen w-screen flex-col overflow-hidden bg-[var(--color-app)]">
       <RepoTabs />
-      <Toolbar />
       <OperationBanner />
 
-      <div class="relative flex min-h-0 flex-1">
-        <SidebarRail v-if="leftCollapsed" side="left" @expand="ui.toggleLeft()" />
+      <RepoLoadingSkeleton v-if="showRepoSwitchSkeleton" :repo-name="switchingRepoName" />
 
-        <Splitpanes
-          class="min-w-0 flex-1"
-          :class="{
-            'splitpanes--collapse-hint-left': leftCollapseHint,
-            'splitpanes--collapse-hint-right': rightCollapseHint,
-            'splitpanes--instant': suppressPaneAnimation,
-          }"
-          @resize="onResize"
-          @resized="onResized"
-        >
-          <Pane
-            v-if="!leftCollapsed"
-            :size="leftSize"
-            :min-size="LEFT_SIDEBAR_COLLAPSE_SIZE"
-            :max-size="LEFT_SIDEBAR_SIZE_MAX"
+      <template v-else>
+        <Toolbar />
+
+        <div class="relative flex min-h-0 flex-1">
+          <SidebarRail v-if="leftCollapsed" side="left" @expand="ui.toggleLeft()" />
+
+          <Splitpanes
+            class="min-w-0 flex-1"
+            :class="{
+              'splitpanes--collapse-hint-left': leftCollapseHint,
+              'splitpanes--collapse-hint-right': rightCollapseHint,
+              'splitpanes--instant': suppressPaneAnimation,
+            }"
+            @resize="onResize"
+            @resized="onResized"
           >
-            <BranchSidebar ref="branchSidebar" />
-          </Pane>
-          <Pane :size="centerSize" :min-size="30">
-            <CommitGraph />
-          </Pane>
-          <Pane
-            v-if="!rightCollapsed"
-            :size="rightSize"
-            :min-size="RIGHT_SIDEBAR_COLLAPSE_SIZE"
-            :max-size="RIGHT_SIDEBAR_SIZE_MAX"
-          >
-            <WorkingTreePanel />
-          </Pane>
-        </Splitpanes>
+            <Pane
+              v-if="!leftCollapsed"
+              :size="leftSize"
+              :min-size="LEFT_SIDEBAR_COLLAPSE_SIZE"
+              :max-size="LEFT_SIDEBAR_SIZE_MAX"
+            >
+              <BranchSidebar ref="branchSidebar" />
+            </Pane>
+            <Pane :size="centerSize" :min-size="30">
+              <CommitGraph />
+            </Pane>
+            <Pane
+              v-if="!rightCollapsed"
+              :size="rightSize"
+              :min-size="RIGHT_SIDEBAR_COLLAPSE_SIZE"
+              :max-size="RIGHT_SIDEBAR_SIZE_MAX"
+            >
+              <WorkingTreePanel />
+            </Pane>
+          </Splitpanes>
 
-        <SidebarRail v-if="rightCollapsed" side="right" @expand="ui.toggleRight()" />
+          <SidebarRail v-if="rightCollapsed" side="right" @expand="ui.toggleRight()" />
 
-        <BlameOverlay v-if="showBlameOverlay" />
-      </div>
+          <BlameOverlay v-if="showBlameOverlay" />
+        </div>
+      </template>
 
       <GitOutputDrawer />
       <StatusBar />

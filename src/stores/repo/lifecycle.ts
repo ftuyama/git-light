@@ -140,6 +140,11 @@ export const lifecycleActions = {
 
   async switchRepository(this: LifecycleStore, path: string): Promise<boolean> {
     if (sameRepoPath(this.repository?.path, path)) {
+      // Re-selecting the repository that is already on screen: show it as-is
+      // and abandon any switch still in flight — it would otherwise paint
+      // itself over this tab (and leave its skeleton up) when it lands.
+      ++switchToken
+      this.pendingRepoPath = null
       useRepoTabsStore().setActive(path)
       return true
     }
@@ -147,6 +152,9 @@ export const lifecycleActions = {
     // Claim the newest-switch token up front: only the latest switch may
     // write to the store once a backend round-trip completes.
     const token = ++switchToken
+    // Any switch supersedes the skeleton of a slower one still in flight (a
+    // cached tab paints instantly, so nothing should stay covered).
+    this.pendingRepoPath = null
 
     const cache = useRepoTabCacheStore()
     // Best-effort: a cache failure must never break switching tabs. Save
@@ -173,8 +181,22 @@ export const lifecycleActions = {
     this.resetCommitBox()
     this.searchOpen = false
 
+    // The clicked tab is the one the user asked for: highlight it (and let the
+    // loading skeleton name it) before the snapshot lands, so the tab bar never
+    // points at the repository being replaced. Reverted on failure, but only
+    // while this switch is still the newest one — `loading` is set by any newer
+    // cold switch, and a newer cached one re-points the highlight itself.
+    const tabs = useRepoTabsStore()
+    const previousActive = tabs.activePath
+    tabs.setActive(path)
+
     // User-initiated: report failures instead of staying silent.
-    return this.openRepository(path)
+    const ok = await this.openRepository(path)
+    // `setActive` ignores paths without a tab, and the tab being left (or the
+    // repository still in the store) is the right place to fall back to.
+    const revertTo = previousActive ?? this.repository?.path
+    if (!ok && !this.loading && tabs.activePath === path && revertTo) tabs.setActive(revertTo)
+    return ok
   },
 
   /**
@@ -241,7 +263,8 @@ export const lifecycleActions = {
     const toast = useToastStore()
     const token = ++switchToken
     const previousPath = this.repository?.path
-    if (previousPath && !sameRepoPath(previousPath, path)) {
+    const isSwitch = Boolean(previousPath && !sameRepoPath(previousPath, path))
+    if (isSwitch) {
       try {
         useRepoTabCacheStore().save(this)
       } catch (err) {
@@ -252,9 +275,19 @@ export const lifecycleActions = {
       this.searchOpen = false
     }
     this.loading = true
+    // A switch keeps the outgoing repository in the store until the snapshot
+    // lands; `pendingRepoPath` is what the UI turns into a loading skeleton
+    // instead of painting that stale repository for the round-trip.
+    if (isSwitch) this.pendingRepoPath = path
     let result: { ok: boolean; data?: RepositoryData; message: string }
     try {
-      result = await gitService.openRepository(path, graphSnapshotOptions())
+      const opening = gitService.openRepository(path, graphSnapshotOptions())
+      // A switch leaves the backend serving the previous repository until
+      // `git_open_repo` lands. Hold repo-scoped commands (diff, blame, and
+      // destructive actions above all) for that round-trip, exactly like a
+      // cached switch holds them for `git_activate_repo`.
+      if (isSwitch) markBackendRepoPending(opening)
+      result = await opening
     } catch (err) {
       console.error('[git-light] open repository failed:', err)
       this.loading = false
@@ -262,6 +295,11 @@ export const lifecycleActions = {
       if (switchToken !== token) return false
       if (!options?.silent) toast.push(`Could not open ${path}.`, 'error')
       return false
+    } finally {
+      // The flag names the path this call is loading, so clearing it here (not
+      // behind the token guard) means a switch that got superseded still drops
+      // its own skeleton instead of covering the tab the user moved on to.
+      if (this.pendingRepoPath === path) this.pendingRepoPath = null
     }
     this.loading = false
     if (!result.ok || !result.data) {
@@ -403,6 +441,10 @@ export const lifecycleActions = {
 
   async closeRepository(this: LifecycleStore): Promise<void> {
     this.stopAutoFetch()
+    // Invalidate any open/switch still in flight: its result must not repaint
+    // a repository the user has just closed.
+    ++switchToken
+    this.pendingRepoPath = null
     await gitService.closeRepository()
     this.repository = null
     this.commits = []

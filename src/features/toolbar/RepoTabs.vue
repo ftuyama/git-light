@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Folder, FolderGit2, Plus, X } from '@lucide/vue'
 import { storeToRefs } from 'pinia'
+import { ref } from 'vue'
 import DropdownMenu from '@/components/ui/DropdownMenu.vue'
 import IconButton from '@/components/ui/IconButton.vue'
 import AppSettingsMenu from '@/features/settings/AppSettingsMenu.vue'
@@ -15,7 +16,55 @@ const tabsStore = useRepoTabsStore()
 const { repoMenu } = useRepoMenu()
 const { tabs, activePath } = storeToRefs(tabsStore)
 
+const TAB_DRAG_MIME = 'application/x-git-light-repo-tab'
+const draggingPath = ref<string | null>(null)
+const dropTarget = ref<{ path: string; position: 'before' | 'after' } | null>(null)
+let suppressClick = false
+
+function resetTabDrag(): void {
+  draggingPath.value = null
+  dropTarget.value = null
+  // Swallow the click some browsers emit right after a drag gesture.
+  window.setTimeout(() => {
+    suppressClick = false
+  }, 0)
+}
+
+function onTabDragStart(path: string, event: DragEvent): void {
+  draggingPath.value = path
+  suppressClick = true
+  if (event.dataTransfer) {
+    event.dataTransfer.effectAllowed = 'move'
+    event.dataTransfer.setData(TAB_DRAG_MIME, path)
+  }
+}
+
+function onTabDragOver(path: string, event: DragEvent): void {
+  if (!draggingPath.value || draggingPath.value === path) return
+  event.preventDefault()
+  if (event.dataTransfer) event.dataTransfer.dropEffect = 'move'
+  const rect = (event.currentTarget as HTMLElement).getBoundingClientRect()
+  const position = event.clientX < rect.left + rect.width / 2 ? 'before' : 'after'
+  dropTarget.value = { path, position }
+}
+
+function onTabDragLeave(path: string, event: DragEvent): void {
+  const current = event.currentTarget as HTMLElement
+  const related = event.relatedTarget as Node | null
+  if (related && current.contains(related)) return
+  if (dropTarget.value?.path === path) dropTarget.value = null
+}
+
+function onTabDrop(path: string, event: DragEvent): void {
+  event.preventDefault()
+  const fromPath = draggingPath.value ?? event.dataTransfer?.getData(TAB_DRAG_MIME) ?? null
+  const position = dropTarget.value?.path === path ? dropTarget.value.position : 'before'
+  if (fromPath) tabsStore.moveTab(fromPath, path, position)
+  resetTabDrag()
+}
+
 async function selectTab(path: string): Promise<void> {
+  if (suppressClick) return
   if (path === activePath.value) return
   try {
     const ok = await repo.switchRepository(path)
@@ -68,19 +117,36 @@ function openNewRepository(): void {
           role="tab"
           :aria-selected="tab.path === activePath"
           :title="tab.path"
+          draggable="true"
           class="app-no-drag focus-ring group relative flex h-8 max-w-[220px] shrink-0 items-center gap-2 rounded-t border px-3 text-xs transition-colors"
-          :class="
+          :class="[
             tab.path === activePath
               ? 'border-[var(--color-border)] border-b-[var(--color-panel)] bg-[var(--color-panel)] text-[var(--color-fg)]'
-              : 'border-transparent text-[var(--color-fg-muted)] hover:border-[var(--color-border)] hover:bg-[var(--color-hover)] hover:text-[var(--color-fg)]'
-          "
+              : 'border-transparent text-[var(--color-fg-muted)] hover:border-[var(--color-border)] hover:bg-[var(--color-hover)] hover:text-[var(--color-fg)]',
+            draggingPath === tab.path ? 'opacity-50' : '',
+          ]"
           @click="selectTab(tab.path)"
           @auxclick.prevent="closeTab(tab.path, $event)"
           @pointerenter="preloadTabInBackground(tab.path)"
+          @dragstart="onTabDragStart(tab.path, $event)"
+          @dragover="onTabDragOver(tab.path, $event)"
+          @dragleave="onTabDragLeave(tab.path, $event)"
+          @drop="onTabDrop(tab.path, $event)"
+          @dragend="resetTabDrag"
         >
           <span
             v-if="tab.path === activePath"
             class="absolute inset-x-0 top-0 h-px bg-[var(--color-accent)]"
+            aria-hidden="true"
+          />
+          <span
+            v-if="dropTarget?.path === tab.path && dropTarget.position === 'before'"
+            class="pointer-events-none absolute inset-y-0 -left-px w-0.5 rounded bg-[var(--color-accent)]"
+            aria-hidden="true"
+          />
+          <span
+            v-if="dropTarget?.path === tab.path && dropTarget.position === 'after'"
+            class="pointer-events-none absolute inset-y-0 -right-px w-0.5 rounded bg-[var(--color-accent)]"
             aria-hidden="true"
           />
           <FolderGit2

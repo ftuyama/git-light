@@ -37,6 +37,7 @@ vi.mock('@/lib/git', () => ({
       if (!fakeBackend.refreshSnapshotImpl) throw new Error('no refreshSnapshot impl set')
       return fakeBackend.refreshSnapshotImpl(scopes)
     },
+    closeRepository: async () => {},
   },
 }))
 
@@ -137,6 +138,122 @@ describe('tab switching (switchRepository)', () => {
     await new Promise((resolve) => setTimeout(resolve, 0))
     expect(repo.repository?.path).toBe('/repo-a')
     expect(tabs.activePath).toBe('/repo-a')
+  })
+
+  it('flags the incoming repository while a cold switch loads', async () => {
+    const repo = useRepositoryStore()
+    const tabs = useRepoTabsStore()
+    await openRepo('/repo-a')
+    tabs.addTab('/repo-b', 'repo-b')
+    tabs.setActive('/repo-a')
+    useRepoTabCacheStore().remove('/repo-b')
+
+    let resolveOpen: ((result: { ok: boolean; data?: RepositoryData; message: string }) => void) | undefined
+    fakeBackend.openRepositoryImpl = () =>
+      new Promise((resolve) => {
+        resolveOpen = resolve
+      })
+
+    const switching = repo.switchRepository('/repo-b')
+    await new Promise((resolve) => setTimeout(resolve, 0))
+
+    // `pendingRepoPath` is what the UI turns into the loading skeleton; the tab
+    // bar already points at the requested tab so both agree while loading.
+    expect(repo.pendingRepoPath).toBe('/repo-b')
+    expect(tabs.activePath).toBe('/repo-b')
+
+    resolveOpen?.({ ok: true, data: repoData('/repo-b', 'repo-b'), message: 'Opened /repo-b' })
+    await expect(switching).resolves.toBe(true)
+
+    expect(repo.pendingRepoPath).toBeNull()
+    expect(repo.repository?.path).toBe('/repo-b')
+  })
+
+  it('clears the skeleton flag and restores the previous tab when a cold switch fails', async () => {
+    const repo = useRepositoryStore()
+    const tabs = useRepoTabsStore()
+    await openRepo('/repo-a')
+    tabs.addTab('/broken', 'broken')
+    tabs.setActive('/repo-a')
+    useRepoTabCacheStore().remove('/broken')
+    fakeBackend.openRepositoryImpl = async () => ({ ok: false, message: 'nope' })
+
+    await expect(repo.switchRepository('/broken')).resolves.toBe(false)
+
+    expect(repo.pendingRepoPath).toBeNull()
+    expect(tabs.activePath).toBe('/repo-a')
+    expect(repo.repository?.path).toBe('/repo-a')
+  })
+
+  it('drops the skeleton when a cached switch supersedes an in-flight cold switch', async () => {
+    const repo = useRepositoryStore()
+    const tabs = useRepoTabsStore()
+    await openRepo('/repo-a')
+    tabs.addTab('/repo-b', 'repo-b')
+    tabs.setActive('/repo-a')
+    useRepoTabCacheStore().remove('/repo-b')
+
+    let resolveOpen: ((result: { ok: boolean; data?: RepositoryData; message: string }) => void) | undefined
+    fakeBackend.openRepositoryImpl = () =>
+      new Promise((resolve) => {
+        resolveOpen = resolve
+      })
+
+    const cold = repo.switchRepository('/repo-b')
+    await new Promise((resolve) => setTimeout(resolve, 0))
+    expect(repo.pendingRepoPath).toBe('/repo-b')
+
+    // The user moves on to an already-cached tab before the slow one lands.
+    await expect(repo.switchRepository('/repo-a')).resolves.toBe(true)
+    expect(repo.pendingRepoPath).toBeNull()
+
+    // The abandoned cold open must not resurrect the skeleton afterwards.
+    resolveOpen?.({ ok: true, data: repoData('/repo-b', 'repo-b'), message: 'Opened /repo-b' })
+    await cold
+    expect(repo.pendingRepoPath).toBeNull()
+    expect(repo.repository?.path).toBe('/repo-a')
+  })
+
+  it('clears the skeleton and ignores the result when the repo is closed mid-switch', async () => {
+    const repo = useRepositoryStore()
+    const tabs = useRepoTabsStore()
+    await openRepo('/repo-a')
+    tabs.addTab('/repo-b', 'repo-b')
+    tabs.setActive('/repo-a')
+    useRepoTabCacheStore().remove('/repo-b')
+
+    let resolveOpen: ((result: { ok: boolean; data?: RepositoryData; message: string }) => void) | undefined
+    fakeBackend.openRepositoryImpl = () =>
+      new Promise((resolve) => {
+        resolveOpen = resolve
+      })
+
+    const cold = repo.switchRepository('/repo-b')
+    await new Promise((resolve) => setTimeout(resolve, 0))
+    expect(repo.pendingRepoPath).toBe('/repo-b')
+
+    await repo.closeRepository()
+    expect(repo.pendingRepoPath).toBeNull()
+
+    resolveOpen?.({ ok: true, data: repoData('/repo-b', 'repo-b'), message: 'Opened /repo-b' })
+    await cold
+    // The closed repository must not come back from the abandoned open.
+    expect(repo.pendingRepoPath).toBeNull()
+    expect(repo.repository).toBeNull()
+    expect(repo.screen).toBe('startup')
+  })
+
+  it('never flags a cached tab: it paints the snapshot before returning', async () => {
+    const repo = useRepositoryStore()
+    await openRepo('/repo-a')
+    await openRepo('/repo-b')
+
+    const switching = repo.switchRepository('/repo-a')
+
+    // Painted synchronously — no skeleton, not even for one tick.
+    expect(repo.repository?.path).toBe('/repo-a')
+    expect(repo.pendingRepoPath).toBeNull()
+    await expect(switching).resolves.toBe(true)
   })
 
   it('returns false instead of throwing when the backend reports failure', async () => {
