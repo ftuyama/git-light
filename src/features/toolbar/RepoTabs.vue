@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import { Folder, FolderGit2, Plus, X } from '@lucide/vue'
 import { storeToRefs } from 'pinia'
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import DropdownMenu from '@/components/ui/DropdownMenu.vue'
 import IconButton from '@/components/ui/IconButton.vue'
 import AppSettingsMenu from '@/features/settings/AppSettingsMenu.vue'
 import { useRepoMenu } from '@/features/toolbar/useRepoMenu'
 import { useRepositoryStore } from '@/stores/repository'
-import { useRepoTabsStore } from '@/stores/repoTabs'
+import { useRepoTabsStore, type RepoTab } from '@/stores/repoTabs'
 import { preloadTabInBackground } from '@/stores/repo/tabPreload'
 import { useToastStore } from '@/stores/toast'
 
@@ -16,51 +16,99 @@ const tabsStore = useRepoTabsStore()
 const { repoMenu } = useRepoMenu()
 const { tabs, activePath } = storeToRefs(tabsStore)
 
-const TAB_DRAG_MIME = 'application/x-git-light-repo-tab'
+const tabsRow = ref<HTMLElement | null>(null)
 const draggingPath = ref<string | null>(null)
-const dropTarget = ref<{ path: string; position: 'before' | 'after' } | null>(null)
+const dragOrder = ref<RepoTab[] | null>(null)
+const displayTabs = computed(() => dragOrder.value ?? tabs.value)
 let suppressClick = false
+let dragStart: { path: string; x: number; y: number } | null = null
 
-function resetTabDrag(): void {
-  draggingPath.value = null
-  dropTarget.value = null
-  // Swallow the click some browsers emit right after a drag gesture.
-  window.setTimeout(() => {
-    suppressClick = false
-  }, 0)
-}
+/** Reorder the live preview so the dragged tab follows the pointer. */
+function previewOrder(path: string, clientX: number): void {
+  const order = dragOrder.value
+  const row = tabsRow.value
+  if (!order || !row) return
 
-function onTabDragStart(path: string, event: DragEvent): void {
-  draggingPath.value = path
-  suppressClick = true
-  if (event.dataTransfer) {
-    event.dataTransfer.effectAllowed = 'move'
-    event.dataTransfer.setData(TAB_DRAG_MIME, path)
+  const dragged = order.find((tab) => tab.path === path)
+  if (!dragged) return
+  const others = order.filter((tab) => tab.path !== path)
+
+  const rects = new Map<string, DOMRect>()
+  for (const el of row.querySelectorAll<HTMLElement>('[data-repo-tab]')) {
+    const key = el.dataset.repoTab
+    if (key) rects.set(key, el.getBoundingClientRect())
   }
+
+  let insertIndex = others.length
+  for (let index = 0; index < others.length; index += 1) {
+    const rect = rects.get(others[index].path)
+    if (rect && clientX < rect.left + rect.width / 2) {
+      insertIndex = index
+      break
+    }
+  }
+
+  if (insertIndex === order.findIndex((tab) => tab.path === path)) return
+  const next = [...others]
+  next.splice(insertIndex, 0, dragged)
+  dragOrder.value = next
 }
 
-function onTabDragOver(path: string, event: DragEvent): void {
-  if (!draggingPath.value || draggingPath.value === path) return
+function autoScroll(clientX: number): void {
+  const row = tabsRow.value
+  if (!row) return
+  const rect = row.getBoundingClientRect()
+  const edge = 32
+  if (clientX < rect.left + edge) row.scrollLeft -= 12
+  else if (clientX > rect.right - edge) row.scrollLeft += 12
+}
+
+function onTabMouseDown(path: string, event: MouseEvent): void {
+  if (event.button !== 0) return
+  if ((event.target as HTMLElement | null)?.closest('[data-tab-close]')) return
+
+  dragStart = { path, x: event.clientX, y: event.clientY }
+  document.addEventListener('mousemove', onTabMouseMove)
+  document.addEventListener('mouseup', onTabMouseUp)
+}
+
+function onTabMouseMove(event: MouseEvent): void {
+  const start = dragStart
+  if (!start) return
+
+  if (!draggingPath.value) {
+    if (Math.hypot(event.clientX - start.x, event.clientY - start.y) < 5) return
+    draggingPath.value = start.path
+    dragOrder.value = tabs.value.map((tab) => ({ ...tab }))
+    suppressClick = true
+    document.body.style.cursor = 'grabbing'
+    document.body.style.userSelect = 'none'
+  }
+
   event.preventDefault()
-  if (event.dataTransfer) event.dataTransfer.dropEffect = 'move'
-  const rect = (event.currentTarget as HTMLElement).getBoundingClientRect()
-  const position = event.clientX < rect.left + rect.width / 2 ? 'before' : 'after'
-  dropTarget.value = { path, position }
+  previewOrder(start.path, event.clientX)
+  autoScroll(event.clientX)
 }
 
-function onTabDragLeave(path: string, event: DragEvent): void {
-  const current = event.currentTarget as HTMLElement
-  const related = event.relatedTarget as Node | null
-  if (related && current.contains(related)) return
-  if (dropTarget.value?.path === path) dropTarget.value = null
-}
+function onTabMouseUp(): void {
+  document.removeEventListener('mousemove', onTabMouseMove)
+  document.removeEventListener('mouseup', onTabMouseUp)
 
-function onTabDrop(path: string, event: DragEvent): void {
-  event.preventDefault()
-  const fromPath = draggingPath.value ?? event.dataTransfer?.getData(TAB_DRAG_MIME) ?? null
-  const position = dropTarget.value?.path === path ? dropTarget.value.position : 'before'
-  if (fromPath) tabsStore.moveTab(fromPath, path, position)
-  resetTabDrag()
+  const wasDragging = draggingPath.value != null
+  const order = dragOrder.value
+  dragStart = null
+  draggingPath.value = null
+  dragOrder.value = null
+  document.body.style.cursor = ''
+  document.body.style.userSelect = ''
+
+  if (wasDragging && order) {
+    tabsStore.reorderTabs(order.map((tab) => tab.path))
+    // Swallow the click browsers emit right after a drag gesture.
+    window.setTimeout(() => {
+      suppressClick = false
+    }, 0)
+  }
 }
 
 async function selectTab(path: string): Promise<void> {
@@ -106,47 +154,34 @@ function openNewRepository(): void {
       </DropdownMenu>
 
       <div
+        ref="tabsRow"
         class="flex min-w-0 items-start gap-1 overflow-x-auto"
         role="tablist"
         aria-label="Open repositories"
       >
         <button
-          v-for="tab in tabs"
+          v-for="tab in displayTabs"
           :key="tab.path"
           type="button"
           role="tab"
           :aria-selected="tab.path === activePath"
           :title="tab.path"
-          draggable="true"
-          class="app-no-drag focus-ring group relative flex h-8 max-w-[220px] shrink-0 items-center gap-2 rounded-t border px-3 text-xs transition-colors"
+          :data-repo-tab="tab.path"
+          class="app-no-drag focus-ring group relative flex h-8 max-w-[220px] shrink-0 cursor-grab items-center gap-2 rounded-t border px-3 text-xs transition-colors active:cursor-grabbing"
           :class="[
             tab.path === activePath
               ? 'border-[var(--color-border)] border-b-[var(--color-panel)] bg-[var(--color-panel)] text-[var(--color-fg)]'
               : 'border-transparent text-[var(--color-fg-muted)] hover:border-[var(--color-border)] hover:bg-[var(--color-hover)] hover:text-[var(--color-fg)]',
-            draggingPath === tab.path ? 'opacity-50' : '',
+            draggingPath === tab.path ? 'opacity-60' : '',
           ]"
           @click="selectTab(tab.path)"
           @auxclick.prevent="closeTab(tab.path, $event)"
           @pointerenter="preloadTabInBackground(tab.path)"
-          @dragstart="onTabDragStart(tab.path, $event)"
-          @dragover="onTabDragOver(tab.path, $event)"
-          @dragleave="onTabDragLeave(tab.path, $event)"
-          @drop="onTabDrop(tab.path, $event)"
-          @dragend="resetTabDrag"
+          @mousedown="onTabMouseDown(tab.path, $event)"
         >
           <span
             v-if="tab.path === activePath"
             class="absolute inset-x-0 top-0 h-px bg-[var(--color-accent)]"
-            aria-hidden="true"
-          />
-          <span
-            v-if="dropTarget?.path === tab.path && dropTarget.position === 'before'"
-            class="pointer-events-none absolute inset-y-0 -left-px w-0.5 rounded bg-[var(--color-accent)]"
-            aria-hidden="true"
-          />
-          <span
-            v-if="dropTarget?.path === tab.path && dropTarget.position === 'after'"
-            class="pointer-events-none absolute inset-y-0 -right-px w-0.5 rounded bg-[var(--color-accent)]"
             aria-hidden="true"
           />
           <FolderGit2
@@ -158,9 +193,11 @@ function openNewRepository(): void {
           <span
             role="button"
             tabindex="-1"
+            data-tab-close
             class="app-no-drag focus-ring flex h-4 w-4 shrink-0 items-center justify-center rounded-sm opacity-0 transition-opacity group-hover:opacity-100"
             :class="tab.path === activePath ? 'opacity-60 hover:opacity-100' : ''"
             aria-label="Close repository tab"
+            @mousedown.stop
             @click="closeTab(tab.path, $event)"
           >
             <X :size="11" />

@@ -47,29 +47,26 @@ describe('repo tabs cycling and restore', () => {
     expect(tabs.reopenLastClosed()).toBeNull()
   })
 
-  it('reorders tabs relative to another tab', () => {
+  it('applies an explicit tab order', () => {
     seedTabs(['/a', '/b', '/c'])
     const tabs = useRepoTabsStore()
 
-    tabs.moveTab('/a', '/c', 'after')
-    expect(tabs.tabs.map((tab) => tab.path)).toEqual(['/b', '/c', '/a'])
-
-    tabs.moveTab('/a', '/b', 'before')
-    expect(tabs.tabs.map((tab) => tab.path)).toEqual(['/a', '/b', '/c'])
-
-    tabs.moveTab('/c', '/a', 'before')
+    tabs.reorderTabs(['/c', '/a', '/b'])
     expect(tabs.tabs.map((tab) => tab.path)).toEqual(['/c', '/a', '/b'])
+
+    tabs.reorderTabs(['/b', '/c', '/a'])
+    expect(tabs.tabs.map((tab) => tab.path)).toEqual(['/b', '/c', '/a'])
   })
 
-  it('ignores unknown paths and self-drops when reordering', () => {
+  it('ignores unknown paths and appends omitted tabs when reordering', () => {
     seedTabs(['/a', '/b'])
     const tabs = useRepoTabsStore()
 
-    tabs.moveTab('/a', '/a', 'after')
-    tabs.moveTab('/missing', '/a', 'before')
-    tabs.moveTab('/a', '/missing', 'after')
+    tabs.reorderTabs(['/missing', '/b'])
+    expect(tabs.tabs.map((tab) => tab.path)).toEqual(['/b', '/a'])
 
-    expect(tabs.tabs.map((tab) => tab.path)).toEqual(['/a', '/b'])
+    tabs.reorderTabs([])
+    expect(tabs.tabs.map((tab) => tab.path)).toEqual(['/b', '/a'])
   })
 
   it('does not duplicate a restored tab that is already open', () => {
