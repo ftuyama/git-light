@@ -77,10 +77,6 @@ xattr -dr com.apple.quarantine "/Applications/Git Light.app"
 
 Updates: **Git Light → Check for Updates…** in the app menu (macOS installs and restarts in place).
 
-## Sponsor
-
-Useful? **[Sponsor on Ko-fi](https://ko-fi.com/lelouchiee)**
-
 ## For developers
 
 Build instructions in **[DEVELOPER.md](DEVELOPER.md)** · architecture in **[ARCHITECTURE.md](ARCHITECTURE.md)**.
