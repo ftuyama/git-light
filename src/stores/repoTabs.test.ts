@@ -79,4 +79,50 @@ describe('repo tabs cycling and restore', () => {
     expect(restored).toMatchObject({ path: '/a' })
     expect(tabs.tabs.filter((t) => t.path === '/a')).toHaveLength(1)
   })
+
+  it('closes all tabs except the target and activates it', () => {
+    seedTabs(['/a', '/b', '/c'])
+    const tabs = useRepoTabsStore()
+    tabs.setActive('/a')
+
+    const removed = tabs.closeOtherTabs('/b')
+    expect(removed.sort()).toEqual(['/a', '/c'])
+    expect(tabs.tabs.map((tab) => tab.path)).toEqual(['/b'])
+    expect(tabs.activePath).toBe('/b')
+    expect(tabs.closedStack.map((tab) => tab.path).sort()).toEqual(['/a', '/c'])
+  })
+
+  it('closes tabs to the right of the target', () => {
+    seedTabs(['/a', '/b', '/c', '/d'])
+    const tabs = useRepoTabsStore()
+    tabs.setActive('/d')
+
+    const removed = tabs.closeTabsToRight('/b')
+    expect(removed).toEqual(['/c', '/d'])
+    expect(tabs.tabs.map((tab) => tab.path)).toEqual(['/a', '/b'])
+    expect(tabs.activePath).toBe('/b')
+  })
+
+  it('stores and clears a tab alias without touching the repo name', () => {
+    seedTabs(['/a'])
+    const tabs = useRepoTabsStore()
+
+    tabs.setAlias('/a', '  Client app  ')
+    expect(tabs.tabs[0]).toMatchObject({ path: '/a', name: 'a', alias: 'Client app' })
+
+    tabs.setAlias('/a', null)
+    expect(tabs.tabs[0].alias).toBeUndefined()
+    expect(tabs.tabs[0].name).toBe('a')
+  })
+
+  it('keeps aliases when a closed tab is restored', () => {
+    seedTabs(['/a'])
+    const tabs = useRepoTabsStore()
+    tabs.setAlias('/a', 'Client app')
+
+    tabs.removeTab('/a')
+    const restored = tabs.reopenLastClosed()
+    expect(restored).toMatchObject({ path: '/a', alias: 'Client app' })
+    expect(tabs.tabs[0].alias).toBe('Client app')
+  })
 })

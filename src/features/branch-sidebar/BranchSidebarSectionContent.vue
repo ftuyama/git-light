@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, inject, reactive } from 'vue'
-import { ChevronRight, Folder, FolderOpen, Inbox, Star, Tag as TagIcon, Trash2, TreePine } from '@lucide/vue'
+import { Folder, FolderOpen, Inbox, Star, Tag as TagIcon, Trash2, TreePine } from '@lucide/vue'
 import ContextMenu from '@/components/ui/ContextMenu.vue'
 import type { MenuItem } from '@/components/ui/menu'
 import BranchRow from './BranchRow.vue'
@@ -41,6 +41,7 @@ type Row =
       remote: boolean
       group: string
       open: boolean
+      branches: Branch[]
     }
   | { kind: 'tag'; key: string; tag: Tag }
 
@@ -64,6 +65,7 @@ function groupRows(input: {
       remote: input.remote,
       group: input.key,
       open: isGroupOpen(input.key),
+      branches: input.branches,
     },
     ...(expanded
       ? input.branches.map((branch) => ({
@@ -126,6 +128,27 @@ function stashMenu(stash: Stash): MenuItem[] {
     { label: 'Apply', onSelect: () => void repo.runAction({ kind: 'apply-stash', target: ref }) },
     { label: 'Pop', onSelect: () => void repo.runAction({ kind: 'pop-stash', target: ref }) },
     { label: 'Drop', danger: true, onSelect: () => void repo.runAction({ kind: 'drop-stash', target: ref }) },
+  ]
+}
+
+function groupMenu(row: Extract<Row, { kind: 'group' }>): MenuItem[] {
+  if (row.remote) return []
+  const deletable = row.branches.filter((branch) => !branch.isCurrent)
+  if (deletable.length === 0) {
+    return [{ label: 'No branches to delete', disabled: true }]
+  }
+  const count = `${deletable.length} ${deletable.length === 1 ? 'branch' : 'branches'}`
+  return [
+    {
+      label: `Delete ${count} in folder "${row.label}"`,
+      icon: Trash2,
+      danger: true,
+      onSelect: () =>
+        void repo.deleteBranches(
+          deletable.map((branch) => branch.name),
+          row.label,
+        ),
+    },
   ]
 }
 
@@ -228,18 +251,27 @@ function worktreeMenu(worktree: { path: string; isMain: boolean }): MenuItem[] {
         <template v-for="row in rows.slice(start, end)" :key="row.key">
           <BranchRow v-if="row.kind === 'branch'" :branch="row.branch" :depth="row.depth" />
 
+          <ContextMenu
+            v-else-if="row.kind === 'group' && !row.remote"
+            :items="groupMenu(row)"
+          >
+            <button
+              class="focus-ring flex h-7 w-full items-center gap-2 rounded-md pr-2 pl-6 text-[13px] text-[var(--color-fg-muted)] hover:bg-[var(--color-hover)]"
+              @click="toggleGroup(row.group)"
+            >
+              <FolderOpen v-if="row.open" :size="13" class="shrink-0 text-[var(--color-fg-subtle)]" />
+              <Folder v-else :size="13" class="shrink-0 text-[var(--color-fg-subtle)]" />
+              <span class="flex-1 text-left">{{ row.label }}</span>
+              <span class="font-mono text-[10px] text-[var(--color-fg-subtle)]">{{ row.count }}</span>
+            </button>
+          </ContextMenu>
+
           <button
             v-else-if="row.kind === 'group'"
             class="focus-ring flex h-7 w-full items-center gap-2 rounded-md pr-2 pl-6 text-[13px] text-[var(--color-fg-muted)] hover:bg-[var(--color-hover)]"
             @click="toggleGroup(row.group)"
           >
-            <ChevronRight
-              :size="13"
-              class="shrink-0 transition-transform duration-150"
-              :class="row.open ? 'rotate-90' : ''"
-            />
-            <TreePine v-if="row.remote" :size="13" class="shrink-0 text-[var(--color-fg-subtle)]" />
-            <Folder v-else :size="13" class="shrink-0 text-[var(--color-fg-subtle)]" />
+            <TreePine :size="13" class="shrink-0 text-[var(--color-fg-subtle)]" />
             <span class="flex-1 text-left">{{ row.label }}</span>
             <span class="font-mono text-[10px] text-[var(--color-fg-subtle)]">{{ row.count }}</span>
           </button>

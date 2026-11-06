@@ -315,6 +315,38 @@ export const gitActions = {
     await this.runAction({ kind: 'delete-branch', target: branchName, meta: { force } })
   },
 
+  async deleteBranches(
+    this: GitActionsStore,
+    branchNames: string[],
+    folder?: string,
+  ): Promise<void> {
+    const targets = [...new Set(branchNames.map((name) => name.trim()).filter(Boolean))]
+    if (targets.length === 0) return
+
+    // Defer until after context menus restore focus to their trigger.
+    await new Promise<void>((resolve) => {
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => resolve())
+      })
+    })
+    const count = `${targets.length} ${targets.length === 1 ? 'branch' : 'branches'}`
+    const scope = folder ? ` in folder "${folder}"` : ''
+    const ok = await usePromptStore().confirm({
+      title: `Delete ${count}`,
+      message: `Delete ${count}${scope}? This cannot be undone.`,
+      confirmLabel: 'Delete',
+      danger: true,
+    })
+    if (!ok) return
+
+    for (const name of targets) {
+      await this.runAction(
+        { kind: 'delete-branch', target: name, meta: { force: false } },
+        { skipConfirm: true },
+      )
+    }
+  },
+
   async setUpstream(this: GitActionsStore, branchName: string): Promise<void> {
     const upstream = await usePromptStore().prompt({
       title: 'Set Upstream',

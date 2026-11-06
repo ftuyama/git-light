@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { storeToRefs } from 'pinia'
-import { ArrowDown, ArrowUp, Check, Cloud, Star } from '@lucide/vue'
+import { ArrowDown, ArrowUp, Check, Cloud, GitBranch, Star } from '@lucide/vue'
 import ContextMenu from '@/components/ui/ContextMenu.vue'
 import { branchMenuItems } from './branchMenuItems'
 import { cn, laneColor } from '@/lib/utils'
@@ -112,7 +112,7 @@ const menu = computed(() => branchMenuItems(repo, props.branch))
       @dblclick="isRemote ? repo.checkoutRemoteBranch(branch) : repo.checkoutBranch(branch.name)"
     >
       <Cloud v-if="isRemote" :size="12" class="shrink-0 text-[var(--color-fg-subtle)]" />
-      <span v-else class="size-2 shrink-0 rounded-full" :style="{ backgroundColor: dotColor }" />
+      <GitBranch v-else :size="12" class="shrink-0" :style="{ color: dotColor }" />
       <span
         class="flex-1 truncate"
         :class="branch.isCurrent ? 'font-semibold text-[var(--color-fg)]' : 'text-[var(--color-fg-muted)]'"

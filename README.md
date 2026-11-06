@@ -17,13 +17,13 @@ Git Light is a lightweight app for browsing history, managing branches, staging 
 ## Features
 
 - Commit graph with lanes, refs, search + keyboard navigation
-- Branch sidebar: favorites, tags, stashes, worktrees, drag-and-drop merge/rebase
+- Branch sidebar: favorites, tags, stashes, worktrees, grouping, bulk folder delete, drag-and-drop merge/rebase
 - Working tree with hunk staging, conflict editor, sign-off / GPG commits
 - Diff viewer: unified/split, syntax highlighting, blame + file history, image diffs
 - Merge / rebase / interactive rebase / cherry-pick / bisect
 - Undo / redo, stash, force-push with lease
 - Fetch / pull / push / sync + auto-fetch
-- Multi-repo tabs, command palette (⌘K), custom shortcuts
+- Multi-repo tabs with aliases, close others/reopen, command palette (⌘K), custom shortcuts
 - Git output log for every command
 - Clone / init / folder discovery, terminal at repo root (⌘T)
 - Themes, Basic/Advanced UI mode, resizable layout + auto-refresh

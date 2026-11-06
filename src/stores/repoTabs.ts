@@ -6,6 +6,8 @@ import { useRepoTabCacheStore } from '@/stores/repoTabCache'
 export interface RepoTab {
   path: string
   name: string
+  /** Optional display name that overrides `name` in the tab bar. */
+  alias?: string
 }
 
 export const MAX_CLOSED_TABS = 25
@@ -78,6 +80,57 @@ export const useRepoTabsStore = defineStore('repoTabs', {
       this.activePath = next?.path ?? null
       this.persist()
       return next?.path ?? null
+    },
+
+    /**
+     * Close every tab except `target`, making `target` active. Returns the
+     * removed paths so callers can prune their recent-repository entries.
+     */
+    closeOtherTabs(target: string): string[] {
+      if (!this.tabs.some((tab) => tab.path === target)) return []
+      const paths = this.tabs.filter((tab) => tab.path !== target).map((tab) => tab.path)
+      return this.closeManyTabs(paths, target)
+    },
+
+    /** Close every tab to the right of `target`. Returns the removed paths. */
+    closeTabsToRight(target: string): string[] {
+      const index = this.tabs.findIndex((tab) => tab.path === target)
+      if (index === -1) return []
+      return this.closeManyTabs(
+        this.tabs.slice(index + 1).map((tab) => tab.path),
+        target,
+      )
+    },
+
+    /** Remove several tabs and activate `activatePath` when it survives. */
+    closeManyTabs(paths: string[], activatePath?: string | null): string[] {
+      const removed: string[] = []
+      for (const path of paths) {
+        if (!this.tabs.some((tab) => tab.path === path)) continue
+        this.removeTab(path)
+        removed.push(path)
+      }
+
+      if (
+        activatePath &&
+        this.activePath !== activatePath &&
+        this.tabs.some((tab) => tab.path === activatePath)
+      ) {
+        this.activePath = activatePath
+        this.persist()
+      }
+      return removed
+    },
+
+    /** Set (or clear, with `null`) a tab's display alias. */
+    setAlias(path: string, alias: string | null): void {
+      const tab = this.tabs.find((item) => item.path === path)
+      if (!tab) return
+
+      const next = alias?.trim() ?? ''
+      if (!next || next === tab.name) delete tab.alias
+      else tab.alias = next
+      this.persist()
     },
 
     /** Apply an explicit tab order. Unknown paths are ignored and omitted tabs are appended. */

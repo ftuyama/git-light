@@ -23,8 +23,8 @@ import {
   COLUMN_LABELS,
   COLUMN_WIDTH_LABELS,
   COLUMN_WIDTH_LIMITS,
-  COMMIT_GRAPH_LIMIT_MAX,
   COMMIT_GRAPH_LIMIT_MIN,
+  COMMIT_GRAPH_LIMIT_RECOMMENDED,
   SECTION_KEYS,
   SECTION_LABELS,
   SIDEBAR_SECTION_STATE_LABELS,
@@ -398,16 +398,15 @@ onUnmounted(() => document.removeEventListener('keydown', onKeydown))
                       Recent commits to load
                     </div>
                     <p class="mt-0.5 text-[12px] leading-snug text-[var(--color-fg-muted)]">
-                      Maximum number of commits fetched for the graph ({{ COMMIT_GRAPH_LIMIT_MIN }}–{{
-                        COMMIT_GRAPH_LIMIT_MAX
-                      }}).
+                      Maximum number of commits fetched for the graph. Minimum
+                      {{ COMMIT_GRAPH_LIMIT_MIN }};
+                      {{ COMMIT_GRAPH_LIMIT_RECOMMENDED }} recommended.
                     </p>
                   </div>
                   <input
                     type="number"
                     class="focus-ring w-20 rounded-md border border-[var(--color-border)] bg-[var(--color-app)] px-2 py-1 text-right text-[13px] text-[var(--color-fg)]"
                     :min="COMMIT_GRAPH_LIMIT_MIN"
-                    :max="COMMIT_GRAPH_LIMIT_MAX"
                     :value="commitGraphLimit"
                     aria-label="Recent commits to load"
                     @change="

@@ -12,7 +12,7 @@ export function useRepoMenu() {
 
   const repoMenu = computed<MenuItem[]>(() => {
     const items: MenuItem[] = tabsStore.tabs.map((tab) => ({
-      label: tab.name,
+      label: tab.alias ?? tab.name,
       icon: tab.path === tabsStore.activePath ? Check : FolderGit2,
       // Warm the tab while the pointer is still over the menu row, so a click
       // that follows finds it cached (a no-op when it already is).

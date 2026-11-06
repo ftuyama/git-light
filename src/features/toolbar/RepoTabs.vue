@@ -1,18 +1,26 @@
 <script setup lang="ts">
-import { Folder, FolderGit2, Plus, X } from '@lucide/vue'
+import { Folder, FolderGit2, Pencil, Plus, Undo2, X } from '@lucide/vue'
 import { storeToRefs } from 'pinia'
 import { computed, ref } from 'vue'
+import ContextMenu from '@/components/ui/ContextMenu.vue'
 import DropdownMenu from '@/components/ui/DropdownMenu.vue'
 import IconButton from '@/components/ui/IconButton.vue'
+import type { MenuItem } from '@/components/ui/menu'
 import AppSettingsMenu from '@/features/settings/AppSettingsMenu.vue'
 import { useRepoMenu } from '@/features/toolbar/useRepoMenu'
+import { reopenClosedRepositoryTab } from '@/composables/useRepoActions'
+import { formatBindings } from '@/lib/keybindings'
+import { usePromptStore } from '@/stores/prompt'
 import { useRepositoryStore } from '@/stores/repository'
 import { useRepoTabsStore, type RepoTab } from '@/stores/repoTabs'
 import { preloadTabInBackground } from '@/stores/repo/tabPreload'
 import { useToastStore } from '@/stores/toast'
+import { useUiStore } from '@/stores/ui'
 
 const repo = useRepositoryStore()
 const tabsStore = useRepoTabsStore()
+const prompt = usePromptStore()
+const ui = useUiStore()
 const { repoMenu } = useRepoMenu()
 const { tabs, activePath } = storeToRefs(tabsStore)
 
@@ -111,9 +119,7 @@ function onTabMouseUp(): void {
   }
 }
 
-async function selectTab(path: string): Promise<void> {
-  if (suppressClick) return
-  if (path === activePath.value) return
+async function switchTo(path: string): Promise<void> {
   try {
     const ok = await repo.switchRepository(path)
     if (!ok) useToastStore().push(`Could not open ${path}.`, 'error')
@@ -123,17 +129,113 @@ async function selectTab(path: string): Promise<void> {
   }
 }
 
-async function closeTab(path: string, event: MouseEvent): Promise<void> {
-  event.stopPropagation()
+async function selectTab(path: string): Promise<void> {
+  if (suppressClick) return
+  if (path === activePath.value) return
+  await switchTo(path)
+}
+
+/** Drop recents for tabs that were just closed so syncFromRecent won't re-add them. */
+async function pruneRecents(paths: string[]): Promise<void> {
+  for (const path of paths) await repo.removeRecent(path)
+}
+
+function onTabAuxClick(path: string, event: MouseEvent): void {
+  // Only the middle mouse button closes a tab. On macOS a trackpad
+  // two-finger click reports button 2 here, which must keep the context menu.
+  if (event.button !== 1) return
+  event.preventDefault()
+  void closeTab(path)
+}
+
+async function closeTab(path: string, event?: MouseEvent): Promise<void> {
+  event?.stopPropagation()
   const wasActive = activePath.value === path
   const nextPath = tabsStore.removeTab(path)
   void repo.removeRecent(path)
   if (!wasActive) return
   if (nextPath) {
-    await repo.switchRepository(nextPath)
+    await switchTo(nextPath)
   } else {
     await repo.closeRepository()
   }
+}
+
+async function closeOtherTabs(tab: RepoTab): Promise<void> {
+  const wasActive = activePath.value === tab.path
+  const removed = tabsStore.closeOtherTabs(tab.path)
+  void pruneRecents(removed)
+  if (!wasActive) await switchTo(tab.path)
+}
+
+async function closeTabsToRight(tab: RepoTab): Promise<void> {
+  const index = tabs.value.findIndex((item) => item.path === tab.path)
+  if (index === -1) return
+
+  const closing = tabs.value.slice(index + 1).map((item) => item.path)
+  const activeClosed = activePath.value != null && closing.includes(activePath.value)
+  const removed = tabsStore.closeTabsToRight(tab.path)
+  void pruneRecents(removed)
+  if (activeClosed) await switchTo(tab.path)
+}
+
+async function aliasTab(tab: RepoTab): Promise<void> {
+  const alias = await prompt.prompt({
+    title: 'Alias Repository',
+    message: 'Choose a display name for this repository tab.',
+    placeholder: tab.name,
+    defaultValue: tab.alias ?? tab.name,
+  })
+  if (alias === null) return
+  tabsStore.setAlias(tab.path, alias)
+}
+
+function tabMenu(tab: RepoTab): MenuItem[] {
+  const index = tabs.value.findIndex((item) => item.path === tab.path)
+  const hasTabsToRight = index !== -1 && index < tabs.value.length - 1
+
+  const items: MenuItem[] = [
+    { label: 'Close tab', icon: X, onSelect: () => void closeTab(tab.path) },
+    {
+      label: 'Close other tabs',
+      icon: X,
+      disabled: tabs.value.length <= 1,
+      onSelect: () => void closeOtherTabs(tab),
+    },
+    {
+      label: 'Close tabs to the right',
+      icon: X,
+      disabled: !hasTabsToRight,
+      onSelect: () => void closeTabsToRight(tab),
+    },
+    { separator: true },
+    { label: 'Alias repository', icon: Pencil, onSelect: () => void aliasTab(tab) },
+  ]
+
+  if (tab.alias) {
+    items.push({
+      label: 'Remove alias',
+      icon: Pencil,
+      onSelect: () => tabsStore.setAlias(tab.path, null),
+    })
+  }
+
+  items.push(
+    { separator: true },
+    {
+      label: 'Reopen Closed Tab',
+      icon: Undo2,
+      shortcut: formatBindings(ui.keybindings.reopenClosedTab),
+      disabled: tabsStore.closedStack.length === 0,
+      onSelect: () => void reopenClosedRepositoryTab(),
+    },
+  )
+
+  return items
+}
+
+function tabLabel(tab: RepoTab): string {
+  return tab.alias ?? tab.name
 }
 
 function openNewRepository(): void {
@@ -159,50 +261,54 @@ function openNewRepository(): void {
         role="tablist"
         aria-label="Open repositories"
       >
-        <button
+        <ContextMenu
           v-for="tab in displayTabs"
           :key="tab.path"
-          type="button"
-          role="tab"
-          :aria-selected="tab.path === activePath"
-          :title="tab.path"
-          :data-repo-tab="tab.path"
-          class="app-no-drag focus-ring group relative flex h-8 max-w-[220px] shrink-0 cursor-grab items-center gap-2 rounded-t border px-3 text-xs transition-colors active:cursor-grabbing"
-          :class="[
-            tab.path === activePath
-              ? 'border-[var(--color-border)] border-b-[var(--color-panel)] bg-[var(--color-panel)] text-[var(--color-fg)]'
-              : 'border-transparent text-[var(--color-fg-muted)] hover:border-[var(--color-border)] hover:bg-[var(--color-hover)] hover:text-[var(--color-fg)]',
-            draggingPath === tab.path ? 'opacity-60' : '',
-          ]"
-          @click="selectTab(tab.path)"
-          @auxclick.prevent="closeTab(tab.path, $event)"
-          @pointerenter="preloadTabInBackground(tab.path)"
-          @mousedown="onTabMouseDown(tab.path, $event)"
+          :items="tabMenu(tab)"
         >
-          <span
-            v-if="tab.path === activePath"
-            class="absolute inset-x-0 top-0 h-px bg-[var(--color-accent)]"
-            aria-hidden="true"
-          />
-          <FolderGit2
-            :size="13"
-            class="shrink-0"
-            :class="tab.path === activePath ? 'text-[var(--color-accent)]' : 'text-[var(--color-fg-subtle)]'"
-          />
-          <span class="truncate font-medium">{{ tab.name }}</span>
-          <span
-            role="button"
-            tabindex="-1"
-            data-tab-close
-            class="app-no-drag focus-ring flex h-4 w-4 shrink-0 items-center justify-center rounded-sm opacity-0 transition-opacity group-hover:opacity-100"
-            :class="tab.path === activePath ? 'opacity-60 hover:opacity-100' : ''"
-            aria-label="Close repository tab"
-            @mousedown.stop
-            @click="closeTab(tab.path, $event)"
+          <button
+            type="button"
+            role="tab"
+            :aria-selected="tab.path === activePath"
+            :title="tab.alias ? `${tab.alias} — ${tab.path}` : tab.path"
+            :data-repo-tab="tab.path"
+            class="app-no-drag focus-ring group relative flex h-8 max-w-[220px] shrink-0 cursor-grab items-center gap-2 rounded-t border px-3 text-xs transition-colors active:cursor-grabbing"
+            :class="[
+              tab.path === activePath
+                ? 'border-[var(--color-border)] border-b-[var(--color-panel)] bg-[var(--color-panel)] text-[var(--color-fg)]'
+                : 'border-transparent text-[var(--color-fg-muted)] hover:border-[var(--color-border)] hover:bg-[var(--color-hover)] hover:text-[var(--color-fg)]',
+              draggingPath === tab.path ? 'opacity-60' : '',
+            ]"
+            @click="selectTab(tab.path)"
+            @auxclick="onTabAuxClick(tab.path, $event)"
+            @pointerenter="preloadTabInBackground(tab.path)"
+            @mousedown="onTabMouseDown(tab.path, $event)"
           >
-            <X :size="11" />
-          </span>
-        </button>
+            <span
+              v-if="tab.path === activePath"
+              class="absolute inset-x-0 top-0 h-px bg-[var(--color-accent)]"
+              aria-hidden="true"
+            />
+            <FolderGit2
+              :size="13"
+              class="shrink-0"
+              :class="tab.path === activePath ? 'text-[var(--color-accent)]' : 'text-[var(--color-fg-subtle)]'"
+            />
+            <span class="truncate font-medium">{{ tabLabel(tab) }}</span>
+            <span
+              role="button"
+              tabindex="-1"
+              data-tab-close
+              class="app-no-drag focus-ring flex h-4 w-4 shrink-0 items-center justify-center rounded-sm opacity-0 transition-opacity group-hover:opacity-100"
+              :class="tab.path === activePath ? 'opacity-60 hover:opacity-100' : ''"
+              aria-label="Close repository tab"
+              @mousedown.stop
+              @click="closeTab(tab.path, $event)"
+            >
+              <X :size="11" />
+            </span>
+          </button>
+        </ContextMenu>
 
         <button
           type="button"

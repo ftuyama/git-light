@@ -59,11 +59,13 @@ export interface CommitColumnPrefs {
 }
 
 export const COMMIT_GRAPH_LIMIT_MIN = 25
-export const COMMIT_GRAPH_LIMIT_MAX = 500
-export const DEFAULT_COMMIT_GRAPH_LIMIT = 100
+export const COMMIT_GRAPH_LIMIT_RECOMMENDED = 500
+export const DEFAULT_COMMIT_GRAPH_LIMIT = COMMIT_GRAPH_LIMIT_RECOMMENDED
 
 export function clampCommitGraphLimit(value: number): number {
-  return Math.min(COMMIT_GRAPH_LIMIT_MAX, Math.max(COMMIT_GRAPH_LIMIT_MIN, Math.round(value)))
+  const rounded = Math.round(value)
+  if (!Number.isFinite(rounded)) return DEFAULT_COMMIT_GRAPH_LIMIT
+  return Math.max(COMMIT_GRAPH_LIMIT_MIN, rounded)
 }
 
 export type DiffViewMode = 'unified' | 'split'
@@ -164,6 +166,7 @@ export function shouldShowRightSidebarCollapseHint(
 export interface RepoTabPref {
   path: string
   name: string
+  alias?: string
 }
 
 export interface UserPreferences {
@@ -308,13 +311,19 @@ export function mergePreferences(saved: Partial<UserPreferences> | null): UserPr
     fileListView: saved.fileListView ?? defaults.fileListView,
     lastRepositoryPath: saved.lastRepositoryPath ?? defaults.lastRepositoryPath,
     openRepoTabs: Array.isArray(saved.openRepoTabs)
-      ? saved.openRepoTabs.filter(
-          (tab): tab is RepoTabPref =>
-            typeof tab === 'object' &&
-            tab != null &&
-            typeof tab.path === 'string' &&
-            typeof tab.name === 'string',
-        )
+      ? saved.openRepoTabs
+          .filter(
+            (tab): tab is RepoTabPref =>
+              typeof tab === 'object' &&
+              tab != null &&
+              typeof tab.path === 'string' &&
+              typeof tab.name === 'string',
+          )
+          .map((tab) => ({
+            path: tab.path,
+            name: tab.name,
+            ...(typeof tab.alias === 'string' && tab.alias.trim() ? { alias: tab.alias } : {}),
+          }))
       : defaults.openRepoTabs,
     diffViewMode: saved.diffViewMode === 'split' ? 'split' : 'unified',
     theme: isThemePreference(saved.theme) ? saved.theme : defaults.theme,
