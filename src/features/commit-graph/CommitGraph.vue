@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref } from 'vue'
-import { Columns3, GitCommitHorizontal, Inbox } from '@lucide/vue'
+import { GitCommitHorizontal, Inbox, Settings } from '@lucide/vue'
 import CommitRow from './CommitRow.vue'
 import PendingChangesRow from './PendingChangesRow.vue'
 import StashGraphRow from './StashGraphRow.vue'
@@ -238,7 +238,7 @@ function checkoutCommitAt(commitIndex: number, event?: Event): void {
             title="Show columns"
             aria-label="Show columns"
           >
-            <Columns3 :size="14" />
+            <Settings :size="14" />
           </button>
         </DropdownMenu>
       </div>

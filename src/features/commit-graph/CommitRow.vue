@@ -450,6 +450,14 @@ function openOnGithub(): void {
           class="shrink-0 text-[var(--color-lane-4)]"
         />
         <span
+          v-if="commit.isMerge && !isStashCommit && ui.showMergeIndicators"
+          class="shrink-0 text-[var(--color-info)]"
+          title="Merge commit"
+          aria-label="Merge commit"
+        >
+          <GitMerge :size="14" />
+        </span>
+        <span
           class="truncate"
           :class="
             selected
@@ -458,14 +466,6 @@ function openOnGithub(): void {
           "
         >
           {{ commit.subject }}
-        </span>
-        <span
-          v-if="commit.isMerge && !isStashCommit && ui.showMergeIndicators"
-          class="shrink-0 text-[var(--color-info)]"
-          title="Merge commit"
-          aria-label="Merge commit"
-        >
-          <GitMerge :size="14" />
         </span>
       </div>
 
