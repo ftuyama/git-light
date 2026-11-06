@@ -363,6 +363,7 @@ function openOnGithub(): void {
             <BranchRefChip
               :ref-data="previewBranch.ref"
               :color="chipColor"
+              :commit-sha="commit.sha"
               :has-local="previewBranch.hasLocal"
               :has-remote="previewBranch.hasRemote"
               muted
@@ -385,6 +386,7 @@ function openOnGithub(): void {
               <BranchRefChip
                 :ref-data="primaryRef.ref"
                 :color="chipColor"
+                :commit-sha="commit.sha"
                 :has-local="primaryRef.hasLocal"
                 :has-remote="primaryRef.hasRemote"
               />
@@ -406,6 +408,7 @@ function openOnGithub(): void {
                   :key="i"
                   :ref-data="entry.ref"
                   :color="chipColor"
+                  :commit-sha="commit.sha"
                   :has-local="entry.hasLocal"
                   :has-remote="entry.hasRemote"
                 />

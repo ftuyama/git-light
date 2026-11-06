@@ -1,7 +1,6 @@
 <script setup lang="ts">
-import { Copy } from '@lucide/vue'
+import { Copy, GitMerge } from '@lucide/vue'
 import Avatar from '@/components/ui/Avatar.vue'
-import Badge from '@/components/ui/Badge.vue'
 import { fullTimestamp, relativeTime } from '@/lib/format'
 import type { Commit } from '@/types/git'
 import { useToastStore } from '@/stores/toast'
@@ -36,7 +35,13 @@ function shortParent(sha: string): string {
     </p>
 
     <div v-if="commit.isMerge" class="mt-1.5 flex flex-wrap items-center gap-1.5">
-      <Badge tone="info">merge</Badge>
+      <span
+        class="shrink-0 text-[var(--color-info)]"
+        title="Merge commit"
+        aria-label="Merge commit"
+      >
+        <GitMerge :size="14" />
+      </span>
       <span class="text-[11px] text-[var(--color-fg-subtle)]">
         Parents:
         <span

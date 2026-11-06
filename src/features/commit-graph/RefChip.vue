@@ -34,16 +34,22 @@ const resolvedColor = computed((): string =>
   props.refData.type === 'tag' ? 'var(--color-warning)' : props.color,
 )
 
+const hovered = ref(false)
+
 const chipStyle = computed(() => {
-  const mix = isCurrent.value ? 44 : 38
-  const borderMix = isCurrent.value ? 78 : 72
+  const hover = hovered.value
+  const mix = isCurrent.value ? (hover ? 54 : 44) : hover ? 50 : 38
+  const borderMix = isCurrent.value ? (hover ? 92 : 78) : hover ? 92 : 72
   const textColor = isCurrent.value
     ? 'var(--color-fg)'
-    : `color-mix(in srgb, ${resolvedColor.value} 50%, var(--color-fg))`
+    : `color-mix(in srgb, ${resolvedColor.value} ${hover ? 62 : 50}%, var(--color-fg))`
   return {
     color: textColor,
     backgroundColor: `color-mix(in srgb, ${resolvedColor.value} ${mix}%, var(--color-panel-raised))`,
     border: `1px solid color-mix(in srgb, ${resolvedColor.value} ${borderMix}%, var(--color-border-strong))`,
+    boxShadow: hover
+      ? `0 0 0 1px color-mix(in srgb, ${resolvedColor.value} 45%, transparent)`
+      : 'none',
   }
 })
 
@@ -53,6 +59,20 @@ const expanded = ref(false)
 const anchorRect = ref({ top: 0, left: 0, width: 0, height: 22 })
 
 let leaveTimer: ReturnType<typeof setTimeout> | undefined
+
+function onChipEnter(): void {
+  hovered.value = true
+  expand()
+}
+
+function onChipLeave(): void {
+  if (expanded.value) {
+    // Keep the highlight until the expand overlay actually collapses.
+    scheduleCollapse()
+    return
+  }
+  hovered.value = false
+}
 
 function expand(): void {
   cancelCollapse()
@@ -75,6 +95,7 @@ function expand(): void {
 function collapse(): void {
   cancelCollapse()
   expanded.value = false
+  hovered.value = false
 }
 
 function cancelCollapse(): void {
@@ -107,10 +128,11 @@ onUnmounted(() => {
   >
     <span
       ref="anchorRef"
-      class="relative z-20 inline-flex h-[22px] w-auto max-w-full min-w-0 items-center gap-1 overflow-hidden rounded-md px-2 text-[12px] font-medium"
-      :class="[expanded ? 'invisible' : '', muted ? 'opacity-45' : '']"
+      class="relative z-20 inline-flex h-[22px] w-auto max-w-full min-w-0 items-center gap-1 overflow-hidden rounded-md px-2 text-[12px] font-medium transition-[color,background-color,border-color,box-shadow] duration-150 ease-out select-none"
+      :class="[expanded ? 'opacity-0' : muted ? 'opacity-45' : '']"
       :style="chipStyle"
-      @mouseenter="expand"
+      @mouseenter="onChipEnter"
+      @mouseleave="onChipLeave"
     >
       <Check v-if="isCurrent" :size="12" class="shrink-0" />
       <TagIcon v-if="showTagIcon" :size="12" class="shrink-0 opacity-90" />
@@ -131,15 +153,13 @@ onUnmounted(() => {
   <Teleport to="body">
     <span
       v-if="expanded"
-      class="fixed z-[100] inline-flex items-center gap-1 whitespace-nowrap rounded-md px-2 text-[12px] font-medium shadow-md"
+      class="pointer-events-none fixed z-40 inline-flex items-center gap-1 whitespace-nowrap rounded-md px-2 text-[12px] font-medium drop-shadow-md transition-[color,background-color,border-color,box-shadow] duration-150 ease-out select-none"
       :style="{
         ...chipStyle,
         top: `${anchorRect.top}px`,
         left: `${anchorRect.left}px`,
         height: `${anchorRect.height}px`,
       }"
-      @mouseenter="cancelCollapse"
-      @mouseleave="scheduleCollapse"
     >
       <Check v-if="isCurrent" :size="12" class="shrink-0" />
       <TagIcon v-if="showTagIcon" :size="12" class="shrink-0 opacity-90" />

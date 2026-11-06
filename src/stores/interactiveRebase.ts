@@ -69,6 +69,18 @@ export const useInteractiveRebaseStore = defineStore('interactiveRebase', {
       void this.loadCommits()
     },
 
+    /** Open the planner ending at an explicit base ref (e.g. a branch name). */
+    openAtBase(base: string): void {
+      const repo = useRepositoryStore()
+      if (!repo.hasOpenRepo) return
+
+      this.base = base
+      this.baseShortSha = null
+      this.entries = []
+      this.isOpen = true
+      void this.loadCommits()
+    },
+
     close(): void {
       if (this.starting) return
       this.isOpen = false

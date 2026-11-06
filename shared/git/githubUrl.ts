@@ -26,3 +26,16 @@ export function githubCommitUrl(remoteUrl: string, sha: string): string | null {
   if (!parsed) return null
   return `https://github.com/${parsed.owner}/${parsed.repo}/commit/${sha}`
 }
+
+/** Build a GitHub branch tree URL from a remote URL and branch name. */
+export function githubBranchUrl(remoteUrl: string, branchName: string): string | null {
+  const parsed = parseGithubRepoPath(remoteUrl)
+  if (!parsed) return null
+  const encoded = branchName
+    .split('/')
+    .filter((part) => part.length > 0)
+    .map(encodeURIComponent)
+    .join('/')
+  if (!encoded) return null
+  return `https://github.com/${parsed.owner}/${parsed.repo}/tree/${encoded}`
+}

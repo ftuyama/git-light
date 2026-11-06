@@ -472,7 +472,7 @@ export const gitActions = {
     })
   },
 
-  async addWorktree(this: GitActionsStore): Promise<void> {
+  async addWorktree(this: GitActionsStore, defaultBranch?: string): Promise<void> {
     const path = await usePromptStore().prompt({
       title: 'Add Worktree',
       message: 'Path for the new worktree',
@@ -483,6 +483,7 @@ export const gitActions = {
       title: 'Branch (optional)',
       message: 'Branch to check out (leave empty for detached HEAD)',
       placeholder: 'feature/my-branch',
+      ...(defaultBranch ? { defaultValue: defaultBranch } : {}),
     })
     await this.runAction({
       kind: 'worktree-add',
