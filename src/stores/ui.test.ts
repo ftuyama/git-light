@@ -82,7 +82,7 @@ describe('commit graph column widths', () => {
     expect(ui.columnWidths.graph).toBe(56)
 
     ui.setColumnWidth('graph', 10_000)
-    expect(ui.columnWidths.graph).toBe(360)
+    expect(ui.columnWidths.graph).toBe(10_000)
 
     ui.resetColumnWidths()
     expect(ui.columnWidths.graph).toBe(300)

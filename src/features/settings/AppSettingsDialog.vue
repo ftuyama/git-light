@@ -182,9 +182,14 @@ function onColumnWidth(key: CommitColumnWidthKey, value: number): void {
 
 function columnWidthHint(key: CommitColumnWidthKey): string {
   const { min, max } = COLUMN_WIDTH_LIMITS[key]
-  const range = `${min}–${max} px`
+  const range = Number.isFinite(max) ? `${min}–${max} px` : `${min}+ px`
   if (key === 'refs' || key === 'graph' || key === 'commit') return range
   return ui.isColumnVisible(key) ? range : `${range} · hidden`
+}
+
+function columnWidthMax(key: CommitColumnWidthKey): number | undefined {
+  const { max } = COLUMN_WIDTH_LIMITS[key]
+  return Number.isFinite(max) ? max : undefined
 }
 
 function onAutoFetchIntervalSec(value: number): void {
@@ -460,7 +465,7 @@ onUnmounted(() => document.removeEventListener('keydown', onKeydown))
                     type="number"
                     class="focus-ring w-20 shrink-0 rounded-md border border-[var(--color-border)] bg-[var(--color-app)] px-2 py-1 text-right text-[13px] text-[var(--color-fg)]"
                     :min="COLUMN_WIDTH_LIMITS[key].min"
-                    :max="COLUMN_WIDTH_LIMITS[key].max"
+                    :max="columnWidthMax(key)"
                     :value="ui.columnWidths[key]"
                     :aria-label="`${COLUMN_WIDTH_LABELS[key]} column width`"
                     @change="

@@ -241,7 +241,7 @@ export const COLUMN_WIDTH_LABELS: Record<CommitColumnWidthKey, string> = {
 
 export const COLUMN_WIDTH_LIMITS: Record<CommitColumnWidthKey, { min: number; max: number }> = {
   refs: { min: 56, max: 360 },
-  graph: { min: 56, max: 360 },
+  graph: { min: 56, max: Number.POSITIVE_INFINITY },
   commit: { min: 120, max: 720 },
   author: { min: 56, max: 360 },
   sha: { min: 56, max: 360 },
