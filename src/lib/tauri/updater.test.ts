@@ -74,11 +74,13 @@ describe('tauri updater', () => {
       assets: [
         { name: 'Git-Light_0.3.0_x64-setup.exe', browser_download_url: 'https://exe' },
         { name: 'Git-Light_0.3.0_amd64.AppImage', browser_download_url: 'https://appimage' },
+        { name: 'Git-Light_0.3.0_arm64.dmg', browser_download_url: 'https://dmg' },
       ],
     }
     for (const [platform, expected] of [
       ['windows', 'https://exe'],
       ['linux', 'https://appimage'],
+      ['macos', 'https://dmg'],
     ] as const) {
       const opened: string[] = []
       await checkForUpdates({
@@ -166,6 +168,64 @@ describe('tauri updater', () => {
       platform: 'darwin',
     })
     expect(dialog).not.toHaveBeenCalled()
+  })
+
+  it('tells the user they are up to date on a manual check', async () => {
+    const showMessage = vi.fn(async (_title: string, _detail: string) => {})
+    await checkForUpdates({
+      source: 'menu',
+      currentVersion: '1.0.3',
+      fetchRelease: async () => ({
+        tag_name: 'v1.0.3',
+        html_url: 'https://releases',
+        body: null,
+        assets: [],
+      }),
+      readSnooze: () => null,
+      writeSnooze: vi.fn(),
+      askDownload: vi.fn(),
+      openDownload: vi.fn(),
+      showMessage,
+      arch: 'arm64',
+      platform: 'macos',
+    })
+    expect(showMessage).toHaveBeenCalledOnce()
+    expect(showMessage.mock.calls[0][0]).toMatch(/up to date/i)
+  })
+
+  it('reports failures on a manual check but stays silent on startup', async () => {
+    const showMessage = vi.fn(async () => {})
+    const fetchRelease = async (): Promise<never> => {
+      throw new Error('blocked')
+    }
+    await checkForUpdates({
+      source: 'menu',
+      currentVersion: '1.0.2',
+      fetchRelease,
+      readSnooze: () => null,
+      writeSnooze: vi.fn(),
+      askDownload: vi.fn(),
+      openDownload: vi.fn(),
+      showMessage,
+      arch: 'arm64',
+      platform: 'macos',
+    })
+    expect(showMessage).toHaveBeenCalledOnce()
+
+    showMessage.mockClear()
+    await checkForUpdates({
+      source: 'startup',
+      currentVersion: '1.0.2',
+      fetchRelease,
+      readSnooze: () => null,
+      writeSnooze: vi.fn(),
+      askDownload: vi.fn(),
+      openDownload: vi.fn(),
+      showMessage,
+      arch: 'arm64',
+      platform: 'macos',
+    })
+    expect(showMessage).not.toHaveBeenCalled()
   })
 
   it('records snooze when the user postpones', async () => {

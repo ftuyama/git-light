@@ -254,7 +254,9 @@ export async function setupAppMenu(): Promise<void> {
     id: 'check-for-updates',
     text: appMenuLabels.checkForUpdates,
     action: () => {
-      void runUpdateCheck('menu')
+      void runUpdateCheck('menu').catch((err) =>
+        console.error('[git-light] update check failed:', err),
+      )
     },
   })
   const settings = await MenuItem.new({

@@ -139,7 +139,8 @@ function resolveDownloadUrl(
   arch: string,
 ): string {
   const assets = release.assets ?? []
-  if (platform === 'darwin') {
+  // `@tauri-apps/plugin-os` reports macOS as "macos"; older callers/tests use "darwin".
+  if (platform === 'darwin' || platform === 'macos') {
     const dmgUrl = pickMacDmgDownloadUrl(assets, arch)
     if (dmgUrl) return dmgUrl
   } else if (platform === 'windows') {
@@ -181,6 +182,11 @@ export interface UpdateCheckDeps {
   askDownload: (message: string, detail: string) => Promise<'download' | 'later'>
   openDownload: (url: string) => Promise<void>
   /**
+   * Surface a non-actionable result (already up to date, network failure) to the
+   * user. Only used for manual checks; startup checks stay silent.
+   */
+  showMessage?: (title: string, detail: string) => Promise<void>
+  /**
    * macOS only: download + verify + swap the app bundle in place.
    * Returns `'installed'` when the self-update took over, `'open-download'` to
    * fall back to the browser flow. Undefined on other platforms.
@@ -200,12 +206,36 @@ export async function checkForUpdates(deps: UpdateCheckDeps): Promise<void> {
   let release: GitHubRelease
   try {
     release = await deps.fetchRelease()
-  } catch {
+  } catch (error) {
+    console.error('[git-light] update check failed:', error)
+    if (source === 'menu' && deps.showMessage) {
+      await deps.showMessage(
+        'Update check failed',
+        'Could not reach GitHub to check for updates. Check your connection and try again.',
+      )
+    }
     return
   }
   const latestVersion = release.tag_name.replace(/^v/, '')
   const comparison = compareSemver(latestVersion, currentVersion)
-  if (comparison === null || comparison <= 0) return
+  if (comparison === null) {
+    if (source === 'menu' && deps.showMessage) {
+      await deps.showMessage(
+        'Update check failed',
+        `Could not compare the latest release (${release.tag_name}) with your version (v${currentVersion}).`,
+      )
+    }
+    return
+  }
+  if (comparison <= 0) {
+    if (source === 'menu' && deps.showMessage) {
+      await deps.showMessage(
+        'You’re up to date',
+        `Git Light v${currentVersion} is the latest version.`,
+      )
+    }
+    return
+  }
   if (source === 'startup' && deps.readSnooze()?.version === latestVersion) return
 
   const releaseNotes = formatReleaseNotes(release.body)

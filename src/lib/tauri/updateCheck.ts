@@ -1,4 +1,4 @@
-import { ask } from '@tauri-apps/plugin-dialog'
+import { ask, message } from '@tauri-apps/plugin-dialog'
 import { arch, platform } from '@tauri-apps/plugin-os'
 import { APP_VERSION } from '@shared/app/metadata'
 import { openExternalUrl } from './appBridge'
@@ -65,14 +65,27 @@ export async function runUpdateCheck(source: UpdateCheckSource): Promise<void> {
       return yes ? 'download' : 'later'
     },
     openDownload: (url) => openExternalUrl(url),
+    showMessage: async (title, detail) => {
+      await message(detail, { title, kind: 'info' })
+    },
     installSelfUpdate:
       platform() === 'macos'
         ? async (release, releaseArch) => {
             const assets = release.assets ?? []
             const tarball = assets.find((a) => a.browser_download_url === pickMacTarGzUrl(assets, releaseArch))
             if (!tarball) return 'open-download' as const
-            await installInPlace(tarball.browser_download_url, pickChecksumsUrl(assets), tarball.name)
-            return 'installed' as const
+            try {
+              await installInPlace(tarball.browser_download_url, pickChecksumsUrl(assets), tarball.name)
+              return 'installed' as const
+            } catch (error) {
+              // Never strand the user: fall back to the browser download.
+              console.error('[git-light] in-place update failed:', error)
+              await message(
+                'In-place update failed, opening the GitHub download page instead.',
+                { title: 'Update failed', kind: 'warning' },
+              )
+              return 'open-download' as const
+            }
           }
         : undefined,
     arch: arch(),
