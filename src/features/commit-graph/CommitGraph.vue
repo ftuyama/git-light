@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { Columns3, GitCommitHorizontal, Inbox } from '@lucide/vue'
 import CommitRow from './CommitRow.vue'
 import PendingChangesRow from './PendingChangesRow.vue'
@@ -19,10 +19,13 @@ import {
 } from './composables/useCommitGraphSelection'
 import { useCommitGraphVirtualList } from './composables/useCommitGraphVirtualList'
 import { useCommitGraphZoom } from './composables/useCommitGraphZoom'
+import { useUiStore } from '@/stores/ui'
 import { commitMatchesFilter, isGraphFiltering, stashMatchesFilter } from '@/lib/graph/graphFilter'
 import { buildCommitIndex } from '@/lib/graph/commitIndex'
+import { buildTimeMarkers } from '@/lib/graph/timeMarkers'
 
 const diffStore = useRepoDiffStore()
+const ui = useUiStore()
 const { repo, showLoading, hasPendingRow, headIndex, pendingRowSelected } = useCommitGraphState()
 const {
   selectedSha,
@@ -49,6 +52,7 @@ const {
   virtualItems,
   totalSize,
   rows,
+  commitVirtualByCommit,
   resolveCommitIndex,
   resolveStashIndex,
   isPendingIndex,
@@ -76,6 +80,38 @@ const stashBoxSize = computed(() => Math.max(20, nodeSize.value))
 
 /** SHA -> commit index, rebuilt only when the commit list changes. */
 const commitIndexBySha = computed(() => buildCommitIndex(repo.commits))
+
+/** Wall clock refreshed every minute so "1 hour ago" dividers appear on time. */
+const now = ref(Date.now())
+let nowTimer: ReturnType<typeof setInterval> | undefined
+
+onMounted(() => {
+  nowTimer = setInterval(() => {
+    now.value = Date.now()
+  }, 60_000)
+})
+
+onUnmounted(() => {
+  if (nowTimer !== undefined) clearInterval(nowTimer)
+})
+
+/**
+ * Time dividers, positioned on the row boundary above the first commit older
+ * than each threshold. Detached stash rows belong to that commit, so the
+ * divider is lifted above them to sit between two commits.
+ */
+const timeMarkers = computed(() => {
+  if (!ui.showTimeMarkers) return []
+  const virtualByCommit = commitVirtualByCommit.value
+  const rowsList = rows.value
+  return buildTimeMarkers(repo.commits, now.value).flatMap((marker) => {
+    const commitVirtual = virtualByCommit.get(marker.commitIndex)
+    if (commitVirtual == null) return []
+    let top = commitVirtual
+    while (top > 0 && rowsList[top - 1]?.kind === 'stash') top--
+    return [{ ...marker, y: top * rowHeight.value }]
+  })
+})
 
 /**
  * Graph X for a stash box: its own independent lane just right of the base
@@ -416,6 +452,28 @@ function checkoutCommitAt(commitIndex: number, event?: Event): void {
               :row-height="rowHeight"
               :selected="selectedSha === repo.commits[resolveCommitIndex(item.index)!]?.sha"
             />
+          </div>
+        </div>
+
+        <!-- Time dividers ("a week ago"): a hairline across the row boundary
+             with a small tag pinned to the right edge of the viewport. -->
+        <div class="pointer-events-none absolute inset-0 z-20" aria-hidden="true">
+          <div
+            v-for="marker in timeMarkers"
+            :key="marker.key"
+            class="absolute right-0 left-0"
+            :style="{ top: `${marker.y}px` }"
+          >
+            <div
+              class="absolute inset-x-0 top-0 h-px bg-[var(--color-border-strong)] opacity-80"
+            />
+            <div class="flex justify-end pr-2">
+              <span
+                class="sticky right-2 -translate-y-1/2 rounded border border-[var(--color-border-strong)] bg-[var(--color-panel-raised)] px-1.5 py-px text-[10px] leading-4 text-[var(--color-fg-muted)]"
+              >
+                {{ marker.label }}
+              </span>
+            </div>
           </div>
         </div>
       </div>

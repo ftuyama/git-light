@@ -31,6 +31,12 @@ export function useCommitGraphColumns() {
       checked: ui.isColumnVisible('when'),
       onSelect: () => ui.toggleColumn('when'),
     },
+    { separator: true },
+    {
+      label: 'Time indicators',
+      checked: ui.showTimeMarkers,
+      onSelect: () => ui.toggleTimeMarkers(),
+    },
   ])
 
   const rowContentWidth = computed(() => {

@@ -64,6 +64,7 @@ function snapshot(state: {
   columnWidths: UserPreferences['columnWidths']
   graphScopeAll: boolean
   commitGraphLimit: number
+  showTimeMarkers: boolean
   fileListView: FileListView
   lastRepositoryPath: string | null
   openRepoTabs: RepoTabPref[]
@@ -90,6 +91,7 @@ function snapshot(state: {
     columnWidths: state.columnWidths,
     graphScopeAll: state.graphScopeAll,
     commitGraphLimit: state.commitGraphLimit,
+    showTimeMarkers: state.showTimeMarkers,
     fileListView: state.fileListView,
     lastRepositoryPath: state.lastRepositoryPath,
     openRepoTabs: state.openRepoTabs,
@@ -119,6 +121,7 @@ export const useUiStore = defineStore('ui', {
     columnWidths: { ...DEFAULT_COLUMN_WIDTHS },
     graphScopeAll: true,
     commitGraphLimit: defaultPreferences().commitGraphLimit,
+    showTimeMarkers: true,
     fileListView: 'path' as FileListView,
     lastRepositoryPath: null as string | null,
     openRepoTabs: [] as RepoTabPref[],
@@ -164,6 +167,7 @@ export const useUiStore = defineStore('ui', {
       this.columnWidths = saved.columnWidths
       this.graphScopeAll = saved.graphScopeAll
       this.commitGraphLimit = saved.commitGraphLimit
+      this.showTimeMarkers = saved.showTimeMarkers
       this.fileListView = saved.fileListView
       this.lastRepositoryPath = saved.lastRepositoryPath
       this.openRepoTabs = saved.openRepoTabs.map((tab) => ({ ...tab }))
@@ -202,6 +206,7 @@ export const useUiStore = defineStore('ui', {
           columnWidths: this.columnWidths,
           graphScopeAll: this.graphScopeAll,
           commitGraphLimit: this.clampedCommitGraphLimit,
+          showTimeMarkers: this.showTimeMarkers,
           fileListView: this.fileListView,
           lastRepositoryPath: this.lastRepositoryPath,
           openRepoTabs: this.openRepoTabs,
@@ -308,6 +313,12 @@ export const useUiStore = defineStore('ui', {
     },
     setColumnVisible(key: CommitColumnKey, visible: boolean): void {
       this.columns[key] = visible
+    },
+    toggleTimeMarkers(): void {
+      this.showTimeMarkers = !this.showTimeMarkers
+    },
+    setShowTimeMarkers(visible: boolean): void {
+      this.showTimeMarkers = visible
     },
     setColumnWidth(key: CommitColumnWidthKey, width: number): void {
       this.columnWidths[key] = clampColumnWidth(key, width)

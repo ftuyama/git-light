@@ -435,6 +435,19 @@ onUnmounted(() => document.removeEventListener('keydown', onKeydown))
                 />
               </section>
               <section class="mt-5 space-y-0.5">
+                <h3
+                  class="px-3 pb-1 text-[11px] font-semibold tracking-wide text-[var(--color-fg-subtle)] uppercase"
+                >
+                  Timeline
+                </h3>
+                <SettingsRow
+                  label="Time indicators"
+                  description="Show dividers like “a week ago” between commits in the graph."
+                  :model-value="ui.showTimeMarkers"
+                  @update:model-value="ui.setShowTimeMarkers($event)"
+                />
+              </section>
+              <section class="mt-5 space-y-0.5">
                 <div class="flex items-center justify-between gap-3 px-3 pb-1">
                   <h3
                     class="text-[11px] font-semibold tracking-wide text-[var(--color-fg-subtle)] uppercase"

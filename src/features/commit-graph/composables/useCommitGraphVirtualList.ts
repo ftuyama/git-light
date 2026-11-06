@@ -105,6 +105,7 @@ export function useCommitGraphVirtualList(options: {
     virtualItems,
     totalSize,
     rows,
+    commitVirtualByCommit,
     resolveCommitIndex,
     resolveStashIndex,
     isPendingIndex,
