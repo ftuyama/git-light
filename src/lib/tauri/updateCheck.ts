@@ -61,8 +61,15 @@ export async function runUpdateCheck(source: UpdateCheckSource): Promise<void> {
     readSnooze,
     writeSnooze,
     askDownload: async (title, detail) => {
-      const yes = await ask(`${title}\n\n${detail}`, { title, kind: 'info' })
-      return yes ? 'download' : 'later'
+      // `title` is the dialog heading, so keep it out of the body to avoid
+      // showing the version twice; name the buttons after the actual action.
+      const download = await ask(detail, {
+        title,
+        kind: 'info',
+        okLabel: 'Download',
+        cancelLabel: 'Later',
+      })
+      return download ? 'download' : 'later'
     },
     openDownload: (url) => openExternalUrl(url),
     showMessage: async (title, detail) => {

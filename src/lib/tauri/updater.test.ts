@@ -106,6 +106,14 @@ describe('tauri updater', () => {
     expect(formatReleaseNotes(null)).toBe('')
   })
 
+  it('drops the placeholder release body used by older releases', () => {
+    expect(
+      formatReleaseNotes('See the assets to download this version and install.'),
+    ).toBe('')
+    expect(formatReleaseNotes('  See the assets to download this version and install  ')).toBe('')
+    expect(formatReleaseNotes('See the assets to download this version and install.\n\nPlus fixes')).toContain('Plus fixes')
+  })
+
   it('prompts download when a newer release exists', async () => {
     const dialog = vi.fn(async () => 'download' as const)
     const opened: string[] = []

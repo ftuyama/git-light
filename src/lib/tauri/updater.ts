@@ -153,6 +153,21 @@ function resolveDownloadUrl(
   return release.html_url
 }
 
+/**
+ * Boilerplate that older releases used as their whole body; it says nothing about
+ * what changed and only repeats the download hint we already show.
+ */
+const PLACEHOLDER_RELEASE_BODY =
+  'see the assets to download this version and install'
+
+function isPlaceholderReleaseNotes(text: string): boolean {
+  const normalized = text
+    .toLowerCase()
+    .replace(/[\s.!]+/g, ' ')
+    .trim()
+  return normalized === PLACEHOLDER_RELEASE_BODY
+}
+
 /** Strip common Markdown so release notes read cleanly in a native dialog. */
 export function formatReleaseNotes(body: string | null | undefined, maxLength = 800): string {
   if (!body?.trim()) return ''
@@ -167,6 +182,7 @@ export function formatReleaseNotes(body: string | null | undefined, maxLength = 
     .replace(/^[-*+]\s+/gm, '• ')
     .replace(/\n{3,}/g, '\n\n')
     .trim()
+  if (isPlaceholderReleaseNotes(text)) return ''
   if (text.length > maxLength) {
     text = `${text.slice(0, maxLength - 1).trimEnd()}…`
   }

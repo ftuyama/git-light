@@ -96,6 +96,45 @@ jobs:
           prerelease: false
           args: ${{ matrix.args }}
 
+  # Replace the tauri-action placeholder body with a real changelog. The in-app
+  # "What's new" dialog renders this release body, so keep it meaningful.
+  release-notes:
+    needs: [build]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+
+      - name: Publish release notes from commit history
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          previous="$(git describe --tags --abbrev=0 "${TAG}^" 2>/dev/null || true)"
+          if [ -n "$previous" ]; then
+            heading="Changes since ${previous}"
+            range="${previous}..${TAG}"
+          else
+            heading="Initial release"
+            range="${TAG}"
+          fi
+          {
+            echo "$heading"
+            echo
+            git log "$range" --no-merges --invert-grep --grep='^Release v' --pretty=format:'- %s'
+            echo
+            if [ -n "$previous" ]; then
+              echo
+              echo "**Full changelog:** https://github.com/${GITHUB_REPOSITORY}/compare/${previous}...${TAG}"
+            fi
+          } > release-notes.md
+          gh release edit "$TAG" --repo "$GITHUB_REPOSITORY" --notes-file release-notes.md
+
   # Publish CHECKSUMS.txt with sha256 for every asset. scripts/install.sh and the
   # in-app updater verify downloads against it.
   checksums:
