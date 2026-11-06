@@ -65,6 +65,7 @@ function snapshot(state: {
   graphScopeAll: boolean
   commitGraphLimit: number
   showTimeMarkers: boolean
+  showMergeIndicators: boolean
   fileListView: FileListView
   lastRepositoryPath: string | null
   openRepoTabs: RepoTabPref[]
@@ -92,6 +93,7 @@ function snapshot(state: {
     graphScopeAll: state.graphScopeAll,
     commitGraphLimit: state.commitGraphLimit,
     showTimeMarkers: state.showTimeMarkers,
+    showMergeIndicators: state.showMergeIndicators,
     fileListView: state.fileListView,
     lastRepositoryPath: state.lastRepositoryPath,
     openRepoTabs: state.openRepoTabs,
@@ -122,6 +124,7 @@ export const useUiStore = defineStore('ui', {
     graphScopeAll: true,
     commitGraphLimit: defaultPreferences().commitGraphLimit,
     showTimeMarkers: true,
+    showMergeIndicators: true,
     fileListView: 'path' as FileListView,
     lastRepositoryPath: null as string | null,
     openRepoTabs: [] as RepoTabPref[],
@@ -168,6 +171,7 @@ export const useUiStore = defineStore('ui', {
       this.graphScopeAll = saved.graphScopeAll
       this.commitGraphLimit = saved.commitGraphLimit
       this.showTimeMarkers = saved.showTimeMarkers
+      this.showMergeIndicators = saved.showMergeIndicators
       this.fileListView = saved.fileListView
       this.lastRepositoryPath = saved.lastRepositoryPath
       this.openRepoTabs = saved.openRepoTabs.map((tab) => ({ ...tab }))
@@ -207,6 +211,7 @@ export const useUiStore = defineStore('ui', {
           graphScopeAll: this.graphScopeAll,
           commitGraphLimit: this.clampedCommitGraphLimit,
           showTimeMarkers: this.showTimeMarkers,
+          showMergeIndicators: this.showMergeIndicators,
           fileListView: this.fileListView,
           lastRepositoryPath: this.lastRepositoryPath,
           openRepoTabs: this.openRepoTabs,
@@ -319,6 +324,12 @@ export const useUiStore = defineStore('ui', {
     },
     setShowTimeMarkers(visible: boolean): void {
       this.showTimeMarkers = visible
+    },
+    toggleMergeIndicators(): void {
+      this.showMergeIndicators = !this.showMergeIndicators
+    },
+    setShowMergeIndicators(visible: boolean): void {
+      this.showMergeIndicators = visible
     },
     setColumnWidth(key: CommitColumnWidthKey, width: number): void {
       this.columnWidths[key] = clampColumnWidth(key, width)

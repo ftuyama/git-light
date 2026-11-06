@@ -438,13 +438,19 @@ onUnmounted(() => document.removeEventListener('keydown', onKeydown))
                 <h3
                   class="px-3 pb-1 text-[11px] font-semibold tracking-wide text-[var(--color-fg-subtle)] uppercase"
                 >
-                  Timeline
+                  Indicators
                 </h3>
                 <SettingsRow
                   label="Time indicators"
                   description="Show dividers like “a week ago” between commits in the graph."
                   :model-value="ui.showTimeMarkers"
                   @update:model-value="ui.setShowTimeMarkers($event)"
+                />
+                <SettingsRow
+                  label="Merge indicators"
+                  description="Mark merge commits with a merge icon in the commit message column."
+                  :model-value="ui.showMergeIndicators"
+                  @update:model-value="ui.setShowMergeIndicators($event)"
                 />
               </section>
               <section class="mt-5 space-y-0.5">

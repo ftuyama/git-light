@@ -14,7 +14,6 @@ import {
   Undo2,
 } from '@lucide/vue'
 import Avatar from '@/components/ui/Avatar.vue'
-import Badge from '@/components/ui/Badge.vue'
 import ContextMenu from '@/components/ui/ContextMenu.vue'
 import RefChip from './RefChip.vue'
 import BranchRefChip from './BranchRefChip.vue'
@@ -460,7 +459,14 @@ function openOnGithub(): void {
         >
           {{ commit.subject }}
         </span>
-        <Badge v-if="commit.isMerge && !isStashCommit" tone="info">merge</Badge>
+        <span
+          v-if="commit.isMerge && !isStashCommit && ui.showMergeIndicators"
+          class="shrink-0 text-[var(--color-info)]"
+          title="Merge commit"
+          aria-label="Merge commit"
+        >
+          <GitMerge :size="14" />
+        </span>
       </div>
 
       <div

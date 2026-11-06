@@ -179,6 +179,7 @@ export interface UserPreferences {
   graphScopeAll: boolean
   commitGraphLimit: number
   showTimeMarkers: boolean
+  showMergeIndicators: boolean
   fileListView: FileListView
   lastRepositoryPath: string | null
   openRepoTabs: RepoTabPref[]
@@ -268,6 +269,7 @@ export function defaultPreferences(): UserPreferences {
     graphScopeAll: true,
     commitGraphLimit: DEFAULT_COMMIT_GRAPH_LIMIT,
     showTimeMarkers: true,
+    showMergeIndicators: true,
     fileListView: 'path',
     lastRepositoryPath: null,
     openRepoTabs: [],
@@ -302,6 +304,7 @@ export function mergePreferences(saved: Partial<UserPreferences> | null): UserPr
     graphScopeAll: saved.graphScopeAll ?? defaults.graphScopeAll,
     commitGraphLimit: clampCommitGraphLimit(saved.commitGraphLimit ?? defaults.commitGraphLimit),
     showTimeMarkers: saved.showTimeMarkers ?? defaults.showTimeMarkers,
+    showMergeIndicators: saved.showMergeIndicators ?? defaults.showMergeIndicators,
     fileListView: saved.fileListView ?? defaults.fileListView,
     lastRepositoryPath: saved.lastRepositoryPath ?? defaults.lastRepositoryPath,
     openRepoTabs: Array.isArray(saved.openRepoTabs)

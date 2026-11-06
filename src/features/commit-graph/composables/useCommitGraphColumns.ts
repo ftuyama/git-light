@@ -37,6 +37,11 @@ export function useCommitGraphColumns() {
       checked: ui.showTimeMarkers,
       onSelect: () => ui.toggleTimeMarkers(),
     },
+    {
+      label: 'Merge indicators',
+      checked: ui.showMergeIndicators,
+      onSelect: () => ui.toggleMergeIndicators(),
+    },
   ])
 
   const rowContentWidth = computed(() => {
