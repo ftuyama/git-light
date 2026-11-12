@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { type Component, computed } from 'vue'
-import { Cloud, FileDiff, Inbox, Laptop, PanelLeftOpen, PanelRightOpen, Tag, TreePine } from '@lucide/vue'
+import { computed } from 'vue'
+import { FileDiff, PanelLeftOpen, PanelRightOpen } from '@lucide/vue'
 import IconButton from '@/components/ui/IconButton.vue'
 import {
   ADVANCED_SECTION_KEYS,
@@ -9,6 +9,7 @@ import {
 } from '@/lib/preferences'
 import { useUiStore } from '@/stores/ui'
 import { useSidebarSectionCounts } from '@/features/branch-sidebar/useSidebarSectionCounts'
+import { SECTION_ICONS } from '@/features/branch-sidebar/sectionIcons'
 
 const props = defineProps<{ side: 'left' | 'right' }>()
 const emit = defineEmits<{ expand: [] }>()
@@ -17,23 +18,23 @@ const ui = useUiStore()
 const { sectionCount } = useSidebarSectionCounts()
 
 /** Sections reachable from the collapsed rail, in sidebar order. */
-const RAIL_SECTIONS: readonly { key: SectionKey; icon: Component }[] = [
-  { key: 'localBranches', icon: Laptop },
-  { key: 'remoteBranches', icon: Cloud },
-  { key: 'worktrees', icon: TreePine },
-  { key: 'stashes', icon: Inbox },
-  { key: 'tags', icon: Tag },
+const RAIL_SECTIONS: readonly SectionKey[] = [
+  'localBranches',
+  'remoteBranches',
+  'worktrees',
+  'stashes',
+  'tags',
 ]
 
 const sections = computed(() =>
   RAIL_SECTIONS.filter(
-    ({ key }) =>
+    (key) =>
       ui.isSectionVisible(key) &&
       (ui.isAdvanced ||
         !ADVANCED_SECTION_KEYS.includes(key as (typeof ADVANCED_SECTION_KEYS)[number])),
-  ).map(({ key, icon }) => ({
+  ).map((key) => ({
     key,
-    icon,
+    icon: SECTION_ICONS[key],
     label: SECTION_LABELS[key],
     count: sectionCount(key),
   })),

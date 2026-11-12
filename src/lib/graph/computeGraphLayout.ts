@@ -41,31 +41,46 @@ export function edgeColor(fromLane: number, toLane: number, kind: GraphEdgeKind)
 
 interface LaneContext {
   lanes: (string | null)[]
+  /** Lanes carrying HEAD's first-parent chain, which wins a shared parent. */
+  headLanes: boolean[]
   waitingShas: Set<string>
-  setLane: (index: number, sha: string | null) => void
+  setLane: (index: number, sha: string | null, headLane?: boolean) => void
   laneWaitingFor: (sha: string) => number
   firstFree: () => number
 }
 
-function createLaneContext(initialLanes?: (string | null)[]): LaneContext {
+function createLaneContext(
+  initialLanes?: (string | null)[],
+  initialHeadLanes?: boolean[],
+): LaneContext {
   const lanes = initialLanes ? [...initialLanes] : []
+  const headLanes = initialLanes
+    ? initialLanes.map((_, index) => initialHeadLanes?.[index] === true)
+    : []
   const waitingShas = new Set<string>()
   for (const sha of lanes) {
     if (sha != null) waitingShas.add(sha)
   }
 
-  const setLane = (index: number, sha: string | null): void => {
+  const setLane = (index: number, sha: string | null, headLane = false): void => {
     const prev = lanes[index]
     if (prev != null) waitingShas.delete(prev)
     lanes[index] = sha
+    headLanes[index] = sha != null && headLane
     if (sha != null) waitingShas.add(sha)
   }
 
   const laneWaitingFor = (sha: string): number => {
+    let fallback = -1
     for (let j = 0; j < lanes.length; j++) {
-      if (lanes[j] === sha) return j
+      if (lanes[j] !== sha) continue
+      // Several lanes can wait for the same shared parent. Keeping HEAD's lane
+      // makes the checked-out branch run straight through the fork while other
+      // branches curve into it.
+      if (headLanes[j]) return j
+      if (fallback === -1) fallback = j
     }
-    return -1
+    return fallback
   }
 
   const firstFree = (): number => {
@@ -73,7 +88,7 @@ function createLaneContext(initialLanes?: (string | null)[]): LaneContext {
     return idx === -1 ? lanes.length : idx
   }
 
-  return { lanes, waitingShas, setLane, laneWaitingFor, firstFree }
+  return { lanes, headLanes, waitingShas, setLane, laneWaitingFor, firstFree }
 }
 
 function assignNodes(
@@ -82,6 +97,7 @@ function assignNodes(
   ctx: LaneContext,
   nodes: GraphNode[],
   laneOf: Map<string, number>,
+  headCommitIndex: number,
 ): number {
   let maxLanes = 0
   for (let i = 0; i < startRow; i++) {
@@ -92,11 +108,13 @@ function assignNodes(
   for (let i = startRow; i < commits.length; i++) {
     const commit = commits[i]
     let myLane = ctx.laneWaitingFor(commit.sha)
+    let onHeadChain = myLane !== -1 && ctx.headLanes[myLane]
     if (myLane === -1) {
       myLane = ctx.firstFree()
       if (myLane === ctx.lanes.length) ctx.lanes.push(null)
       ctx.setLane(myLane, commit.sha)
     }
+    if (i === headCommitIndex) onHeadChain = true
 
     for (let j = 0; j < ctx.lanes.length; j++) {
       if (j !== myLane && ctx.lanes[j] === commit.sha) ctx.setLane(j, null)
@@ -109,7 +127,7 @@ function assignNodes(
     if (parents.length === 0) {
       ctx.setLane(myLane, null)
     } else {
-      ctx.setLane(myLane, parents[0])
+      ctx.setLane(myLane, parents[0], onHeadChain)
       for (let p = 1; p < parents.length; p++) {
         const parent = parents[p]
         if (!ctx.waitingShas.has(parent)) {
@@ -159,21 +177,25 @@ function assignEdges(
 
       let kind: GraphEdgeKind = 'straight'
       if (lc !== lp) {
-        if (commit.isMerge && pi > 0) {
-          kind = 'merge'
-        } else if (lp < lc) {
-          kind = 'converge'
-        } else {
-          kind = 'laneChange'
-        }
+        // A merge's extra parents fan out; every other lane shift is the
+        // branch stepping into the lane reserved by its shared parent.
+        kind = commit.isMerge && pi > 0 ? 'merge' : 'converge'
       }
 
-      if (kind === 'laneChange') continue
+      if (kind === 'converge') {
+        // Stay in the branch's own lane until the row where the shared parent
+        // is reached, then turn into the parent lane. Drawing the diagonal
+        // right below the branch tip would make the branch look like it forked
+        // off the newest commit of the lane it actually rejoins much later.
+        for (let r = i; r < rp - 1; r++) pushEdge(r, lc, lc, 'straight')
+        pushEdge(rp - 1, lc, lp, 'converge')
+        continue
+      }
 
+      // The edge itself already runs down the parent lane to the next row, so
+      // band i needs no extra straight there: its butt cap would poke out
+      // beside the corner radius and read as a second line following the arc.
       pushEdge(i, lc, lp, kind)
-      if (kind === 'merge') {
-        pushEdge(i, lp, lp, 'straight')
-      }
       for (let r = i + 1; r < rp; r++) pushEdge(r, lp, lp, 'straight')
     }
   }
@@ -192,8 +214,10 @@ function seedEdgeSeen(bands: GraphEdge[][]): Set<string>[] {
 /**
  * Assigns commits to lanes (columns) and produces per-band edge segments for a
  * Multi-lane commit graph. Commits must be topologically sorted newest-first.
+ * `headCommitIndex` keeps the checked-out branch's line straight through a
+ * fork, so other branches are drawn curving into it.
  */
-export function computeGraphLayout(commits: Commit[]): GraphLayout {
+export function computeGraphLayout(commits: Commit[], headCommitIndex = -1): GraphLayout {
   const n = commits.length
   if (n === 0) {
     return { nodes: [], bands: [], maxLanes: 1, laneState: { lanes: [] } }
@@ -205,7 +229,7 @@ export function computeGraphLayout(commits: Commit[]): GraphLayout {
   const laneOf = new Map<string, number>()
   const nodes: GraphNode[] = new Array(n)
   const ctx = createLaneContext()
-  const maxLanes = assignNodes(commits, 0, ctx, nodes, laneOf)
+  const maxLanes = assignNodes(commits, 0, ctx, nodes, laneOf, headCommitIndex)
 
   const bands: GraphEdge[][] = Array.from({ length: n }, () => [])
   const seen = seedEdgeSeen(bands)
@@ -227,6 +251,7 @@ export function extendGraphLayout(
   existingCommits: Commit[],
   newCommits: Commit[],
   prevLayout: GraphLayout,
+  headCommitIndex = -1,
 ): GraphLayout {
   if (newCommits.length === 0) return prevLayout
 
@@ -236,7 +261,7 @@ export function extendGraphLayout(
     prevLayout.nodes.length !== oldN ||
     prevLayout.bands.length !== oldN
   ) {
-    return computeGraphLayout([...existingCommits, ...newCommits])
+    return computeGraphLayout([...existingCommits, ...newCommits], headCommitIndex)
   }
 
   const commits = [...existingCommits, ...newCommits]
@@ -251,16 +276,22 @@ export function extendGraphLayout(
 
   const nodes = [...prevLayout.nodes]
   nodes.length = n
-  const ctx = createLaneContext(prevLayout.laneState.lanes)
+  // The previous page was already remapped so HEAD sits in lane 0; its
+  // first-parent chain continues in that lane as more commits arrive.
+  const headLane = prevLayout.nodes[headCommitIndex]?.lane
+  const headLanes = prevLayout.laneState.lanes.map((_, index) => index === headLane)
+  const ctx = createLaneContext(prevLayout.laneState.lanes, headLanes)
   const maxLanes = Math.max(
     prevLayout.maxLanes,
-    assignNodes(commits, oldN, ctx, nodes, laneOf),
+    assignNodes(commits, oldN, ctx, nodes, laneOf, headCommitIndex),
   )
 
-  const bands = prevLayout.bands.map((band) => [...band])
-  while (bands.length < n) bands.push([])
+  // Edges are rebuilt from row 0 because a parent that was outside the previous
+  // page has no edge yet: its straight run has to cross the bands already on
+  // screen. Lane assignments are still reused, so only edge segments are redone.
+  const bands: GraphEdge[][] = Array.from({ length: n }, () => [])
   const seen = seedEdgeSeen(bands)
-  assignEdges(commits, nodes, laneOf, rowOf, bands, seen, oldN)
+  assignEdges(commits, nodes, laneOf, rowOf, bands, seen, 0)
 
   return {
     nodes,

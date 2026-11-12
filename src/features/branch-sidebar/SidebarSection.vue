@@ -3,16 +3,19 @@ import { computed } from 'vue'
 import { ChevronRight } from '@lucide/vue'
 import { useUiStore } from '@/stores/ui'
 import ContextMenu from '@/components/ui/ContextMenu.vue'
+import type { SectionKey } from '@/lib/preferences'
 import { useSidebarSectionMenu } from './useSidebarSectionMenu'
+import { SECTION_ICONS } from './sectionIcons'
 
 const props = defineProps<{
-  sectionKey: string
+  sectionKey: SectionKey
   title: string
   count?: number
 }>()
 
 const ui = useUiStore()
 const open = computed(() => ui.isSectionOpen(props.sectionKey))
+const icon = computed(() => SECTION_ICONS[props.sectionKey])
 const { sectionMenu } = useSidebarSectionMenu()
 </script>
 
@@ -28,6 +31,7 @@ const { sectionMenu } = useSidebarSectionMenu()
           class="shrink-0 transition-transform duration-150"
           :class="open ? 'rotate-90' : ''"
         />
+        <component :is="icon" :size="13" class="shrink-0" />
         <span class="flex-1 text-left">{{ title }}</span>
         <span v-if="count != null" class="font-mono text-[10px] text-[var(--color-fg-subtle)]">
           {{ count }}

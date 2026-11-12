@@ -13,7 +13,7 @@ export const EMPTY_PAGE: CommitPageInfo = { oldestSha: null, hasMore: false, tot
 
 export function buildGraphLayout(commits: Commit[], headCommitIndex: number): GraphLayout {
   return perfSync(`buildGraphLayout(${commits.length})`, () =>
-    remapHeadLaneToLeft(computeGraphLayout(commits), headCommitIndex),
+    remapHeadLaneToLeft(computeGraphLayout(commits, headCommitIndex), headCommitIndex),
   )
 }
 
@@ -27,7 +27,7 @@ export function appendGraphLayout(
     const base =
       newCommits.length === 0
         ? prevLayout
-        : extendGraphLayout(existingCommits, newCommits, prevLayout)
+        : extendGraphLayout(existingCommits, newCommits, prevLayout, headCommitIndex)
     return remapHeadLaneToLeft(base, headCommitIndex)
   })
 }

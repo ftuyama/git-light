@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { computed, onUnmounted, ref, useTemplateRef } from 'vue'
-import { Check, Cloud, Monitor, Tag as TagIcon } from '@lucide/vue'
+import { Check, Cloud, Monitor, Tag as TagIcon, TreePine } from '@lucide/vue'
 import { formatRefLabel } from '@shared/git/refLabel'
 import type { Ref } from '@/types/git'
+import { useRepositoryStore } from '@/stores/repository'
 
 const props = defineProps<{
   refData: Ref
@@ -21,6 +22,8 @@ const label = computed(() =>
     : formatRefLabel(props.refData.name, props.refData.type),
 )
 
+const repo = useRepositoryStore()
+
 const isCurrent = computed(() => props.refData.isHead === true)
 const showLocalIcon = computed(
   () => props.hasLocal ?? props.refData.type === 'localBranch',
@@ -29,6 +32,16 @@ const showRemoteIcon = computed(
   () => props.hasRemote ?? props.refData.type === 'remoteBranch',
 )
 const showTagIcon = computed(() => props.refData.type === 'tag')
+
+/** Linked worktree holding this local branch, when it is not the checkout this app has open. */
+const worktree = computed(() => {
+  if (props.refData.type !== 'localBranch') return undefined
+  const name = formatRefLabel(props.refData.name, 'localBranch')
+  const repoPath = repo.repository?.path?.replace(/\/+$/, '')
+  return repo.worktrees.find(
+    (entry) => entry.branch === name && entry.path.replace(/\/+$/, '') !== repoPath,
+  )
+})
 
 const resolvedColor = computed((): string =>
   props.refData.type === 'tag' ? 'var(--color-warning)' : props.color,
@@ -144,7 +157,13 @@ onUnmounted(() => {
         {{ label }}
       </span>
       <span v-if="showLocalIcon || showRemoteIcon" class="ml-auto flex shrink-0 items-center gap-1">
-        <Monitor v-if="showLocalIcon" :size="12" class="opacity-90" />
+        <TreePine
+          v-if="showLocalIcon && worktree"
+          :size="12"
+          class="opacity-90"
+          :aria-label="`Checked out in worktree ${worktree.path}`"
+        />
+        <Monitor v-else-if="showLocalIcon" :size="12" class="opacity-90" />
         <Cloud v-if="showRemoteIcon" :size="12" class="opacity-90" />
       </span>
     </span>
@@ -165,7 +184,13 @@ onUnmounted(() => {
       <TagIcon v-if="showTagIcon" :size="12" class="shrink-0 opacity-90" />
       <span :class="isCurrent ? 'font-semibold' : 'font-medium'">{{ label }}</span>
       <span v-if="showLocalIcon || showRemoteIcon" class="ml-auto flex shrink-0 items-center gap-1">
-        <Monitor v-if="showLocalIcon" :size="12" class="opacity-90" />
+        <TreePine
+          v-if="showLocalIcon && worktree"
+          :size="12"
+          class="opacity-90"
+          :aria-label="`Checked out in worktree ${worktree.path}`"
+        />
+        <Monitor v-else-if="showLocalIcon" :size="12" class="opacity-90" />
         <Cloud v-if="showRemoteIcon" :size="12" class="opacity-90" />
       </span>
     </span>
