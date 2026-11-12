@@ -2236,6 +2236,7 @@ mod tests {
             reverting: false,
             bisecting: false,
             operation_label: None,
+            operation_source: None,
         };
         assert!(!is_undo_redo_safe(&state));
         state.merging = false;

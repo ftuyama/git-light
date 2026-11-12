@@ -9,5 +9,25 @@
   "oursHeader": "我们的 — {label}",
   "theirsHeader": "他们的 — {label}",
   "base": "基线（共同祖先）",
-  "loadError": "无法加载冲突详情。"
+  "loadError": "无法加载冲突详情。",
+  "panel": {
+    "mergeTitle": "检测到合并冲突",
+    "rebaseTitle": "检测到变基冲突",
+    "cherryPickTitle": "检测到拣选冲突",
+    "revertTitle": "检测到还原冲突",
+    "bisectTitle": "二分查找进行中",
+    "noConflictsTitle": "没有未解决的冲突",
+    "mergingInto": "正在将 {source} 合并到 {target}",
+    "mergingFallback": "正在合并到 {target}",
+    "rebasingSource": "正在将 {source} 变基",
+    "rebasingFallback": "正在变基",
+    "cherryPickingOnto": "正在将 {source} 拣选到 {target}",
+    "cherryPickingFallback": "正在拣选到 {target}",
+    "revertingOnto": "正在将 {source} 还原到 {target}",
+    "revertingFallback": "正在还原到 {target}",
+    "bisectHint": "将当前提交标记为好或坏",
+    "bisectEmpty": "使用“好”、“坏”或“跳过”推进二分查找。",
+    "noConflicts": "所有冲突均已解决。准备就绪后即可继续。",
+    "resolveToContinue": "解决所有冲突后才能继续。"
+  }
 }

@@ -9,5 +9,25 @@
   "oursHeader": "Nosso — {label}",
   "theirsHeader": "Deles — {label}",
   "base": "Base (ancestral comum)",
-  "loadError": "Não foi possível carregar os detalhes do conflito."
+  "loadError": "Não foi possível carregar os detalhes do conflito.",
+  "panel": {
+    "mergeTitle": "Conflitos de merge detectados",
+    "rebaseTitle": "Conflitos de rebase detectados",
+    "cherryPickTitle": "Conflitos de cherry-pick detectados",
+    "revertTitle": "Conflitos de revert detectados",
+    "bisectTitle": "Bisect em andamento",
+    "noConflictsTitle": "Nenhum conflito não resolvido",
+    "mergingInto": "Fazendo merge de {source} em {target}",
+    "mergingFallback": "Fazendo merge em {target}",
+    "rebasingSource": "Fazendo rebase de {source}",
+    "rebasingFallback": "Fazendo rebase",
+    "cherryPickingOnto": "Aplicando cherry-pick de {source} sobre {target}",
+    "cherryPickingFallback": "Aplicando cherry-pick sobre {target}",
+    "revertingOnto": "Revertendo {source} sobre {target}",
+    "revertingFallback": "Revertendo sobre {target}",
+    "bisectHint": "Marque o commit atual como bom ou ruim",
+    "bisectEmpty": "Use Bom, Ruim ou Pular para avançar o bisect.",
+    "noConflicts": "Todos os conflitos foram resolvidos. Continue quando as alterações estiverem prontas.",
+    "resolveToContinue": "Resolva todos os conflitos para continuar."
+  }
 }

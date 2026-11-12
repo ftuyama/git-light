@@ -14,6 +14,7 @@ import { useRepoDiffStore } from '@/stores/repoDiff'
 import { useSelectionStore } from '@/stores/selection'
 import { useUiStore } from '@/stores/ui'
 import CommitBox from './CommitBox.vue'
+import OperationPanel from '@/features/conflicts/OperationPanel.vue'
 
 const repo = useRepositoryStore()
 const diffStore = useRepoDiffStore()
@@ -279,7 +280,9 @@ watch(compareRange, (range) => {
       </div>
     </template>
 
-    <template v-if="showWorkingTree">
+    <OperationPanel v-else-if="repo.inProgressOperation" />
+
+    <template v-else-if="showWorkingTree">
       <header
         class="flex h-9 shrink-0 items-center gap-2 border-b border-[var(--color-border)] px-2"
       >

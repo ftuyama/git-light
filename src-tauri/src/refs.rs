@@ -614,6 +614,49 @@ pub fn read_repo_state(git_dir: &Path) -> RepoState {
         .map(|h| !h.starts_with("ref:"))
         .unwrap_or(false);
 
+    let short_sha = |value: &str| -> String { value.chars().take(7).collect() };
+    let merge_source = || -> Option<String> {
+        if let Some(message) = read_trimmed(&["MERGE_MSG"]) {
+            let first_line = message.lines().next().unwrap_or("");
+            if let Some((_, rest)) = first_line.split_once("Merge branch '") {
+                return rest.split('\'').next().map(str::to_string);
+            }
+            if let Some((_, rest)) = first_line.split_once("Merge remote-tracking branch '") {
+                return rest.split('\'').next().map(str::to_string);
+            }
+            if let Some((_, rest)) = first_line.split_once("Merge tag '") {
+                return rest.split('\'').next().map(str::to_string);
+            }
+            if let Some((_, rest)) = first_line.split_once("Merge commit '") {
+                return rest.split('\'').next().map(short_sha);
+            }
+        }
+        read_trimmed(&["MERGE_HEAD"]).map(|sha| short_sha(&sha))
+    };
+    let rebase_source = || -> Option<String> {
+        let dir = if rebase_merge {
+            "rebase-merge"
+        } else {
+            "rebase-apply"
+        };
+        read_trimmed(&[dir, "head-name"]).map(|name| {
+            name.strip_prefix("refs/heads/")
+                .unwrap_or(name.as_str())
+                .to_string()
+        })
+    };
+    let operation_source = if rebasing {
+        rebase_source()
+    } else if merging {
+        merge_source()
+    } else if cherry_picking {
+        read_trimmed(&["CHERRY_PICK_HEAD"]).map(|sha| short_sha(&sha))
+    } else if reverting {
+        read_trimmed(&["REVERT_HEAD"]).map(|sha| short_sha(&sha))
+    } else {
+        None
+    };
+
     let operation_label = if rebasing {
         let dir = if rebase_merge {
             "rebase-merge"
@@ -653,6 +696,7 @@ pub fn read_repo_state(git_dir: &Path) -> RepoState {
         reverting,
         bisecting,
         operation_label,
+        operation_source,
     }
 }
 
@@ -1223,10 +1267,23 @@ mod tests {
         let clean = read_repo_state(&dir);
         assert!(!clean.merging);
         assert_eq!(clean.operation_label, None);
+        assert_eq!(clean.operation_source, None);
         std::fs::write(dir.join("MERGE_HEAD"), "abc\n").unwrap();
+        std::fs::write(dir.join("MERGE_MSG"), "Merge branch 'feature/x'\n").unwrap();
         let merging = read_repo_state(&dir);
         assert!(merging.merging);
         assert_eq!(merging.operation_label.as_deref(), Some("MERGING"));
+        assert_eq!(merging.operation_source.as_deref(), Some("feature/x"));
+        std::fs::remove_file(dir.join("MERGE_HEAD")).unwrap();
+        std::fs::remove_file(dir.join("MERGE_MSG")).unwrap();
+        std::fs::write(
+            dir.join("CHERRY_PICK_HEAD"),
+            "0123456789abcdef0123456789abcdef01234567\n",
+        )
+        .unwrap();
+        let picking = read_repo_state(&dir);
+        assert!(picking.cherry_picking);
+        assert_eq!(picking.operation_source.as_deref(), Some("0123456"));
         let _ = std::fs::remove_dir_all(&dir);
     }
 }
