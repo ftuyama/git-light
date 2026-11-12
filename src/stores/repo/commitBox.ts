@@ -99,7 +99,7 @@ export const commitBoxActions = {
       kind = this.amend ? 'amend' : 'commit'
     }
 
-    await this.runAction({
+    const ok = await this.runAction({
       kind,
       meta: {
         message: this.commitMessage,
@@ -109,6 +109,8 @@ export const commitBoxActions = {
         amend: this.amend,
       },
     })
+    // Close the open working-tree file diff so the commit graph is visible again.
+    if (ok) useRepoDiffStore().selectFile(null)
     this.commitMessage = ''
     this.commitDescription = ''
     this.amend = false
