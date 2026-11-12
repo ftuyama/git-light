@@ -7,3 +7,4 @@ src-tauri/gen
 coverage
 tmp/
 worktrees/
+.playwright-mcp/

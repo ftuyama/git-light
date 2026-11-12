@@ -108,7 +108,6 @@ const { graphContentWidth, visibleEdges, visibleNodes, laneX } = useCommitGraphO
   resolveCommitIndex,
   resolveStashIndex,
   virtualIndexForCommitIndex,
-  stashBoxX: stashNodeX,
 })
 
 const stashBoxSize = computed(() => Math.max(20, nodeSize.value))
@@ -149,22 +148,6 @@ const timeMarkers = computed(() => {
     return [{ ...marker, y: top * rowHeight.value }]
   })
 })
-
-/**
- * Graph X for a stash box: its own independent lane just right of the base
- * commit's lane (GitKraken-style), else right of the head lane.
- */
-function stashBaseLane(stashIndex: number): number {
-  const baseSha = repo.stashes[stashIndex]?.baseSha
-  const baseIndex = baseSha ? (commitIndexBySha.value.get(baseSha) ?? -1) : -1
-  return baseIndex >= 0
-    ? (repo.layout.nodes[baseIndex]?.lane ?? 0)
-    : (repo.layout.nodes[headIndex.value]?.lane ?? 0)
-}
-
-function stashNodeX(stashIndex: number): number {
-  return laneX(stashBaseLane(stashIndex)) + laneWidth.value
-}
 
 /** Tooltip for the dotted stash box; names the base when it is floating. */
 function stashBoxTitle(stashIndex: number): string {

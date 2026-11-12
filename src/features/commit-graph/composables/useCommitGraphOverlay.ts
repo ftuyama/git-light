@@ -3,6 +3,7 @@ import { storeToRefs } from 'pinia'
 import { graphEdgePath } from '@/lib/graph/graphEdgePath'
 import { commitMatchesFilter, isGraphFiltering, stashMatchesFilter } from '@/lib/graph/graphFilter'
 import { stashVirtualIndexByStash } from '@/lib/graph/stashGraphRows'
+import { resolveStashLanes } from '@/lib/graph/stashLanes'
 import { buildCommitIndex } from '@/lib/graph/commitIndex'
 import { nodeEdgeEndInset } from '@/lib/graph/nodeEdgeInset'
 import type { GraphRow } from '@/lib/graph/stashGraphRows'
@@ -45,7 +46,6 @@ export function useCommitGraphOverlay(options: {
   resolveCommitIndex: (virtualIndex: number) => number | null
   resolveStashIndex: (virtualIndex: number) => number | null
   virtualIndexForCommitIndex: (commitIndex: number) => number
-  stashBoxX: (stashIndex: number) => number
 }) {
   const repo = useRepositoryStore()
   const selection = useSelectionStore()
@@ -62,18 +62,34 @@ export function useCommitGraphOverlay(options: {
     resolveCommitIndex,
     resolveStashIndex,
     virtualIndexForCommitIndex,
-    stashBoxX,
   } = options
 
-  const graphContentWidth = computed(
-    () =>
-      LANE_LEFT_PAD +
-      LANE_RIGHT_PAD +
-      (Math.max(1, repo.layout.maxLanes) + (repo.stashes.length > 0 ? 1 : 0)) *
-        laneWidth.value,
+  const commitIndexBySha = computed(() => buildCommitIndex(repo.commits))
+
+  const stashLanes = computed(() =>
+    resolveStashLanes({
+      layout: repo.layout,
+      stashes: repo.stashes,
+      indexBySha: commitIndexBySha.value,
+      headIndex: headIndex.value,
+    }),
+  )
+  const stashBoxX = (stashIndex: number): number =>
+    laneX(stashLanes.value[stashIndex] ?? 0, laneWidth.value)
+  const stashLaneCount = computed(() =>
+    stashLanes.value.reduce((count, lane) => Math.max(count, lane + 1), 0),
   )
 
-  const commitIndexBySha = computed(() => buildCommitIndex(repo.commits))
+  const graphContentWidth = computed(() => {
+    const commitLanes =
+      Math.max(1, repo.layout.maxLanes) + (repo.stashes.length > 0 ? 1 : 0)
+    return (
+      LANE_LEFT_PAD +
+      LANE_RIGHT_PAD +
+      Math.max(commitLanes, stashLaneCount.value) * laneWidth.value
+    )
+  })
+
   const stashVirtualByStashMap = computed(() => stashVirtualIndexByStash(rows.value))
 
   const visibleEdges = computed<VisibleEdge[]>(() => {
