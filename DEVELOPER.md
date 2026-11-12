@@ -34,6 +34,7 @@ VITE_USE_MOCK=true npm run dev
 | `npm run preview` | Preview production build |
 | `npm run site` | Serve the website (`docs/`, GitHub Pages source) at http://localhost:4173 with Python's SimpleHTTPServer |
 | `npm run typecheck` | TypeScript check |
+| `npm run i18n:audit` | Fail when new hardcoded UI strings appear (see [Translations](#translations-i18n)) |
 | `npm run test` | Unit tests (graph layout, Tauri bridges, shared contracts) |
 | `npm run test:watch` | Run tests in watch mode |
 | `npm run rust:check` | `cargo check` (Tauri backend) |
@@ -41,6 +42,32 @@ VITE_USE_MOCK=true npm run dev
 | `npm run rust:fmt:check` | `cargo fmt --check` |
 | `npm run rust:test` | `cargo test` |
 | `npm run check` | `typecheck` + `clippy` + `fmt:check` |
+
+## Translations (i18n)
+
+The UI ships in English (`en`), Brazilian Portuguese (`pt-BR`) and Simplified
+Chinese (`zh-CN`) through `vue-i18n` in Composition API mode. The language is a
+normal preference; when unset the app follows the OS locale (`plugin-os`), then
+the browser locale, then English.
+
+- Messages live in `src/locales/<locale>/<domain>.json`, one file per feature
+  domain, so a feature can be translated without touching the others.
+- Components use `$t('domain.key')` (global injection, no import needed). Plain
+  TS — stores, native menus, toasts — calls `translate('domain.key', params)`
+  from `src/locales`.
+- Dates go through `relativeTime()` / `fullTimestamp()` in `src/lib/format.ts`;
+  never import `date-fns` in a component.
+- `src/locales/GLOSSARY.md` has the terminology table and the rules for adding
+  strings. Read it before inventing a key.
+- `npm run test` runs `src/locales/parity.test.ts`, which fails when a locale
+  misses a key or ships an empty value.
+- `npm run i18n:audit` counts user-visible literals still hardcoded in Vue
+  templates and fails when the count grows past `scripts/i18n-baseline.json`.
+  After a translation pass, refresh it with `node scripts/i18n-audit.mjs --update`.
+
+Adding a language: copy `src/locales/en/` to `src/locales/<code>/`, add the code
+to `APP_LOCALES` in `src/lib/locales.ts`, add its native label to
+`LOCALE_LABELS`, and map its `date-fns` locale in `src/lib/format.ts`.
 
 ## Architecture
 
