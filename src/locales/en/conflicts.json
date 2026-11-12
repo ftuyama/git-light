@@ -28,6 +28,7 @@
     "bisectHint": "Mark the current commit as good or bad",
     "bisectEmpty": "Use Good, Bad or Skip to advance the bisect.",
     "noConflicts": "All conflicts are resolved. Continue when the changes are ready.",
-    "resolveToContinue": "Resolve all conflicts to continue."
+    "resolveToContinue": "Resolve all conflicts to continue.",
+    "markAllResolved": "Mark All Resolved"
   }
 }

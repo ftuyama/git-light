@@ -3,7 +3,7 @@ import { type Component, computed } from 'vue'
 import { Loader2 } from '@lucide/vue'
 import { cn } from '@/lib/utils'
 
-type Variant = 'primary' | 'secondary' | 'ghost' | 'danger'
+type Variant = 'primary' | 'secondary' | 'ghost' | 'danger' | 'warning'
 type Size = 'sm' | 'md'
 
 const props = withDefaults(
@@ -33,6 +33,8 @@ const classes = computed(() =>
       'text-[var(--color-fg-muted)] hover:bg-[var(--color-hover)] hover:text-[var(--color-fg)]',
     props.variant === 'danger' &&
       'bg-[var(--color-danger)] text-white shadow-sm hover:opacity-90',
+    props.variant === 'warning' &&
+      'border border-[var(--color-warning)]/60 bg-[var(--color-warning)]/10 text-[var(--color-warning)] hover:bg-[var(--color-warning)]/20',
     props.disabled && 'pointer-events-none opacity-40',
   ),
 )
