@@ -119,6 +119,8 @@ export interface RepoState {
   bisecting: boolean
   /** Short label for the status bar, e.g. "REBASING (2/5)". */
   operationLabel: string | null
+  /** Branch/commit being merged, cherry-picked, reverted or rebased. */
+  operationSource: string | null
 }
 
 export interface WireRepository {

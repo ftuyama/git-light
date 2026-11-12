@@ -75,6 +75,8 @@ pub struct RepoState {
     pub reverting: bool,
     pub bisecting: bool,
     pub operation_label: Option<String>,
+    /// Branch/commit being merged, cherry-picked, reverted or rebased.
+    pub operation_source: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize)]

@@ -14,7 +14,6 @@ import ToastViewport from '@/features/layout/ToastViewport.vue'
 import StartupView from '@/features/startup/StartupView.vue'
 import RestoreSplash from '@/features/startup/RestoreSplash.vue'
 import RepoLoadingSkeleton from '@/features/layout/RepoLoadingSkeleton.vue'
-import OperationBanner from '@/features/layout/OperationBanner.vue'
 import PromptHost from '@/features/layout/PromptHost.vue'
 import CommandPalette from '@/features/palette/CommandPalette.vue'
 import SearchOverlay from '@/features/search/SearchOverlay.vue'
@@ -209,7 +208,6 @@ useKeyboardShortcuts(dynamicShortcuts)
     <template v-else>
     <div class="flex h-screen w-screen flex-col overflow-hidden bg-[var(--color-app)]">
       <RepoTabs />
-      <OperationBanner />
 
       <!--
         The skeleton is an overlay, not a replacement for the panes: tearing

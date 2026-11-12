@@ -10,6 +10,7 @@ import Avatar from '@/components/ui/Avatar.vue'
 import DropdownMenu from '@/components/ui/DropdownMenu.vue'
 import { useRepoDiffStore } from '@/stores/repoDiff'
 import ConflictPanel from '@/features/conflicts/ConflictPanel.vue'
+import ConflictWarningBar from './ConflictWarningBar.vue'
 import DiffPanel from '@/features/diff/DiffPanel.vue'
 import {
   ROW_LEFT_PADDING,
@@ -276,6 +277,8 @@ function checkoutCommitAt(commitIndex: number, event?: Event): void {
         </DropdownMenu>
       </div>
     </div>
+
+    <ConflictWarningBar />
 
     <!-- Loading skeleton -->
     <div v-if="showLoading" class="flex-1 space-y-2 p-3">

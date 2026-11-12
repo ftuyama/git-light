@@ -124,5 +124,11 @@
     "year1": "há um ano",
     "years2": "há 2 anos",
     "years5": "há 5 anos"
+  },
+  "conflictBanner": {
+    "merge": "Um conflito de arquivo foi encontrado ao tentar fazer merge em {target}",
+    "rebase": "Um conflito de arquivo foi encontrado durante o rebase",
+    "cherryPick": "Um conflito de arquivo foi encontrado ao tentar aplicar cherry-pick sobre {target}",
+    "revert": "Um conflito de arquivo foi encontrado ao tentar reverter alterações em {target}"
   }
 }

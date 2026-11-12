@@ -124,5 +124,11 @@
     "year1": "1 年前",
     "years2": "2 年前",
     "years5": "5 年前"
+  },
+  "conflictBanner": {
+    "merge": "尝试合并到 {target} 时发现文件冲突",
+    "rebase": "变基时发现文件冲突",
+    "cherryPick": "尝试拣选到 {target} 时发现文件冲突",
+    "revert": "尝试在 {target} 上还原更改时发现文件冲突"
   }
 }

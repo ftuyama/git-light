@@ -38,6 +38,7 @@ function snapshotFixture(): WireRepositorySnapshot {
         reverting: false,
         bisecting: false,
         operationLabel: null,
+        operationSource: null,
       },
       canUndo: false,
       canRedo: false,

@@ -160,12 +160,11 @@ App.vue
     ├── RepoTabs         multi-repo tab bar + repo switcher (reopen closed, cycle, jump-to-index)
     ├── RepoLoadingSkeleton  cold tab switch: three-pane skeleton (delayed 120ms) until the snapshot lands
     ├── Toolbar          remote/history actions, open external terminal
-    ├── OperationBanner  merge/rebase/cherry-pick/revert in progress
     ├── SidebarRail      expand affordance when left/right pane collapsed
     ├── Splitpanes
     │   ├── BranchSidebar       (drag-drop integrate dialog, section context menus, windowed rows)
-    │   ├── CommitGraph         (virtualized graph + diff/conflict overlay; ImageDiffView with zoom/pan/lightbox)
-    │   └── WorkingTreePanel    (FileTypeIcon per path)
+    │   ├── CommitGraph         (virtualized graph + conflict warning + diff/conflict overlay; ImageDiffView with zoom/pan/lightbox)
+    │   └── WorkingTreePanel    (FileTypeIcon per path; operation panel with conflicted files during merge/rebase/cherry-pick/revert)
     ├── GitOutputDrawer  per-tab executed git commands (stdout/stderr, ok/error)
     ├── StatusBar        ahead/behind, progress, cancel, auto-fetch state
     ├── PromptHost       confirm / prompt dialogs

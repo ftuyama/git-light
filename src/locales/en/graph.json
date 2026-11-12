@@ -124,5 +124,11 @@
     "year1": "a year ago",
     "years2": "2 years ago",
     "years5": "5 years ago"
+  },
+  "conflictBanner": {
+    "merge": "A file conflict was found when attempting to merge into {target}",
+    "rebase": "A file conflict was found while rebasing",
+    "cherryPick": "A file conflict was found when attempting to cherry-pick onto {target}",
+    "revert": "A file conflict was found when attempting to revert changes on {target}"
   }
 }
