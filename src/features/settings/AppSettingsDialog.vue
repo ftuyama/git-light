@@ -383,53 +383,57 @@ onUnmounted(() => clearTimeout(avatarCacheClearedTimer))
 
 <template>
   <Teleport to="body">
-    <div
-      v-if="settingsOpen"
-      class="fixed inset-0 z-[190] flex items-center justify-center bg-black/55 p-6 backdrop-blur-[2px]"
-      @click.self="ui.closeSettings()"
-    >
+    <div v-if="settingsOpen" class="fixed inset-0 z-[190] flex bg-[var(--color-app)]">
       <div
-        class="flex h-[min(560px,85vh)] w-full max-w-3xl flex-col overflow-hidden rounded-xl border border-[var(--color-border-strong)] bg-[var(--color-panel)] shadow-2xl"
+        class="flex h-full w-full flex-col overflow-hidden bg-[var(--color-app)]"
         role="dialog"
         aria-modal="true"
         :aria-label="$t('settings.dialog.title')"
       >
         <!-- Search -->
         <div
-          class="flex shrink-0 items-center justify-between gap-2 border-b border-[var(--color-border)] bg-[var(--color-panel-raised)] px-3 py-2.5"
+          class="app-drag flex shrink-0 items-center gap-3 border-b border-[var(--color-border)] bg-[var(--color-panel-raised)] py-2.5 pr-4"
+          data-tauri-drag-region
           @keydown="onSearchKeydown"
         >
-          <SearchInput
-            v-if="searchExpanded"
-            ref="searchInput"
-            v-model="searchQuery"
-            class="flex-1"
-            :placeholder="$t('settings.search.placeholder')"
-            shortcut="/"
-          />
-          <button
-            v-else
-            type="button"
-            class="focus-ring flex h-8 w-8 items-center justify-center rounded-md text-[var(--color-fg-subtle)] transition-colors hover:bg-[var(--color-hover)] hover:text-[var(--color-fg)]"
-            :aria-label="$t('settings.search.open')"
-            :title="$t('settings.search.openTooltip')"
-            @click="openSearch"
-          >
-            <Search :size="16" />
-          </button>
-          <button
-            class="focus-ring rounded p-1 text-[var(--color-fg-subtle)] hover:bg-[var(--color-hover)] hover:text-[var(--color-fg)]"
-            :aria-label="$t('settings.dialog.close')"
-            @click="ui.closeSettings()"
-          >
-            <X :size="16" />
-          </button>
+          <!-- Reserve the macOS traffic-light area, same as the repo tab strip. -->
+          <div data-tauri-drag-region class="w-20 shrink-0 self-stretch" aria-hidden="true" />
+          <h1 class="shrink-0 text-[13px] font-semibold text-[var(--color-fg)]">
+            {{ $t('settings.dialog.title') }}
+          </h1>
+          <div class="app-no-drag flex flex-1 items-center justify-end gap-2">
+            <SearchInput
+              v-if="searchExpanded"
+              ref="searchInput"
+              v-model="searchQuery"
+              class="max-w-sm flex-1"
+              :placeholder="$t('settings.search.placeholder')"
+              shortcut="/"
+            />
+            <button
+              v-else
+              type="button"
+              class="focus-ring flex h-8 w-8 items-center justify-center rounded-md text-[var(--color-fg-subtle)] transition-colors hover:bg-[var(--color-hover)] hover:text-[var(--color-fg)]"
+              :aria-label="$t('settings.search.open')"
+              :title="$t('settings.search.openTooltip')"
+              @click="openSearch"
+            >
+              <Search :size="16" />
+            </button>
+            <button
+              class="focus-ring rounded p-1 text-[var(--color-fg-subtle)] hover:bg-[var(--color-hover)] hover:text-[var(--color-fg)]"
+              :aria-label="$t('settings.dialog.close')"
+              @click="ui.closeSettings()"
+            >
+              <X :size="16" />
+            </button>
+          </div>
         </div>
 
         <div class="flex min-h-0 flex-1">
           <!-- Sidebar nav -->
           <nav
-            class="flex w-44 shrink-0 flex-col overflow-y-auto border-r border-[var(--color-border)] bg-[var(--color-panel-raised)] py-3"
+            class="flex w-56 shrink-0 flex-col overflow-y-auto border-r border-[var(--color-border)] bg-[var(--color-panel-raised)] py-4"
           >
             <div
               v-for="group in preferenceGroups"
@@ -460,518 +464,520 @@ onUnmounted(() => clearTimeout(avatarCacheClearedTimer))
 
           <!-- Content -->
           <div class="flex min-w-0 flex-1 flex-col">
-            <header
-              class="flex shrink-0 items-center justify-between gap-3 border-b border-[var(--color-border)] px-5 py-3.5"
-            >
-              <h2 class="text-sm font-semibold text-[var(--color-fg)]">{{ headerTitle }}</h2>
-              <span
-                v-if="isSearching"
-                class="shrink-0 text-[12px] text-[var(--color-fg-subtle)]"
-                aria-live="polite"
-              >
-                {{
-                  $t(
-                    searchResultCount === 1
-                      ? 'settings.search.resultOne'
-                      : 'settings.search.resultMany',
-                    { count: searchResultCount },
-                  )
-                }}
-              </span>
+            <header class="shrink-0 border-b border-[var(--color-border)] py-3.5">
+              <div class="mx-auto flex w-full max-w-4xl items-center justify-between gap-3 px-6">
+                <h2 class="text-sm font-semibold text-[var(--color-fg)]">{{ headerTitle }}</h2>
+                <span
+                  v-if="isSearching"
+                  class="shrink-0 text-[12px] text-[var(--color-fg-subtle)]"
+                  aria-live="polite"
+                >
+                  {{
+                    $t(
+                      searchResultCount === 1
+                        ? 'settings.search.resultOne'
+                        : 'settings.search.resultMany',
+                      { count: searchResultCount },
+                    )
+                  }}
+                </span>
+              </div>
             </header>
 
-            <div class="min-h-0 flex-1 overflow-y-auto px-2 py-3">
-              <!-- Search results -->
-              <div v-if="isSearching">
-                <section v-for="group in searchGroups" :key="group.category" class="mb-4 last:mb-0">
-                  <h3
-                    class="px-3 pb-1 text-[11px] font-semibold tracking-wide text-[var(--color-fg-subtle)] uppercase"
-                  >
-                    {{ group.label }}
-                  </h3>
-                  <button
-                    v-for="entry in group.entries"
-                    :key="entry.id"
-                    class="focus-ring flex w-full items-start justify-between gap-4 rounded-lg px-3 py-2 text-left transition-colors hover:bg-[var(--color-hover)]"
-                    @click="goToSetting(entry)"
-                  >
-                    <span class="min-w-0">
-                      <span class="block text-[13px] font-medium text-[var(--color-fg)]">
-                        {{ entry.label }}
-                      </span>
-                      <span
-                        v-if="entry.description"
-                        class="mt-0.5 block text-[12px] leading-snug text-[var(--color-fg-muted)]"
-                      >
-                        {{ entry.description }}
-                      </span>
-                    </span>
-                    <ChevronRight :size="14" class="mt-1 shrink-0 text-[var(--color-fg-subtle)]" />
-                  </button>
-                </section>
-                <p
-                  v-if="!searchResultCount"
-                  class="px-3 py-8 text-center text-[12px] text-[var(--color-fg-muted)]"
-                >
-                  {{ $t('settings.search.empty', { query: searchQuery.trim() }) }}
-                </p>
-              </div>
-
-              <template v-else>
-                <!-- Appearance -->
-                <template v-if="activeCategory === 'appearance'">
-                  <section id="settings-interface-mode" class="mb-6 px-3">
+            <div class="min-h-0 flex-1 overflow-y-auto px-3 py-5">
+              <div class="mx-auto w-full max-w-4xl">
+                <!-- Search results -->
+                <div v-if="isSearching">
+                  <section v-for="group in searchGroups" :key="group.category" class="mb-4 last:mb-0">
                     <h3
-                      class="pb-1 text-[11px] font-semibold tracking-wide text-[var(--color-fg-subtle)] uppercase"
+                      class="px-3 pb-1 text-[11px] font-semibold tracking-wide text-[var(--color-fg-subtle)] uppercase"
                     >
-                      {{ $t('settings.appearance.interface') }}
+                      {{ group.label }}
                     </h3>
-                    <p class="mb-3 text-[12px] text-[var(--color-fg-muted)]">
-                      {{ $t('settings.appearance.interfaceDescription') }}
-                    </p>
-                    <UiModePicker :model-value="uiMode" />
+                    <button
+                      v-for="entry in group.entries"
+                      :key="entry.id"
+                      class="focus-ring flex w-full items-start justify-between gap-4 rounded-lg px-3 py-2 text-left transition-colors hover:bg-[var(--color-hover)]"
+                      @click="goToSetting(entry)"
+                    >
+                      <span class="min-w-0">
+                        <span class="block text-[13px] font-medium text-[var(--color-fg)]">
+                          {{ entry.label }}
+                        </span>
+                        <span
+                          v-if="entry.description"
+                          class="mt-0.5 block text-[12px] leading-snug text-[var(--color-fg-muted)]"
+                        >
+                          {{ entry.description }}
+                        </span>
+                      </span>
+                      <ChevronRight :size="14" class="mt-1 shrink-0 text-[var(--color-fg-subtle)]" />
+                    </button>
                   </section>
-                  <p class="mb-3 px-3 text-[12px] text-[var(--color-fg-muted)]">
-                    {{ $t('settings.appearance.themeDescription') }}
+                  <p
+                    v-if="!searchResultCount"
+                    class="px-3 py-8 text-center text-[12px] text-[var(--color-fg-muted)]"
+                  >
+                    {{ $t('settings.search.empty', { query: searchQuery.trim() }) }}
                   </p>
-                  <section id="settings-theme" class="px-3">
-                    <ThemePicker :model-value="theme" />
-                  </section>
-                  <section id="settings-language" class="mt-6 px-3">
-                    <h3
-                      class="pb-1 text-[11px] font-semibold tracking-wide text-[var(--color-fg-subtle)] uppercase"
-                    >
-                      {{ $t('settings.language.title') }}
-                    </h3>
-                    <p class="mb-3 text-[12px] text-[var(--color-fg-muted)]">
-                      {{ $t('settings.language.description') }}
-                    </p>
-                    <div class="grid grid-cols-1 gap-2 sm:grid-cols-2">
-                      <button
-                        v-for="option in languageOptions"
-                        :key="option.value ?? 'system'"
-                        type="button"
-                        class="focus-ring flex items-start gap-3 rounded-lg border px-3 py-3 text-left transition-colors"
-                        :class="
-                          ui.locale === option.value
-                            ? 'border-[var(--color-accent)] bg-[var(--color-accent-soft)]'
-                            : 'border-[var(--color-border)] hover:border-[var(--color-border-strong)] hover:bg-[var(--color-hover)]'
-                        "
-                        :aria-pressed="ui.locale === option.value"
-                        @click="selectLanguage(option.value)"
+                </div>
+
+                <template v-else>
+                  <!-- Appearance -->
+                  <template v-if="activeCategory === 'appearance'">
+                    <section id="settings-interface-mode" class="mb-6 px-3">
+                      <h3
+                        class="pb-1 text-[11px] font-semibold tracking-wide text-[var(--color-fg-subtle)] uppercase"
                       >
-                        <div class="flex min-w-0 flex-1 flex-col gap-1">
-                          <div class="flex items-center gap-2">
-                            <span class="text-[13px] font-medium text-[var(--color-fg)]">
-                              {{ option.label }}
-                            </span>
-                            <Check
-                              v-if="ui.locale === option.value"
-                              :size="14"
-                              class="shrink-0 text-[var(--color-accent)]"
-                            />
+                        {{ $t('settings.appearance.interface') }}
+                      </h3>
+                      <p class="mb-3 text-[12px] text-[var(--color-fg-muted)]">
+                        {{ $t('settings.appearance.interfaceDescription') }}
+                      </p>
+                      <UiModePicker :model-value="uiMode" />
+                    </section>
+                    <p class="mb-3 px-3 text-[12px] text-[var(--color-fg-muted)]">
+                      {{ $t('settings.appearance.themeDescription') }}
+                    </p>
+                    <section id="settings-theme" class="px-3">
+                      <ThemePicker :model-value="theme" />
+                    </section>
+                    <section id="settings-language" class="mt-6 px-3">
+                      <h3
+                        class="pb-1 text-[11px] font-semibold tracking-wide text-[var(--color-fg-subtle)] uppercase"
+                      >
+                        {{ $t('settings.language.title') }}
+                      </h3>
+                      <p class="mb-3 text-[12px] text-[var(--color-fg-muted)]">
+                        {{ $t('settings.language.description') }}
+                      </p>
+                      <div class="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                        <button
+                          v-for="option in languageOptions"
+                          :key="option.value ?? 'system'"
+                          type="button"
+                          class="focus-ring flex items-start gap-3 rounded-lg border px-3 py-3 text-left transition-colors"
+                          :class="
+                            ui.locale === option.value
+                              ? 'border-[var(--color-accent)] bg-[var(--color-accent-soft)]'
+                              : 'border-[var(--color-border)] hover:border-[var(--color-border-strong)] hover:bg-[var(--color-hover)]'
+                          "
+                          :aria-pressed="ui.locale === option.value"
+                          @click="selectLanguage(option.value)"
+                        >
+                          <div class="flex min-w-0 flex-1 flex-col gap-1">
+                            <div class="flex items-center gap-2">
+                              <span class="text-[13px] font-medium text-[var(--color-fg)]">
+                                {{ option.label }}
+                              </span>
+                              <Check
+                                v-if="ui.locale === option.value"
+                                :size="14"
+                                class="shrink-0 text-[var(--color-accent)]"
+                              />
+                            </div>
+                            <p
+                              v-if="option.description"
+                              class="text-[12px] leading-snug text-[var(--color-fg-muted)]"
+                            >
+                              {{ option.description }}
+                            </p>
                           </div>
-                          <p
-                            v-if="option.description"
-                            class="text-[12px] leading-snug text-[var(--color-fg-muted)]"
-                          >
-                            {{ option.description }}
+                        </button>
+                      </div>
+                    </section>
+                    <section class="mt-6 px-3">
+                      <h3
+                        class="pb-1 text-[11px] font-semibold tracking-wide text-[var(--color-fg-subtle)] uppercase"
+                      >
+                        {{ $t('settings.avatars.title') }}
+                      </h3>
+                      <SettingsRow
+                        anchor="settings-remote-avatars"
+                        :label="$t('settings.avatars.authorAvatars')"
+                        :description="$t('settings.avatars.authorAvatarsDescription')"
+                        :model-value="remoteAvatars"
+                        @update:model-value="ui.setRemoteAvatars($event)"
+                      />
+                      <div
+                        id="settings-avatar-cache"
+                        class="flex items-start justify-between gap-4 rounded-lg px-3 py-2.5"
+                      >
+                        <div class="min-w-0 pt-0.5">
+                          <div class="text-[13px] font-medium text-[var(--color-fg)]">
+                            {{ $t('settings.avatars.clearCache') }}
+                          </div>
+                          <p class="mt-0.5 text-[12px] leading-snug text-[var(--color-fg-muted)]">
+                            {{ $t('settings.avatars.clearCacheDescription') }}
                           </p>
                         </div>
-                      </button>
-                    </div>
-                  </section>
-                  <section class="mt-6 px-3">
-                    <h3
-                      class="pb-1 text-[11px] font-semibold tracking-wide text-[var(--color-fg-subtle)] uppercase"
-                    >
-                      {{ $t('settings.avatars.title') }}
-                    </h3>
-                    <SettingsRow
-                      anchor="settings-remote-avatars"
-                      :label="$t('settings.avatars.authorAvatars')"
-                      :description="$t('settings.avatars.authorAvatarsDescription')"
-                      :model-value="remoteAvatars"
-                      @update:model-value="ui.setRemoteAvatars($event)"
-                    />
-                    <div
-                      id="settings-avatar-cache"
-                      class="flex items-start justify-between gap-4 rounded-lg px-3 py-2.5"
-                    >
-                      <div class="min-w-0 pt-0.5">
-                        <div class="text-[13px] font-medium text-[var(--color-fg)]">
-                          {{ $t('settings.avatars.clearCache') }}
-                        </div>
-                        <p class="mt-0.5 text-[12px] leading-snug text-[var(--color-fg-muted)]">
-                          {{ $t('settings.avatars.clearCacheDescription') }}
-                        </p>
-                      </div>
-                      <Button variant="secondary" size="sm" @click="clearAvatarLookups">
-                        {{
-                          avatarCacheCleared
-                            ? $t('settings.avatars.cleared')
-                            : $t('settings.avatars.clear')
-                        }}
-                      </Button>
-                    </div>
-                  </section>
-                </template>
-
-                <!-- Layout -->
-                <template v-else-if="activeCategory === 'layout'">
-                  <p class="mb-3 px-3 text-[12px] text-[var(--color-fg-muted)]">
-                    {{ $t('settings.layout.description') }}
-                  </p>
-                  <section class="space-y-0.5">
-                    <h3
-                      class="px-3 pb-1 text-[11px] font-semibold tracking-wide text-[var(--color-fg-subtle)] uppercase"
-                    >
-                      {{ $t('settings.layout.panels') }}
-                    </h3>
-                    <SettingsRow
-                      anchor="settings-left-sidebar"
-                      :label="$t('settings.layout.showLeftSidebar')"
-                      :description="$t('settings.layout.showLeftSidebarDescription')"
-                      :model-value="!leftCollapsed"
-                      @update:model-value="ui.setLeftVisible($event)"
-                    />
-                    <SettingsRow
-                      anchor="settings-right-panel"
-                      :label="$t('settings.layout.showRightPanel')"
-                      :description="$t('settings.layout.showRightPanelDescription')"
-                      :model-value="!rightCollapsed"
-                      @update:model-value="ui.setRightVisible($event)"
-                    />
-                  </section>
-                  <section class="mt-5 space-y-2 px-3">
-                    <h3
-                      class="pb-1 text-[11px] font-semibold tracking-wide text-[var(--color-fg-subtle)] uppercase"
-                    >
-                      {{ $t('settings.layout.reset') }}
-                    </h3>
-                    <p class="text-[12px] text-[var(--color-fg-muted)]">
-                      {{ $t('settings.layout.resetDescription') }}
-                    </p>
-                    <div id="settings-reset-layout">
-                      <Button variant="secondary" size="sm" @click="ui.resetLayout()">
-                        {{ $t('settings.layout.resetAction') }}
-                      </Button>
-                    </div>
-                  </section>
-                </template>
-
-                <template v-else-if="activeCategory === 'changes'">
-                  <p class="mb-3 px-3 text-[12px] text-[var(--color-fg-muted)]">
-                    {{ $t('settings.changes.description') }}
-                  </p>
-                  <section class="space-y-0.5">
-                    <h3
-                      class="px-3 pb-1 text-[11px] font-semibold tracking-wide text-[var(--color-fg-subtle)] uppercase"
-                    >
-                      {{ $t('settings.changes.fileList') }}
-                    </h3>
-                    <SettingsRow
-                      anchor="settings-tree-view"
-                      :label="$t('settings.changes.treeView')"
-                      :description="$t('settings.changes.treeViewDescription')"
-                      :model-value="fileListView === 'tree'"
-                      @update:model-value="ui.setFileListView($event ? 'tree' : 'path')"
-                    />
-                  </section>
-                </template>
-
-                <template v-else-if="activeCategory === 'commits'">
-                  <p class="mb-3 px-3 text-[12px] text-[var(--color-fg-muted)]">
-                    {{ $t('settings.commits.description') }}
-                  </p>
-                  <section class="space-y-0.5">
-                    <h3
-                      class="px-3 pb-1 text-[11px] font-semibold tracking-wide text-[var(--color-fg-subtle)] uppercase"
-                    >
-                      {{ $t('settings.commits.options') }}
-                    </h3>
-                    <SettingsRow
-                      anchor="settings-sign-off"
-                      :label="$t('settings.commits.signOff')"
-                      :description="$t('settings.commits.signOffDescription')"
-                      :model-value="signOffCommit"
-                      @update:model-value="ui.setSignOffCommit($event)"
-                    />
-                    <SettingsRow
-                      anchor="settings-sign-commit"
-                      :label="$t('settings.commits.sign')"
-                      :description="$t('settings.commits.signDescription')"
-                      :model-value="signCommit"
-                      @update:model-value="ui.setSignCommit($event)"
-                    />
-                  </section>
-                </template>
-
-                <!-- Commit Graph -->
-                <template v-else-if="activeCategory === 'commit-graph'">
-                  <p class="mb-3 px-3 text-[12px] text-[var(--color-fg-muted)]">
-                    {{ $t('settings.commitGraph.description') }}
-                  </p>
-                  <section class="space-y-0.5">
-                    <h3
-                      class="px-3 pb-1 text-[11px] font-semibold tracking-wide text-[var(--color-fg-subtle)] uppercase"
-                    >
-                      {{ $t('settings.commitGraph.history') }}
-                    </h3>
-                    <SettingsRow
-                      anchor="settings-graph-scope"
-                      :label="$t('settings.commitGraph.showAllBranches')"
-                      :description="$t('settings.commitGraph.showAllBranchesDescription')"
-                      :model-value="graphScopeAll"
-                      @update:model-value="onGraphScopeAll($event)"
-                    />
-                    <div
-                      id="settings-graph-limit"
-                      class="flex items-start justify-between gap-4 rounded-lg px-3 py-2.5 transition-colors hover:bg-[var(--color-hover)]"
-                    >
-                      <div class="min-w-0 pt-0.5">
-                        <div class="text-[13px] font-medium text-[var(--color-fg)]">
-                          {{ $t('settings.commitGraph.recentCommits') }}
-                        </div>
-                        <p class="mt-0.5 text-[12px] leading-snug text-[var(--color-fg-muted)]">
+                        <Button variant="secondary" size="sm" @click="clearAvatarLookups">
                           {{
-                            $t('settings.commitGraph.recentCommitsDescription', {
-                              min: COMMIT_GRAPH_LIMIT_MIN,
-                              recommended: COMMIT_GRAPH_LIMIT_RECOMMENDED,
-                            })
+                            avatarCacheCleared
+                              ? $t('settings.avatars.cleared')
+                              : $t('settings.avatars.clear')
                           }}
-                        </p>
+                        </Button>
                       </div>
-                      <input
-                        type="number"
-                        class="focus-ring w-20 rounded-md border border-[var(--color-border)] bg-[var(--color-app)] px-2 py-1 text-right text-[13px] text-[var(--color-fg)]"
-                        :min="COMMIT_GRAPH_LIMIT_MIN"
-                        :value="commitGraphLimit"
-                        :aria-label="$t('settings.commitGraph.recentCommits')"
-                        @change="
-                          onCommitGraphLimit(Number(($event.target as HTMLInputElement).value))
-                        "
-                      />
-                    </div>
-                  </section>
-                  <section class="mt-5 space-y-0.5">
-                    <h3
-                      class="px-3 pb-1 text-[11px] font-semibold tracking-wide text-[var(--color-fg-subtle)] uppercase"
-                    >
-                      {{ $t('settings.commitGraph.columns') }}
-                    </h3>
-                    <p class="px-3 pb-1 text-[12px] text-[var(--color-fg-muted)]">
-                      {{ $t('settings.commitGraph.columnsDescription') }}
+                    </section>
+                  </template>
+
+                  <!-- Layout -->
+                  <template v-else-if="activeCategory === 'layout'">
+                    <p class="mb-3 px-3 text-[12px] text-[var(--color-fg-muted)]">
+                      {{ $t('settings.layout.description') }}
                     </p>
-                    <SettingsRow
-                      v-for="key in columnKeys"
-                      :key="key"
-                      :anchor="`settings-column-${key}`"
-                      :label="$t(COLUMN_LABEL_KEYS[key])"
-                      :description="$t(columnDescriptions[key])"
-                      :model-value="ui.isColumnVisible(key)"
-                      @update:model-value="ui.setColumnVisible(key, $event)"
-                    />
-                  </section>
-                  <section class="mt-5 space-y-0.5">
-                    <h3
-                      class="px-3 pb-1 text-[11px] font-semibold tracking-wide text-[var(--color-fg-subtle)] uppercase"
-                    >
-                      {{ $t('settings.commitGraph.indicators') }}
-                    </h3>
-                    <SettingsRow
-                      anchor="settings-time-markers"
-                      :label="$t('settings.commitGraph.timeIndicators')"
-                      :description="$t('settings.commitGraph.timeIndicatorsDescription')"
-                      :model-value="ui.showTimeMarkers"
-                      @update:model-value="ui.setShowTimeMarkers($event)"
-                    />
-                    <SettingsRow
-                      anchor="settings-merge-indicators"
-                      :label="$t('settings.commitGraph.mergeIndicators')"
-                      :description="$t('settings.commitGraph.mergeIndicatorsDescription')"
-                      :model-value="ui.showMergeIndicators"
-                      @update:model-value="ui.setShowMergeIndicators($event)"
-                    />
-                  </section>
-                  <section class="mt-5 space-y-0.5">
-                    <div
-                      id="settings-column-widths"
-                      class="flex items-center justify-between gap-3 px-3 pb-1"
-                    >
+                    <section class="space-y-0.5">
                       <h3
-                        class="text-[11px] font-semibold tracking-wide text-[var(--color-fg-subtle)] uppercase"
+                        class="px-3 pb-1 text-[11px] font-semibold tracking-wide text-[var(--color-fg-subtle)] uppercase"
                       >
-                        {{ $t('settings.commitGraph.columnWidths') }}
+                        {{ $t('settings.layout.panels') }}
                       </h3>
-                      <Button variant="secondary" size="sm" @click="ui.resetColumnWidths()">
-                        {{ $t('settings.commitGraph.resetWidths') }}
+                      <SettingsRow
+                        anchor="settings-left-sidebar"
+                        :label="$t('settings.layout.showLeftSidebar')"
+                        :description="$t('settings.layout.showLeftSidebarDescription')"
+                        :model-value="!leftCollapsed"
+                        @update:model-value="ui.setLeftVisible($event)"
+                      />
+                      <SettingsRow
+                        anchor="settings-right-panel"
+                        :label="$t('settings.layout.showRightPanel')"
+                        :description="$t('settings.layout.showRightPanelDescription')"
+                        :model-value="!rightCollapsed"
+                        @update:model-value="ui.setRightVisible($event)"
+                      />
+                    </section>
+                    <section class="mt-5 space-y-2 px-3">
+                      <h3
+                        class="pb-1 text-[11px] font-semibold tracking-wide text-[var(--color-fg-subtle)] uppercase"
+                      >
+                        {{ $t('settings.layout.reset') }}
+                      </h3>
+                      <p class="text-[12px] text-[var(--color-fg-muted)]">
+                        {{ $t('settings.layout.resetDescription') }}
+                      </p>
+                      <div id="settings-reset-layout">
+                        <Button variant="secondary" size="sm" @click="ui.resetLayout()">
+                          {{ $t('settings.layout.resetAction') }}
+                        </Button>
+                      </div>
+                    </section>
+                  </template>
+
+                  <template v-else-if="activeCategory === 'changes'">
+                    <p class="mb-3 px-3 text-[12px] text-[var(--color-fg-muted)]">
+                      {{ $t('settings.changes.description') }}
+                    </p>
+                    <section class="space-y-0.5">
+                      <h3
+                        class="px-3 pb-1 text-[11px] font-semibold tracking-wide text-[var(--color-fg-subtle)] uppercase"
+                      >
+                        {{ $t('settings.changes.fileList') }}
+                      </h3>
+                      <SettingsRow
+                        anchor="settings-tree-view"
+                        :label="$t('settings.changes.treeView')"
+                        :description="$t('settings.changes.treeViewDescription')"
+                        :model-value="fileListView === 'tree'"
+                        @update:model-value="ui.setFileListView($event ? 'tree' : 'path')"
+                      />
+                    </section>
+                  </template>
+
+                  <template v-else-if="activeCategory === 'commits'">
+                    <p class="mb-3 px-3 text-[12px] text-[var(--color-fg-muted)]">
+                      {{ $t('settings.commits.description') }}
+                    </p>
+                    <section class="space-y-0.5">
+                      <h3
+                        class="px-3 pb-1 text-[11px] font-semibold tracking-wide text-[var(--color-fg-subtle)] uppercase"
+                      >
+                        {{ $t('settings.commits.options') }}
+                      </h3>
+                      <SettingsRow
+                        anchor="settings-sign-off"
+                        :label="$t('settings.commits.signOff')"
+                        :description="$t('settings.commits.signOffDescription')"
+                        :model-value="signOffCommit"
+                        @update:model-value="ui.setSignOffCommit($event)"
+                      />
+                      <SettingsRow
+                        anchor="settings-sign-commit"
+                        :label="$t('settings.commits.sign')"
+                        :description="$t('settings.commits.signDescription')"
+                        :model-value="signCommit"
+                        @update:model-value="ui.setSignCommit($event)"
+                      />
+                    </section>
+                  </template>
+
+                  <!-- Commit Graph -->
+                  <template v-else-if="activeCategory === 'commit-graph'">
+                    <p class="mb-3 px-3 text-[12px] text-[var(--color-fg-muted)]">
+                      {{ $t('settings.commitGraph.description') }}
+                    </p>
+                    <section class="space-y-0.5">
+                      <h3
+                        class="px-3 pb-1 text-[11px] font-semibold tracking-wide text-[var(--color-fg-subtle)] uppercase"
+                      >
+                        {{ $t('settings.commitGraph.history') }}
+                      </h3>
+                      <SettingsRow
+                        anchor="settings-graph-scope"
+                        :label="$t('settings.commitGraph.showAllBranches')"
+                        :description="$t('settings.commitGraph.showAllBranchesDescription')"
+                        :model-value="graphScopeAll"
+                        @update:model-value="onGraphScopeAll($event)"
+                      />
+                      <div
+                        id="settings-graph-limit"
+                        class="flex items-start justify-between gap-4 rounded-lg px-3 py-2.5 transition-colors hover:bg-[var(--color-hover)]"
+                      >
+                        <div class="min-w-0 pt-0.5">
+                          <div class="text-[13px] font-medium text-[var(--color-fg)]">
+                            {{ $t('settings.commitGraph.recentCommits') }}
+                          </div>
+                          <p class="mt-0.5 text-[12px] leading-snug text-[var(--color-fg-muted)]">
+                            {{
+                              $t('settings.commitGraph.recentCommitsDescription', {
+                                min: COMMIT_GRAPH_LIMIT_MIN,
+                                recommended: COMMIT_GRAPH_LIMIT_RECOMMENDED,
+                              })
+                            }}
+                          </p>
+                        </div>
+                        <input
+                          type="number"
+                          class="focus-ring w-20 rounded-md border border-[var(--color-border)] bg-[var(--color-app)] px-2 py-1 text-right text-[13px] text-[var(--color-fg)]"
+                          :min="COMMIT_GRAPH_LIMIT_MIN"
+                          :value="commitGraphLimit"
+                          :aria-label="$t('settings.commitGraph.recentCommits')"
+                          @change="
+                            onCommitGraphLimit(Number(($event.target as HTMLInputElement).value))
+                          "
+                        />
+                      </div>
+                    </section>
+                    <section class="mt-5 space-y-0.5">
+                      <h3
+                        class="px-3 pb-1 text-[11px] font-semibold tracking-wide text-[var(--color-fg-subtle)] uppercase"
+                      >
+                        {{ $t('settings.commitGraph.columns') }}
+                      </h3>
+                      <p class="px-3 pb-1 text-[12px] text-[var(--color-fg-muted)]">
+                        {{ $t('settings.commitGraph.columnsDescription') }}
+                      </p>
+                      <SettingsRow
+                        v-for="key in columnKeys"
+                        :key="key"
+                        :anchor="`settings-column-${key}`"
+                        :label="$t(COLUMN_LABEL_KEYS[key])"
+                        :description="$t(columnDescriptions[key])"
+                        :model-value="ui.isColumnVisible(key)"
+                        @update:model-value="ui.setColumnVisible(key, $event)"
+                      />
+                    </section>
+                    <section class="mt-5 space-y-0.5">
+                      <h3
+                        class="px-3 pb-1 text-[11px] font-semibold tracking-wide text-[var(--color-fg-subtle)] uppercase"
+                      >
+                        {{ $t('settings.commitGraph.indicators') }}
+                      </h3>
+                      <SettingsRow
+                        anchor="settings-time-markers"
+                        :label="$t('settings.commitGraph.timeIndicators')"
+                        :description="$t('settings.commitGraph.timeIndicatorsDescription')"
+                        :model-value="ui.showTimeMarkers"
+                        @update:model-value="ui.setShowTimeMarkers($event)"
+                      />
+                      <SettingsRow
+                        anchor="settings-merge-indicators"
+                        :label="$t('settings.commitGraph.mergeIndicators')"
+                        :description="$t('settings.commitGraph.mergeIndicatorsDescription')"
+                        :model-value="ui.showMergeIndicators"
+                        @update:model-value="ui.setShowMergeIndicators($event)"
+                      />
+                    </section>
+                    <section class="mt-5 space-y-0.5">
+                      <div
+                        id="settings-column-widths"
+                        class="flex items-center justify-between gap-3 px-3 pb-1"
+                      >
+                        <h3
+                          class="text-[11px] font-semibold tracking-wide text-[var(--color-fg-subtle)] uppercase"
+                        >
+                          {{ $t('settings.commitGraph.columnWidths') }}
+                        </h3>
+                        <Button variant="secondary" size="sm" @click="ui.resetColumnWidths()">
+                          {{ $t('settings.commitGraph.resetWidths') }}
+                        </Button>
+                      </div>
+                      <p class="px-3 pb-1 text-[12px] text-[var(--color-fg-muted)]">
+                        {{ $t('settings.commitGraph.columnWidthsDescription') }}
+                      </p>
+                      <div
+                        v-for="key in columnWidthKeys"
+                        :key="key"
+                        class="flex items-center justify-between gap-4 rounded-lg px-3 py-2 transition-colors hover:bg-[var(--color-hover)]"
+                      >
+                        <div class="min-w-0">
+                          <div class="text-[13px] font-medium text-[var(--color-fg)]">
+                            {{ $t(COLUMN_WIDTH_LABEL_KEYS[key]) }}
+                          </div>
+                          <p class="mt-0.5 text-[12px] leading-snug text-[var(--color-fg-muted)]">
+                            {{ columnWidthHint(key) }}
+                          </p>
+                        </div>
+                        <input
+                          type="number"
+                          class="focus-ring w-20 shrink-0 rounded-md border border-[var(--color-border)] bg-[var(--color-app)] px-2 py-1 text-right text-[13px] text-[var(--color-fg)]"
+                          :min="COLUMN_WIDTH_LIMITS[key].min"
+                          :max="columnWidthMax(key)"
+                          :value="ui.columnWidths[key]"
+                          :aria-label="
+                            $t('settings.columnWidths.ariaLabel', {
+                              name: $t(COLUMN_WIDTH_LABEL_KEYS[key]),
+                            })
+                          "
+                          @change="
+                            onColumnWidth(key, Number(($event.target as HTMLInputElement).value))
+                          "
+                        />
+                      </div>
+                    </section>
+                  </template>
+
+                  <template v-else-if="activeCategory === 'sidebar'">
+                    <p class="mb-3 px-3 text-[12px] text-[var(--color-fg-muted)]">
+                      {{ $t('settings.sidebar.description') }}
+                    </p>
+                    <section class="space-y-0.5">
+                      <h3
+                        class="px-3 pb-1 text-[11px] font-semibold tracking-wide text-[var(--color-fg-subtle)] uppercase"
+                      >
+                        {{ $t('settings.sidebar.sections') }}
+                      </h3>
+                      <SettingsSegmentedRow
+                        v-for="key in sidebarSectionKeys"
+                        :key="key"
+                        :anchor="`settings-sidebar-${key}`"
+                        :label="$t(SECTION_LABEL_KEYS[key])"
+                        :description="sectionDescription(key)"
+                        :model-value="ui.sectionState(key)"
+                        :options="sectionStateOptions"
+                        @update:model-value="onSectionState(key, $event)"
+                      />
+                    </section>
+                  </template>
+
+                  <template v-else-if="activeCategory === 'sync'">
+                    <p class="mb-3 px-3 text-[12px] text-[var(--color-fg-muted)]">
+                      {{ $t('settings.sync.description') }}
+                    </p>
+                    <section class="space-y-0.5">
+                      <h3
+                        class="px-3 pb-1 text-[11px] font-semibold tracking-wide text-[var(--color-fg-subtle)] uppercase"
+                      >
+                        {{ $t('settings.sync.backgroundFetch') }}
+                      </h3>
+                      <div
+                        id="settings-auto-fetch"
+                        class="flex items-start justify-between gap-4 rounded-lg px-3 py-2.5 transition-colors hover:bg-[var(--color-hover)]"
+                      >
+                        <div class="min-w-0 pt-0.5">
+                          <div class="text-[13px] font-medium text-[var(--color-fg)]">
+                            {{ $t('settings.sync.autoFetchInterval') }}
+                          </div>
+                          <p class="mt-0.5 text-[12px] leading-snug text-[var(--color-fg-muted)]">
+                            {{ $t('settings.sync.autoFetchIntervalDescription') }}
+                          </p>
+                        </div>
+                        <select
+                          class="focus-ring shrink-0 rounded-md border border-[var(--color-border)] bg-[var(--color-app)] px-2 py-1 text-[13px] text-[var(--color-fg)]"
+                          :value="autoFetchIntervalSec"
+                          :aria-label="$t('settings.sync.autoFetchInterval')"
+                          @change="
+                            onAutoFetchIntervalSec(Number(($event.target as HTMLSelectElement).value))
+                          "
+                        >
+                          <option
+                            v-for="option in AUTO_FETCH_INTERVAL_OPTIONS"
+                            :key="option"
+                            :value="option"
+                          >
+                            {{ autoFetchIntervalLabel(option) }}
+                          </option>
+                        </select>
+                      </div>
+                    </section>
+                  </template>
+
+                  <template v-else-if="activeCategory === 'shortcuts'">
+                    <div class="mb-3 flex items-start justify-between gap-3 px-3">
+                      <p class="text-[12px] text-[var(--color-fg-muted)]">
+                        {{ $t('settings.shortcuts.description') }}
+                      </p>
+                      <Button variant="secondary" size="sm" class="shrink-0" @click="ui.resetAllKeybindings()">
+                        {{ $t('settings.shortcuts.restoreDefaults') }}
                       </Button>
                     </div>
-                    <p class="px-3 pb-1 text-[12px] text-[var(--color-fg-muted)]">
-                      {{ $t('settings.commitGraph.columnWidthsDescription') }}
-                    </p>
-                    <div
-                      v-for="key in columnWidthKeys"
-                      :key="key"
-                      class="flex items-center justify-between gap-4 rounded-lg px-3 py-2 transition-colors hover:bg-[var(--color-hover)]"
-                    >
-                      <div class="min-w-0">
-                        <div class="text-[13px] font-medium text-[var(--color-fg)]">
-                          {{ $t(COLUMN_WIDTH_LABEL_KEYS[key]) }}
-                        </div>
-                        <p class="mt-0.5 text-[12px] leading-snug text-[var(--color-fg-muted)]">
-                          {{ columnWidthHint(key) }}
-                        </p>
-                      </div>
-                      <input
-                        type="number"
-                        class="focus-ring w-20 shrink-0 rounded-md border border-[var(--color-border)] bg-[var(--color-app)] px-2 py-1 text-right text-[13px] text-[var(--color-fg)]"
-                        :min="COLUMN_WIDTH_LIMITS[key].min"
-                        :max="columnWidthMax(key)"
-                        :value="ui.columnWidths[key]"
-                        :aria-label="
-                          $t('settings.columnWidths.ariaLabel', {
-                            name: $t(COLUMN_WIDTH_LABEL_KEYS[key]),
-                          })
-                        "
-                        @change="
-                          onColumnWidth(key, Number(($event.target as HTMLInputElement).value))
-                        "
-                      />
-                    </div>
-                  </section>
-                </template>
-
-                <template v-else-if="activeCategory === 'sidebar'">
-                  <p class="mb-3 px-3 text-[12px] text-[var(--color-fg-muted)]">
-                    {{ $t('settings.sidebar.description') }}
-                  </p>
-                  <section class="space-y-0.5">
-                    <h3
-                      class="px-3 pb-1 text-[11px] font-semibold tracking-wide text-[var(--color-fg-subtle)] uppercase"
-                    >
-                      {{ $t('settings.sidebar.sections') }}
-                    </h3>
-                    <SettingsSegmentedRow
-                      v-for="key in sidebarSectionKeys"
-                      :key="key"
-                      :anchor="`settings-sidebar-${key}`"
-                      :label="$t(SECTION_LABEL_KEYS[key])"
-                      :description="sectionDescription(key)"
-                      :model-value="ui.sectionState(key)"
-                      :options="sectionStateOptions"
-                      @update:model-value="onSectionState(key, $event)"
-                    />
-                  </section>
-                </template>
-
-                <template v-else-if="activeCategory === 'sync'">
-                  <p class="mb-3 px-3 text-[12px] text-[var(--color-fg-muted)]">
-                    {{ $t('settings.sync.description') }}
-                  </p>
-                  <section class="space-y-0.5">
-                    <h3
-                      class="px-3 pb-1 text-[11px] font-semibold tracking-wide text-[var(--color-fg-subtle)] uppercase"
-                    >
-                      {{ $t('settings.sync.backgroundFetch') }}
-                    </h3>
-                    <div
-                      id="settings-auto-fetch"
-                      class="flex items-start justify-between gap-4 rounded-lg px-3 py-2.5 transition-colors hover:bg-[var(--color-hover)]"
-                    >
-                      <div class="min-w-0 pt-0.5">
-                        <div class="text-[13px] font-medium text-[var(--color-fg)]">
-                          {{ $t('settings.sync.autoFetchInterval') }}
-                        </div>
-                        <p class="mt-0.5 text-[12px] leading-snug text-[var(--color-fg-muted)]">
-                          {{ $t('settings.sync.autoFetchIntervalDescription') }}
-                        </p>
-                      </div>
-                      <select
-                        class="focus-ring shrink-0 rounded-md border border-[var(--color-border)] bg-[var(--color-app)] px-2 py-1 text-[13px] text-[var(--color-fg)]"
-                        :value="autoFetchIntervalSec"
-                        :aria-label="$t('settings.sync.autoFetchInterval')"
-                        @change="
-                          onAutoFetchIntervalSec(Number(($event.target as HTMLSelectElement).value))
-                        "
+                    <section v-for="[group, ids] in visibleShortcutGroups" :key="group" class="mb-4 space-y-0.5">
+                      <h3
+                        class="px-3 pb-1 text-[11px] font-semibold tracking-wide text-[var(--color-fg-subtle)] uppercase"
                       >
-                        <option
-                          v-for="option in AUTO_FETCH_INTERVAL_OPTIONS"
-                          :key="option"
-                          :value="option"
-                        >
-                          {{ autoFetchIntervalLabel(option) }}
-                        </option>
-                      </select>
-                    </div>
-                  </section>
-                </template>
-
-                <template v-else-if="activeCategory === 'shortcuts'">
-                  <div class="mb-3 flex items-start justify-between gap-3 px-3">
-                    <p class="text-[12px] text-[var(--color-fg-muted)]">
-                      {{ $t('settings.shortcuts.description') }}
-                    </p>
-                    <Button variant="secondary" size="sm" class="shrink-0" @click="ui.resetAllKeybindings()">
-                      {{ $t('settings.shortcuts.restoreDefaults') }}
-                    </Button>
-                  </div>
-                  <section v-for="[group, ids] in visibleShortcutGroups" :key="group" class="mb-4 space-y-0.5">
-                    <h3
-                      class="px-3 pb-1 text-[11px] font-semibold tracking-wide text-[var(--color-fg-subtle)] uppercase"
-                    >
-                      {{ $t(commandCategoryKey(group)) }}
-                    </h3>
-                    <div
-                      v-for="id in ids"
-                      :id="`settings-shortcut-${id}`"
-                      :key="id"
-                      class="flex items-center justify-between gap-4 rounded-lg px-3 py-2 transition-colors hover:bg-[var(--color-hover)]"
-                    >
-                      <div class="min-w-0">
-                        <div class="text-[13px] text-[var(--color-fg)]">
-                          {{ $t(COMMAND_META[id].titleKey) }}
+                        {{ $t(commandCategoryKey(group)) }}
+                      </h3>
+                      <div
+                        v-for="id in ids"
+                        :id="`settings-shortcut-${id}`"
+                        :key="id"
+                        class="flex items-center justify-between gap-4 rounded-lg px-3 py-2 transition-colors hover:bg-[var(--color-hover)]"
+                      >
+                        <div class="min-w-0">
+                          <div class="text-[13px] text-[var(--color-fg)]">
+                            {{ $t(COMMAND_META[id].titleKey) }}
+                          </div>
+                          <div v-if="isConflicted(id)" class="mt-0.5 text-[11px] text-[var(--color-danger)]">
+                            {{ conflictNames(id) }}
+                          </div>
                         </div>
-                        <div v-if="isConflicted(id)" class="mt-0.5 text-[11px] text-[var(--color-danger)]">
-                          {{ conflictNames(id) }}
+                        <div class="flex shrink-0 items-center gap-1.5">
+                          <ShortcutRecorder
+                            :bindings="ui.keybindings[id]"
+                            @capture="(binding) => onCapture(id, binding)"
+                          />
+                          <button
+                            v-if="ui.keybindings[id]?.length"
+                            class="focus-ring rounded px-1.5 py-0.5 text-[11px] text-[var(--color-fg-subtle)] hover:bg-[var(--color-hover)] hover:text-[var(--color-fg)]"
+                            :aria-label="
+                              $t('settings.shortcuts.disable', { name: $t(COMMAND_META[id].titleKey) })
+                            "
+                            :title="$t('settings.shortcuts.disableTooltip')"
+                            @click="ui.clearBinding(id)"
+                          >
+                            ×
+                          </button>
+                          <button
+                            class="focus-ring rounded px-1.5 py-0.5 text-[11px] text-[var(--color-fg-subtle)] hover:bg-[var(--color-hover)] hover:text-[var(--color-fg)]"
+                            :aria-label="
+                              $t('settings.shortcuts.reset', { name: $t(COMMAND_META[id].titleKey) })
+                            "
+                            :title="$t('settings.shortcuts.resetTooltip')"
+                            @click="ui.resetBinding(id)"
+                          >
+                            ↺
+                          </button>
                         </div>
                       </div>
-                      <div class="flex shrink-0 items-center gap-1.5">
-                        <ShortcutRecorder
-                          :bindings="ui.keybindings[id]"
-                          @capture="(binding) => onCapture(id, binding)"
-                        />
-                        <button
-                          v-if="ui.keybindings[id]?.length"
-                          class="focus-ring rounded px-1.5 py-0.5 text-[11px] text-[var(--color-fg-subtle)] hover:bg-[var(--color-hover)] hover:text-[var(--color-fg)]"
-                          :aria-label="
-                            $t('settings.shortcuts.disable', { name: $t(COMMAND_META[id].titleKey) })
-                          "
-                          :title="$t('settings.shortcuts.disableTooltip')"
-                          @click="ui.clearBinding(id)"
-                        >
-                          ×
-                        </button>
-                        <button
-                          class="focus-ring rounded px-1.5 py-0.5 text-[11px] text-[var(--color-fg-subtle)] hover:bg-[var(--color-hover)] hover:text-[var(--color-fg)]"
-                          :aria-label="
-                            $t('settings.shortcuts.reset', { name: $t(COMMAND_META[id].titleKey) })
-                          "
-                          :title="$t('settings.shortcuts.resetTooltip')"
-                          @click="ui.resetBinding(id)"
-                        >
-                          ↺
-                        </button>
-                      </div>
-                    </div>
-                  </section>
-                </template>
+                    </section>
+                  </template>
 
-                <template v-else-if="activeCategory === 'credits'">
-                  <SettingsCreditsPanel id="settings-credits" />
+                  <template v-else-if="activeCategory === 'credits'">
+                    <SettingsCreditsPanel id="settings-credits" />
+                  </template>
                 </template>
-              </template>
+              </div>
             </div>
           </div>
         </div>
