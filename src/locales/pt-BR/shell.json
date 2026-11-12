@@ -239,9 +239,17 @@
   "update": {
     "download": "Baixar",
     "later": "Depois",
-    "hintMac": "\"Baixar\" instala a nova versão no local e reinicia o app.",
-    "hintOther": "Baixar inicia o instalador a partir do GitHub.",
+    "hintMac": "\"Baixar\" instala a nova versão no lugar e reinicia o aplicativo.",
+    "hintOther": "O download inicia o instalador a partir do GitHub.",
     "failedTitle": "Falha na atualização",
-    "failedBody": "Falha na atualização no local; abrindo a página de download do GitHub."
+    "failedBody": "A atualização no lugar falhou; abrindo a página de download do GitHub.",
+    "checkFailedTitle": "Falha ao verificar atualizações",
+    "checkFailedBody": "Não foi possível acessar o GitHub para verificar atualizações. Confira sua conexão e tente novamente.",
+    "compareFailedBody": "Não foi possível comparar a versão mais recente ({release}) com a sua (v{version}).",
+    "upToDateTitle": "Você está atualizado",
+    "upToDateBody": "O Git Light v{version} é a versão mais recente.",
+    "availableTitle": "A versão {version} está disponível.",
+    "runningVersion": "Você está usando a v{version}.",
+    "whatsNew": "Novidades:"
   }
 }

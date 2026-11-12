@@ -479,7 +479,7 @@ function checkoutCommitAt(commitIndex: number, event?: Event): void {
               <span
                 class="sticky right-2 -translate-y-1/2 rounded border border-[var(--color-border-strong)] bg-[var(--color-panel-raised)] px-1.5 py-px text-[10px] leading-4 text-[var(--color-fg-muted)]"
               >
-                {{ marker.label }}
+                {{ $t(marker.labelKey) }}
               </span>
             </div>
           </div>

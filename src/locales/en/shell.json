@@ -242,6 +242,14 @@
     "hintMac": "\"Download\" installs the new version in place and restarts the app.",
     "hintOther": "Download starts the installer from GitHub.",
     "failedTitle": "Update failed",
-    "failedBody": "In-place update failed, opening the GitHub download page instead."
+    "failedBody": "In-place update failed, opening the GitHub download page instead.",
+    "checkFailedTitle": "Update check failed",
+    "checkFailedBody": "Could not reach GitHub to check for updates. Check your connection and try again.",
+    "compareFailedBody": "Could not compare the latest release ({release}) with your version (v{version}).",
+    "upToDateTitle": "You’re up to date",
+    "upToDateBody": "Git Light v{version} is the latest version.",
+    "availableTitle": "Version {version} is available.",
+    "runningVersion": "You are running v{version}.",
+    "whatsNew": "What's new:"
   }
 }

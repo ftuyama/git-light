@@ -108,5 +108,21 @@
     "branchName": "branch name",
     "commitSha": "commit SHA",
     "link": "link"
+  },
+  "timeMarkers": {
+    "hour1": "1 hour ago",
+    "hours2": "2 hours ago",
+    "hours6": "6 hours ago",
+    "day1": "a day ago",
+    "days2": "2 days ago",
+    "week1": "a week ago",
+    "weeks2": "2 weeks ago",
+    "month1": "a month ago",
+    "months2": "2 months ago",
+    "months3": "3 months ago",
+    "months6": "6 months ago",
+    "year1": "a year ago",
+    "years2": "2 years ago",
+    "years5": "5 years ago"
   }
 }

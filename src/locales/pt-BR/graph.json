@@ -108,5 +108,21 @@
     "branchName": "nome do branch",
     "commitSha": "SHA do commit",
     "link": "link"
+  },
+  "timeMarkers": {
+    "hour1": "há 1 hora",
+    "hours2": "há 2 horas",
+    "hours6": "há 6 horas",
+    "day1": "há um dia",
+    "days2": "há 2 dias",
+    "week1": "há uma semana",
+    "weeks2": "há 2 semanas",
+    "month1": "há um mês",
+    "months2": "há 2 meses",
+    "months3": "há 3 meses",
+    "months6": "há 6 meses",
+    "year1": "há um ano",
+    "years2": "há 2 anos",
+    "years5": "há 5 anos"
   }
 }

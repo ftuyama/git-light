@@ -108,5 +108,21 @@
     "branchName": "分支名",
     "commitSha": "提交 SHA",
     "link": "链接"
+  },
+  "timeMarkers": {
+    "hour1": "1 小时前",
+    "hours2": "2 小时前",
+    "hours6": "6 小时前",
+    "day1": "1 天前",
+    "days2": "2 天前",
+    "week1": "1 周前",
+    "weeks2": "2 周前",
+    "month1": "1 个月前",
+    "months2": "2 个月前",
+    "months3": "3 个月前",
+    "months6": "6 个月前",
+    "year1": "1 年前",
+    "years2": "2 年前",
+    "years5": "5 年前"
   }
 }

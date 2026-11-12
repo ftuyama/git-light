@@ -240,8 +240,16 @@
     "download": "下载",
     "later": "稍后",
     "hintMac": "“下载”会就地安装新版本并重启应用。",
-    "hintOther": "下载会从 GitHub 启动安装程序。",
+    "hintOther": "下载将从 GitHub 启动安装程序。",
     "failedTitle": "更新失败",
-    "failedBody": "就地更新失败，正在打开 GitHub 下载页面。"
+    "failedBody": "就地更新失败，正在打开 GitHub 下载页面。",
+    "checkFailedTitle": "检查更新失败",
+    "checkFailedBody": "无法访问 GitHub 检查更新。请检查网络连接后重试。",
+    "compareFailedBody": "无法将最新版本（{release}）与您的版本（v{version}）进行比较。",
+    "upToDateTitle": "已是最新版本",
+    "upToDateBody": "Git Light v{version} 已是最新版本。",
+    "availableTitle": "版本 {version} 已发布。",
+    "runningVersion": "您正在使用 v{version}。",
+    "whatsNew": "更新内容："
   }
 }

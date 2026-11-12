@@ -91,17 +91,6 @@ export function clampAutoFetchIntervalSec(value: unknown): number {
     : DEFAULT_AUTO_FETCH_INTERVAL_SEC
 }
 
-export function formatAutoFetchInterval(sec: number): string {
-  if (sec <= 0) return 'Disabled'
-  if (sec < 60) return `Every ${sec}s`
-  if (sec % 3600 === 0) {
-    const hours = sec / 3600
-    return hours === 1 ? 'Every hour' : `Every ${hours} hours`
-  }
-  const min = Math.round(sec / 60)
-  return min === 1 ? 'Every minute' : `Every ${min} minutes`
-}
-
 export const WORKING_TREE_CHANGES_SIZE_MIN = 20
 export const WORKING_TREE_CHANGES_SIZE_MAX = 80
 export const DEFAULT_WORKING_TREE_CHANGES_SIZE = 62

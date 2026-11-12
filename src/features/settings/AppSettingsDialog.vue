@@ -33,7 +33,6 @@ import {
   SECTION_LABEL_KEYS,
   SIDEBAR_SECTION_STATE_LABEL_KEYS,
   SIDEBAR_SECTION_STATES,
-  formatAutoFetchInterval,
   type CommitColumnKey,
   type CommitColumnWidthKey,
   type SectionKey,
@@ -203,10 +202,10 @@ const autoFetchIntervalKeys: Record<number, string> = {
   7200: 'settings.intervals.every2Hours',
 }
 
-/** Catalog-backed interval labels, falling back to the formatter for new values. */
+/** Catalog-backed interval labels; unknown values stay numeric. */
 function autoFetchIntervalLabel(sec: number): string {
   const key = autoFetchIntervalKeys[sec]
-  return key ? t(key) : formatAutoFetchInterval(sec)
+  return key ? t(key) : `${sec}s`
 }
 
 function onKeydown(event: KeyboardEvent): void {

@@ -14,29 +14,31 @@ const YEAR = 365 * DAY
 export interface TimeMarkerThreshold {
   /** Age in milliseconds at which the divider appears. */
   ms: number
-  label: string
+  /** Catalog key (`graph.timeMarkers.*`), translated where the marker renders. */
+  labelKey: string
 }
 
 export const TIME_MARKER_THRESHOLDS: readonly TimeMarkerThreshold[] = [
-  { ms: HOUR, label: '1 hour ago' },
-  { ms: 2 * HOUR, label: '2 hours ago' },
-  { ms: 6 * HOUR, label: '6 hours ago' },
-  { ms: DAY, label: 'a day ago' },
-  { ms: 2 * DAY, label: '2 days ago' },
-  { ms: 7 * DAY, label: 'a week ago' },
-  { ms: 14 * DAY, label: '2 weeks ago' },
-  { ms: 30 * DAY, label: 'a month ago' },
-  { ms: 60 * DAY, label: '2 months ago' },
-  { ms: 90 * DAY, label: '3 months ago' },
-  { ms: 180 * DAY, label: '6 months ago' },
-  { ms: YEAR, label: 'a year ago' },
-  { ms: 2 * YEAR, label: '2 years ago' },
-  { ms: 5 * YEAR, label: '5 years ago' },
+  { ms: HOUR, labelKey: 'graph.timeMarkers.hour1' },
+  { ms: 2 * HOUR, labelKey: 'graph.timeMarkers.hours2' },
+  { ms: 6 * HOUR, labelKey: 'graph.timeMarkers.hours6' },
+  { ms: DAY, labelKey: 'graph.timeMarkers.day1' },
+  { ms: 2 * DAY, labelKey: 'graph.timeMarkers.days2' },
+  { ms: 7 * DAY, labelKey: 'graph.timeMarkers.week1' },
+  { ms: 14 * DAY, labelKey: 'graph.timeMarkers.weeks2' },
+  { ms: 30 * DAY, labelKey: 'graph.timeMarkers.month1' },
+  { ms: 60 * DAY, labelKey: 'graph.timeMarkers.months2' },
+  { ms: 90 * DAY, labelKey: 'graph.timeMarkers.months3' },
+  { ms: 180 * DAY, labelKey: 'graph.timeMarkers.months6' },
+  { ms: YEAR, labelKey: 'graph.timeMarkers.year1' },
+  { ms: 2 * YEAR, labelKey: 'graph.timeMarkers.years2' },
+  { ms: 5 * YEAR, labelKey: 'graph.timeMarkers.years5' },
 ]
 
 export interface TimeMarker {
   key: string
-  label: string
+  /** Catalog key, translated at render time so dividers follow the locale. */
+  labelKey: string
   /** Index of the first commit older than the threshold. */
   commitIndex: number
 }
@@ -66,8 +68,8 @@ export function buildTimeMarkers(
     if (claimed.has(commitIndex)) continue
     claimed.add(commitIndex)
     markers.push({
-      key: threshold.label,
-      label: threshold.label,
+      key: threshold.labelKey,
+      labelKey: threshold.labelKey,
       commitIndex,
     })
   }

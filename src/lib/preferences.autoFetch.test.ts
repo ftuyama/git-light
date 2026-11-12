@@ -3,7 +3,6 @@ import {
   AUTO_FETCH_INTERVAL_OPTIONS,
   clampAutoFetchIntervalSec,
   DEFAULT_AUTO_FETCH_INTERVAL_SEC,
-  formatAutoFetchInterval,
   mergePreferences,
 } from './preferences'
 
@@ -26,14 +25,6 @@ describe('auto-fetch interval preference', () => {
     expect(clampAutoFetchIntervalSec(999)).toBe(DEFAULT_AUTO_FETCH_INTERVAL_SEC)
     expect(clampAutoFetchIntervalSec(-5)).toBe(DEFAULT_AUTO_FETCH_INTERVAL_SEC)
     expect(clampAutoFetchIntervalSec(undefined)).toBe(DEFAULT_AUTO_FETCH_INTERVAL_SEC)
-  })
-
-  it('formats hours without falling back to minutes', () => {
-    expect(formatAutoFetchInterval(0)).toBe('Disabled')
-    expect(formatAutoFetchInterval(60)).toBe('Every minute')
-    expect(formatAutoFetchInterval(300)).toBe('Every 5 minutes')
-    expect(formatAutoFetchInterval(3600)).toBe('Every hour')
-    expect(formatAutoFetchInterval(7200)).toBe('Every 2 hours')
   })
 
   it('round-trips a 2h interval through mergePreferences', () => {
