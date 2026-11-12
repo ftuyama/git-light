@@ -1,9 +1,10 @@
-import { createApp } from 'vue'
+import { createApp, watch } from 'vue'
 import { createPinia } from 'pinia'
 import type { RecentRepository } from '@shared/git/models'
 import { isTauri } from '@/lib/backend'
 import { useMockGitServiceIfRequested } from '@/lib/git'
 import App from './App.vue'
+import { i18n, resolveSystemLocale } from './locales'
 import { syncThemePreference } from './lib/applyTheme'
 import { useUiStore } from './stores/ui'
 import { useRepositoryStore } from './stores/repository'
@@ -55,6 +56,7 @@ async function bootstrap(): Promise<void> {
   const app = createApp(App)
   const pinia = createPinia()
   app.use(pinia)
+  app.use(i18n)
   app.config.errorHandler = (err) => console.error('[git-light] render error:', err)
 
   // Mount first so a backend/startup failure can never leave a black screen:
@@ -75,10 +77,28 @@ async function bootstrap(): Promise<void> {
     console.error('[git-light] UI prefs hydrate failed:', err)
   }
   try {
+    // Persisted choice wins; otherwise follow the OS locale.
+    ui.setSystemLocale(await resolveSystemLocale())
+  } catch (err) {
+    console.error('[git-light] locale detection failed:', err)
+  }
+  try {
     syncThemePreference(ui.theme)
   } catch (err) {
     console.error('[git-light] theme sync failed:', err)
   }
+  // Native menus are built once with literal labels, so a language change has
+  // to rebuild them. Watched here instead of inside the store to keep the
+  // store free of Tauri imports.
+  watch(
+    () => ui.resolvedLocale,
+    () => {
+      if (!isTauri()) return
+      void import('@/lib/tauri/appMenu')
+        .then(({ setupAppMenu }) => setupAppMenu())
+        .catch((err) => console.error('[git-light] app menu rebuild failed:', err))
+    },
+  )
 
   const tabs = useRepoTabsStore(pinia)
   try {

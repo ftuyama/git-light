@@ -1,4 +1,5 @@
 import { headCommitIndex as computeHeadCommitIndex } from '@/lib/graph/pendingGraphRow'
+import { translate } from '@/locales'
 import { isHeadBranch } from '@/lib/git/headRef'
 import type { Branch, Commit } from '@/types/git'
 import type { RepositoryState } from './types'
@@ -73,10 +74,13 @@ export const repositoryGetters = {
   },
   undoTooltip(state: RepositoryState): string {
     const label = state.repository?.undoLabel
-    return label ? `Undo ${label}` : 'Undo'
+    if (!label) return translate('shell.operations.undo.tooltipPlain')
+    // The label itself comes from the Rust undo journal, which is not localized.
+    return translate('shell.operations.undo.tooltip', { label })
   },
   redoTooltip(state: RepositoryState): string {
     const label = state.repository?.redoLabel
-    return label ? `Redo ${label}` : 'Redo'
+    if (!label) return translate('shell.operations.undo.redoTooltipPlain')
+    return translate('shell.operations.undo.redoTooltip', { label })
   },
 }

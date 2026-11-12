@@ -1,0 +1,87 @@
+{
+  "headers": {
+    "changedFiles": "Changed files",
+    "files": "Files",
+    "changes": "Changes ({count})",
+    "staged": "Staged ({count})",
+    "conflicts": "Conflicts ({count})"
+  },
+  "actions": {
+    "discardAll": "Discard all changes",
+    "stageAll": "Stage All",
+    "unstageAll": "Unstage All"
+  },
+  "state": {
+    "loadingFiles": "Loading files…",
+    "noFilesInCommit": "No files changed in this commit",
+    "noChangesBetweenCommits": "No file changes between these commits",
+    "noUnstaged": "No unstaged changes",
+    "nothingStaged": "Stage files to commit them"
+  },
+  "changes": {
+    "summary": "{count} file changed on {branch} | {count} files changed on {branch}"
+  },
+  "stash": {
+    "wipOn": "WIP on {branch}",
+    "wip": "WIP",
+    "close": "Close stash files"
+  },
+  "commit": {
+    "summary": "Commit Changes to {count} File | Commit Changes to {count} Files",
+    "summaryAmend": "Amend Changes to {count} File | Amend Changes to {count} Files",
+    "summaryPlaceholder": "Commit Summary",
+    "summaryPlaceholderAmend": "Commit Summary (empty keeps previous message)",
+    "summaryLimit": "Up to {count} characters",
+    "descriptionPlaceholder": "Description",
+    "noCommitsToAmend": "No commits to amend yet",
+    "amend": "Amend previous commit",
+    "commitAndPush": "Commit & Push",
+    "amendAndPush": "Amend & Push",
+    "commitAndForcePush": "Commit & Force Push (with lease)",
+    "amendAndForcePush": "Amend & Force Push (with lease)",
+    "pushOptions": "Commit and push options",
+    "shaCopied": "Copied SHA to clipboard",
+    "mergeCommit": "Merge commit",
+    "parents": "Parents:"
+  },
+  "compare": {
+    "title": "Comparing commits",
+    "filesChanged": "{count} file changed | {count} files changed",
+    "hint": "Shift+click another commit to compare",
+    "exit": "Exit compare mode"
+  },
+  "fileHistory": {
+    "title": "File History"
+  },
+  "fileMenu": {
+    "viewHistory": "View File History",
+    "revealInFinder": "Reveal in Finder",
+    "copyPath": "Copy Path",
+    "pathCopied": "Copied path to clipboard",
+    "viewDiff": "View Diff",
+    "restoreVersion": "Restore File from This Version",
+    "useOurs": "Use Ours",
+    "useTheirs": "Use Theirs",
+    "markResolved": "Mark Resolved",
+    "resolveConflict": "Resolve Conflict",
+    "stage": "Stage Changes",
+    "unstage": "Unstage Changes",
+    "discard": "Discard Changes",
+    "stageFile": "Stage file",
+    "unstageFile": "Unstage file"
+  },
+  "view": {
+    "aria": "File list view",
+    "path": "Path view",
+    "tree": "Tree view"
+  },
+  "status": {
+    "modified": "Modified",
+    "added": "Added",
+    "deleted": "Deleted",
+    "renamed": "Renamed",
+    "conflicted": "Conflicted",
+    "copied": "Copied",
+    "ignored": "Ignored"
+  }
+}

@@ -1,8 +1,9 @@
-import { COMMAND_IDS, COMMAND_META } from '@/lib/keybindings'
+import { COMMAND_IDS, COMMAND_META, commandCategoryKey } from '@/lib/keybindings'
+import { translate } from '@/locales'
 import {
   ADVANCED_SECTION_KEYS,
   SECTION_KEYS,
-  SECTION_LABELS,
+  SECTION_LABEL_KEYS,
   type SectionKey,
 } from '@/lib/preferences'
 
@@ -21,16 +22,16 @@ export type SettingsCategory =
   | 'shortcuts'
   | 'credits'
 
-export const SETTINGS_CATEGORY_LABELS: Record<SettingsCategory, string> = {
-  appearance: 'Appearance',
-  layout: 'Layout',
-  changes: 'Changes',
-  commits: 'Commits',
-  'commit-graph': 'Commit Graph',
-  sidebar: 'Sidebar',
-  sync: 'Sync',
-  shortcuts: 'Shortcuts',
-  credits: 'Credits',
+export const SETTINGS_CATEGORY_KEYS: Record<SettingsCategory, string> = {
+  appearance: 'settings.categories.appearance',
+  layout: 'settings.categories.layout',
+  changes: 'settings.categories.changes',
+  commits: 'settings.categories.commits',
+  'commit-graph': 'settings.categories.commitGraph',
+  sidebar: 'settings.categories.sidebar',
+  sync: 'settings.categories.sync',
+  shortcuts: 'settings.categories.shortcuts',
+  credits: 'settings.categories.credits',
 }
 
 export interface SettingsSearchEntry {
@@ -50,194 +51,218 @@ export interface SettingsSearchGroup {
   entries: SettingsSearchEntry[]
 }
 
-const SECTION_DESCRIPTIONS: Partial<Record<SectionKey, string>> = {
-  favorites: 'Pinned branches shown at the top of the sidebar.',
-  localBranches: 'Local branch list and branch groups.',
-  remoteBranches: 'Remote-tracking branches grouped by remote.',
-  tags: 'Annotated and lightweight tags in the repository.',
-  stashes: 'Saved stashes with message and branch context.',
-  worktrees: 'Linked worktrees and their checkout paths.',
+/** Source entry: catalog keys stay unresolved so the active locale can apply. */
+interface SearchEntrySource {
+  id: string
+  category: SettingsCategory
+  labelKey: string
+  descriptionKey?: string
+  anchor?: string
+  keywords?: string[]
+  advanced?: boolean
 }
 
-const BASE_ENTRIES: SettingsSearchEntry[] = [
+const BASE_ENTRIES: SearchEntrySource[] = [
   {
     id: 'interface-mode',
     category: 'appearance',
-    label: 'Interface mode',
-    description:
-      'Basic hides advanced actions like stash, rebase, and terminal. Advanced shows everything.',
+    labelKey: 'settings.appearance.interface',
+    descriptionKey: 'settings.appearance.interfaceDescription',
     anchor: 'settings-interface-mode',
     keywords: ['basic', 'advanced', 'expert'],
   },
   {
     id: 'theme',
     category: 'appearance',
-    label: 'Color theme',
-    description: 'Choose a color palette for the application interface.',
+    labelKey: 'settings.appearance.theme',
+    descriptionKey: 'settings.appearance.themeDescription',
     anchor: 'settings-theme',
     keywords: ['palette', 'dark', 'light', 'colors'],
   },
   {
     id: 'remote-avatars',
     category: 'appearance',
-    label: 'Author avatars',
-    description:
-      'Load GitHub and Gravatar images for commit authors. Turn off to show initials only and send no avatar requests.',
+    labelKey: 'settings.avatars.authorAvatars',
+    descriptionKey: 'settings.avatars.authorAvatarsDescription',
     anchor: 'settings-remote-avatars',
     keywords: ['gravatar', 'github', 'images'],
   },
   {
     id: 'avatar-cache',
     category: 'appearance',
-    label: 'Clear avatar cache',
-    description: 'Forget cached GitHub logins and failed lookups, then resolve avatars again.',
+    labelKey: 'settings.avatars.clearCache',
+    descriptionKey: 'settings.avatars.clearCacheDescription',
     anchor: 'settings-avatar-cache',
     keywords: ['gravatar', 'github'],
   },
   {
+    id: 'language',
+    category: 'appearance',
+    labelKey: 'settings.language.title',
+    descriptionKey: 'settings.language.description',
+    anchor: 'settings-language',
+    keywords: ['locale', 'translation', 'english', 'portuguese', 'chinese'],
+  },
+  {
     id: 'left-sidebar',
     category: 'layout',
-    label: 'Show Left Sidebar',
-    description: 'Display the branch sidebar on the left.',
+    labelKey: 'settings.layout.showLeftSidebar',
+    descriptionKey: 'settings.layout.showLeftSidebarDescription',
     anchor: 'settings-left-sidebar',
     keywords: ['panel', 'branches'],
   },
   {
     id: 'right-panel',
     category: 'layout',
-    label: 'Show Right Panel',
-    description: 'Display the working tree and diff panel on the right.',
+    labelKey: 'settings.layout.showRightPanel',
+    descriptionKey: 'settings.layout.showRightPanelDescription',
     anchor: 'settings-right-panel',
     keywords: ['panel', 'diff', 'working tree'],
   },
   {
     id: 'reset-layout',
     category: 'layout',
-    label: 'Reset Panel Layout',
-    description: 'Restore default panel sizes and expand both side panels.',
+    labelKey: 'settings.layout.resetAction',
+    descriptionKey: 'settings.layout.resetDescription',
     anchor: 'settings-reset-layout',
     keywords: ['restore', 'default'],
   },
   {
     id: 'tree-view',
     category: 'changes',
-    label: 'Tree view',
-    description: 'Group changed files in a collapsible folder hierarchy.',
+    labelKey: 'settings.changes.treeView',
+    descriptionKey: 'settings.changes.treeViewDescription',
     anchor: 'settings-tree-view',
     keywords: ['files', 'folders', 'working tree'],
   },
   {
     id: 'sign-off',
     category: 'commits',
-    label: 'Sign off commit',
-    description: 'Add a Signed-off-by trailer to commit messages (--signoff).',
+    labelKey: 'settings.commits.signOff',
+    descriptionKey: 'settings.commits.signOffDescription',
     anchor: 'settings-sign-off',
     keywords: ['signoff', 'trailer'],
   },
   {
     id: 'sign-commit',
     category: 'commits',
-    label: 'Sign commit (GPG/SSH)',
-    description: 'Sign with GPG/SSH key (-S). Requires user.signingkey in git config.',
+    labelKey: 'settings.commits.sign',
+    descriptionKey: 'settings.commits.signDescription',
     anchor: 'settings-sign-commit',
     keywords: ['gpg', 'ssh', 'signing', 'signingkey'],
   },
   {
     id: 'graph-scope',
     category: 'commit-graph',
-    label: 'Show all branches',
-    description: 'Display commits from every branch, not just the checked-out branch.',
+    labelKey: 'settings.commitGraph.showAllBranches',
+    descriptionKey: 'settings.commitGraph.showAllBranchesDescription',
     anchor: 'settings-graph-scope',
     keywords: ['history', 'scope'],
   },
   {
     id: 'graph-limit',
     category: 'commit-graph',
-    label: 'Recent commits to load',
-    description: 'Maximum number of commits fetched for the graph.',
+    labelKey: 'settings.commitGraph.recentCommits',
+    descriptionKey: 'settings.commitGraph.recentCommitsSummary',
     anchor: 'settings-graph-limit',
     keywords: ['history', 'limit', 'maximum'],
   },
   {
     id: 'column-author',
     category: 'commit-graph',
-    label: 'Author column',
-    description: 'Show the commit author avatar and name in each row.',
+    labelKey: 'settings.search.columnAuthor',
+    descriptionKey: 'settings.columnDescriptions.author',
     anchor: 'settings-column-author',
     keywords: ['username', 'avatar'],
   },
   {
     id: 'column-sha',
     category: 'commit-graph',
-    label: 'SHA column',
-    description: 'Show the abbreviated commit hash in each row.',
+    labelKey: 'settings.search.columnSha',
+    descriptionKey: 'settings.columnDescriptions.sha',
     anchor: 'settings-column-sha',
     keywords: ['hash', 'abbreviated'],
   },
   {
     id: 'column-when',
     category: 'commit-graph',
-    label: 'When column',
-    description: 'Show how long ago each commit was made.',
+    labelKey: 'settings.search.columnWhen',
+    descriptionKey: 'settings.columnDescriptions.when',
     anchor: 'settings-column-when',
     keywords: ['date', 'time', 'age'],
   },
   {
     id: 'time-markers',
     category: 'commit-graph',
-    label: 'Time indicators',
-    description: 'Show dividers like “a week ago” between commits in the graph.',
+    labelKey: 'settings.commitGraph.timeIndicators',
+    descriptionKey: 'settings.commitGraph.timeIndicatorsDescription',
     anchor: 'settings-time-markers',
     keywords: ['markers', 'date', 'dividers'],
   },
   {
     id: 'merge-indicators',
     category: 'commit-graph',
-    label: 'Merge indicators',
-    description: 'Mark merge commits with a merge icon in the commit message column.',
+    labelKey: 'settings.commitGraph.mergeIndicators',
+    descriptionKey: 'settings.commitGraph.mergeIndicatorsDescription',
     anchor: 'settings-merge-indicators',
     keywords: ['merge commits', 'icon'],
   },
   {
     id: 'column-widths',
     category: 'commit-graph',
-    label: 'Column widths',
-    description: 'Exact pixel widths, or drag the column edges in the graph header.',
+    labelKey: 'settings.commitGraph.columnWidths',
+    descriptionKey: 'settings.commitGraph.columnWidthsDescription',
     anchor: 'settings-column-widths',
     keywords: ['resize', 'pixels', 'graph header'],
   },
   {
     id: 'auto-fetch',
     category: 'sync',
-    label: 'Auto-fetch interval',
-    description: 'Silently fetch all remotes on a schedule. No banner, no toast — the graph just updates.',
+    labelKey: 'settings.sync.autoFetchInterval',
+    descriptionKey: 'settings.sync.autoFetchIntervalDescription',
     anchor: 'settings-auto-fetch',
     keywords: ['background fetch', 'remote', 'schedule', 'poll'],
   },
   {
     id: 'credits',
     category: 'credits',
-    label: 'Credits and version',
-    description: 'App version, author links and third-party credits.',
+    labelKey: 'settings.search.credits',
+    descriptionKey: 'settings.search.creditsDescription',
     anchor: 'settings-credits',
     keywords: ['about', 'version', 'license', 'links'],
   },
 ]
 
-const SIDEBAR_ENTRIES: SettingsSearchEntry[] = SECTION_KEYS.map((key) => ({
+const SIDEBAR_ENTRIES: SearchEntrySource[] = SECTION_KEYS.map((key: SectionKey) => ({
   id: `sidebar-${key}`,
   category: 'sidebar',
-  label: SECTION_LABELS[key],
-  description: SECTION_DESCRIPTIONS[key],
+  labelKey: SECTION_LABEL_KEYS[key],
+  descriptionKey: `settings.sectionDescriptions.${key}`,
   anchor: `settings-sidebar-${key}`,
   keywords: ['sidebar', 'section', 'expanded', 'collapsed', 'hidden'],
   advanced: ADVANCED_SECTION_KEYS.includes(key as (typeof ADVANCED_SECTION_KEYS)[number]),
 }))
 
+function resolveEntry(source: SearchEntrySource): SettingsSearchEntry {
+  return {
+    id: source.id,
+    category: source.category,
+    label: translate(source.labelKey),
+    description: source.descriptionKey ? translate(source.descriptionKey) : undefined,
+    anchor: source.anchor,
+    keywords: source.keywords,
+    advanced: source.advanced,
+  }
+}
+
+export function settingsCategoryLabel(category: SettingsCategory): string {
+  return translate(SETTINGS_CATEGORY_KEYS[category])
+}
+
 export function buildSettingsSearchEntries(options: { isAdvanced: boolean }): SettingsSearchEntry[] {
-  const entries = [...BASE_ENTRIES, ...SIDEBAR_ENTRIES].filter(
-    (entry) => options.isAdvanced || !entry.advanced,
-  )
+  const entries = [...BASE_ENTRIES, ...SIDEBAR_ENTRIES]
+    .filter((entry) => options.isAdvanced || !entry.advanced)
+    .map(resolveEntry)
 
   for (const id of COMMAND_IDS) {
     const meta = COMMAND_META[id]
@@ -245,8 +270,10 @@ export function buildSettingsSearchEntries(options: { isAdvanced: boolean }): Se
     entries.push({
       id: `shortcut-${id}`,
       category: 'shortcuts',
-      label: meta.title,
-      description: `Shortcut · ${meta.category}`,
+      label: translate(meta.titleKey),
+      description: translate('settings.search.shortcutDescription', {
+        category: translate(commandCategoryKey(meta.category)),
+      }),
       anchor: `settings-shortcut-${id}`,
       keywords: ['shortcut', 'keybinding', 'keyboard', 'keys'],
       advanced: meta.advanced,
@@ -277,7 +304,7 @@ export function searchSettings(
       [
         entry.label,
         entry.description ?? '',
-        SETTINGS_CATEGORY_LABELS[entry.category],
+        settingsCategoryLabel(entry.category),
         ...(entry.keywords ?? []),
       ].join(' '),
     )
@@ -290,7 +317,7 @@ export function searchSettings(
 
   return [...groups.entries()].map(([category, list]) => ({
     category,
-    label: SETTINGS_CATEGORY_LABELS[category],
+    label: settingsCategoryLabel(category),
     entries: list,
   }))
 }

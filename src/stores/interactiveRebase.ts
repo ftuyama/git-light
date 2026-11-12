@@ -1,7 +1,8 @@
 import { defineStore } from 'pinia'
 import type { RebaseCommitEntry, RebaseTodoAction, RebaseTodoLine } from '@shared/git/rebase'
-import { REBASE_ACTION_LABELS } from '@shared/git/rebase'
+import { localizedGitErrorMessage } from '@/lib/git/errorMessage'
 import { gitService } from '@/lib/git'
+import { translate } from '@/locales'
 import { useRepositoryStore } from '@/stores/repository'
 import { useSelectionStore } from '@/stores/selection'
 import { useToastStore } from '@/stores/toast'
@@ -21,9 +22,21 @@ interface InteractiveRebaseState {
   dragIndex: number | null
 }
 
-export { REBASE_ACTION_LABELS }
-
 export const REBASE_ACTIONS: RebaseTodoAction[] = ['pick', 'reword', 'edit', 'squash', 'fixup', 'drop']
+
+/** Catalog keys for the todo actions; `REBASE_ACTIONS` keeps the git order. */
+export const REBASE_ACTION_LABEL_KEYS: Record<RebaseTodoAction, string> = {
+  pick: 'rebase.actions.pick',
+  reword: 'rebase.actions.reword',
+  edit: 'rebase.actions.edit',
+  squash: 'rebase.actions.squash',
+  fixup: 'rebase.actions.fixup',
+  drop: 'rebase.actions.drop',
+}
+
+export function rebaseActionLabel(action: RebaseTodoAction): string {
+  return translate(REBASE_ACTION_LABEL_KEYS[action])
+}
 
 export const useInteractiveRebaseStore = defineStore('interactiveRebase', {
   state: (): InteractiveRebaseState => ({
@@ -91,7 +104,7 @@ export const useInteractiveRebaseStore = defineStore('interactiveRebase', {
     async loadCommits(): Promise<void> {
       const base = this.base.trim()
       if (!base) {
-        useToastStore().push('Enter a base ref (e.g. HEAD~5 or a branch)', 'error')
+        useToastStore().push(translate('rebase.toast.baseRequired'), 'error')
         return
       }
 
@@ -107,8 +120,7 @@ export const useInteractiveRebaseStore = defineStore('interactiveRebase', {
         }))
       } catch (error) {
         this.entries = []
-        const detail = error instanceof Error ? error.message : String(error)
-        useToastStore().push(detail, 'error')
+        useToastStore().push(localizedGitErrorMessage(error), 'error')
       } finally {
         this.loading = false
       }

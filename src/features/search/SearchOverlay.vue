@@ -87,7 +87,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
       <div
         class="pointer-events-auto w-full max-w-xl overflow-hidden rounded-xl border border-[var(--color-border-strong)] bg-[var(--color-panel)] shadow-2xl"
         role="dialog"
-        aria-label="Search repository"
+        :aria-label="$t('palette.search.title')"
       >
         <div class="flex items-center gap-2 border-b border-[var(--color-border)] p-3">
           <Search :size="18" class="shrink-0 text-[var(--color-fg-subtle)]" />
@@ -95,7 +95,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
             ref="input"
             v-model="query"
             class="flex-1"
-            placeholder="Search commits and files…"
+            :placeholder="$t('palette.search.placeholder')"
             @keydown.enter="runSearch()"
           />
           <button
@@ -108,13 +108,13 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
 
         <div class="max-h-[50vh] overflow-y-auto p-2">
           <div v-if="loading" class="flex items-center justify-center py-8 text-sm text-[var(--color-fg-subtle)]">
-            <Loader2 :size="16" class="mr-2 animate-spin" /> Searching…
+            <Loader2 :size="16" class="mr-2 animate-spin" /> {{ $t('palette.search.searching') }}
           </div>
 
           <template v-else-if="commits.length || files.length">
             <div v-if="commits.length" class="mb-3">
               <div class="px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-[var(--color-fg-subtle)]">
-                Commits
+                {{ $t('palette.search.commits') }}
               </div>
               <button
                 v-for="hit in commits"
@@ -134,7 +134,7 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
 
             <div v-if="files.length">
               <div class="px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-[var(--color-fg-subtle)]">
-                Files
+                {{ $t('palette.search.files') }}
               </div>
               <button
                 v-for="path in files"
@@ -152,11 +152,11 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
             v-else-if="query.trim()"
             class="py-8 text-center text-sm text-[var(--color-fg-subtle)]"
           >
-            No results. Press Enter to search.
+            {{ $t('palette.search.noResults') }}
           </div>
 
           <div v-else class="px-3 py-2 text-center text-[11px] text-[var(--color-fg-subtle)]">
-            Type to search commits and tracked files.
+            {{ $t('palette.search.hint') }}
           </div>
         </div>
       </div>

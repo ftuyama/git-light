@@ -2,6 +2,7 @@ import { computed, type Ref } from 'vue'
 import { storeToRefs } from 'pinia'
 import type { MenuItem } from '@/components/ui/menu'
 import type { CommitColumnWidthKey } from '@/lib/preferences'
+import { translate } from '@/locales'
 import { useUiStore } from '@/stores/ui'
 
 export const ROW_HORIZONTAL_PADDING = 24
@@ -16,28 +17,28 @@ export function useCommitGraphColumns(scrollbarWidth: Ref<number>) {
 
   const columnMenu = computed<MenuItem[]>(() => [
     {
-      label: 'Author',
+      label: translate('common.labels.author'),
       checked: ui.isColumnVisible('author'),
       onSelect: () => ui.toggleColumn('author'),
     },
     {
-      label: 'SHA',
+      label: translate('graph.columnMenu.sha'),
       checked: ui.isColumnVisible('sha'),
       onSelect: () => ui.toggleColumn('sha'),
     },
     {
-      label: 'When',
+      label: translate('graph.columnMenu.when'),
       checked: ui.isColumnVisible('when'),
       onSelect: () => ui.toggleColumn('when'),
     },
     { separator: true },
     {
-      label: 'Time indicators',
+      label: translate('graph.columnMenu.timeIndicators'),
       checked: ui.showTimeMarkers,
       onSelect: () => ui.toggleTimeMarkers(),
     },
     {
-      label: 'Merge indicators',
+      label: translate('graph.columnMenu.mergeIndicators'),
       checked: ui.showMergeIndicators,
       onSelect: () => ui.toggleMergeIndicators(),
     },

@@ -1,0 +1,59 @@
+{
+  "actions": {
+    "cancel": "取消",
+    "close": "关闭",
+    "save": "保存",
+    "delete": "删除",
+    "remove": "移除",
+    "rename": "重命名",
+    "copy": "复制",
+    "copied": "已复制",
+    "retry": "重试",
+    "refresh": "刷新",
+    "open": "打开",
+    "apply": "应用",
+    "discard": "丢弃",
+    "confirm": "确认",
+    "create": "创建",
+    "edit": "编辑",
+    "add": "添加",
+    "select": "选择",
+    "search": "搜索",
+    "clear": "清除",
+    "learnMore": "了解更多",
+    "showMore": "显示更多",
+    "showLess": "收起"
+  },
+  "labels": {
+    "author": "作者",
+    "date": "日期",
+    "message": "提交信息",
+    "path": "路径",
+    "branch": "分支",
+    "tag": "标签",
+    "commit": "提交",
+    "repository": "仓库",
+    "remote": "远程",
+    "stash": "贮藏",
+    "worktree": "工作树",
+    "changes": "更改",
+    "conflict": "冲突",
+    "file": "文件",
+    "yes": "是",
+    "no": "否"
+  },
+  "state": {
+    "loading": "加载中…",
+    "empty": "暂无内容",
+    "error": "出现错误",
+    "unknown": "未知",
+    "upToDate": "已是最新"
+  },
+  "count": {
+    "commits": "{count} 个提交",
+    "files": "{count} 个文件",
+    "changes": "{count} 项更改",
+    "conflicts": "{count} 个冲突",
+    "branches": "{count} 个分支"
+  }
+}

@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import { formatDistanceToNow } from 'date-fns'
 import { FolderGit2, FolderOpen, FolderSearch, GitFork, Loader2, Plus, Trash2 } from '@lucide/vue'
 import { open } from '@tauri-apps/plugin-dialog'
 import { storeToRefs } from 'pinia'
@@ -12,6 +11,7 @@ import CloneDialog from './CloneDialog.vue'
 import InitDialog from './InitDialog.vue'
 import { useRepositoryStore } from '@/stores/repository'
 import { useUiStore } from '@/stores/ui'
+import { relativeTime } from '@/lib/format'
 
 const repo = useRepositoryStore()
 const ui = useUiStore()
@@ -100,16 +100,16 @@ async function scanFolder(): Promise<void> {
         />
         <h1 class="text-2xl font-semibold tracking-tight text-[var(--color-fg)]">Git Light</h1>
         <p class="mt-2 text-sm text-[var(--color-fg-muted)]">
-          Open a local repository to browse history, branches, and changes.
+          {{ $t('shell.startup.subtitle') }}
         </p>
       </div>
 
       <section class="mb-6">
         <h2 class="mb-1 text-xs font-medium uppercase tracking-wider text-[var(--color-fg-subtle)]">
-          Interface
+          {{ $t('shell.startup.interface') }}
         </h2>
         <p class="mb-3 text-xs text-[var(--color-fg-muted)]">
-          Choose how much of Git Light to show. You can change this later in settings.
+          {{ $t('shell.startup.interfaceHint') }}
         </p>
         <UiModePicker :model-value="uiMode" compact />
       </section>
@@ -121,7 +121,7 @@ async function scanFolder(): Promise<void> {
       >
         <Loader2 v-if="repo.loading" :size="18" class="animate-spin" />
         <FolderOpen v-else :size="18" />
-        Open Repository…
+        {{ $t('shell.startup.openRepository') }}
       </button>
 
       <div class="mt-3 grid grid-cols-2 gap-3">
@@ -131,7 +131,7 @@ async function scanFolder(): Promise<void> {
           @click="cloneOpen = true"
         >
           <GitFork :size="16" />
-          Clone…
+          {{ $t('shell.startup.clone') }}
         </button>
         <button
           class="focus-ring flex items-center justify-center gap-2 rounded-lg border border-[var(--color-border-strong)] bg-[var(--color-panel)] px-4 py-2.5 text-sm font-medium text-[var(--color-fg)] transition-colors hover:bg-[var(--color-hover)] disabled:opacity-60"
@@ -139,7 +139,7 @@ async function scanFolder(): Promise<void> {
           @click="initOpen = true"
         >
           <Plus :size="16" />
-          New…
+          {{ $t('shell.startup.new') }}
         </button>
       </div>
 
@@ -150,12 +150,12 @@ async function scanFolder(): Promise<void> {
       >
         <Loader2 v-if="scanning" :size="14" class="animate-spin" />
         <FolderSearch v-else :size="14" />
-        {{ scanning ? 'Scanning…' : 'Look for repositories in a folder…' }}
+        {{ scanning ? $t('shell.startup.scanning') : $t('shell.startup.scan') }}
       </button>
 
       <section v-if="scanRan && discovered.length > 1" class="mt-6">
         <h2 class="mb-3 text-xs font-medium uppercase tracking-wider text-[var(--color-fg-subtle)]">
-          Found in {{ scannedRoot }}
+          {{ $t('shell.startup.foundIn', { path: scannedRoot }) }}
         </h2>
         <ul class="divide-y divide-[var(--color-border)] overflow-hidden rounded-lg border border-[var(--color-border)] bg-[var(--color-panel)]">
           <li
@@ -178,12 +178,12 @@ async function scanFolder(): Promise<void> {
         </ul>
       </section>
       <p v-else-if="scanRan && discovered.length === 0" class="mt-6 text-center text-xs text-[var(--color-fg-muted)]">
-        No repositories found in {{ scannedRoot }}.
+        {{ $t('shell.startup.noneFound', { path: scannedRoot }) }}
       </p>
 
       <section v-if="sortedRecent.length > 0" class="mt-10">
         <h2 class="mb-3 text-xs font-medium uppercase tracking-wider text-[var(--color-fg-subtle)]">
-          Recent
+          {{ $t('shell.startup.recent') }}
         </h2>
         <ul class="divide-y divide-[var(--color-border)] overflow-hidden rounded-lg border border-[var(--color-border)] bg-[var(--color-panel)]">
           <li
@@ -202,12 +202,12 @@ async function scanFolder(): Promise<void> {
                 <div class="truncate text-xs text-[var(--color-fg-subtle)]">{{ item.path }}</div>
               </div>
               <span class="shrink-0 text-xs text-[var(--color-fg-subtle)]">
-                {{ formatDistanceToNow(item.lastOpened, { addSuffix: true }) }}
+                {{ relativeTime(item.lastOpened) }}
               </span>
             </button>
             <button
               class="app-no-drag focus-ring mr-2 shrink-0 rounded p-1 opacity-0 transition-opacity hover:bg-[var(--color-panel-raised)] group-hover:opacity-100"
-              title="Remove from recent"
+              :title="$t('shell.startup.removeRecent')"
               :disabled="repo.loading"
               @click="removeRecent(item.path, $event)"
             >

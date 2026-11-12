@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { Copy, ExternalLink, FileX, FolderOpen, GitMerge, History, Minus, Plus, RotateCcw } from '@lucide/vue'
 import ContextMenu from '@/components/ui/ContextMenu.vue'
 import type { MenuItem } from '@/components/ui/menu'
@@ -21,6 +22,7 @@ const repo = useRepositoryStore()
 const diffStore = useRepoDiffStore()
 const selection = useSelectionStore()
 const toast = useToastStore()
+const { t } = useI18n()
 
 const meta = computed(() => STATUS_META[props.file.status])
 const selected = computed(
@@ -33,21 +35,21 @@ const diffStatsTitle = computed(
 
 const menu = computed<MenuItem[]>(() => {
   const historyItem: MenuItem = {
-    label: 'View File History',
+    label: t('workingTree.fileMenu.viewHistory'),
     icon: History,
     onSelect: () => void diffStore.openFileHistory(props.file.path),
   }
 
   if (props.readonly) {
     const items: MenuItem[] = [
-      { label: 'Reveal in Finder', icon: FolderOpen, onSelect: reveal },
-      { label: 'Copy Path', icon: Copy, onSelect: copyPath },
-      { label: 'View Diff', icon: ExternalLink, onSelect: () => diffStore.selectFile(props.file.path, { staged: props.file.staged }) },
+      { label: t('workingTree.fileMenu.revealInFinder'), icon: FolderOpen, onSelect: reveal },
+      { label: t('workingTree.fileMenu.copyPath'), icon: Copy, onSelect: copyPath },
+      { label: t('workingTree.fileMenu.viewDiff'), icon: ExternalLink, onSelect: () => diffStore.selectFile(props.file.path, { staged: props.file.staged }) },
       historyItem,
     ]
     if (selection.selectedSha) {
       items.push({
-        label: 'Restore File from This Version',
+        label: t('workingTree.fileMenu.restoreVersion'),
         icon: RotateCcw,
         danger: true,
         onSelect: () =>
@@ -63,24 +65,24 @@ const menu = computed<MenuItem[]>(() => {
   if (props.file.status === 'conflicted') {
     return [
       {
-        label: 'Use Ours',
+        label: t('workingTree.fileMenu.useOurs'),
         icon: GitMerge,
         onSelect: () => void repo.resolveConflictOurs(props.file.path),
       },
       {
-        label: 'Use Theirs',
+        label: t('workingTree.fileMenu.useTheirs'),
         icon: GitMerge,
         onSelect: () => void repo.resolveConflictTheirs(props.file.path),
       },
       {
-        label: 'Mark Resolved',
+        label: t('workingTree.fileMenu.markResolved'),
         onSelect: () => void repo.markConflictResolved(props.file.path),
       },
       { separator: true },
-      { label: 'Reveal in Finder', icon: FolderOpen, onSelect: reveal },
-      { label: 'Copy Path', icon: Copy, onSelect: copyPath },
+      { label: t('workingTree.fileMenu.revealInFinder'), icon: FolderOpen, onSelect: reveal },
+      { label: t('workingTree.fileMenu.copyPath'), icon: Copy, onSelect: copyPath },
       {
-        label: 'Resolve Conflict',
+        label: t('workingTree.fileMenu.resolveConflict'),
         icon: ExternalLink,
         onSelect: () => diffStore.selectFile(props.file.path, { staged: props.file.staged }),
       },
@@ -88,20 +90,20 @@ const menu = computed<MenuItem[]>(() => {
   }
   return [
     {
-      label: props.file.staged ? 'Unstage Changes' : 'Stage Changes',
+      label: t(props.file.staged ? 'workingTree.fileMenu.unstage' : 'workingTree.fileMenu.stage'),
       onSelect: () => repo.toggleStaged(props.file.id),
     },
     {
-      label: 'Discard Changes',
+      label: t('workingTree.fileMenu.discard'),
       icon: FileX,
       danger: true,
       onSelect: () => void repo.runAction({ kind: 'discard-file', target: props.file.path }),
     },
     { separator: true },
-    { label: 'Reveal in Finder', icon: FolderOpen, onSelect: reveal },
-    { label: 'Copy Path', icon: Copy, onSelect: copyPath },
+    { label: t('workingTree.fileMenu.revealInFinder'), icon: FolderOpen, onSelect: reveal },
+    { label: t('workingTree.fileMenu.copyPath'), icon: Copy, onSelect: copyPath },
     {
-      label: 'View Diff',
+      label: t('workingTree.fileMenu.viewDiff'),
       icon: ExternalLink,
       onSelect: () => diffStore.selectFile(props.file.path, { staged: props.file.staged }),
     },
@@ -119,7 +121,7 @@ function reveal(): void {
 
 function copyPath(): void {
   void navigator.clipboard?.writeText(props.file.path)
-  toast.push('Copied path to clipboard', 'info')
+  toast.push(t('workingTree.fileMenu.pathCopied'), 'info')
 }
 </script>
 
@@ -179,8 +181,8 @@ function copyPath(): void {
             ? 'text-[var(--color-fg-muted)] hover:bg-[var(--color-hover)]'
             : 'text-[var(--color-success)] hover:bg-[var(--color-success)]/10',
         )"
-        :title="file.staged ? 'Unstage file' : 'Stage file'"
-        :aria-label="file.staged ? 'Unstage file' : 'Stage file'"
+        :title="file.staged ? $t('workingTree.fileMenu.unstageFile') : $t('workingTree.fileMenu.stageFile')"
+        :aria-label="file.staged ? $t('workingTree.fileMenu.unstageFile') : $t('workingTree.fileMenu.stageFile')"
         @click.stop="repo.toggleStaged(file.id)"
       >
         <component :is="file.staged ? Minus : Plus" :size="13" />

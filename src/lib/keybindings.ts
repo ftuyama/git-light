@@ -43,43 +43,64 @@ export const COMMAND_IDS = [
 
 export type CommandId = (typeof COMMAND_IDS)[number]
 
+export type CommandCategory = 'General' | 'Repository' | 'Tabs' | 'Graph' | 'View'
+
 export interface CommandMeta {
-  title: string
-  category: 'General' | 'Repository' | 'Tabs' | 'Graph' | 'View'
+  /** Key in the `shortcuts` catalog; translate at render time, never at module load. */
+  titleKey: string
+  category: CommandCategory
   allowInInput: boolean
   advanced?: boolean
 }
 
+/** Catalog key for a shortcut category heading. */
+export function commandCategoryKey(category: CommandCategory): string {
+  return `shortcuts.categories.${category.toLowerCase()}`
+}
+
 export const COMMAND_META: Record<CommandId, CommandMeta> = {
-  focusSidebarSearch: { title: 'Focus branch sidebar search', category: 'General', allowInInput: false },
-  globalSearch: { title: 'Open global search', category: 'General', allowInInput: false },
-  commandPalette: { title: 'Command palette', category: 'General', allowInInput: true },
-  refresh: { title: 'Refresh repository', category: 'Repository', allowInInput: false },
-  pull: { title: 'Pull', category: 'Repository', allowInInput: false },
-  push: { title: 'Push', category: 'Repository', allowInInput: false },
-  undo: { title: 'Undo last operation', category: 'Repository', allowInInput: false },
-  redo: { title: 'Redo operation', category: 'Repository', allowInInput: false },
-  openTerminal: { title: 'Open system terminal', category: 'Repository', allowInInput: false, advanced: true },
-  toggleLeftSidebar: { title: 'Toggle left sidebar', category: 'View', allowInInput: false },
-  graphZoomIn: { title: 'Zoom in commit graph', category: 'View', allowInInput: false },
-  graphZoomOut: { title: 'Zoom out commit graph', category: 'View', allowInInput: false },
-  graphZoomReset: { title: 'Reset graph zoom to 100%', category: 'View', allowInInput: false },
-  graphNavDown: { title: 'Next commit in graph', category: 'Graph', allowInInput: false },
-  graphNavUp: { title: 'Previous commit in graph', category: 'Graph', allowInInput: false },
-  nextTab: { title: 'Next repository tab', category: 'Tabs', allowInInput: true },
-  prevTab: { title: 'Previous repository tab', category: 'Tabs', allowInInput: true },
-  switchTab1: { title: 'Switch to tab 1', category: 'Tabs', allowInInput: true },
-  switchTab2: { title: 'Switch to tab 2', category: 'Tabs', allowInInput: true },
-  switchTab3: { title: 'Switch to tab 3', category: 'Tabs', allowInInput: true },
-  switchTab4: { title: 'Switch to tab 4', category: 'Tabs', allowInInput: true },
-  switchTab5: { title: 'Switch to tab 5', category: 'Tabs', allowInInput: true },
-  switchTab6: { title: 'Switch to tab 6', category: 'Tabs', allowInInput: true },
-  switchTab7: { title: 'Switch to tab 7', category: 'Tabs', allowInInput: true },
-  switchTab8: { title: 'Switch to tab 8', category: 'Tabs', allowInInput: true },
-  switchTabLast: { title: 'Switch to last tab (9)', category: 'Tabs', allowInInput: true },
-  newTab: { title: 'Open repository (new tab)', category: 'Tabs', allowInInput: true },
-  closeTab: { title: 'Close current tab', category: 'Tabs', allowInInput: true },
-  reopenClosedTab: { title: 'Reopen closed tab', category: 'Tabs', allowInInput: true },
+  focusSidebarSearch: {
+    titleKey: 'shortcuts.focusSidebarSearch',
+    category: 'General',
+    allowInInput: false,
+  },
+  globalSearch: { titleKey: 'shortcuts.globalSearch', category: 'General', allowInInput: false },
+  commandPalette: { titleKey: 'shortcuts.commandPalette', category: 'General', allowInInput: true },
+  refresh: { titleKey: 'shortcuts.refresh', category: 'Repository', allowInInput: false },
+  pull: { titleKey: 'shortcuts.pull', category: 'Repository', allowInInput: false },
+  push: { titleKey: 'shortcuts.push', category: 'Repository', allowInInput: false },
+  undo: { titleKey: 'shortcuts.undo', category: 'Repository', allowInInput: false },
+  redo: { titleKey: 'shortcuts.redo', category: 'Repository', allowInInput: false },
+  openTerminal: {
+    titleKey: 'shortcuts.openTerminal',
+    category: 'Repository',
+    allowInInput: false,
+    advanced: true,
+  },
+  toggleLeftSidebar: {
+    titleKey: 'shortcuts.toggleLeftSidebar',
+    category: 'View',
+    allowInInput: false,
+  },
+  graphZoomIn: { titleKey: 'shortcuts.graphZoomIn', category: 'View', allowInInput: false },
+  graphZoomOut: { titleKey: 'shortcuts.graphZoomOut', category: 'View', allowInInput: false },
+  graphZoomReset: { titleKey: 'shortcuts.graphZoomReset', category: 'View', allowInInput: false },
+  graphNavDown: { titleKey: 'shortcuts.graphNavDown', category: 'Graph', allowInInput: false },
+  graphNavUp: { titleKey: 'shortcuts.graphNavUp', category: 'Graph', allowInInput: false },
+  nextTab: { titleKey: 'shortcuts.nextTab', category: 'Tabs', allowInInput: true },
+  prevTab: { titleKey: 'shortcuts.prevTab', category: 'Tabs', allowInInput: true },
+  switchTab1: { titleKey: 'shortcuts.switchTab1', category: 'Tabs', allowInInput: true },
+  switchTab2: { titleKey: 'shortcuts.switchTab2', category: 'Tabs', allowInInput: true },
+  switchTab3: { titleKey: 'shortcuts.switchTab3', category: 'Tabs', allowInInput: true },
+  switchTab4: { titleKey: 'shortcuts.switchTab4', category: 'Tabs', allowInInput: true },
+  switchTab5: { titleKey: 'shortcuts.switchTab5', category: 'Tabs', allowInInput: true },
+  switchTab6: { titleKey: 'shortcuts.switchTab6', category: 'Tabs', allowInInput: true },
+  switchTab7: { titleKey: 'shortcuts.switchTab7', category: 'Tabs', allowInInput: true },
+  switchTab8: { titleKey: 'shortcuts.switchTab8', category: 'Tabs', allowInInput: true },
+  switchTabLast: { titleKey: 'shortcuts.switchTabLast', category: 'Tabs', allowInInput: true },
+  newTab: { titleKey: 'shortcuts.newTab', category: 'Tabs', allowInInput: true },
+  closeTab: { titleKey: 'shortcuts.closeTab', category: 'Tabs', allowInInput: true },
+  reopenClosedTab: { titleKey: 'shortcuts.reopenClosedTab', category: 'Tabs', allowInInput: true },
 }
 
 export type Keymap = Record<CommandId, KeyBinding[]>

@@ -1,0 +1,216 @@
+{
+  "button": "Settings",
+  "dialog": {
+    "title": "Preferences",
+    "close": "Close preferences"
+  },
+  "categories": {
+    "general": "General",
+    "appearance": "Appearance",
+    "layout": "Layout",
+    "ui": "UI",
+    "commitGraph": "Commit Graph",
+    "sidebar": "Sidebar",
+    "repository": "Repository",
+    "changes": "Changes",
+    "commits": "Commits",
+    "sync": "Sync",
+    "application": "Application",
+    "shortcuts": "Shortcuts",
+    "credits": "Credits"
+  },
+  "appearance": {
+    "interface": "Interface",
+    "interfaceDescription": "Basic hides advanced actions like stash, rebase, and terminal. Advanced shows everything.",
+    "theme": "Color theme",
+    "themeDescription": "Choose a color palette for the application interface.",
+    "basic": "Basic",
+    "basicDescription": "Essential Git actions only. Hides stash, rebase, cherry-pick, tags, and more.",
+    "advanced": "Advanced",
+    "advancedDescription": "Full toolbar, sidebar sections, and commit actions."
+  },
+  "language": {
+    "title": "Language",
+    "description": "Language of the app interface.",
+    "system": "System",
+    "systemDescription": "Follow your operating system language. Currently {language}."
+  },
+  "avatars": {
+    "title": "Avatars",
+    "authorAvatars": "Author avatars",
+    "authorAvatarsDescription": "Load GitHub and Gravatar images for commit authors. Turn off to show initials only and send no avatar requests.",
+    "clearCache": "Clear avatar cache",
+    "clearCacheDescription": "Forget cached GitHub logins and failed lookups, then resolve avatars again.",
+    "clear": "Clear",
+    "cleared": "Cleared"
+  },
+  "layout": {
+    "description": "Control panel visibility and restore the default three-pane layout.",
+    "panels": "Panels",
+    "showLeftSidebar": "Show left sidebar",
+    "showLeftSidebarDescription": "Display the branch sidebar on the left.",
+    "showRightPanel": "Show right panel",
+    "showRightPanelDescription": "Display the working tree and diff panel on the right.",
+    "reset": "Reset",
+    "resetDescription": "Restore default panel sizes and expand both side panels.",
+    "resetAction": "Reset panel layout"
+  },
+  "changes": {
+    "description": "Control how changed files are listed in the working tree and commit panels.",
+    "fileList": "File list",
+    "treeView": "Tree view",
+    "treeViewDescription": "Group changed files in a collapsible folder hierarchy."
+  },
+  "commits": {
+    "description": "Default options applied to new commits.",
+    "options": "Commit options",
+    "signOff": "Sign off commit",
+    "signOffDescription": "Add a Signed-off-by trailer to commit messages (--signoff).",
+    "sign": "Sign commit (GPG/SSH)",
+    "signDescription": "Sign with GPG/SSH key (-S). Requires user.signingkey in git config."
+  },
+  "commitGraph": {
+    "description": "Control which commits appear in the graph and which columns are shown.",
+    "history": "History",
+    "showAllBranches": "Show all branches",
+    "showAllBranchesDescription": "Display commits from every branch, not just the checked-out branch.",
+    "recentCommits": "Recent commits to load",
+    "recentCommitsSummary": "Maximum number of commits fetched for the graph.",
+    "recentCommitsDescription": "Maximum number of commits fetched for the graph. Minimum {min}; {recommended} recommended.",
+    "columns": "Columns",
+    "columnsDescription": "Choose which optional columns are shown in the graph rows.",
+    "indicators": "Indicators",
+    "timeIndicators": "Time indicators",
+    "timeIndicatorsDescription": "Show dividers like “a week ago” between commits in the graph.",
+    "mergeIndicators": "Merge indicators",
+    "mergeIndicatorsDescription": "Mark merge commits with a merge icon in the commit message column.",
+    "columnWidths": "Column widths",
+    "resetWidths": "Reset widths",
+    "columnWidthsDescription": "Exact pixel widths, or drag the column edges in the graph header."
+  },
+  "columnDescriptions": {
+    "author": "Show the commit author avatar and name in each row.",
+    "sha": "Show the abbreviated commit hash in each row.",
+    "when": "Show how long ago each commit was made."
+  },
+  "sidebar": {
+    "description": "Choose how each branch sidebar section is shown: expanded, collapsed to its header, or hidden entirely.",
+    "sections": "Sections"
+  },
+  "sectionDescriptions": {
+    "favorites": "Pinned branches shown at the top of the sidebar.",
+    "localBranches": "Local branch list and branch groups.",
+    "remoteBranches": "Remote-tracking branches grouped by remote.",
+    "tags": "Annotated and lightweight tags in the repository.",
+    "stashes": "Saved stashes with message and branch context.",
+    "worktrees": "Linked worktrees and their checkout paths."
+  },
+  "sync": {
+    "description": "Keep remote-tracking branches fresh without leaving the app.",
+    "backgroundFetch": "Background fetch",
+    "autoFetchInterval": "Auto-fetch interval",
+    "autoFetchIntervalDescription": "Silently fetch all remotes on a schedule. No banner, no toast — the graph just updates."
+  },
+  "intervals": {
+    "disabled": "Disabled",
+    "everyMinute": "Every minute",
+    "every5Minutes": "Every 5 minutes",
+    "every10Minutes": "Every 10 minutes",
+    "every30Minutes": "Every 30 minutes",
+    "everyHour": "Every hour",
+    "every2Hours": "Every 2 hours"
+  },
+  "credits": {
+    "version": "Version {version}",
+    "description": "Free, open-source desktop Git client (Tauri 2, Vue 3, TypeScript, Rust) — graph-first alternative to GitKraken with commit graph, branches, staging and real local Git operations.",
+    "builtBy": "Built by",
+    "license": "{license} License",
+    "website": "Website",
+    "sourceCode": "Source code",
+    "sponsor": "Sponsor on Ko-fi",
+    "links": "Links",
+    "openSource": "Open source",
+    "openSourceDescription": "Git Light is made possible by these projects and their contributors."
+  },
+  "columns": {
+    "author": "Author",
+    "sha": "SHA",
+    "when": "When"
+  },
+  "columnWidths": {
+    "refs": "Branch / tag",
+    "graph": "Graph",
+    "commit": "Commit",
+    "author": "Author",
+    "sha": "SHA",
+    "when": "When",
+    "ariaLabel": "{name} column width",
+    "hidden": "{range} · hidden"
+  },
+  "sections": {
+    "favorites": "Favorites",
+    "localBranches": "Local Branches",
+    "remoteBranches": "Remote Branches",
+    "tags": "Tags",
+    "stashes": "Stashes",
+    "worktrees": "Worktrees"
+  },
+  "sectionStates": {
+    "expanded": "Expanded",
+    "collapsed": "Collapsed",
+    "hidden": "Hidden"
+  },
+  "themes": {
+    "default": {
+      "label": "Default",
+      "description": "Dark palette with blue accents."
+    },
+    "dracula": {
+      "label": "Dracula",
+      "description": "Classic Dracula theme with purple and pink accents."
+    },
+    "light": {
+      "label": "Light",
+      "description": "Clean light palette inspired by GitHub and VS Code."
+    },
+    "claude": {
+      "label": "Claude",
+      "description": "Dark warm charcoal palette inspired by claude.ai."
+    },
+    "tokyo-night": {
+      "label": "Tokyo Night",
+      "description": "Dark blue Tokyo Night palette with vivid blue and purple accents."
+    },
+    "system": {
+      "label": "System",
+      "description": "Matches your operating system appearance."
+    }
+  },
+  "shortcuts": {
+    "disable": "Disable {name} shortcut",
+    "reset": "Reset {name} shortcut",
+    "conflictsWith": "Conflicts with: {names}",
+    "description": "Click a shortcut to record a new one. Esc cancels. Conflicts are highlighted.",
+    "restoreDefaults": "Restore defaults",
+    "disableTooltip": "Disable (clear shortcut)",
+    "resetTooltip": "Reset to default",
+    "recordHint": "Click to record new shortcut",
+    "recordingHint": "Press keys for shortcut, Esc to cancel",
+    "recording": "Press keys…"
+  },
+  "search": {
+    "title": "Search settings",
+    "open": "Search settings",
+    "openTooltip": "Search settings (/)",
+    "placeholder": "Search settings…",
+    "resultOne": "{count} result",
+    "resultMany": "{count} results",
+    "empty": "No settings match “{query}”.",
+    "columnAuthor": "Author column",
+    "columnSha": "SHA column",
+    "columnWhen": "When column",
+    "credits": "Credits and version",
+    "creditsDescription": "App version, author links and third-party credits.",
+    "shortcutDescription": "Shortcut · {category}"
+  }
+}

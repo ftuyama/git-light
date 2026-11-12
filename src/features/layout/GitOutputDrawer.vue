@@ -23,19 +23,19 @@ function formatTime(ts: number): string {
   >
     <div class="flex items-center gap-2 border-b border-[var(--color-border)] px-3 py-1.5 text-[11px]">
       <Terminal :size="12" class="text-[var(--color-fg-subtle)]" />
-      <span class="font-medium">Git output</span>
-      <span class="text-[var(--color-fg-subtle)]">{{ repo.repository?.name ?? 'no repo' }} · {{ entries.length }} entries</span>
+      <span class="font-medium">{{ $t('shell.output.title') }}</span>
+      <span class="text-[var(--color-fg-subtle)]">{{ repo.repository?.name ?? $t('shell.output.noRepo') }} · {{ $t('shell.output.entryCount', { count: entries.length }) }}</span>
       <div class="flex-1" />
       <button
         class="app-no-drag focus-ring rounded p-1 hover:bg-[var(--color-hover)]"
-        title="Clear output for this tab"
+        :title="$t('shell.output.clear')"
         @click="output.clear(repo.repository?.path)"
       >
         <Trash2 :size="12" />
       </button>
       <button
         class="app-no-drag focus-ring rounded p-1 hover:bg-[var(--color-hover)]"
-        title="Close output"
+        :title="$t('shell.output.close')"
         @click="output.setOpen(false)"
       >
         <X :size="12" />
@@ -43,7 +43,7 @@ function formatTime(ts: number): string {
     </div>
     <div class="min-h-0 flex-1 overflow-y-auto px-3 py-2 font-mono text-[11px] leading-relaxed">
       <p v-if="entries.length === 0" class="font-sans text-[var(--color-fg-subtle)]">
-        No git commands yet in this tab. Run fetch, pull, push, checkout, etc.
+        {{ $t('shell.output.empty') }}
       </p>
       <div v-for="entry in entries" :key="entry.id" class="mb-2">
         <div class="flex items-center gap-2 font-sans text-[11px]">
@@ -52,7 +52,7 @@ function formatTime(ts: number): string {
             class="rounded px-1"
             :class="entry.ok ? 'bg-[var(--color-success-muted)] text-[var(--color-success)]' : 'bg-[var(--color-danger-muted)] text-[var(--color-danger)]'"
           >
-            {{ entry.ok ? 'ok' : 'error' }}
+            {{ entry.ok ? $t('shell.output.ok') : $t('shell.output.failed') }}
           </span>
           <span class="font-medium">{{ entry.actionKind }}{{ entry.target ? ` ${entry.target}` : '' }}</span>
           <span class="truncate text-[var(--color-fg-muted)]">{{ entry.message }}</span>
@@ -61,9 +61,9 @@ function formatTime(ts: number): string {
           <div class="whitespace-pre-wrap break-all text-[var(--color-accent)]">$ {{ cmd.command }}</div>
           <div v-if="cmd.stdout" class="whitespace-pre-wrap break-all">{{ cmd.stdout }}</div>
           <div v-if="cmd.stderr" class="whitespace-pre-wrap break-all text-[var(--color-danger)]">{{ cmd.stderr }}</div>
-          <div v-if="cmd.exitCode !== 0 && cmd.exitCode !== null" class="text-[var(--color-fg-subtle)]">exit {{ cmd.exitCode }}</div>
+          <div v-if="cmd.exitCode !== 0 && cmd.exitCode !== null" class="text-[var(--color-fg-subtle)]">{{ $t('shell.output.exitCode', { code: cmd.exitCode }) }}</div>
         </div>
-        <div v-if="entry.commands.length === 0" class="text-[var(--color-fg-subtle)]">no command captured</div>
+        <div v-if="entry.commands.length === 0" class="text-[var(--color-fg-subtle)]">{{ $t('shell.output.noCommand') }}</div>
       </div>
     </div>
   </div>

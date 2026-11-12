@@ -12,6 +12,17 @@ Git Light is a Tauri 2 desktop app with a Vue 3 renderer. The UI depends on a `G
 | Git | Native `git` CLI spawned by Rust (`tokio::process`, argv arrays only) |
 | Terminal | System terminal (external, via `git_open_terminal_external`) |
 | File watch | `notify` crate → debounced `git:changed` events → scoped snapshot refresh |
+| i18n | `vue-i18n` 11 (Composition API), JSON catalogs per feature domain in `src/locales/<locale>/` |
+
+## Translations
+
+UI copy is not part of the logic layer: components render `$t('domain.key')` and
+non-component modules call `translate()` from `src/locales`. Catalogs are split
+per feature domain (`common`, `shell`, `graph`, `branches`, `workingTree`,
+`diff`, `conflicts`, `rebase`, `palette`, `settings`, `menu`, `shortcuts`,
+`errors`), so features own their strings. Locale selection lives in the UI
+preferences store; dates are formatted through `src/lib/format.ts`. Terminology
+and rules: [src/locales/GLOSSARY.md](src/locales/GLOSSARY.md).
 
 ## Process model
 

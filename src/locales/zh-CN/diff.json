@@ -1,0 +1,68 @@
+{
+  "panel": {
+    "closeFile": "关闭文件",
+    "diffView": "差异视图",
+    "blameView": "追溯视图",
+    "diff": "差异",
+    "blame": "追溯",
+    "unified": "统一差异",
+    "split": "并排差异",
+    "ignoreWhitespace": "忽略行首行尾空白",
+    "wordWrap": "自动换行",
+    "loading": "正在加载差异…",
+    "tooLarge": "文件过大，无法在界面中显示差异。",
+    "binary": "二进制文件 — 无法显示文本差异。"
+  },
+  "stage": {
+    "stage": "暂存",
+    "unstage": "取消暂存",
+    "stageHunk": "暂存代码块",
+    "unstageHunk": "取消暂存代码块",
+    "stageLine": "暂存行",
+    "unstageLine": "取消暂存行"
+  },
+  "discard": {
+    "discardHunk": "丢弃代码块",
+    "discardLine": "丢弃行"
+  },
+  "blame": {
+    "loading": "正在加载追溯…",
+    "empty": "此文件没有可用的追溯信息。",
+    "wordWrap": "自动换行",
+    "wordWrapAria": "追溯视图中的自动换行"
+  },
+  "history": {
+    "title": "文件历史",
+    "loading": "正在加载历史…",
+    "empty": "此文件没有找到提交。"
+  },
+  "image": {
+    "loading": "正在加载图片预览…",
+    "failed": "无法加载图片预览。",
+    "tooLarge": "图片过大，无法在界面中预览。",
+    "unavailable": "此更改无法预览图片。",
+    "added": "已添加",
+    "before": "之前",
+    "after": "之后",
+    "deleted": "已删除",
+    "beforeAlt": "之前：{path}",
+    "afterAlt": "之后：{path}",
+    "noPrevious": "没有旧版本（文件为新添加）。",
+    "noCurrent": "没有新版本（文件已删除）。",
+    "zoomIn": "放大",
+    "zoomOut": "缩小",
+    "resetZoom": "重置缩放",
+    "collapse": "收起",
+    "backToSideBySide": "返回并排对比",
+    "expand": "点击放大",
+    "hint": "滚动缩放 · 拖动平移 · 双击切换 · Esc 收起"
+  },
+  "toast": {
+    "commitFilesFailed": "无法加载提交的文件：{detail}",
+    "compareFailed": "无法比较提交：{detail}",
+    "diffFailed": "无法加载差异：{detail}",
+    "blameFailed": "无法加载追溯信息：{detail}",
+    "historyFailed": "无法加载文件历史：{detail}",
+    "conflictFailed": "无法加载冲突：{detail}"
+  }
+}

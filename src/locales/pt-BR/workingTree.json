@@ -1,0 +1,87 @@
+{
+  "headers": {
+    "changedFiles": "Arquivos alterados",
+    "files": "Arquivos",
+    "changes": "Alterações ({count})",
+    "staged": "Preparadas ({count})",
+    "conflicts": "Conflitos ({count})"
+  },
+  "actions": {
+    "discardAll": "Descartar todas as alterações",
+    "stageAll": "Preparar tudo",
+    "unstageAll": "Remover tudo do staging"
+  },
+  "state": {
+    "loadingFiles": "Carregando arquivos…",
+    "noFilesInCommit": "Nenhum arquivo alterado neste commit",
+    "noChangesBetweenCommits": "Nenhuma alteração de arquivo entre estes commits",
+    "noUnstaged": "Nenhuma alteração não preparada",
+    "nothingStaged": "Prepare arquivos para fazer o commit"
+  },
+  "changes": {
+    "summary": "{count} arquivo alterado em {branch} | {count} arquivos alterados em {branch}"
+  },
+  "stash": {
+    "wipOn": "WIP em {branch}",
+    "wip": "WIP",
+    "close": "Fechar arquivos do stash"
+  },
+  "commit": {
+    "summary": "Fazer commit de {count} arquivo | Fazer commit de {count} arquivos",
+    "summaryAmend": "Emendar com {count} arquivo | Emendar com {count} arquivos",
+    "summaryPlaceholder": "Resumo do commit",
+    "summaryPlaceholderAmend": "Resumo do commit (vazio mantém a mensagem anterior)",
+    "summaryLimit": "Até {count} caracteres",
+    "descriptionPlaceholder": "Descrição",
+    "noCommitsToAmend": "Ainda não há commits para emendar",
+    "amend": "Emendar commit anterior",
+    "commitAndPush": "Fazer commit e push",
+    "amendAndPush": "Emendar e push",
+    "commitAndForcePush": "Fazer commit e force push (com lease)",
+    "amendAndForcePush": "Emendar e force push (com lease)",
+    "pushOptions": "Opções de commit e push",
+    "shaCopied": "SHA copiado para a área de transferência",
+    "mergeCommit": "Commit de merge",
+    "parents": "Pais:"
+  },
+  "compare": {
+    "title": "Comparando commits",
+    "filesChanged": "{count} arquivo alterado | {count} arquivos alterados",
+    "hint": "Shift+clique em outro commit para comparar",
+    "exit": "Sair do modo de comparação"
+  },
+  "fileHistory": {
+    "title": "Histórico do arquivo"
+  },
+  "fileMenu": {
+    "viewHistory": "Ver histórico do arquivo",
+    "revealInFinder": "Mostrar no Finder",
+    "copyPath": "Copiar caminho",
+    "pathCopied": "Caminho copiado para a área de transferência",
+    "viewDiff": "Ver diff",
+    "restoreVersion": "Restaurar arquivo desta versão",
+    "useOurs": "Usar a nossa versão",
+    "useTheirs": "Usar a versão deles",
+    "markResolved": "Marcar como resolvido",
+    "resolveConflict": "Resolver conflito",
+    "stage": "Preparar alterações",
+    "unstage": "Remover alterações do staging",
+    "discard": "Descartar alterações",
+    "stageFile": "Preparar arquivo",
+    "unstageFile": "Remover arquivo do staging"
+  },
+  "view": {
+    "aria": "Visualização da lista de arquivos",
+    "path": "Visualização por caminho",
+    "tree": "Visualização em árvore"
+  },
+  "status": {
+    "modified": "Modificado",
+    "added": "Adicionado",
+    "deleted": "Excluído",
+    "renamed": "Renomeado",
+    "conflicted": "Em conflito",
+    "copied": "Copiado",
+    "ignored": "Ignorado"
+  }
+}

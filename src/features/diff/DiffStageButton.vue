@@ -21,6 +21,21 @@ const opacityClass = computed(() => {
   if (props.scope === 'hunk') return 'opacity-60 group-hover/diff-row:opacity-100'
   return 'opacity-0 group-hover/diff-row:opacity-100'
 })
+
+/** Title names the exact target, while the visible label stays short. */
+const titleKey = computed(() => {
+  if (props.mode === 'stage') {
+    return props.scope === 'hunk' ? 'diff.stage.stageHunk' : 'diff.stage.stageLine'
+  }
+  return props.scope === 'hunk' ? 'diff.stage.unstageHunk' : 'diff.stage.unstageLine'
+})
+
+const labelKey = computed(() => {
+  if (props.mode === 'stage') {
+    return props.scope === 'hunk' ? 'diff.stage.stageHunk' : 'diff.stage.stage'
+  }
+  return props.scope === 'hunk' ? 'diff.stage.unstageHunk' : 'diff.stage.unstage'
+})
 </script>
 
 <template>
@@ -33,12 +48,10 @@ const opacityClass = computed(() => {
         ? 'text-[var(--color-success)] hover:bg-[var(--color-success)]/10'
         : 'text-[var(--color-fg-muted)] hover:bg-[var(--color-hover)]',
     )"
-    :title="mode === 'stage'
-      ? (scope === 'hunk' ? 'Stage hunk' : 'Stage line')
-      : (scope === 'hunk' ? 'Unstage hunk' : 'Unstage line')"
+    :title="$t(titleKey)"
     @click.stop="emit('action')"
   >
     <component :is="mode === 'stage' ? Plus : Minus" :size="11" class="inline" />
-    {{ mode === 'stage' ? 'Stage' : 'Unstage' }}{{ scope === 'hunk' ? ' hunk' : '' }}
+    {{ $t(labelKey) }}
   </button>
 </template>

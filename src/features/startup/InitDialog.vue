@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { open as openFolderDialog } from '@tauri-apps/plugin-dialog'
 import Dialog from '@/components/ui/Dialog.vue'
 import Button from '@/components/ui/Button.vue'
@@ -10,6 +11,8 @@ const emit = defineEmits<{
   close: []
   submit: [{ path: string; defaultBranch: string }]
 }>()
+
+const { t } = useI18n()
 
 const folder = ref('')
 const branch = ref('')
@@ -35,7 +38,7 @@ async function pickFolder(): Promise<void> {
 
 function onSubmit(): void {
   if (!folder.value.trim()) {
-    error.value = 'Choose a folder.'
+    error.value = t('shell.init.folderRequired')
     return
   }
   error.value = ''
@@ -44,9 +47,9 @@ function onSubmit(): void {
 </script>
 
 <template>
-  <Dialog :open="open" title="Initialize repository" @confirm="onSubmit" @cancel="emit('close')">
+  <Dialog :open="open" :title="t('shell.init.title')" @confirm="onSubmit" @cancel="emit('close')">
     <label class="block text-xs font-medium text-[var(--color-fg-muted)]">
-      Folder
+      {{ $t('shell.init.folder') }}
       <div class="mt-1 flex gap-2">
         <input
           v-model="folder"
@@ -55,11 +58,12 @@ function onSubmit(): void {
           spellcheck="false"
           class="focus-ring min-w-0 flex-1 rounded-md border border-[var(--color-border-strong)] bg-[var(--color-panel-raised)] px-3 py-2 text-sm text-[var(--color-fg)] outline-none"
         />
-        <Button size="sm" @click="pickFolder">Browse…</Button>
+        <Button size="sm" @click="pickFolder">{{ $t('shell.browse') }}</Button>
       </div>
     </label>
     <label class="block text-xs font-medium text-[var(--color-fg-muted)]">
-      Initial branch <span class="font-normal">(optional — uses git default)</span>
+      {{ $t('shell.init.initialBranch') }}
+      <span class="font-normal">{{ $t('shell.init.initialBranchHint') }}</span>
       <input
         v-model="branch"
         type="text"
@@ -72,9 +76,9 @@ function onSubmit(): void {
     <p v-if="error" class="text-xs text-[var(--color-danger)]">{{ error }}</p>
 
     <template #footer>
-      <Button variant="ghost" :disabled="busy" @click="emit('close')">Cancel</Button>
+      <Button variant="ghost" :disabled="busy" @click="emit('close')">{{ $t('common.actions.cancel') }}</Button>
       <Button variant="primary" :busy="busy" :disabled="busy" @click="onSubmit">
-        {{ busy ? 'Creating…' : 'Initialize' }}
+        {{ busy ? $t('shell.init.busy') : $t('shell.init.submit') }}
       </Button>
     </template>
   </Dialog>

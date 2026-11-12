@@ -1,25 +1,33 @@
 export type MergeMode = 'default' | 'ff-only' | 'no-ff' | 'squash'
 
-export const MERGE_MODE_OPTIONS: { value: MergeMode; label: string; description: string }[] = [
+/**
+ * Merge strategies offered when integrating branches. The copy lives in the
+ * `branches.mergeModes.*` catalog so the dialog can translate it at render time.
+ */
+export const MERGE_MODE_OPTIONS: {
+  value: MergeMode
+  labelKey: string
+  descriptionKey: string
+}[] = [
   {
     value: 'default',
-    label: 'Default',
-    description: 'Fast-forward when possible, otherwise create a merge commit',
+    labelKey: 'branches.mergeModes.default.label',
+    descriptionKey: 'branches.mergeModes.default.description',
   },
   {
     value: 'ff-only',
-    label: 'Fast-forward only',
-    description: 'Refuse to merge unless a fast-forward is possible',
+    labelKey: 'branches.mergeModes.ffOnly.label',
+    descriptionKey: 'branches.mergeModes.ffOnly.description',
   },
   {
     value: 'no-ff',
-    label: 'No fast-forward',
-    description: 'Always create a merge commit',
+    labelKey: 'branches.mergeModes.noFf.label',
+    descriptionKey: 'branches.mergeModes.noFf.description',
   },
   {
     value: 'squash',
-    label: 'Squash',
-    description: 'Squash all commits from the source branch into one commit',
+    labelKey: 'branches.mergeModes.squash.label',
+    descriptionKey: 'branches.mergeModes.squash.description',
   },
 ]
 

@@ -4,7 +4,7 @@ import { FileDiff, PanelLeftOpen, PanelRightOpen } from '@lucide/vue'
 import IconButton from '@/components/ui/IconButton.vue'
 import {
   ADVANCED_SECTION_KEYS,
-  SECTION_LABELS,
+  SECTION_LABEL_KEYS,
   type SectionKey,
 } from '@/lib/preferences'
 import { useUiStore } from '@/stores/ui'
@@ -35,7 +35,7 @@ const sections = computed(() =>
   ).map((key) => ({
     key,
     icon: SECTION_ICONS[key],
-    label: SECTION_LABELS[key],
+    labelKey: SECTION_LABEL_KEYS[key],
     count: sectionCount(key),
   })),
 )
@@ -54,7 +54,7 @@ function openSection(key: SectionKey): void {
   >
     <IconButton
       :icon="side === 'left' ? PanelLeftOpen : PanelRightOpen"
-      :label="`Expand ${side} panel`"
+      :label="side === 'left' ? $t('shell.sidebar.expandLeft') : $t('shell.sidebar.expandRight')"
       :tooltip-side="side === 'left' ? 'right' : 'left'"
       @click="$emit('expand')"
     />
@@ -66,7 +66,7 @@ function openSection(key: SectionKey): void {
         v-for="section in sections"
         :key="section.key"
         :icon="section.icon"
-        :label="section.label"
+        :label="$t(section.labelKey)"
         :count="section.count"
         tooltip-side="right"
         @click="openSection(section.key)"
@@ -76,7 +76,7 @@ function openSection(key: SectionKey): void {
     <IconButton
       v-else
       :icon="FileDiff"
-      label="Changes"
+      :label="$t('common.labels.changes')"
       tooltip-side="left"
       @click="$emit('expand')"
     />

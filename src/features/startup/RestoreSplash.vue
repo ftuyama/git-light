@@ -18,7 +18,7 @@ import iconUrl from '@/assets/icon.png'
     <img :src="iconUrl" alt="" width="64" height="64" class="h-16 w-16" />
     <div class="flex items-center gap-2 text-xs text-[var(--color-fg-muted)]">
       <Loader2 :size="14" class="animate-spin" />
-      <span>Opening Git Light…</span>
+      <span>{{ $t('shell.startup.opening') }}</span>
     </div>
   </div>
 </template>

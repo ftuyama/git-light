@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import {
   ArchiveRestore,
   ArrowDown,
@@ -42,6 +43,7 @@ const { repoMenu } = useRepoMenu()
 const selection = useSelectionStore()
 const interactiveRebase = useInteractiveRebaseStore()
 const ui = useUiStore()
+const { t } = useI18n()
 
 const undoShortcut = computed(() => formatBindings(ui.keybindings.undo))
 const redoShortcut = computed(() => formatBindings(ui.keybindings.redo))
@@ -72,22 +74,22 @@ const remoteMenu = computed<MenuItem[]>(() => {
   const items: MenuItem[] = []
   if (ui.isAdvanced) {
     items.push(
-      { label: 'Sync', icon: ArrowDownUp, onSelect: () => run('sync') },
+      { label: t('shell.toolbar.sync'), icon: ArrowDownUp, onSelect: () => run('sync') },
       { separator: true },
     )
   }
   items.push(
-    { label: 'Fetch All', icon: CloudDownload, onSelect: () => run('fetch-all') },
-    { label: 'Prune Stale Remotes', onSelect: () => run('prune') },
-    { label: 'Push Tags', onSelect: () => run('push-tags') },
+    { label: t('shell.toolbar.fetchAll'), icon: CloudDownload, onSelect: () => run('fetch-all') },
+    { label: t('shell.toolbar.pruneRemotes'), onSelect: () => run('prune') },
+    { label: t('shell.toolbar.pushTags'), onSelect: () => run('push-tags') },
   )
   return items
 })
 
 const mergeMenu = computed<MenuItem[]>(() => [
-  { label: 'Merge', icon: GitMerge, onSelect: () => repo.mergeBranch() },
+  { label: t('shell.toolbar.merge'), icon: GitMerge, onSelect: () => repo.mergeBranch() },
   {
-    label: 'Squash merge',
+    label: t('shell.toolbar.squashMerge'),
     icon: GitMerge,
     shortcut: '--squash',
     onSelect: () => repo.mergeBranch('squash'),
@@ -96,37 +98,37 @@ const mergeMenu = computed<MenuItem[]>(() => [
 
 const workflowMenu = computed<MenuItem[]>(() => [
   {
-    label: 'Start Bisect…',
+    label: t('shell.toolbar.startBisect'),
     disabled: repo.inProgressOperation,
     onSelect: () => void repo.startBisect(),
   },
   { separator: true },
-  { label: 'Track with Git LFS…', onSelect: () => void repo.lfsTrack() },
-  { label: 'Untrack from Git LFS…', onSelect: () => void repo.lfsUntrack() },
-  { label: 'Prune Git LFS Objects', onSelect: () => void repo.lfsPrune() },
+  { label: t('shell.toolbar.lfsTrack'), onSelect: () => void repo.lfsTrack() },
+  { label: t('shell.toolbar.lfsUntrack'), onSelect: () => void repo.lfsUntrack() },
+  { label: t('shell.toolbar.lfsPrune'), onSelect: () => void repo.lfsPrune() },
 ])
 
 const moreMenu = computed<MenuItem[]>(() => {
   const items: MenuItem[] = []
   if (ui.isAdvanced) {
     items.push({
-      label: 'Cherry Pick',
+      label: t('shell.toolbar.cherryPick'),
       icon: Cherry,
       onSelect: () => repo.cherryPickCommit(selection.selectedSha ?? undefined),
     })
   }
-  items.push({ label: 'Merge', icon: GitMerge, children: mergeMenu.value })
+  items.push({ label: t('shell.toolbar.merge'), icon: GitMerge, children: mergeMenu.value })
   if (ui.isAdvanced) {
-    items.push({ label: 'Rebase', icon: Spline, onSelect: () => repo.rebaseOnto() })
+    items.push({ label: t('shell.toolbar.rebase'), icon: Spline, onSelect: () => repo.rebaseOnto() })
     items.push({
-      label: 'Interactive Rebase',
+      label: t('shell.toolbar.interactiveRebase'),
       icon: ListTree,
       onSelect: () => interactiveRebase.open(),
     })
-    items.push({ label: 'Bisect and LFS', icon: Workflow, children: workflowMenu.value })
+    items.push({ label: t('shell.toolbar.bisectAndLfs'), icon: Workflow, children: workflowMenu.value })
   }
   items.push({ separator: true })
-  items.push({ label: 'Reset…', icon: RotateCcw, onSelect: () => repo.resetTo('reset-mixed') })
+  items.push({ label: t('shell.toolbar.reset'), icon: RotateCcw, onSelect: () => repo.resetTo('reset-mixed') })
   return items
 })
 </script>
@@ -144,7 +146,7 @@ const moreMenu = computed<MenuItem[]>(() => {
         >
           <FolderGit2 :size="15" class="shrink-0 text-[var(--color-accent)]" />
           <span class="truncate font-medium text-[var(--color-fg)]">
-            {{ repo.repository?.name ?? 'Repository' }}
+            {{ repo.repository?.name ?? $t('common.labels.repository') }}
           </span>
           <ChevronDown :size="14" class="shrink-0 text-[var(--color-fg-subtle)]" />
         </button>
@@ -171,7 +173,7 @@ const moreMenu = computed<MenuItem[]>(() => {
 
     <div class="app-no-drag flex shrink-0 items-center gap-0.5">
       <IconButton
-        caption="Undo"
+        :caption="$t('shell.toolbar.undo')"
         :icon="Undo2"
         :label="repo.undoTooltip"
         :shortcut="undoShortcut"
@@ -180,7 +182,7 @@ const moreMenu = computed<MenuItem[]>(() => {
         @click="run('undo')"
       />
       <IconButton
-        caption="Redo"
+        :caption="$t('shell.toolbar.redo')"
         :icon="Redo2"
         :label="repo.redoTooltip"
         :shortcut="redoShortcut"
@@ -191,40 +193,40 @@ const moreMenu = computed<MenuItem[]>(() => {
 
       <div class="mx-1 h-6 w-px bg-[var(--color-border)]" />
 
-      <IconButton caption="Pull" :icon="ArrowDown" label="Pull" :shortcut="pullShortcut" :busy="isBusy('pull')" @click="run('pull')" />
-      <IconButton caption="Push" :icon="ArrowUp" label="Push" :shortcut="pushShortcut" :busy="isBusy('push')" @click="run('push')" />
-      <IconButton caption="Fetch" :icon="CloudDownload" label="Fetch" :busy="isBusy('fetch')" @click="run('fetch')" />
+      <IconButton :caption="$t('shell.toolbar.pull')" :icon="ArrowDown" :label="$t('shell.toolbar.pull')" :shortcut="pullShortcut" :busy="isBusy('pull')" @click="run('pull')" />
+      <IconButton :caption="$t('shell.toolbar.push')" :icon="ArrowUp" :label="$t('shell.toolbar.push')" :shortcut="pushShortcut" :busy="isBusy('push')" @click="run('push')" />
+      <IconButton :caption="$t('shell.toolbar.fetch')" :icon="CloudDownload" :label="$t('shell.toolbar.fetch')" :busy="isBusy('fetch')" @click="run('fetch')" />
       <DropdownMenu :items="remoteMenu" align="start">
-        <IconButton caption="Remote" :icon="MoreHorizontal" label="More remote actions" />
+        <IconButton :caption="$t('shell.toolbar.captionRemote')" :icon="MoreHorizontal" :label="$t('shell.toolbar.moreRemote')" />
       </DropdownMenu>
 
       <div class="mx-1 h-6 w-px bg-[var(--color-border)]" />
 
       <template v-if="ui.isAdvanced">
-        <IconButton caption="Stash" :icon="Inbox" label="Stash" @click="repo.stashChanges()" />
-        <IconButton caption="Pop" :icon="ArchiveRestore" label="Pop Stash" @click="run('pop-stash')" />
+        <IconButton :caption="$t('shell.toolbar.stash')" :icon="Inbox" :label="$t('shell.toolbar.stash')" @click="repo.stashChanges()" />
+        <IconButton :caption="$t('shell.toolbar.popStash')" :icon="ArchiveRestore" :label="$t('shell.toolbar.popStash')" @click="run('pop-stash')" />
         <div class="mx-1 h-6 w-px bg-[var(--color-border)]" />
       </template>
 
       <DropdownMenu :items="moreMenu" align="end">
-        <IconButton caption="More" :icon="MoreHorizontal" label="More actions" />
+        <IconButton :caption="$t('shell.toolbar.more')" :icon="MoreHorizontal" :label="$t('shell.toolbar.more')" />
       </DropdownMenu>
     </div>
 
     <div data-tauri-drag-region class="app-drag min-w-2 flex-1 self-stretch" />
 
     <div class="app-no-drag flex shrink-0 items-center gap-0.5">
-      <IconButton caption="Cmd" :icon="Command" label="Command palette" :shortcut="paletteShortcut" @click="ui.toggleCommandPalette()" />
-      <IconButton caption="Search" :icon="Search" label="Search" :shortcut="searchShortcut" @click="repo.openSearch()" />
+      <IconButton :caption="$t('shell.toolbar.captionCommand')" :icon="Command" :label="$t('shell.toolbar.commandPalette')" :shortcut="paletteShortcut" @click="ui.toggleCommandPalette()" />
+      <IconButton :caption="$t('shell.toolbar.search')" :icon="Search" :label="$t('shell.toolbar.search')" :shortcut="searchShortcut" @click="repo.openSearch()" />
       <IconButton
         v-if="ui.isAdvanced"
-        caption="Term"
+        :caption="$t('shell.toolbar.captionTerminal')"
         :icon="Terminal"
-        label="Open Terminal"
+        :label="$t('shell.toolbar.openTerminal')"
         :shortcut="terminalShortcut"
         @click="run('open-terminal')"
       />
-      <IconButton caption="Refresh" :icon="RotateCw" label="Refresh" :shortcut="refreshShortcut" :busy="isBusy('refresh')" @click="run('refresh')" />
+      <IconButton :caption="$t('shell.toolbar.refresh')" :icon="RotateCw" :label="$t('shell.toolbar.refresh')" :shortcut="refreshShortcut" :busy="isBusy('refresh')" @click="run('refresh')" />
     </div>
   </header>
 </template>

@@ -2,6 +2,7 @@
 import { computed } from 'vue'
 import { ChevronDown, GitCommitHorizontal } from '@lucide/vue'
 import { storeToRefs } from 'pinia'
+import { useI18n } from 'vue-i18n'
 import Button from '@/components/ui/Button.vue'
 import DropdownMenu from '@/components/ui/DropdownMenu.vue'
 import Checkbox from '@/components/ui/Checkbox.vue'
@@ -9,6 +10,7 @@ import type { MenuItem } from '@/components/ui/menu'
 import { useRepositoryStore } from '@/stores/repository'
 
 const repo = useRepositoryStore()
+const { t } = useI18n()
 const { commitMessage, commitDescription, amend } = storeToRefs(repo)
 
 const commitBusy = computed(
@@ -21,14 +23,16 @@ const commitBusy = computed(
 
 const stagedCount = computed(() => repo.stagedFiles.length)
 
-const commitButtonLabel = computed(() => {
-  const fileLabel = stagedCount.value === 1 ? 'File' : 'Files'
-  const prefix = amend.value ? 'Amend Changes to' : 'Commit Changes to'
-  return `${prefix} ${stagedCount.value} ${fileLabel}`
-})
+const commitButtonLabel = computed(() =>
+  t(amend.value ? 'workingTree.commit.summaryAmend' : 'workingTree.commit.summary', {
+    count: stagedCount.value,
+  }),
+)
 
 const summaryPlaceholder = computed(() =>
-  amend.value ? 'Commit Summary (empty keeps previous message)' : 'Commit Summary',
+  amend.value
+    ? t('workingTree.commit.summaryPlaceholderAmend')
+    : t('workingTree.commit.summaryPlaceholder'),
 )
 
 /** Git convention: keep the subject at or under 72 characters. */
@@ -38,11 +42,18 @@ const summaryRemaining = computed(() =>
 )
 
 const pushMenu = computed<MenuItem[]>(() => {
-  const verb = amend.value ? 'Amend' : 'Commit'
+  const amendNow = amend.value
   return [
-    { label: `${verb} & Push`, onSelect: () => repo.commit({ thenPush: true }) },
     {
-      label: `${verb} & Force Push (with lease)`,
+      label: t(amendNow ? 'workingTree.commit.amendAndPush' : 'workingTree.commit.commitAndPush'),
+      onSelect: () => repo.commit({ thenPush: true }),
+    },
+    {
+      label: t(
+        amendNow
+          ? 'workingTree.commit.amendAndForcePush'
+          : 'workingTree.commit.commitAndForcePush',
+      ),
       shortcut: '--force-with-lease',
       danger: true,
       onSelect: () => repo.commit({ thenPush: true, forcePush: true }),
@@ -67,14 +78,14 @@ const pushMenu = computed<MenuItem[]>(() => {
         />
         <span
           class="pointer-events-none absolute top-2.5 right-3 text-[11px] tabular-nums text-[var(--color-fg-subtle)]"
-          :title="`Up to ${SUMMARY_MAX_LENGTH} characters`"
+          :title="$t('workingTree.commit.summaryLimit', { count: SUMMARY_MAX_LENGTH })"
         >
           {{ summaryRemaining }}
         </span>
       </div>
       <textarea
         v-model="commitDescription"
-        placeholder="Description"
+        :placeholder="$t('workingTree.commit.descriptionPlaceholder')"
         rows="2"
         spellcheck="false"
         class="w-full resize-none border-t border-[var(--color-border)] bg-transparent px-3 pt-1 pb-3 text-[13px] text-[var(--color-fg-muted)] placeholder:text-[var(--color-fg-subtle)] focus:outline-none"
@@ -83,15 +94,15 @@ const pushMenu = computed<MenuItem[]>(() => {
 
     <label
       class="mt-2 flex items-center gap-2 text-[12px] text-[var(--color-fg-muted)]"
-      :title="repo.canAmend ? undefined : 'No commits to amend yet'"
+      :title="repo.canAmend ? undefined : $t('workingTree.commit.noCommitsToAmend')"
     >
       <Checkbox
         :model-value="amend"
         :disabled="!repo.canAmend && !amend"
-        aria-label="Amend previous commit"
+        :aria-label="$t('workingTree.commit.amend')"
         @update:model-value="(value) => repo.setAmend(value)"
       />
-      Amend previous commit
+      {{ $t('workingTree.commit.amend') }}
     </label>
 
     <div class="mt-2.5 flex gap-1.5">
@@ -109,7 +120,7 @@ const pushMenu = computed<MenuItem[]>(() => {
         <button
           class="focus-ring flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-[var(--color-accent-strong)] text-white transition-colors hover:bg-[var(--color-accent)] disabled:opacity-40"
           :disabled="!repo.canCommit"
-          aria-label="Commit and push options"
+          :aria-label="$t('workingTree.commit.pushOptions')"
         >
           <ChevronDown :size="16" />
         </button>

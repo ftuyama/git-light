@@ -18,7 +18,7 @@ function selectEntry(sha: string): void {
   <aside class="flex h-full min-h-0 w-full flex-col border-r border-[var(--color-border)] bg-[var(--color-panel)]">
     <header class="shrink-0 border-b border-[var(--color-border)] px-3 py-2">
       <h3 class="text-[11px] font-semibold tracking-wide text-[var(--color-fg-muted)] uppercase">
-        File History
+        {{ $t('diff.history.title') }}
       </h3>
       <p class="truncate text-[11px] text-[var(--color-fg-subtle)]">
         {{ diffStore.selectedFilePath }}

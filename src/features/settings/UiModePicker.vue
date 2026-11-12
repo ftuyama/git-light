@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { Check, Sparkles, Zap } from '@lucide/vue'
+import { useI18n } from 'vue-i18n'
 import type { UiMode } from '@/lib/preferences'
 import { useUiStore } from '@/stores/ui'
 
@@ -8,25 +9,25 @@ defineProps<{
   compact?: boolean
 }>()
 
+const { t } = useI18n()
 const ui = useUiStore()
 
 const options: {
   id: UiMode
-  label: string
-  description: string
+  labelKey: string
+  descriptionKey: string
   icon: typeof Zap
 }[] = [
   {
     id: 'basic',
-    label: 'Basic',
-    description:
-      'Essential Git actions only. Hides stash, rebase, cherry-pick, tags, and more.',
+    labelKey: 'settings.appearance.basic',
+    descriptionKey: 'settings.appearance.basicDescription',
     icon: Zap,
   },
   {
     id: 'advanced',
-    label: 'Advanced',
-    description: 'Full toolbar, sidebar sections, and commit actions.',
+    labelKey: 'settings.appearance.advanced',
+    descriptionKey: 'settings.appearance.advancedDescription',
     icon: Sparkles,
   },
 ]
@@ -64,7 +65,7 @@ function selectMode(mode: UiMode): void {
       />
       <div class="flex min-w-0 flex-1 flex-col gap-1">
         <div class="flex items-center gap-2">
-          <span class="text-[13px] font-medium text-[var(--color-fg)]">{{ option.label }}</span>
+          <span class="text-[13px] font-medium text-[var(--color-fg)]">{{ t(option.labelKey) }}</span>
           <Check
             v-if="modelValue === option.id"
             :size="14"
@@ -72,7 +73,7 @@ function selectMode(mode: UiMode): void {
           />
         </div>
         <p class="text-[12px] leading-snug text-[var(--color-fg-muted)]">
-          {{ option.description }}
+          {{ t(option.descriptionKey) }}
         </p>
       </div>
     </button>

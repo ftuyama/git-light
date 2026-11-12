@@ -1,0 +1,13 @@
+{
+  "loading": "正在加载冲突…",
+  "binary": "二进制文件 — 请使用外部合并工具解决，或选择“我们的”或“他们的”版本。",
+  "useOurs": "使用我们的版本",
+  "useTheirs": "使用他们的版本",
+  "markResolved": "标记为已解决",
+  "noMarkers": "冲突标记已全部移除。将此文件标记为已解决以暂存它。",
+  "blockTitle": "冲突 {index}",
+  "oursHeader": "我们的 — {label}",
+  "theirsHeader": "他们的 — {label}",
+  "base": "基线（共同祖先）",
+  "loadError": "无法加载冲突详情。"
+}

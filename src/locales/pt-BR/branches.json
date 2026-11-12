@@ -1,0 +1,71 @@
+{
+  "sidebar": {
+    "hide": "Ocultar barra lateral esquerda",
+    "searchPlaceholder": "Buscar branches",
+    "noMatches": "Nenhum branch corresponde a “{query}”",
+    "allHidden": "Todos os painéis ocultos — clique com o botão direito para mostrar"
+  },
+  "row": {
+    "dragHint": "Arraste sobre outro branch para fazer merge ou rebase",
+    "pin": "Fixar branch",
+    "unpin": "Desafixar branch"
+  },
+  "menu": {
+    "checkout": "Fazer checkout",
+    "checkoutLocal": "Fazer checkout do branch local",
+    "deleteRemote": "Excluir branch remoto",
+    "createHere": "Criar branch aqui",
+    "setUpstream": "Definir upstream",
+    "compareWithCurrent": "Comparar com o branch atual",
+    "pin": "Fixar em favoritos",
+    "unpin": "Desafixar",
+    "deleteInFolder": "Excluir {count} branch na pasta \"{folder}\" | Excluir {count} branches na pasta \"{folder}\"",
+    "noneToDelete": "Nenhum branch para excluir"
+  },
+  "tags": {
+    "checkout": "Fazer checkout da tag",
+    "deleteTag": "Excluir tag",
+    "create": "Criar tag"
+  },
+  "stashes": {
+    "pop": "Pop",
+    "drop": "Descartar",
+    "summary": "em {branch} · {count} arquivo | em {branch} · {count} arquivos"
+  },
+  "worktrees": {
+    "reveal": "Mostrar no Finder",
+    "remove": "Remover worktree",
+    "add": "Adicionar worktree"
+  },
+  "favorites": {
+    "empty": "Fixe branches para vê-los aqui"
+  },
+  "integrate": {
+    "title": "Integrar branches",
+    "description": "Escolha como integrar {source} com {target}.",
+    "mergeTitle": "Fazer merge no destino",
+    "mergeDescription": "Fazer merge de {source} em {target}",
+    "mergeStrategy": "Estratégia de merge",
+    "merge": "Fazer merge com a estratégia selecionada",
+    "rebaseTitle": "Fazer rebase sobre o destino",
+    "rebaseDescription": "Fazer rebase de {source} sobre {target}"
+  },
+  "mergeModes": {
+    "default": {
+      "label": "Padrão",
+      "description": "Fast-forward quando possível, caso contrário cria um commit de merge"
+    },
+    "ffOnly": {
+      "label": "Somente fast-forward",
+      "description": "Recusa o merge quando o fast-forward não é possível"
+    },
+    "noFf": {
+      "label": "Sem fast-forward",
+      "description": "Sempre cria um commit de merge"
+    },
+    "squash": {
+      "label": "Squash",
+      "description": "Compacta todos os commits do branch de origem em um único commit"
+    }
+  }
+}

@@ -13,7 +13,7 @@ import { useSidebarSectionCounts } from './useSidebarSectionCounts'
 import { useSidebarSectionMenu } from './useSidebarSectionMenu'
 import { useRepositoryStore } from '@/stores/repository'
 import { useUiStore } from '@/stores/ui'
-import { SECTION_KEYS, SECTION_LABELS, ADVANCED_SECTION_KEYS, type SectionKey } from '@/lib/preferences'
+import { SECTION_KEYS, SECTION_LABEL_KEYS, ADVANCED_SECTION_KEYS, type SectionKey } from '@/lib/preferences'
 import { formatBindings } from '@/lib/keybindings'
 import type { MergeMode } from '@/lib/mergeMode'
 
@@ -110,7 +110,7 @@ async function confirmIntegrate(mode: 'merge' | 'rebase', mergeMode?: MergeMode)
     <div class="flex items-center gap-1 border-b border-[var(--color-border)] p-2">
       <IconButton
         :icon="ChevronLeft"
-        label="Hide left sidebar"
+        :label="$t('branches.sidebar.hide')"
         :shortcut="toggleSidebarShortcut"
         tooltip-side="right"
         @click="ui.toggleLeft()"
@@ -119,7 +119,7 @@ async function confirmIntegrate(mode: 'merge' | 'rebase', mergeMode?: MergeMode)
         <SearchInput
           ref="search"
           v-model="query"
-          placeholder="Search branches"
+          :placeholder="$t('branches.sidebar.searchPlaceholder')"
           :shortcut="focusSearchShortcut"
         />
       </div>
@@ -129,13 +129,13 @@ async function confirmIntegrate(mode: 'merge' | 'rebase', mergeMode?: MergeMode)
       v-if="normalizedQuery && !hasLocalMatches"
       class="px-4 py-6 text-center text-xs text-[var(--color-fg-subtle)]"
     >
-      No branches match &ldquo;{{ query.trim() }}&rdquo;
+      {{ $t('branches.sidebar.noMatches', { query: query.trim() }) }}
     </div>
 
     <div v-else-if="visibleSectionKeys.length === 0" class="min-h-0 flex-1 overflow-y-auto py-1">
       <ContextMenu :items="sectionMenu">
         <div class="px-4 py-6 text-center text-xs text-[var(--color-fg-subtle)]">
-          All panels hidden &mdash; right-click to show panels
+          {{ $t('branches.sidebar.allHidden') }}
         </div>
       </ContextMenu>
     </div>
@@ -145,7 +145,7 @@ async function confirmIntegrate(mode: 'merge' | 'rebase', mergeMode?: MergeMode)
         v-for="sectionKey in openSectionKeys"
         :key="sectionKey"
         :section-key="sectionKey"
-        :title="SECTION_LABELS[sectionKey]"
+        :title="$t(SECTION_LABEL_KEYS[sectionKey])"
         :count="sectionCount(sectionKey)"
       >
         <BranchSidebarSectionContent :section="sectionKey" />
@@ -160,7 +160,7 @@ async function confirmIntegrate(mode: 'merge' | 'rebase', mergeMode?: MergeMode)
         v-for="sectionKey in collapsedSectionKeys"
         :key="sectionKey"
         :section-key="sectionKey"
-        :title="SECTION_LABELS[sectionKey]"
+        :title="$t(SECTION_LABEL_KEYS[sectionKey])"
         :count="sectionCount(sectionKey)"
       >
         <BranchSidebarSectionContent :section="sectionKey" />

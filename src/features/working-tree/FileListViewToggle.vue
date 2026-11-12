@@ -17,13 +17,13 @@ function setView(view: FileListView): void {
   <div
     class="flex shrink-0 items-center rounded-md border border-[var(--color-border)] p-0.5"
     role="group"
-    aria-label="File list view"
+    :aria-label="$t('workingTree.view.aria')"
   >
     <button
       class="focus-ring rounded px-1 py-0.5 text-[var(--color-fg-subtle)] transition-colors"
       :class="cn(fileListView === 'path' && 'bg-[var(--color-hover)] text-[var(--color-fg)]')"
-      title="Path view"
-      aria-label="Path view"
+      :title="$t('workingTree.view.path')"
+      :aria-label="$t('workingTree.view.path')"
       :aria-pressed="fileListView === 'path'"
       @click="setView('path')"
     >
@@ -32,8 +32,8 @@ function setView(view: FileListView): void {
     <button
       class="focus-ring rounded px-1 py-0.5 text-[var(--color-fg-subtle)] transition-colors"
       :class="cn(fileListView === 'tree' && 'bg-[var(--color-hover)] text-[var(--color-fg)]')"
-      title="Tree view"
-      aria-label="Tree view"
+      :title="$t('workingTree.view.tree')"
+      :aria-label="$t('workingTree.view.tree')"
       :aria-pressed="fileListView === 'tree'"
       @click="setView('tree')"
     >

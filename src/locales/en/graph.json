@@ -1,0 +1,128 @@
+{
+  "columns": {
+    "refs": "Branch / tag",
+    "graph": "Graph",
+    "sha": "SHA",
+    "when": "When"
+  },
+  "showColumns": "Show columns",
+  "columnMenu": {
+    "sha": "SHA",
+    "when": "When",
+    "timeIndicators": "Time indicators",
+    "mergeIndicators": "Merge indicators"
+  },
+  "empty": {
+    "title": "No commits yet",
+    "body": "Make your first commit to see history appear here."
+  },
+  "loadingMore": "Loading more commits…",
+  "commitRow": {
+    "hiddenRefs": "+{count} more",
+    "mergeCommit": "Merge commit"
+  },
+  "branchInput": {
+    "placeholder": "Enter branch name"
+  },
+  "commitMenu": {
+    "checkout": "Checkout Commit",
+    "createBranch": "Create Branch Here",
+    "tag": "Tag Commit",
+    "cherryPick": "Cherry Pick",
+    "revert": "Revert Commit",
+    "mergeIntoCurrent": "Merge into Current",
+    "merge": "Merge",
+    "squashMerge": "Squash merge",
+    "rebaseFromHere": "Rebase From Here",
+    "interactiveRebase": "Interactive Rebase From Here",
+    "resetToHere": "Reset Current Branch to Here",
+    "resetSoft": "Soft",
+    "resetMixed": "Mixed",
+    "resetHard": "Hard",
+    "copySha": "Copy SHA",
+    "openOnGithub": "Open on GitHub"
+  },
+  "branchMenu": {
+    "checkout": "Checkout",
+    "checkoutLocal": "Checkout Local Branch",
+    "createBranch": "Create Branch Here",
+    "createWorktree": "Create Worktree from Branch",
+    "mergeIntoCurrent": "Merge into Current",
+    "rebaseCurrentOntoThis": "Rebase Current onto This",
+    "interactiveRebaseOntoThis": "Interactive Rebase onto This…",
+    "cherryPickTip": "Cherry Pick Tip Commit",
+    "copyBranchName": "Copy Branch Name",
+    "copyTipSha": "Copy Tip Commit SHA",
+    "copyCommitLink": "Copy Link to Commit on GitHub",
+    "copyBranchLink": "Copy Link to Branch on GitHub",
+    "copy": "Copy",
+    "compareWithCurrent": "Compare with Current",
+    "setUpstream": "Set Upstream…",
+    "rename": "Rename…",
+    "pin": "Pin to Favorites",
+    "unpin": "Unpin from Favorites",
+    "createTag": "Create Tag Here…",
+    "deleteRemote": "Delete Remote Branch",
+    "delete": "Delete Branch"
+  },
+  "stashMenu": {
+    "apply": "Apply Stash",
+    "pop": "Pop Stash",
+    "delete": "Delete Stash",
+    "editMessage": "Edit stash message"
+  },
+  "stashRow": {
+    "wipOn": "WIP on {branch}",
+    "wip": "WIP",
+    "unknownBase": "unknown base",
+    "hint": "base {sha} · outside view",
+    "hintWithSubject": "base {sha} · {subject} · outside view",
+    "title": "Stash created over {base}. This commit is not in the loaded window (load more commits) or was rewritten by amend/rebase — in that case apply the stash manually on the successor commit.",
+    "titleWithSubject": "Stash created over {base}, “{subject}”. This commit is not in the loaded window (load more commits) or was rewritten by amend/rebase — in that case apply the stash manually on the successor commit.",
+    "boxTitleNoBase": "Stash (unknown base)",
+    "boxTitle": "Stash over {sha}",
+    "boxTitleOutsideView": "Stash over {sha} — outside the loaded view",
+    "boxTitleOutsideViewWithSubject": "Stash over {sha} “{subject}” — outside the loaded view"
+  },
+  "pendingRow": {
+    "messagePlaceholder": "Commit message",
+    "status": {
+      "modified": "Modified",
+      "added": "Added",
+      "deleted": "Deleted",
+      "renamed": "Renamed",
+      "copied": "Copied",
+      "conflicted": "Conflicted",
+      "ignored": "Ignored"
+    }
+  },
+  "toast": {
+    "copiedSha": "Copied SHA to clipboard",
+    "openingOnGithub": "Opening commit on GitHub",
+    "noGithubRemote": "No GitHub remote configured for this repository",
+    "clipboardUnavailable": "Clipboard is not available",
+    "copyFailed": "Could not copy to clipboard",
+    "copied": "Copied {target}"
+  },
+  "copyTarget": {
+    "branchName": "branch name",
+    "commitSha": "commit SHA",
+    "link": "link"
+  },
+  "timeMarkers": {
+    "hour1": "1 hour ago",
+    "hours2": "2 hours ago",
+    "hours6": "6 hours ago",
+    "day1": "a day ago",
+    "days2": "2 days ago",
+    "week1": "a week ago",
+    "weeks2": "2 weeks ago",
+    "month1": "a month ago",
+    "months2": "2 months ago",
+    "months3": "3 months ago",
+    "months6": "6 months ago",
+    "year1": "a year ago",
+    "years2": "2 years ago",
+    "years5": "5 years ago"
+  }
+}

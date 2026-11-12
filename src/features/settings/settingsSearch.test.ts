@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest'
 import {
-  SETTINGS_CATEGORY_LABELS,
   buildSettingsSearchEntries,
   normalizeSettingsQuery,
   searchSettings,
+  settingsCategoryLabel,
 } from './settingsSearch'
 
 describe('buildSettingsSearchEntries', () => {
@@ -44,7 +44,7 @@ describe('searchSettings', () => {
     const groups = searchSettings(entries, 'theme')
     expect(groups.map((group) => group.category)).toEqual(['appearance'])
     expect(groups[0]?.entries.map((entry) => entry.id)).toContain('theme')
-    expect(groups[0]?.label).toBe(SETTINGS_CATEGORY_LABELS.appearance)
+    expect(groups[0]?.label).toBe(settingsCategoryLabel('appearance'))
   })
 
   it('matches descriptions and keywords', () => {

@@ -1,11 +1,13 @@
 <script setup lang="ts">
+import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { GripVertical } from '@lucide/vue'
 import DropdownMenu from '@/components/ui/DropdownMenu.vue'
 import type { MenuItem } from '@/components/ui/menu'
 import { relativeTime } from '@/lib/format'
 import type { RebasePlanEntry } from '@/stores/interactiveRebase'
 import {
-  REBASE_ACTION_LABELS,
+  REBASE_ACTION_LABEL_KEYS,
   REBASE_ACTIONS,
   useInteractiveRebaseStore,
 } from '@/stores/interactiveRebase'
@@ -16,12 +18,13 @@ const props = defineProps<{
 }>()
 
 const rebase = useInteractiveRebaseStore()
+const { t } = useI18n()
 
-const actionMenu = REBASE_ACTIONS.map(
-  (action): MenuItem => ({
-    label: REBASE_ACTION_LABELS[action],
+const actionMenu = computed<MenuItem[]>(() =>
+  REBASE_ACTIONS.map((action) => ({
+    label: t(REBASE_ACTION_LABEL_KEYS[action]),
     onSelect: () => rebase.setAction(props.index, action),
-  }),
+  })),
 )
 
 function onDragStart(event: DragEvent): void {
@@ -63,7 +66,7 @@ function onDragEnd(): void {
     <button
       type="button"
       class="app-no-drag mt-0.5 cursor-grab rounded p-0.5 text-[var(--color-fg-subtle)] hover:bg-[var(--color-hover)] hover:text-[var(--color-fg)] active:cursor-grabbing"
-      aria-label="Drag to reorder"
+      :aria-label="$t('rebase.row.dragToReorder')"
     >
       <GripVertical :size="14" />
     </button>
@@ -75,7 +78,7 @@ function onDragEnd(): void {
             type="button"
             class="app-no-drag focus-ring rounded-md border border-[var(--color-border-strong)] bg-[var(--color-panel)] px-2 py-0.5 text-xs font-medium text-[var(--color-fg)] hover:bg-[var(--color-hover)]"
           >
-            {{ REBASE_ACTION_LABELS[entry.action] }}
+            {{ $t(REBASE_ACTION_LABEL_KEYS[entry.action]) }}
           </button>
         </DropdownMenu>
         <code class="font-mono text-[11px] text-[var(--color-fg-subtle)]">{{ entry.shortSha }}</code>
@@ -93,7 +96,7 @@ function onDragEnd(): void {
         :value="entry.message"
         type="text"
         class="focus-ring app-no-drag w-full rounded-md border border-[var(--color-border-strong)] bg-[var(--color-panel)] px-2.5 py-1.5 text-sm text-[var(--color-fg)] outline-none"
-        placeholder="New commit message"
+        :placeholder="$t('rebase.row.messagePlaceholder')"
         @input="rebase.setMessage(index, ($event.target as HTMLInputElement).value)"
       />
     </div>

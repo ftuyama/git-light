@@ -1,4 +1,5 @@
 import { APP_REPOSITORY, APP_VERSION } from '@shared/app/metadata'
+import { translate } from '@/locales'
 
 export interface GitHubAsset {
   name: string
@@ -226,8 +227,8 @@ export async function checkForUpdates(deps: UpdateCheckDeps): Promise<void> {
     console.error('[git-light] update check failed:', error)
     if (source === 'menu' && deps.showMessage) {
       await deps.showMessage(
-        'Update check failed',
-        'Could not reach GitHub to check for updates. Check your connection and try again.',
+        translate('shell.update.checkFailedTitle'),
+        translate('shell.update.checkFailedBody'),
       )
     }
     return
@@ -237,8 +238,11 @@ export async function checkForUpdates(deps: UpdateCheckDeps): Promise<void> {
   if (comparison === null) {
     if (source === 'menu' && deps.showMessage) {
       await deps.showMessage(
-        'Update check failed',
-        `Could not compare the latest release (${release.tag_name}) with your version (v${currentVersion}).`,
+        translate('shell.update.checkFailedTitle'),
+        translate('shell.update.compareFailedBody', {
+          release: release.tag_name,
+          version: currentVersion,
+        }),
       )
     }
     return
@@ -246,8 +250,8 @@ export async function checkForUpdates(deps: UpdateCheckDeps): Promise<void> {
   if (comparison <= 0) {
     if (source === 'menu' && deps.showMessage) {
       await deps.showMessage(
-        'You’re up to date',
-        `Git Light v${currentVersion} is the latest version.`,
+        translate('shell.update.upToDateTitle'),
+        translate('shell.update.upToDateBody', { version: currentVersion }),
       )
     }
     return
@@ -255,11 +259,11 @@ export async function checkForUpdates(deps: UpdateCheckDeps): Promise<void> {
   if (source === 'startup' && deps.readSnooze()?.version === latestVersion) return
 
   const releaseNotes = formatReleaseNotes(release.body)
-  const detailLines = [`You are running v${currentVersion}.`]
-  if (releaseNotes) detailLines.push('', "What's new:", releaseNotes)
-  detailLines.push('', deps.selfUpdateHint ?? 'Download starts the installer from GitHub.')
+  const detailLines = [translate('shell.update.runningVersion', { version: currentVersion })]
+  if (releaseNotes) detailLines.push('', translate('shell.update.whatsNew'), releaseNotes)
+  detailLines.push('', deps.selfUpdateHint ?? translate('shell.update.hintOther'))
   const choice = await deps.askDownload(
-    `Version ${latestVersion} is available.`,
+    translate('shell.update.availableTitle', { version: latestVersion }),
     detailLines.join('\n'),
   )
   if (choice === 'download') {

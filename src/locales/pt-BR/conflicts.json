@@ -1,0 +1,13 @@
+{
+  "loading": "Carregando conflito…",
+  "binary": "Arquivo binário — resolva com uma ferramenta de merge externa ou escolha entre nosso e deles.",
+  "useOurs": "Usar o nosso",
+  "useTheirs": "Usar o deles",
+  "markResolved": "Marcar como resolvido",
+  "noMarkers": "Não restam marcadores de conflito. Marque este arquivo como resolvido para prepará-lo.",
+  "blockTitle": "Conflito {index}",
+  "oursHeader": "Nosso — {label}",
+  "theirsHeader": "Deles — {label}",
+  "base": "Base (ancestral comum)",
+  "loadError": "Não foi possível carregar os detalhes do conflito."
+}

@@ -7,5 +7,5 @@ const ui = useUiStore()
 </script>
 
 <template>
-  <IconButton :icon="Settings" label="Settings" @click="ui.openSettings()" />
+  <IconButton :icon="Settings" :label="$t('settings.button')" @click="ui.openSettings()" />
 </template>

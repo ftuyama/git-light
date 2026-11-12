@@ -1,0 +1,68 @@
+{
+  "panel": {
+    "closeFile": "Fechar arquivo",
+    "diffView": "Visão de diff",
+    "blameView": "Visão de blame",
+    "diff": "Diff",
+    "blame": "Blame",
+    "unified": "Diff unificado",
+    "split": "Diff lado a lado",
+    "ignoreWhitespace": "Ignorar espaços no início e no fim",
+    "wordWrap": "Quebra de linha automática",
+    "loading": "Carregando diff…",
+    "tooLarge": "O arquivo é grande demais para exibir o diff na interface.",
+    "binary": "Arquivo binário — diff de texto indisponível."
+  },
+  "stage": {
+    "stage": "Preparar",
+    "unstage": "Despreparar",
+    "stageHunk": "Preparar trecho",
+    "unstageHunk": "Despreparar trecho",
+    "stageLine": "Preparar linha",
+    "unstageLine": "Despreparar linha"
+  },
+  "discard": {
+    "discardHunk": "Descartar trecho",
+    "discardLine": "Descartar linha"
+  },
+  "blame": {
+    "loading": "Carregando blame…",
+    "empty": "Não há informações de blame para este arquivo.",
+    "wordWrap": "Quebra de linha automática",
+    "wordWrapAria": "Quebra de linha automática na visão de blame"
+  },
+  "history": {
+    "title": "Histórico do arquivo",
+    "loading": "Carregando histórico…",
+    "empty": "Nenhum commit encontrado para este arquivo."
+  },
+  "image": {
+    "loading": "Carregando prévia da imagem…",
+    "failed": "Não foi possível carregar a prévia da imagem.",
+    "tooLarge": "A imagem é grande demais para visualizar na interface.",
+    "unavailable": "A prévia da imagem não está disponível para esta alteração.",
+    "added": "Adicionada",
+    "before": "Antes",
+    "after": "Depois",
+    "deleted": "Excluída",
+    "beforeAlt": "Antes: {path}",
+    "afterAlt": "Depois: {path}",
+    "noPrevious": "Sem versão anterior (arquivo adicionado).",
+    "noCurrent": "Sem versão atual (arquivo excluído).",
+    "zoomIn": "Ampliar",
+    "zoomOut": "Reduzir",
+    "resetZoom": "Redefinir zoom",
+    "collapse": "Recolher",
+    "backToSideBySide": "Voltar para lado a lado",
+    "expand": "Clique para ampliar",
+    "hint": "Role para ampliar · arraste para mover · clique duas vezes para alternar · Esc para recolher"
+  },
+  "toast": {
+    "commitFilesFailed": "Não foi possível carregar os arquivos do commit: {detail}",
+    "compareFailed": "Não foi possível comparar os commits: {detail}",
+    "diffFailed": "Não foi possível carregar o diff: {detail}",
+    "blameFailed": "Não foi possível carregar o blame: {detail}",
+    "historyFailed": "Não foi possível carregar o histórico do arquivo: {detail}",
+    "conflictFailed": "Não foi possível carregar o conflito: {detail}"
+  }
+}

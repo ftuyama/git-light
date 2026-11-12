@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { open as openFolderDialog } from '@tauri-apps/plugin-dialog'
 import Dialog from '@/components/ui/Dialog.vue'
 import Button from '@/components/ui/Button.vue'
@@ -10,6 +11,8 @@ const emit = defineEmits<{
   close: []
   submit: [{ url: string; parentPath: string; name: string }]
 }>()
+
+const { t } = useI18n()
 
 const url = ref('')
 const parentPath = ref('')
@@ -36,11 +39,11 @@ async function pickParent(): Promise<void> {
 
 function onSubmit(): void {
   if (!url.value.trim()) {
-    error.value = 'Enter a repository URL.'
+    error.value = t('shell.clone.urlRequired')
     return
   }
   if (!parentPath.value.trim()) {
-    error.value = 'Choose a destination folder.'
+    error.value = t('shell.clone.destinationRequired')
     return
   }
   error.value = ''
@@ -49,9 +52,9 @@ function onSubmit(): void {
 </script>
 
 <template>
-  <Dialog :open="open" title="Clone repository" @confirm="onSubmit" @cancel="emit('close')">
+  <Dialog :open="open" :title="t('shell.clone.title')" @confirm="onSubmit" @cancel="emit('close')">
     <label class="block text-xs font-medium text-[var(--color-fg-muted)]">
-      Repository URL
+      {{ $t('shell.clone.url') }}
       <input
         v-model="url"
         type="text"
@@ -62,7 +65,7 @@ function onSubmit(): void {
       />
     </label>
     <label class="block text-xs font-medium text-[var(--color-fg-muted)]">
-      Destination folder
+      {{ $t('shell.clone.destination') }}
       <div class="mt-1 flex gap-2">
         <input
           v-model="parentPath"
@@ -71,11 +74,12 @@ function onSubmit(): void {
           spellcheck="false"
           class="focus-ring min-w-0 flex-1 rounded-md border border-[var(--color-border-strong)] bg-[var(--color-panel-raised)] px-3 py-2 text-sm text-[var(--color-fg)] outline-none"
         />
-        <Button size="sm" @click="pickParent">Browse…</Button>
+        <Button size="sm" @click="pickParent">{{ $t('shell.browse') }}</Button>
       </div>
     </label>
     <label class="block text-xs font-medium text-[var(--color-fg-muted)]">
-      Folder name <span class="font-normal">(optional — derived from URL)</span>
+      {{ $t('shell.clone.folderName') }}
+      <span class="font-normal">{{ $t('shell.clone.folderNameHint') }}</span>
       <input
         v-model="name"
         type="text"
@@ -86,14 +90,14 @@ function onSubmit(): void {
       />
     </label>
     <p class="text-xs text-[var(--color-fg-muted)]">
-      Authentication uses your SSH keys or system credential manager — no sign-in inside Git Light.
+      {{ $t('shell.clone.authHint') }}
     </p>
     <p v-if="error" class="text-xs text-[var(--color-danger)]">{{ error }}</p>
 
     <template #footer>
-      <Button variant="ghost" :disabled="busy" @click="emit('close')">Cancel</Button>
+      <Button variant="ghost" :disabled="busy" @click="emit('close')">{{ $t('common.actions.cancel') }}</Button>
       <Button variant="primary" :busy="busy" :disabled="busy" @click="onSubmit">
-        {{ busy ? 'Cloning…' : 'Clone' }}
+        {{ busy ? $t('shell.clone.busy') : $t('shell.clone.submit') }}
       </Button>
     </template>
   </Dialog>

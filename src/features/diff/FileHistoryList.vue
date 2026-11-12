@@ -26,13 +26,13 @@ const emit = defineEmits<{
       class="flex items-center justify-center gap-2 py-12 text-[13px] text-[var(--color-fg-muted)]"
     >
       <Loader2 :size="16" class="animate-spin" />
-      Loading history…
+      {{ $t('diff.history.loading') }}
     </div>
     <p
       v-else-if="entries.length === 0"
       class="py-12 text-center text-[13px] text-[var(--color-fg-muted)]"
     >
-      No commits found for this file.
+      {{ $t('diff.history.empty') }}
     </p>
     <button
       v-for="entry in entries"

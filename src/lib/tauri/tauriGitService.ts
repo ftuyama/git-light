@@ -1,4 +1,5 @@
 import { GitError } from '@shared/git/errors'
+import { translate } from '@/locales'
 import type {
   ActionEnvelope,
   BlameRequest,
@@ -137,13 +138,13 @@ export class TauriGitService implements GitService {
     if (!result.ok || !result.snapshot) {
       return {
         ok: false,
-        message: result.error?.message ?? 'Failed to open repository.',
+        message: result.error?.message ?? translate('shell.toasts.openFailed'),
         errorCode: result.error?.code,
       }
     }
     const data = wireSnapshotToRepositoryData(result.snapshot)
     this.page = data.page
-    return { ok: true, data, message: `Opened ${data.repository.name}` }
+    return { ok: true, data, message: translate('shell.toasts.opened', { name: data.repository.name }) }
   }
 
   private applyOpenedSnapshot(result: {
@@ -154,13 +155,13 @@ export class TauriGitService implements GitService {
     if (!result.ok || !result.snapshot) {
       return {
         ok: false,
-        message: result.error?.message ?? 'Failed to open repository.',
+        message: result.error?.message ?? translate('shell.toasts.openFailed'),
         errorCode: result.error?.code,
       }
     }
     const data = wireSnapshotToRepositoryData(result.snapshot)
     this.page = data.page
-    return { ok: true, data, message: `Opened ${data.repository.name}` }
+    return { ok: true, data, message: translate('shell.toasts.opened', { name: data.repository.name }) }
   }
 
   async pickAndOpenRepository(
@@ -179,13 +180,13 @@ export class TauriGitService implements GitService {
     if (!result.ok || !result.snapshot) {
       return {
         ok: false,
-        message: result.error?.message ?? 'Failed to open repository.',
+        message: result.error?.message ?? translate('shell.toasts.openFailed'),
         errorCode: result.error?.code,
       }
     }
     const data = wireSnapshotToRepositoryData(result.snapshot)
     this.page = data.page
-    return { ok: true, data, message: `Opened ${data.repository.name}` }
+    return { ok: true, data, message: translate('shell.toasts.opened', { name: data.repository.name }) }
   }
 
   async cloneRepository(
@@ -233,7 +234,7 @@ export class TauriGitService implements GitService {
       return {
         ok: false,
         path: result.path,
-        message: result.error?.message ?? 'The repository could not be found.',
+        message: result.error?.message ?? translate('shell.toasts.notFound'),
       }
     }
     return { ok: true, path: result.path, message: '' }
@@ -257,14 +258,14 @@ export class TauriGitService implements GitService {
     if (!result.ok || !result.snapshot) {
       return {
         ok: false,
-        message: result.error?.message ?? 'Failed to preload repository.',
+        message: result.error?.message ?? translate('shell.toasts.preloadFailed'),
         errorCode: result.error?.code,
       }
     }
     const data = wireSnapshotToRepositoryData(result.snapshot)
     // Deliberately leaves `this.page` alone: it belongs to the repository the
     // user is looking at, not to the one being warmed in the background.
-    return { ok: true, data, page: data.page, message: `Preloaded ${data.repository.name}` }
+    return { ok: true, data, page: data.page, message: translate('shell.toasts.preloaded', { name: data.repository.name }) }
   }
 
   async refreshSnapshot(

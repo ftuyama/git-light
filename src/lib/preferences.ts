@@ -1,14 +1,16 @@
 import { isThemePreference, type ThemePreference } from './themes'
 import { sanitizeKeymap, type Keymap } from './keybindings'
+import { isAppLocale, type AppLocale } from './locales'
 
 export type CommitColumnKey = 'author' | 'sha' | 'when'
 
 export type FileListView = 'path' | 'tree'
 
-export const COLUMN_LABELS: Record<CommitColumnKey, string> = {
-  author: 'Author',
-  sha: 'SHA',
-  when: 'When',
+/** Catalog keys (`settings.columns.*`); translate at render time. */
+export const COLUMN_LABEL_KEYS: Record<CommitColumnKey, string> = {
+  author: 'settings.columns.author',
+  sha: 'settings.columns.sha',
+  when: 'settings.columns.when',
 }
 
 export const SECTION_KEYS = [
@@ -22,13 +24,14 @@ export const SECTION_KEYS = [
 
 export type SectionKey = (typeof SECTION_KEYS)[number]
 
-export const SECTION_LABELS: Record<SectionKey, string> = {
-  favorites: 'Favorites',
-  localBranches: 'Local Branches',
-  remoteBranches: 'Remote Branches',
-  tags: 'Tags',
-  stashes: 'Stashes',
-  worktrees: 'Worktrees',
+/** Catalog keys (`settings.sections.*`); translate at render time. */
+export const SECTION_LABEL_KEYS: Record<SectionKey, string> = {
+  favorites: 'settings.sections.favorites',
+  localBranches: 'settings.sections.localBranches',
+  remoteBranches: 'settings.sections.remoteBranches',
+  tags: 'settings.sections.tags',
+  stashes: 'settings.sections.stashes',
+  worktrees: 'settings.sections.worktrees',
 }
 
 export const ADVANCED_SECTION_KEYS = ['tags', 'stashes', 'worktrees'] as const satisfies readonly SectionKey[]
@@ -37,10 +40,11 @@ export type SidebarSectionState = 'expanded' | 'collapsed' | 'hidden'
 
 export const SIDEBAR_SECTION_STATES: readonly SidebarSectionState[] = ['expanded', 'collapsed', 'hidden']
 
-export const SIDEBAR_SECTION_STATE_LABELS: Record<SidebarSectionState, string> = {
-  expanded: 'Expanded',
-  collapsed: 'Collapsed',
-  hidden: 'Hidden',
+/** Catalog keys (`settings.sectionStates.*`); translate at render time. */
+export const SIDEBAR_SECTION_STATE_LABEL_KEYS: Record<SidebarSectionState, string> = {
+  expanded: 'settings.sectionStates.expanded',
+  collapsed: 'settings.sectionStates.collapsed',
+  hidden: 'settings.sectionStates.hidden',
 }
 
 export const DEFAULT_VISIBLE_SECTIONS: Record<SectionKey, boolean> = {
@@ -85,17 +89,6 @@ export function clampAutoFetchIntervalSec(value: unknown): number {
   return (AUTO_FETCH_INTERVAL_OPTIONS as readonly number[]).includes(rounded)
     ? rounded
     : DEFAULT_AUTO_FETCH_INTERVAL_SEC
-}
-
-export function formatAutoFetchInterval(sec: number): string {
-  if (sec <= 0) return 'Disabled'
-  if (sec < 60) return `Every ${sec}s`
-  if (sec % 3600 === 0) {
-    const hours = sec / 3600
-    return hours === 1 ? 'Every hour' : `Every ${hours} hours`
-  }
-  const min = Math.round(sec / 60)
-  return min === 1 ? 'Every minute' : `Every ${min} minutes`
 }
 
 export const WORKING_TREE_CHANGES_SIZE_MIN = 20
@@ -189,6 +182,8 @@ export interface UserPreferences {
   diffViewMode: DiffViewMode
   theme: ThemePreference
   uiMode: UiMode
+  /** `null` = follow the OS locale detected at startup. */
+  locale: AppLocale | null
   ignoreWhitespace: boolean
   blameWordWrap: boolean
   diffWordWrap: boolean
@@ -236,13 +231,14 @@ export const DEFAULT_COLUMN_WIDTHS: CommitColumnWidths = {
   when: 96,
 }
 
-export const COLUMN_WIDTH_LABELS: Record<CommitColumnWidthKey, string> = {
-  refs: 'Branch / tag',
-  graph: 'Graph',
-  commit: 'Commit',
-  author: 'Author',
-  sha: 'SHA',
-  when: 'When',
+/** Catalog keys (`settings.columnWidths.*`); translate at render time. */
+export const COLUMN_WIDTH_LABEL_KEYS: Record<CommitColumnWidthKey, string> = {
+  refs: 'settings.columnWidths.refs',
+  graph: 'settings.columnWidths.graph',
+  commit: 'settings.columnWidths.commit',
+  author: 'settings.columnWidths.author',
+  sha: 'settings.columnWidths.sha',
+  when: 'settings.columnWidths.when',
 }
 
 export const COLUMN_WIDTH_LIMITS: Record<CommitColumnWidthKey, { min: number; max: number }> = {
@@ -280,6 +276,7 @@ export function defaultPreferences(): UserPreferences {
     diffViewMode: 'unified',
     theme: 'default',
     uiMode: 'advanced',
+    locale: null,
     ignoreWhitespace: false,
     blameWordWrap: false,
     diffWordWrap: false,
@@ -330,6 +327,7 @@ export function mergePreferences(saved: Partial<UserPreferences> | null): UserPr
     diffViewMode: saved.diffViewMode === 'split' ? 'split' : 'unified',
     theme: isThemePreference(saved.theme) ? saved.theme : defaults.theme,
     uiMode: isUiMode(saved.uiMode) ? saved.uiMode : defaults.uiMode,
+    locale: isAppLocale(saved.locale) ? saved.locale : defaults.locale,
     ignoreWhitespace: saved.ignoreWhitespace ?? defaults.ignoreWhitespace,
     blameWordWrap: saved.blameWordWrap ?? defaults.blameWordWrap,
     diffWordWrap: saved.diffWordWrap ?? defaults.diffWordWrap,

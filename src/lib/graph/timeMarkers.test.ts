@@ -14,9 +14,9 @@ describe('buildTimeMarkers', () => {
     const commits = commitAges([10 * 60 * 1000, 3 * HOUR, 20 * HOUR, 10 * DAY])
 
     expect(buildTimeMarkers(commits, NOW)).toEqual([
-      { key: '1 hour ago', label: '1 hour ago', commitIndex: 1 },
-      { key: '6 hours ago', label: '6 hours ago', commitIndex: 2 },
-      { key: 'a day ago', label: 'a day ago', commitIndex: 3 },
+      { key: 'graph.timeMarkers.hour1', labelKey: 'graph.timeMarkers.hour1', commitIndex: 1 },
+      { key: 'graph.timeMarkers.hours6', labelKey: 'graph.timeMarkers.hours6', commitIndex: 2 },
+      { key: 'graph.timeMarkers.day1', labelKey: 'graph.timeMarkers.day1', commitIndex: 3 },
     ])
   })
 
@@ -31,7 +31,7 @@ describe('buildTimeMarkers', () => {
 
     const markers = buildTimeMarkers(commits, NOW)
     expect(markers).toHaveLength(1)
-    expect(markers[0].label).toBe('1 hour ago')
+    expect(markers[0].labelKey).toBe('graph.timeMarkers.hour1')
     expect(markers[0].commitIndex).toBe(1)
   })
 

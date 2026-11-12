@@ -2,19 +2,27 @@ import { Check, GitBranch, GitCompare, Link, Pencil, Star, Trash2 } from '@lucid
 import type { MenuItem } from '@/components/ui/menu'
 import type { Branch } from '@/types/git'
 import type { useRepositoryStore } from '@/stores/repository'
+import { translate } from '@/locales'
 
 type RepositoryStore = ReturnType<typeof useRepositoryStore>
 
-export function branchMenuItems(repo: RepositoryStore, branch: Branch): MenuItem[] {
+/** Minimal translator shape, so components can pass a locale-reactive `t`. */
+export type TranslateFn = (key: string) => string
+
+export function branchMenuItems(
+  repo: RepositoryStore,
+  branch: Branch,
+  t: TranslateFn = translate,
+): MenuItem[] {
   if (branch.kind === 'remote') {
     return [
       {
-        label: 'Checkout Local Branch',
+        label: t('branches.menu.checkoutLocal'),
         icon: Check,
         onSelect: () => repo.checkoutRemoteBranch(branch),
       },
       {
-        label: 'Delete Remote Branch',
+        label: t('branches.menu.deleteRemote'),
         icon: Trash2,
         danger: true,
         onSelect: () =>
@@ -28,17 +36,29 @@ export function branchMenuItems(repo: RepositoryStore, branch: Branch): MenuItem
   }
 
   return [
-    { label: 'Checkout', icon: Check, onSelect: () => repo.checkoutBranch(branch.name) },
     {
-      label: 'Create Branch Here',
+      label: t('branches.menu.checkout'),
+      icon: Check,
+      onSelect: () => repo.checkoutBranch(branch.name),
+    },
+    {
+      label: t('branches.menu.createHere'),
       icon: GitBranch,
       onSelect: () => repo.createBranch(branch.name),
     },
     { separator: true },
-    { label: 'Rename', icon: Pencil, onSelect: () => repo.renameBranch(branch.name) },
-    { label: 'Set Upstream', icon: Link, onSelect: () => repo.setUpstream(branch.name) },
     {
-      label: 'Compare with Current',
+      label: t('common.actions.rename'),
+      icon: Pencil,
+      onSelect: () => repo.renameBranch(branch.name),
+    },
+    {
+      label: t('branches.menu.setUpstream'),
+      icon: Link,
+      onSelect: () => repo.setUpstream(branch.name),
+    },
+    {
+      label: t('branches.menu.compareWithCurrent'),
       icon: GitCompare,
       onSelect: () =>
         void repo.runAction({
@@ -48,13 +68,13 @@ export function branchMenuItems(repo: RepositoryStore, branch: Branch): MenuItem
         }),
     },
     {
-      label: branch.isFavorite ? 'Unpin' : 'Pin to Favorites',
+      label: t(branch.isFavorite ? 'branches.menu.unpin' : 'branches.menu.pin'),
       icon: Star,
       onSelect: () => repo.toggleFavorite(branch.id),
     },
     { separator: true },
     {
-      label: 'Delete',
+      label: t('common.actions.delete'),
       icon: Trash2,
       danger: true,
       onSelect: () => repo.deleteBranch(branch.name),

@@ -19,6 +19,7 @@ import { markBackendRepoPending, whenBackendRepoReady } from '@/lib/tauri/backen
 import { syncGithubAuthors } from '@/lib/githubAvatarSync'
 import type { RepositoryState } from './types'
 import { sameRepoPath } from '@/lib/git/repoPath'
+import { translate } from '@/locales'
 
 type LifecycleStore = RepositoryState & {
   headCommitIndex: number
@@ -465,7 +466,7 @@ export const lifecycleActions = {
       if (skeleton !== null) clearSkeleton(this, skeleton)
       // A newer switch is in charge of the UI; stay quiet.
       if (switchToken !== token) return false
-      if (!options?.silent) toast.push(`Could not open ${path}.`, 'error')
+      if (!options?.silent) toast.push(translate('shell.toasts.couldNotOpen', { path }), 'error')
       return false
     }
     this.loading = false
@@ -587,7 +588,7 @@ export const lifecycleActions = {
       return await this.adoptOpenedRepository(result)
     } catch (err) {
       console.error('[git-light] clone repository failed:', err)
-      toast.push('Clone failed.', 'error')
+      toast.push(translate('shell.toasts.cloneFailed'), 'error')
       return false
     } finally {
       this.loading = false
@@ -602,7 +603,7 @@ export const lifecycleActions = {
       return await this.adoptOpenedRepository(result)
     } catch (err) {
       console.error('[git-light] init repository failed:', err)
-      toast.push('Could not initialize repository.', 'error')
+      toast.push(translate('shell.toasts.initFailed'), 'error')
       return false
     } finally {
       this.loading = false

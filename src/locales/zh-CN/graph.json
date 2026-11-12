@@ -1,0 +1,128 @@
+{
+  "columns": {
+    "refs": "分支 / 标签",
+    "graph": "图谱",
+    "sha": "SHA",
+    "when": "时间"
+  },
+  "showColumns": "显示列",
+  "columnMenu": {
+    "sha": "SHA",
+    "when": "时间",
+    "timeIndicators": "时间标记",
+    "mergeIndicators": "合并标记"
+  },
+  "empty": {
+    "title": "还没有提交",
+    "body": "完成第一次提交后，历史记录会显示在这里。"
+  },
+  "loadingMore": "正在加载更多提交…",
+  "commitRow": {
+    "hiddenRefs": "另有 {count} 个",
+    "mergeCommit": "合并提交"
+  },
+  "branchInput": {
+    "placeholder": "输入分支名"
+  },
+  "commitMenu": {
+    "checkout": "检出提交",
+    "createBranch": "在此创建分支",
+    "tag": "在此提交上打标签",
+    "cherryPick": "拣选",
+    "revert": "还原提交",
+    "mergeIntoCurrent": "合并到当前分支",
+    "merge": "合并",
+    "squashMerge": "压缩合并",
+    "rebaseFromHere": "从此处变基",
+    "interactiveRebase": "从此处交互式变基",
+    "resetToHere": "将当前分支重置到此处",
+    "resetSoft": "软重置",
+    "resetMixed": "混合重置",
+    "resetHard": "硬重置",
+    "copySha": "复制 SHA",
+    "openOnGithub": "在 GitHub 上打开"
+  },
+  "branchMenu": {
+    "checkout": "检出",
+    "checkoutLocal": "检出本地分支",
+    "createBranch": "在此创建分支",
+    "createWorktree": "从分支创建工作树",
+    "mergeIntoCurrent": "合并到当前分支",
+    "rebaseCurrentOntoThis": "将当前分支变基到此分支",
+    "interactiveRebaseOntoThis": "以此为基础交互式变基…",
+    "cherryPickTip": "拣选末端提交",
+    "copyBranchName": "复制分支名",
+    "copyTipSha": "复制末端提交的 SHA",
+    "copyCommitLink": "复制 GitHub 提交链接",
+    "copyBranchLink": "复制 GitHub 分支链接",
+    "copy": "复制",
+    "compareWithCurrent": "与当前分支比较",
+    "setUpstream": "设置上游…",
+    "rename": "重命名…",
+    "pin": "固定到收藏",
+    "unpin": "取消固定",
+    "createTag": "在此创建标签…",
+    "deleteRemote": "删除远程分支",
+    "delete": "删除分支"
+  },
+  "stashMenu": {
+    "apply": "应用贮藏",
+    "pop": "弹出贮藏",
+    "delete": "删除贮藏",
+    "editMessage": "编辑贮藏信息"
+  },
+  "stashRow": {
+    "wipOn": "{branch} 上的 WIP",
+    "wip": "WIP",
+    "unknownBase": "未知基础",
+    "hint": "基础 {sha} · 不在已加载范围内",
+    "hintWithSubject": "基础 {sha} · {subject} · 不在已加载范围内",
+    "title": "该贮藏创建于 {base}。此提交不在已加载的窗口中（请加载更多提交），或已被 amend/rebase 重写 — 这种情况下请在后续提交上手动应用该贮藏。",
+    "titleWithSubject": "该贮藏创建于 {base}，提交信息为“{subject}”。此提交不在已加载的窗口中（请加载更多提交），或已被 amend/rebase 重写 — 这种情况下请在后续提交上手动应用该贮藏。",
+    "boxTitleNoBase": "贮藏（未知基础）",
+    "boxTitle": "基于 {sha} 的贮藏",
+    "boxTitleOutsideView": "基于 {sha} 的贮藏 — 不在已加载范围内",
+    "boxTitleOutsideViewWithSubject": "基于 {sha} 的贮藏（{subject}）— 不在已加载范围内"
+  },
+  "pendingRow": {
+    "messagePlaceholder": "提交信息",
+    "status": {
+      "modified": "已修改",
+      "added": "已添加",
+      "deleted": "已删除",
+      "renamed": "已重命名",
+      "copied": "已复制",
+      "conflicted": "冲突",
+      "ignored": "已忽略"
+    }
+  },
+  "toast": {
+    "copiedSha": "已将 SHA 复制到剪贴板",
+    "openingOnGithub": "正在 GitHub 上打开提交",
+    "noGithubRemote": "此仓库未配置 GitHub 远程",
+    "clipboardUnavailable": "剪贴板不可用",
+    "copyFailed": "无法复制到剪贴板",
+    "copied": "已复制{target}"
+  },
+  "copyTarget": {
+    "branchName": "分支名",
+    "commitSha": "提交 SHA",
+    "link": "链接"
+  },
+  "timeMarkers": {
+    "hour1": "1 小时前",
+    "hours2": "2 小时前",
+    "hours6": "6 小时前",
+    "day1": "1 天前",
+    "days2": "2 天前",
+    "week1": "1 周前",
+    "weeks2": "2 周前",
+    "month1": "1 个月前",
+    "months2": "2 个月前",
+    "months3": "3 个月前",
+    "months6": "6 个月前",
+    "year1": "1 年前",
+    "years2": "2 年前",
+    "years5": "5 年前"
+  }
+}

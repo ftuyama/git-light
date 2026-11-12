@@ -49,7 +49,7 @@ onUnmounted(() => document.removeEventListener('keydown', onKeydown))
           <h2 class="text-sm font-semibold text-[var(--color-fg)]">{{ title }}</h2>
           <button
             class="focus-ring rounded p-1 text-[var(--color-fg-subtle)] hover:bg-[var(--color-hover)] hover:text-[var(--color-fg)]"
-            aria-label="Close"
+            :aria-label="$t('common.actions.close')"
             @click="emit('cancel')"
           >
             <X :size="16" />
@@ -62,8 +62,8 @@ onUnmounted(() => document.removeEventListener('keydown', onKeydown))
 
         <footer class="flex justify-end gap-2 border-t border-[var(--color-border)] px-4 py-3">
           <slot name="footer">
-            <Button variant="ghost" @click="emit('cancel')">Cancel</Button>
-            <Button :variant="danger ? 'danger' : 'primary'" @click="emit('confirm')">OK</Button>
+            <Button variant="ghost" @click="emit('cancel')">{{ $t('common.actions.cancel') }}</Button>
+            <Button :variant="danger ? 'danger' : 'primary'" @click="emit('confirm')">{{ $t('shell.dialog.ok') }}</Button>
           </slot>
         </footer>
       </div>

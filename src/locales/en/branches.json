@@ -1,0 +1,71 @@
+{
+  "sidebar": {
+    "hide": "Hide left sidebar",
+    "searchPlaceholder": "Search branches",
+    "noMatches": "No branches match “{query}”",
+    "allHidden": "All panels hidden — right-click to show panels"
+  },
+  "row": {
+    "dragHint": "Drag onto another branch to merge or rebase",
+    "pin": "Pin branch",
+    "unpin": "Unpin branch"
+  },
+  "menu": {
+    "checkout": "Checkout",
+    "checkoutLocal": "Checkout Local Branch",
+    "deleteRemote": "Delete Remote Branch",
+    "createHere": "Create Branch Here",
+    "setUpstream": "Set Upstream",
+    "compareWithCurrent": "Compare with Current",
+    "pin": "Pin to Favorites",
+    "unpin": "Unpin",
+    "deleteInFolder": "Delete {count} branch in folder \"{folder}\" | Delete {count} branches in folder \"{folder}\"",
+    "noneToDelete": "No branches to delete"
+  },
+  "tags": {
+    "checkout": "Checkout Tag",
+    "deleteTag": "Delete Tag",
+    "create": "Create tag"
+  },
+  "stashes": {
+    "pop": "Pop",
+    "drop": "Drop",
+    "summary": "on {branch} · {count} file | on {branch} · {count} files"
+  },
+  "worktrees": {
+    "reveal": "Reveal in Finder",
+    "remove": "Remove Worktree",
+    "add": "Add worktree"
+  },
+  "favorites": {
+    "empty": "Pin branches to see them here"
+  },
+  "integrate": {
+    "title": "Integrate branches",
+    "description": "Choose how to integrate {source} with {target}.",
+    "mergeTitle": "Merge into target",
+    "mergeDescription": "Merge {source} into {target}",
+    "mergeStrategy": "Merge strategy",
+    "merge": "Merge with selected strategy",
+    "rebaseTitle": "Rebase onto target",
+    "rebaseDescription": "Rebase {source} onto {target}"
+  },
+  "mergeModes": {
+    "default": {
+      "label": "Default",
+      "description": "Fast-forward when possible, otherwise create a merge commit"
+    },
+    "ffOnly": {
+      "label": "Fast-forward only",
+      "description": "Refuse to merge unless a fast-forward is possible"
+    },
+    "noFf": {
+      "label": "No fast-forward",
+      "description": "Always create a merge commit"
+    },
+    "squash": {
+      "label": "Squash",
+      "description": "Squash all commits from the source branch into one commit"
+    }
+  }
+}

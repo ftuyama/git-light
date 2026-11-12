@@ -185,28 +185,28 @@ watch(expanded, () => {
       class="flex h-full items-center justify-center text-xs text-[var(--color-fg-subtle)]"
     >
       <Loader2 :size="16" class="mr-2 animate-spin" />
-      Loading image preview…
+      {{ $t('diff.image.loading') }}
     </div>
 
     <div
       v-else-if="failed"
       class="flex h-full items-center justify-center px-4 text-center text-xs text-[var(--color-fg-subtle)]"
     >
-      Could not load image preview.
+      {{ $t('diff.image.failed') }}
     </div>
 
     <div
       v-else-if="preview?.tooLarge"
       class="flex h-full items-center justify-center px-4 text-center text-xs text-[var(--color-fg-subtle)]"
     >
-      Image is too large to preview in the UI.
+      {{ $t('diff.image.tooLarge') }}
     </div>
 
     <div
       v-else-if="preview && !preview.oldImage && !preview.newImage"
       class="flex h-full items-center justify-center px-4 text-center text-xs text-[var(--color-fg-subtle)]"
     >
-      Image preview is not available for this change.
+      {{ $t('diff.image.unavailable') }}
     </div>
 
     <div
@@ -219,7 +219,7 @@ watch(expanded, () => {
         class="flex min-h-0 flex-col overflow-hidden rounded border border-[var(--color-border)]"
       >
         <figcaption class="flex items-center gap-1 border-b border-[var(--color-border)] px-3 py-1.5 text-[11px] font-semibold text-[var(--color-fg-muted)]">
-          <span>{{ preview.newImage && !preview.oldImage ? 'Added' : 'Before' }}</span>
+          <span>{{ preview.newImage && !preview.oldImage ? $t('diff.image.added') : $t('diff.image.before') }}</span>
           <span v-if="preview.oldImage" class="font-mono font-normal text-[10px] text-[var(--color-fg-subtle)]">
             {{ formatImageBytes(preview.oldImage.sizeBytes) }}<span v-if="oldDimensions"> · {{ oldDimensions }}</span>
           </span>
@@ -228,7 +228,7 @@ watch(expanded, () => {
             <button
               type="button"
               class="focus-ring rounded p-1 transition-colors hover:bg-[var(--color-hover)] disabled:opacity-30"
-              aria-label="Zoom out"
+              :aria-label="$t('diff.image.zoomOut')"
               :disabled="!canZoomOut"
               @click="applyStep('out')"
             >
@@ -237,8 +237,8 @@ watch(expanded, () => {
             <button
               type="button"
               class="focus-ring min-w-11 rounded px-1 py-0.5 text-center font-mono text-[10px] font-normal tabular-nums transition-colors hover:bg-[var(--color-hover)]"
-              aria-label="Reset zoom"
-              title="Reset zoom"
+              :aria-label="$t('diff.image.resetZoom')"
+              :title="$t('diff.image.resetZoom')"
               @click="zoom = resetTransform()"
             >
               {{ percent }}
@@ -246,7 +246,7 @@ watch(expanded, () => {
             <button
               type="button"
               class="focus-ring rounded p-1 transition-colors hover:bg-[var(--color-hover)] disabled:opacity-30"
-              aria-label="Zoom in"
+              :aria-label="$t('diff.image.zoomIn')"
               :disabled="!canZoomIn"
               @click="applyStep('in')"
             >
@@ -255,8 +255,8 @@ watch(expanded, () => {
             <button
               type="button"
               class="focus-ring rounded p-1 transition-colors hover:bg-[var(--color-hover)]"
-              aria-label="Collapse"
-              title="Back to side-by-side"
+              :aria-label="$t('diff.image.collapse')"
+              :title="$t('diff.image.backToSideBySide')"
               @click="collapse()"
             >
               <Minimize2 :size="14" class="block" />
@@ -269,9 +269,9 @@ watch(expanded, () => {
         >
           <img
             :src="preview.oldImage.dataUrl"
-            :alt="`Before: ${preview.path}`"
+            :alt="$t('diff.image.beforeAlt', { path: preview.path })"
             draggable="false"
-            title="Click to expand"
+            :title="$t('diff.image.expand')"
             class="max-h-[60vh] max-w-full cursor-zoom-in rounded object-contain shadow-sm transition-transform hover:scale-[1.01]"
             @load="(e) => onImageLoad(e, 'old')"
             @click="expand('old')"
@@ -284,7 +284,7 @@ watch(expanded, () => {
         >
           <img
             :src="preview.oldImage.dataUrl"
-            :alt="`Before: ${preview.path}`"
+            :alt="$t('diff.image.beforeAlt', { path: preview.path })"
             draggable="false"
             class="max-h-full max-w-full rounded object-contain shadow-sm"
             :style="expandedStyle"
@@ -300,7 +300,7 @@ watch(expanded, () => {
           v-else
           class="flex min-h-48 flex-1 items-center justify-center p-4 text-xs text-[var(--color-fg-subtle)]"
         >
-          No previous version (file added).
+          {{ $t('diff.image.noPrevious') }}
         </div>
       </figure>
 
@@ -309,7 +309,7 @@ watch(expanded, () => {
         class="flex min-h-0 flex-col overflow-hidden rounded border border-[var(--color-border)]"
       >
         <figcaption class="flex items-center gap-1 border-b border-[var(--color-border)] px-3 py-1.5 text-[11px] font-semibold text-[var(--color-fg-muted)]">
-          <span>{{ preview.oldImage && !preview.newImage ? 'Deleted' : 'After' }}</span>
+          <span>{{ preview.oldImage && !preview.newImage ? $t('diff.image.deleted') : $t('diff.image.after') }}</span>
           <span v-if="preview.newImage" class="font-mono font-normal text-[10px] text-[var(--color-fg-subtle)]">
             {{ formatImageBytes(preview.newImage.sizeBytes) }}<span v-if="newDimensions"> · {{ newDimensions }}</span>
           </span>
@@ -318,7 +318,7 @@ watch(expanded, () => {
             <button
               type="button"
               class="focus-ring rounded p-1 transition-colors hover:bg-[var(--color-hover)] disabled:opacity-30"
-              aria-label="Zoom out"
+              :aria-label="$t('diff.image.zoomOut')"
               :disabled="!canZoomOut"
               @click="applyStep('out')"
             >
@@ -327,8 +327,8 @@ watch(expanded, () => {
             <button
               type="button"
               class="focus-ring min-w-11 rounded px-1 py-0.5 text-center font-mono text-[10px] font-normal tabular-nums transition-colors hover:bg-[var(--color-hover)]"
-              aria-label="Reset zoom"
-              title="Reset zoom"
+              :aria-label="$t('diff.image.resetZoom')"
+              :title="$t('diff.image.resetZoom')"
               @click="zoom = resetTransform()"
             >
               {{ percent }}
@@ -336,7 +336,7 @@ watch(expanded, () => {
             <button
               type="button"
               class="focus-ring rounded p-1 transition-colors hover:bg-[var(--color-hover)] disabled:opacity-30"
-              aria-label="Zoom in"
+              :aria-label="$t('diff.image.zoomIn')"
               :disabled="!canZoomIn"
               @click="applyStep('in')"
             >
@@ -345,8 +345,8 @@ watch(expanded, () => {
             <button
               type="button"
               class="focus-ring rounded p-1 transition-colors hover:bg-[var(--color-hover)]"
-              aria-label="Collapse"
-              title="Back to side-by-side"
+              :aria-label="$t('diff.image.collapse')"
+              :title="$t('diff.image.backToSideBySide')"
               @click="collapse()"
             >
               <Minimize2 :size="14" class="block" />
@@ -359,9 +359,9 @@ watch(expanded, () => {
         >
           <img
             :src="preview.newImage.dataUrl"
-            :alt="`After: ${preview.path}`"
+            :alt="$t('diff.image.afterAlt', { path: preview.path })"
             draggable="false"
-            title="Click to expand"
+            :title="$t('diff.image.expand')"
             class="max-h-[60vh] max-w-full cursor-zoom-in rounded object-contain shadow-sm transition-transform hover:scale-[1.01]"
             @load="(e) => onImageLoad(e, 'new')"
             @click="expand('new')"
@@ -374,7 +374,7 @@ watch(expanded, () => {
         >
           <img
             :src="preview.newImage.dataUrl"
-            :alt="`After: ${preview.path}`"
+            :alt="$t('diff.image.afterAlt', { path: preview.path })"
             draggable="false"
             class="max-h-full max-w-full rounded object-contain shadow-sm"
             :style="expandedStyle"
@@ -390,7 +390,7 @@ watch(expanded, () => {
           v-else
           class="flex min-h-48 flex-1 items-center justify-center p-4 text-xs text-[var(--color-fg-subtle)]"
         >
-          No current version (file deleted).
+          {{ $t('diff.image.noCurrent') }}
         </div>
       </figure>
     </div>
@@ -398,7 +398,7 @@ watch(expanded, () => {
       v-if="expanded"
       class="shrink-0 pt-2 text-center text-[11px] text-[var(--color-fg-subtle)]"
     >
-      Scroll to zoom · drag to pan · double-click to toggle · Esc to collapse
+      {{ $t('diff.image.hint') }}
     </p>
   </div>
 </template>

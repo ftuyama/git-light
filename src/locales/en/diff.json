@@ -1,0 +1,68 @@
+{
+  "panel": {
+    "closeFile": "Close file",
+    "diffView": "Diff view",
+    "blameView": "Blame view",
+    "diff": "Diff",
+    "blame": "Blame",
+    "unified": "Unified diff",
+    "split": "Split diff",
+    "ignoreWhitespace": "Ignore leading/trailing space",
+    "wordWrap": "Word wrap",
+    "loading": "Loading diff…",
+    "tooLarge": "File is too large to diff in the UI.",
+    "binary": "Binary file — no text diff available."
+  },
+  "stage": {
+    "stage": "Stage",
+    "unstage": "Unstage",
+    "stageHunk": "Stage hunk",
+    "unstageHunk": "Unstage hunk",
+    "stageLine": "Stage line",
+    "unstageLine": "Unstage line"
+  },
+  "discard": {
+    "discardHunk": "Discard hunk",
+    "discardLine": "Discard line"
+  },
+  "blame": {
+    "loading": "Loading blame…",
+    "empty": "No blame information available for this file.",
+    "wordWrap": "Word wrap",
+    "wordWrapAria": "Word wrap in blame view"
+  },
+  "history": {
+    "title": "File History",
+    "loading": "Loading history…",
+    "empty": "No commits found for this file."
+  },
+  "image": {
+    "loading": "Loading image preview…",
+    "failed": "Could not load image preview.",
+    "tooLarge": "Image is too large to preview in the UI.",
+    "unavailable": "Image preview is not available for this change.",
+    "added": "Added",
+    "before": "Before",
+    "after": "After",
+    "deleted": "Deleted",
+    "beforeAlt": "Before: {path}",
+    "afterAlt": "After: {path}",
+    "noPrevious": "No previous version (file added).",
+    "noCurrent": "No current version (file deleted).",
+    "zoomIn": "Zoom in",
+    "zoomOut": "Zoom out",
+    "resetZoom": "Reset zoom",
+    "collapse": "Collapse",
+    "backToSideBySide": "Back to side-by-side",
+    "expand": "Click to expand",
+    "hint": "Scroll to zoom · drag to pan · double-click to toggle · Esc to collapse"
+  },
+  "toast": {
+    "commitFilesFailed": "Could not load commit files: {detail}",
+    "compareFailed": "Could not compare commits: {detail}",
+    "diffFailed": "Could not load diff: {detail}",
+    "blameFailed": "Could not load blame: {detail}",
+    "historyFailed": "Could not load file history: {detail}",
+    "conflictFailed": "Could not load conflict: {detail}"
+  }
+}
