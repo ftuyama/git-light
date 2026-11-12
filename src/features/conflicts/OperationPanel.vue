@@ -1,7 +1,15 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { Check, FastForward, RotateCcw, SkipForward, TriangleAlert, X } from '@lucide/vue'
+import {
+  Check,
+  CheckCheck,
+  FastForward,
+  RotateCcw,
+  SkipForward,
+  TriangleAlert,
+  X,
+} from '@lucide/vue'
 import Button from '@/components/ui/Button.vue'
 import FileList from '@/features/working-tree/FileList.vue'
 import FileListViewToggle from '@/features/working-tree/FileListViewToggle.vue'
@@ -79,6 +87,20 @@ const subtitle = computed(() => {
   if (kind === 'bisect') return t('conflicts.panel.bisectHint')
   return ''
 })
+
+const markingAll = ref(false)
+
+async function markAllResolved(): Promise<void> {
+  if (markingAll.value || busy.value || conflictCount.value === 0) return
+  markingAll.value = true
+  try {
+    for (const file of [...conflicts.value]) {
+      await repo.markConflictResolved(file.path)
+    }
+  } finally {
+    markingAll.value = false
+  }
+}
 </script>
 
 <template>
@@ -157,6 +179,16 @@ const subtitle = computed(() => {
       </template>
 
       <template v-else>
+        <Button
+          v-if="conflictCount"
+          variant="warning"
+          block
+          :busy="markingAll"
+          :disabled="busy"
+          @click="markAllResolved"
+        >
+          <CheckCheck :size="14" /> {{ $t('conflicts.panel.markAllResolved') }}
+        </Button>
         <p
           v-if="!canContinue"
           class="flex items-center gap-1.5 text-[11px] leading-4 text-[var(--color-fg-muted)]"

@@ -92,6 +92,30 @@ export function useCommitGraphOverlay(options: {
 
   const stashVirtualByStashMap = computed(() => stashVirtualIndexByStash(rows.value))
 
+  /**
+   * Tip of the branch being merged into the current one. The backend records
+   * the merge source (branch name or short sha) in the repository state; the
+   * graph draws a dashed edge from the WIP node to that tip so an unfinished
+   * merge is visible in the lane where it belongs.
+   */
+  const mergeSourceSha = computed<string | null>(() => {
+    const state = repo.repository?.state
+    const source = state?.operationSource
+    if (!state?.merging || !source) return null
+    const branch = repo.branches.find(
+      (candidate) =>
+        candidate.name === source ||
+        (candidate.kind === 'remote' &&
+          candidate.remote != null &&
+          `${candidate.remote}/${candidate.name}` === source),
+    )
+    if (branch) return branch.tipSha
+    const commit = repo.commits.find(
+      (candidate) => candidate.sha === source || candidate.sha.startsWith(source),
+    )
+    return commit?.sha ?? null
+  })
+
   const visibleEdges = computed<VisibleEdge[]>(() => {
     const items = virtualItems.value
     if (items.length === 0) return []
@@ -179,6 +203,33 @@ export function useCommitGraphOverlay(options: {
             color: headNode.color,
             dashed: true,
           })
+
+          // Dashed merge edge from the WIP node to the tip of the branch that
+          // could not be merged, matching the pending commit's dotted node.
+          const sourceIndex = mergeSourceSha.value
+            ? commitIndexBySha.value.get(mergeSourceSha.value)
+            : undefined
+          const sourceNode = sourceIndex == null ? undefined : repo.layout.nodes[sourceIndex]
+          if (sourceIndex != null && sourceNode) {
+            const sourceVirtual = virtualIndexForCommitIndex(sourceIndex)
+            const firstVisible = items[0].index
+            const lastVisible = items[items.length - 1].index
+            if (sourceVirtual >= firstVisible && sourceVirtual <= lastVisible) {
+              edges.push({
+                key: 'merge-conflict-source',
+                d: graphEdgePath(
+                  x,
+                  y1,
+                  laneX(sourceNode.lane, laneWidth),
+                  rowCenterY(sourceVirtual, rowHeight),
+                  9,
+                  'merge',
+                ),
+                color: sourceNode.color,
+                dashed: true,
+              })
+            }
+          }
         }
       }
     }

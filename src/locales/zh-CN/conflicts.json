@@ -28,6 +28,7 @@
     "bisectHint": "将当前提交标记为好或坏",
     "bisectEmpty": "使用“好”、“坏”或“跳过”推进二分查找。",
     "noConflicts": "所有冲突均已解决。准备就绪后即可继续。",
-    "resolveToContinue": "解决所有冲突后才能继续。"
+    "resolveToContinue": "解决所有冲突后才能继续。",
+    "markAllResolved": "全部标记为已解决"
   }
 }
