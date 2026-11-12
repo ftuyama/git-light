@@ -1,9 +1,49 @@
 <script setup lang="ts">
-import { GitBranch, FileDiff, PanelLeftOpen, PanelRightOpen } from '@lucide/vue'
+import { type Component, computed } from 'vue'
+import { Cloud, FileDiff, Inbox, Laptop, PanelLeftOpen, PanelRightOpen, Tag, TreePine } from '@lucide/vue'
 import IconButton from '@/components/ui/IconButton.vue'
+import {
+  ADVANCED_SECTION_KEYS,
+  SECTION_LABELS,
+  type SectionKey,
+} from '@/lib/preferences'
+import { useUiStore } from '@/stores/ui'
+import { useSidebarSectionCounts } from '@/features/branch-sidebar/useSidebarSectionCounts'
 
 const props = defineProps<{ side: 'left' | 'right' }>()
-defineEmits<{ expand: [] }>()
+const emit = defineEmits<{ expand: [] }>()
+
+const ui = useUiStore()
+const { sectionCount } = useSidebarSectionCounts()
+
+/** Sections reachable from the collapsed rail, in sidebar order. */
+const RAIL_SECTIONS: readonly { key: SectionKey; icon: Component }[] = [
+  { key: 'localBranches', icon: Laptop },
+  { key: 'remoteBranches', icon: Cloud },
+  { key: 'worktrees', icon: TreePine },
+  { key: 'stashes', icon: Inbox },
+  { key: 'tags', icon: Tag },
+]
+
+const sections = computed(() =>
+  RAIL_SECTIONS.filter(
+    ({ key }) =>
+      ui.isSectionVisible(key) &&
+      (ui.isAdvanced ||
+        !ADVANCED_SECTION_KEYS.includes(key as (typeof ADVANCED_SECTION_KEYS)[number])),
+  ).map(({ key, icon }) => ({
+    key,
+    icon,
+    label: SECTION_LABELS[key],
+    count: sectionCount(key),
+  })),
+)
+
+function openSection(key: SectionKey): void {
+  ui.setSectionVisible(key, true)
+  ui.setSectionOpen(key, true)
+  if (props.side === 'left' && ui.leftCollapsed) emit('expand')
+}
 </script>
 
 <template>
@@ -17,11 +57,26 @@ defineEmits<{ expand: [] }>()
       :tooltip-side="side === 'left' ? 'right' : 'left'"
       @click="$emit('expand')"
     />
+
     <div class="my-1 h-px w-6 bg-[var(--color-border)]" />
+
+    <template v-if="side === 'left'">
+      <IconButton
+        v-for="section in sections"
+        :key="section.key"
+        :icon="section.icon"
+        :label="section.label"
+        :count="section.count"
+        tooltip-side="right"
+        @click="openSection(section.key)"
+      />
+    </template>
+
     <IconButton
-      :icon="side === 'left' ? GitBranch : FileDiff"
-      :label="side === 'left' ? 'Branches' : 'Changes'"
-      :tooltip-side="side === 'left' ? 'right' : 'left'"
+      v-else
+      :icon="FileDiff"
+      label="Changes"
+      tooltip-side="left"
       @click="$emit('expand')"
     />
   </div>

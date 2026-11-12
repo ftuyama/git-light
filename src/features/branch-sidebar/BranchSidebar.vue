@@ -9,6 +9,7 @@ import BranchSidebarSectionContent from './BranchSidebarSectionContent.vue'
 import BranchIntegrateDialog from './BranchIntegrateDialog.vue'
 import { useBranchDragStore } from '@/stores/branchDrag'
 import { useBranchSidebarData } from './useBranchSidebarData'
+import { useSidebarSectionCounts } from './useSidebarSectionCounts'
 import { useSidebarSectionMenu } from './useSidebarSectionMenu'
 import { useRepositoryStore } from '@/stores/repository'
 import { useUiStore } from '@/stores/ui'
@@ -39,6 +40,7 @@ const sidebarData = useBranchSidebarData(query)
 provide('branchSidebarData', sidebarData)
 const { normalizedQuery, filteredLocal, remoteBranches, hasLocalMatches } = sidebarData
 const { sectionMenu } = useSidebarSectionMenu()
+const { sectionCount: totalSectionCount } = useSidebarSectionCounts()
 
 const toggleSidebarShortcut = computed(() => formatBindings(ui.keybindings.toggleLeftSidebar))
 const focusSearchShortcut = computed(() => formatBindings(ui.keybindings.focusSidebarSearch))
@@ -68,18 +70,12 @@ const collapsedSectionKeys = computed(() =>
 
 function sectionCount(key: SectionKey): number {
   switch (key) {
-    case 'favorites':
-      return repo.favoriteBranches.length
     case 'localBranches':
       return filteredLocal.value.length
     case 'remoteBranches':
       return remoteBranches.value.length
-    case 'tags':
-      return repo.tags.length
-    case 'stashes':
-      return repo.stashes.length
-    case 'worktrees':
-      return repo.worktrees.length
+    default:
+      return totalSectionCount(key)
   }
 }
 
