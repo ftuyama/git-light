@@ -1,4 +1,4 @@
-import { createApp } from 'vue'
+import { createApp, watch } from 'vue'
 import { createPinia } from 'pinia'
 import type { RecentRepository } from '@shared/git/models'
 import { isTauri } from '@/lib/backend'
@@ -87,6 +87,18 @@ async function bootstrap(): Promise<void> {
   } catch (err) {
     console.error('[git-light] theme sync failed:', err)
   }
+  // Native menus are built once with literal labels, so a language change has
+  // to rebuild them. Watched here instead of inside the store to keep the
+  // store free of Tauri imports.
+  watch(
+    () => ui.resolvedLocale,
+    () => {
+      if (!isTauri()) return
+      void import('@/lib/tauri/appMenu')
+        .then(({ setupAppMenu }) => setupAppMenu())
+        .catch((err) => console.error('[git-light] app menu rebuild failed:', err))
+    },
+  )
 
   const tabs = useRepoTabsStore(pinia)
   try {

@@ -2,6 +2,7 @@
 import { computed, onUnmounted, ref, watch } from 'vue'
 import { GitCommitHorizontal, Heart, Keyboard, LayoutPanelLeft, Palette, PanelLeft, PenLine, RefreshCw, Rows3, X } from '@lucide/vue'
 import { storeToRefs } from 'pinia'
+import { useI18n } from 'vue-i18n'
 import Button from '@/components/ui/Button.vue'
 import SettingsCreditsPanel from './SettingsCreditsPanel.vue'
 import SettingsRow from './SettingsRow.vue'
@@ -13,21 +14,23 @@ import {
   COMMAND_IDS,
   COMMAND_META,
   bindingSignature,
+  commandCategoryKey,
   findConflicts,
+  type CommandCategory,
   type CommandId,
   type KeyBinding,
 } from '@/lib/keybindings'
 import {
   ADVANCED_SECTION_KEYS,
   AUTO_FETCH_INTERVAL_OPTIONS,
-  COLUMN_LABELS,
-  COLUMN_WIDTH_LABELS,
+  COLUMN_LABEL_KEYS,
+  COLUMN_WIDTH_LABEL_KEYS,
   COLUMN_WIDTH_LIMITS,
   COMMIT_GRAPH_LIMIT_MIN,
   COMMIT_GRAPH_LIMIT_RECOMMENDED,
   SECTION_KEYS,
-  SECTION_LABELS,
-  SIDEBAR_SECTION_STATE_LABELS,
+  SECTION_LABEL_KEYS,
+  SIDEBAR_SECTION_STATE_LABEL_KEYS,
   SIDEBAR_SECTION_STATES,
   formatAutoFetchInterval,
   type CommitColumnKey,
@@ -38,6 +41,7 @@ import {
 import { useUiStore } from '@/stores/ui'
 import { useRepositoryStore } from '@/stores/repository'
 
+const { t } = useI18n()
 const ui = useUiStore()
 const repo = useRepositoryStore()
 const { leftCollapsed, rightCollapsed, settingsOpen, graphScopeAll, commitGraphLimit, fileListView, theme, uiMode, signOffCommit, signCommit, autoFetchIntervalSec } =
@@ -47,13 +51,15 @@ type SettingsCategory = 'appearance' | 'layout' | 'changes' | 'commits' | 'commi
 
 const activeCategory = ref<SettingsCategory>('appearance')
 
-const columnKeys = Object.keys(COLUMN_LABELS) as CommitColumnKey[]
-const columnWidthKeys = Object.keys(COLUMN_WIDTH_LABELS) as CommitColumnWidthKey[]
+const columnKeys = Object.keys(COLUMN_LABEL_KEYS) as CommitColumnKey[]
+const columnWidthKeys = Object.keys(COLUMN_WIDTH_LABEL_KEYS) as CommitColumnWidthKey[]
 
-const sectionStateOptions = SIDEBAR_SECTION_STATES.map((state) => ({
-  value: state,
-  label: SIDEBAR_SECTION_STATE_LABELS[state],
-}))
+const sectionStateOptions = computed(() =>
+  SIDEBAR_SECTION_STATES.map((state) => ({
+    value: state,
+    label: t(SIDEBAR_SECTION_STATE_LABEL_KEYS[state]),
+  })),
+)
 
 const sidebarSectionKeys = computed(() =>
   ui.isAdvanced
@@ -107,7 +113,7 @@ const preferenceGroups: SettingsGroup[] = [
 const categories = preferenceGroups.flatMap((group) => group.items)
 
 const visibleShortcutGroups = computed(() => {
-  const groups = new Map<string, CommandId[]>()
+  const groups = new Map<CommandCategory, CommandId[]>()
   for (const id of COMMAND_IDS) {
     const meta = COMMAND_META[id]
     if (meta.advanced && !ui.isAdvanced) continue
@@ -129,10 +135,10 @@ function conflictNames(id: CommandId): string {
   const names = new Set<string>()
   for (const binding of ui.keybindings[id] ?? []) {
     for (const other of sigs.get(bindingSignature(binding)) ?? []) {
-      if (other !== id) names.add(COMMAND_META[other].title)
+      if (other !== id) names.add(t(COMMAND_META[other].titleKey))
     }
   }
-  return [...names].join(', ')
+  return t('settings.shortcuts.conflictsWith', { names: [...names].join(', ') })
 }
 
 function onCapture(id: CommandId, binding: KeyBinding): void {
@@ -427,7 +433,7 @@ onUnmounted(() => document.removeEventListener('keydown', onKeydown))
                 <SettingsRow
                   v-for="key in columnKeys"
                   :key="key"
-                  :label="COLUMN_LABELS[key]"
+                  :label="$t(COLUMN_LABEL_KEYS[key])"
                   :description="columnDescriptions[key]"
                   :model-value="ui.isColumnVisible(key)"
                   @update:model-value="ui.setColumnVisible(key, $event)"
@@ -473,7 +479,7 @@ onUnmounted(() => document.removeEventListener('keydown', onKeydown))
                 >
                   <div class="min-w-0">
                     <div class="text-[13px] font-medium text-[var(--color-fg)]">
-                      {{ COLUMN_WIDTH_LABELS[key] }}
+                      {{ $t(COLUMN_WIDTH_LABEL_KEYS[key]) }}
                     </div>
                     <p class="mt-0.5 text-[12px] leading-snug text-[var(--color-fg-muted)]">
                       {{ columnWidthHint(key) }}
@@ -485,7 +491,7 @@ onUnmounted(() => document.removeEventListener('keydown', onKeydown))
                     :min="COLUMN_WIDTH_LIMITS[key].min"
                     :max="columnWidthMax(key)"
                     :value="ui.columnWidths[key]"
-                    :aria-label="`${COLUMN_WIDTH_LABELS[key]} column width`"
+                    :aria-label="t('settings.columnWidths.ariaLabel', { name: $t(COLUMN_WIDTH_LABEL_KEYS[key]) })"
                     @change="
                       onColumnWidth(key, Number(($event.target as HTMLInputElement).value))
                     "
@@ -507,7 +513,7 @@ onUnmounted(() => document.removeEventListener('keydown', onKeydown))
                 <SettingsSegmentedRow
                   v-for="key in sidebarSectionKeys"
                   :key="key"
-                  :label="SECTION_LABELS[key]"
+                  :label="$t(SECTION_LABEL_KEYS[key])"
                   :description="sectionDescriptions[key]"
                   :model-value="ui.sectionState(key)"
                   :options="sectionStateOptions"
@@ -571,7 +577,7 @@ onUnmounted(() => document.removeEventListener('keydown', onKeydown))
                 <h3
                   class="px-3 pb-1 text-[11px] font-semibold tracking-wide text-[var(--color-fg-subtle)] uppercase"
                 >
-                  {{ group }}
+                  {{ $t(commandCategoryKey(group)) }}
                 </h3>
                 <div
                   v-for="id in ids"
@@ -579,7 +585,7 @@ onUnmounted(() => document.removeEventListener('keydown', onKeydown))
                   class="flex items-center justify-between gap-4 rounded-lg px-3 py-2 transition-colors hover:bg-[var(--color-hover)]"
                 >
                   <div class="min-w-0">
-                    <div class="text-[13px] text-[var(--color-fg)]">{{ COMMAND_META[id].title }}</div>
+                    <div class="text-[13px] text-[var(--color-fg)]">{{ $t(COMMAND_META[id].titleKey) }}</div>
                     <div v-if="isConflicted(id)" class="mt-0.5 text-[11px] text-[var(--color-danger)]">
                       Conflicts with: {{ conflictNames(id) }}
                     </div>
@@ -592,7 +598,7 @@ onUnmounted(() => document.removeEventListener('keydown', onKeydown))
                     <button
                       v-if="ui.keybindings[id]?.length"
                       class="focus-ring rounded px-1.5 py-0.5 text-[11px] text-[var(--color-fg-subtle)] hover:bg-[var(--color-hover)] hover:text-[var(--color-fg)]"
-                      :aria-label="`Disable ${COMMAND_META[id].title} shortcut`"
+                      :aria-label="t('settings.shortcuts.disable', { name: $t(COMMAND_META[id].titleKey) })"
                       title="Disable (clear shortcut)"
                       @click="ui.clearBinding(id)"
                     >
@@ -600,7 +606,7 @@ onUnmounted(() => document.removeEventListener('keydown', onKeydown))
                     </button>
                     <button
                       class="focus-ring rounded px-1.5 py-0.5 text-[11px] text-[var(--color-fg-subtle)] hover:bg-[var(--color-hover)] hover:text-[var(--color-fg)]"
-                      :aria-label="`Reset ${COMMAND_META[id].title} shortcut`"
+                      :aria-label="t('settings.shortcuts.reset', { name: $t(COMMAND_META[id].titleKey) })"
                       title="Reset to default"
                       @click="ui.resetBinding(id)"
                     >

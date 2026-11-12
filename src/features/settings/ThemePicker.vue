@@ -31,7 +31,7 @@ function selectTheme(theme: ThemePreference): void {
     >
       <div class="flex min-w-0 flex-1 flex-col gap-1.5">
         <div class="flex items-center gap-2">
-          <span class="text-[13px] font-medium text-[var(--color-fg)]">{{ theme.label }}</span>
+          <span class="text-[13px] font-medium text-[var(--color-fg)]">{{ $t(theme.labelKey) }}</span>
           <Check
             v-if="modelValue === theme.id"
             :size="14"
@@ -39,7 +39,7 @@ function selectTheme(theme: ThemePreference): void {
           />
         </div>
         <p class="text-[12px] leading-snug text-[var(--color-fg-muted)]">
-          {{ theme.description }}
+          {{ $t(theme.descriptionKey) }}
         </p>
         <div class="mt-0.5 flex items-center gap-1.5">
           <span

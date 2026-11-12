@@ -1,1 +1,14 @@
-{}
+{
+  "MergeConflict": "The operation produced merge conflicts that need to be resolved.",
+  "Authentication": "Authentication failed. Check your SSH keys or credential manager.",
+  "RepositoryNotFound": "The repository could not be found.",
+  "NotARepository": "This folder is not a Git repository.",
+  "BareRepository": "Bare repositories are not supported.",
+  "DetachedHead": "HEAD is detached.",
+  "RemoteRejected": "The remote rejected the push.",
+  "NothingToCommit": "There are no staged changes to commit.",
+  "Network": "A network error occurred while contacting the remote.",
+  "DirtyWorktree": "You have uncommitted changes that would be overwritten.",
+  "Cancelled": "The operation was cancelled.",
+  "Unknown": "An unexpected Git error occurred."
+}

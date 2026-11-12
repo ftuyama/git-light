@@ -12,6 +12,7 @@ import {
   APP_VERSION,
 } from '@shared/app/metadata'
 import type { CommandId, KeyBinding } from '@/lib/keybindings'
+import { translate } from '@/locales'
 import { useUiStore } from '@/stores/ui'
 import { useRepositoryStore } from '@/stores/repository'
 import { useRepoTabsStore } from '@/stores/repoTabs'
@@ -26,41 +27,80 @@ import { RELEASES_PAGE_URL } from './updater'
 import { openExternalUrl } from './appBridge'
 import { runUpdateCheck } from './updateCheck'
 
-export const appMenuLabels = {
-  checkForUpdates: 'Check for Updates…',
-  settings: 'Settings…',
-  quit: `Quit ${APP_NAME}`,
-  file: 'File',
-  newTab: 'New Tab',
-  closeTab: 'Close Tab',
-  reopenClosedTab: 'Reopen Closed Tab',
-  openRepository: 'Open Repository…',
-  cloneRepository: 'Clone Repository…',
-  initRepository: 'Initialize Repository…',
-  view: 'View',
-  relaunch: `Relaunch ${APP_NAME}`,
-  fullscreen: 'Toggle Full Screen',
-  zoomIn: 'Increase Zoom',
-  zoomOut: 'Decrease Zoom',
-  zoomReset: 'Reset Zoom',
-  window: 'Window',
-  minimize: 'Minimize',
-  zoomWindow: 'Zoom',
-  tabs: 'Tabs',
-  noOpenTabs: 'No Open Tabs',
-  help: 'Help',
-  website: 'Git Light Website',
-  github: 'GitHub Repository',
-  issues: 'Report an Issue',
-  releases: 'Releases & Downloads',
-} as const
+export interface AppMenuLabels {
+  checkForUpdates: string
+  settings: string
+  quit: string
+  file: string
+  newTab: string
+  closeTab: string
+  reopenClosedTab: string
+  openRepository: string
+  cloneRepository: string
+  initRepository: string
+  view: string
+  relaunch: string
+  fullscreen: string
+  zoomIn: string
+  zoomOut: string
+  zoomReset: string
+  window: string
+  minimize: string
+  zoomWindow: string
+  tabs: string
+  noOpenTabs: string
+  help: string
+  website: string
+  github: string
+  issues: string
+  releases: string
+}
 
-export const HELP_ITEMS = [
-  { label: appMenuLabels.website, url: APP_HOMEPAGE },
-  { label: appMenuLabels.github, url: APP_REPOSITORY },
-  { label: appMenuLabels.issues, url: `${APP_REPOSITORY}/issues` },
-  { label: appMenuLabels.releases, url: RELEASES_PAGE_URL },
-] as const
+/**
+ * Native menu labels in the active locale. Built on demand (never at module
+ * load) so switching language and rebuilding the menu picks up the change.
+ */
+export function appMenuLabels(): AppMenuLabels {
+  return {
+    checkForUpdates: translate('menu.checkForUpdates'),
+    settings: translate('menu.settings'),
+    quit: translate('menu.quit', { app: APP_NAME }),
+    file: translate('menu.file'),
+    newTab: translate('menu.newTab'),
+    closeTab: translate('menu.closeTab'),
+    reopenClosedTab: translate('menu.reopenClosedTab'),
+    openRepository: translate('menu.openRepository'),
+    cloneRepository: translate('menu.cloneRepository'),
+    initRepository: translate('menu.initRepository'),
+    view: translate('menu.view'),
+    relaunch: translate('menu.relaunch', { app: APP_NAME }),
+    fullscreen: translate('menu.fullscreen'),
+    zoomIn: translate('menu.zoomIn'),
+    zoomOut: translate('menu.zoomOut'),
+    zoomReset: translate('menu.zoomReset'),
+    window: translate('menu.window'),
+    minimize: translate('menu.minimize'),
+    zoomWindow: translate('menu.zoomWindow'),
+    tabs: translate('menu.tabs'),
+    noOpenTabs: translate('menu.noOpenTabs'),
+    help: translate('menu.help'),
+    website: translate('menu.website'),
+    github: translate('menu.github'),
+    issues: translate('menu.issues'),
+    releases: translate('menu.releases'),
+  }
+}
+
+/** External links shown under the app menu; labels follow the active locale. */
+export function helpItems(): { label: string; url: string }[] {
+  const labels = appMenuLabels()
+  return [
+    { label: labels.website, url: APP_HOMEPAGE },
+    { label: labels.github, url: APP_REPOSITORY },
+    { label: labels.issues, url: `${APP_REPOSITORY}/issues` },
+    { label: labels.releases, url: RELEASES_PAGE_URL },
+  ]
+}
 
 /** Zoom bounds and step for the webview (1 = 100%). */
 export const APP_ZOOM_MIN = 0.5
@@ -185,6 +225,7 @@ let tabsRefreshChain: Promise<void> = Promise.resolve()
 
 /** Rebuild the Window → Tabs submenu from the current tabs store. */
 async function refreshTabsMenu(): Promise<void> {
+  const labels = appMenuLabels()
   const submenu = tabsSubmenu
   if (!submenu) return
   const tabsStore = useRepoTabsStore()
@@ -195,7 +236,7 @@ async function refreshTabsMenu(): Promise<void> {
   if (tabs.length === 0) {
     const empty = await MenuItem.new({
       id: 'window-tab-empty',
-      text: appMenuLabels.noOpenTabs,
+      text: labels.noOpenTabs,
       enabled: false,
     })
     await submenu.append(empty)
@@ -231,6 +272,7 @@ function scheduleTabsRefresh(): void {
 
 /** Build + install the native app/window menu. */
 export async function setupAppMenu(): Promise<void> {
+  const labels = appMenuLabels()
   const ui = useUiStore()
   const repo = useRepositoryStore()
   const isMac = isMacPlatform()
@@ -245,14 +287,14 @@ export async function setupAppMenu(): Promise<void> {
         copyright: `Copyright © ${new Date().getFullYear()} ${APP_MAKER}`,
         license: APP_LICENSE,
         website: APP_HOMEPAGE,
-        websiteLabel: appMenuLabels.website,
-        credits: 'Built with Tauri, Vue and Rust. MIT licensed.',
+        websiteLabel: labels.website,
+        credits: translate('menu.credits'),
       },
     },
   })
   const checkUpdates = await MenuItem.new({
     id: 'check-for-updates',
-    text: appMenuLabels.checkForUpdates,
+    text: labels.checkForUpdates,
     action: () => {
       void runUpdateCheck('menu').catch((err) =>
         console.error('[git-light] update check failed:', err),
@@ -261,14 +303,14 @@ export async function setupAppMenu(): Promise<void> {
   })
   const settings = await MenuItem.new({
     id: 'open-settings',
-    text: appMenuLabels.settings,
+    text: labels.settings,
     accelerator: 'CmdOrCtrl+Comma',
     action: () => {
       ui.openSettings()
     },
   })
   const appLinks = await Promise.all(
-    HELP_ITEMS.map((entry) =>
+    helpItems().map((entry) =>
       MenuItem.new({
         id: `app-link-${entry.label}`,
         text: entry.label,
@@ -292,17 +334,17 @@ export async function setupAppMenu(): Promise<void> {
   }
   appItems.push(
     await PredefinedMenuItem.new({ item: 'Separator' }),
-    await PredefinedMenuItem.new({ item: 'Quit', text: appMenuLabels.quit }),
+    await PredefinedMenuItem.new({ item: 'Quit', text: labels.quit }),
   )
   const appSubmenu = await Submenu.new({ id: 'app', text: APP_NAME, items: appItems })
 
   const fileSubmenu = await Submenu.new({
     id: 'file',
-    text: appMenuLabels.file,
+    text: labels.file,
     items: [
       await MenuItem.new({
         id: 'new-tab',
-        text: appMenuLabels.newTab,
+        text: labels.newTab,
         accelerator: acceleratorFor('newTab', 'CmdOrCtrl+T'),
         action: () => {
           void repo.pickAndOpenRepository()
@@ -310,7 +352,7 @@ export async function setupAppMenu(): Promise<void> {
       }),
       await MenuItem.new({
         id: 'close-tab',
-        text: appMenuLabels.closeTab,
+        text: labels.closeTab,
         accelerator: acceleratorFor('closeTab', 'CmdOrCtrl+W'),
         action: () => {
           void closeActiveRepositoryTab()
@@ -318,7 +360,7 @@ export async function setupAppMenu(): Promise<void> {
       }),
       await MenuItem.new({
         id: 'reopen-closed-tab',
-        text: appMenuLabels.reopenClosedTab,
+        text: labels.reopenClosedTab,
         accelerator: acceleratorFor('reopenClosedTab', 'CmdOrCtrl+Shift+T'),
         action: () => {
           void reopenClosedRepositoryTab()
@@ -327,21 +369,21 @@ export async function setupAppMenu(): Promise<void> {
       await PredefinedMenuItem.new({ item: 'Separator' }),
       await MenuItem.new({
         id: 'file-clone-repository',
-        text: appMenuLabels.cloneRepository,
+        text: labels.cloneRepository,
         action: () => {
           void cloneRepository()
         },
       }),
       await MenuItem.new({
         id: 'file-init-repository',
-        text: appMenuLabels.initRepository,
+        text: labels.initRepository,
         action: () => {
           void initRepository()
         },
       }),
       await MenuItem.new({
         id: 'file-open-repository',
-        text: appMenuLabels.openRepository,
+        text: labels.openRepository,
         action: () => {
           void repo.pickAndOpenRepository()
         },
@@ -351,16 +393,16 @@ export async function setupAppMenu(): Promise<void> {
 
   const viewSubmenu = await Submenu.new({
     id: 'view',
-    text: appMenuLabels.view,
+    text: labels.view,
     items: [
       await MenuItem.new({
         id: 'relaunch',
-        text: appMenuLabels.relaunch,
+        text: labels.relaunch,
         action: relaunch,
       }),
       await MenuItem.new({
         id: 'toggle-fullscreen',
-        text: appMenuLabels.fullscreen,
+        text: labels.fullscreen,
         accelerator: isMac ? 'Ctrl+Cmd+F' : 'F11',
         action: () => {
           void toggleFullscreen()
@@ -369,7 +411,7 @@ export async function setupAppMenu(): Promise<void> {
       await PredefinedMenuItem.new({ item: 'Separator' }),
       await MenuItem.new({
         id: 'zoom-in',
-        text: appMenuLabels.zoomIn,
+        text: labels.zoomIn,
         accelerator: 'CmdOrCtrl+Shift+Equal',
         action: () => {
           void applyZoom(nextZoom(zoomLevel, 1))
@@ -377,7 +419,7 @@ export async function setupAppMenu(): Promise<void> {
       }),
       await MenuItem.new({
         id: 'zoom-out',
-        text: appMenuLabels.zoomOut,
+        text: labels.zoomOut,
         accelerator: 'CmdOrCtrl+Shift+Minus',
         action: () => {
           void applyZoom(nextZoom(zoomLevel, -1))
@@ -385,7 +427,7 @@ export async function setupAppMenu(): Promise<void> {
       }),
       await MenuItem.new({
         id: 'zoom-reset',
-        text: appMenuLabels.zoomReset,
+        text: labels.zoomReset,
         accelerator: 'CmdOrCtrl+Shift+0',
         action: () => {
           void applyZoom(1)
@@ -394,21 +436,21 @@ export async function setupAppMenu(): Promise<void> {
     ],
   })
 
-  tabsSubmenu = await Submenu.new({ id: 'window-tabs', text: appMenuLabels.tabs, items: [] })
+  tabsSubmenu = await Submenu.new({ id: 'window-tabs', text: labels.tabs, items: [] })
   const windowSubmenu = await Submenu.new({
     id: 'window',
-    text: appMenuLabels.window,
+    text: labels.window,
     items: [
       await MenuItem.new({
         id: 'window-minimize',
-        text: appMenuLabels.minimize,
+        text: labels.minimize,
         action: () => {
           void minimizeWindow()
         },
       }),
       await MenuItem.new({
         id: 'window-zoom',
-        text: appMenuLabels.zoomWindow,
+        text: labels.zoomWindow,
         action: () => {
           void toggleMaximizeWindow()
         },
@@ -419,7 +461,7 @@ export async function setupAppMenu(): Promise<void> {
   })
 
   const helpEntries = await Promise.all(
-    HELP_ITEMS.map((entry) =>
+    helpItems().map((entry) =>
       MenuItem.new({
         id: `help-${entry.label}`,
         text: entry.label,
@@ -431,7 +473,7 @@ export async function setupAppMenu(): Promise<void> {
   )
   const helpSubmenu = await Submenu.new({
     id: 'help',
-    text: appMenuLabels.help,
+    text: labels.help,
     items: helpEntries,
   })
 

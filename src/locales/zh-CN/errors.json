@@ -1,1 +1,14 @@
-{}
+{
+  "MergeConflict": "该操作产生了需要解决的合并冲突。",
+  "Authentication": "身份验证失败。请检查你的 SSH 密钥或凭据管理器。",
+  "RepositoryNotFound": "未找到该仓库。",
+  "NotARepository": "此文件夹不是 Git 仓库。",
+  "BareRepository": "不支持裸仓库。",
+  "DetachedHead": "HEAD 处于分离状态。",
+  "RemoteRejected": "远程拒绝了此次推送。",
+  "NothingToCommit": "没有已暂存的更改可以提交。",
+  "Network": "连接远程时发生网络错误。",
+  "DirtyWorktree": "你有未提交的更改会被覆盖。",
+  "Cancelled": "操作已取消。",
+  "Unknown": "发生了意外的 Git 错误。"
+}

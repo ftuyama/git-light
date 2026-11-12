@@ -1,1 +1,14 @@
-{}
+{
+  "MergeConflict": "A operação gerou conflitos de merge que precisam ser resolvidos.",
+  "Authentication": "A autenticação falhou. Verifique suas chaves SSH ou o gerenciador de credenciais.",
+  "RepositoryNotFound": "O repositório não foi encontrado.",
+  "NotARepository": "Esta pasta não é um repositório Git.",
+  "BareRepository": "Repositórios bare não são suportados.",
+  "DetachedHead": "O HEAD está destacado.",
+  "RemoteRejected": "O remoto rejeitou o push.",
+  "NothingToCommit": "Não há alterações preparadas para o commit.",
+  "Network": "Ocorreu um erro de rede ao contatar o remoto.",
+  "DirtyWorktree": "Você tem alterações não commitadas que seriam sobrescritas.",
+  "Cancelled": "A operação foi cancelada.",
+  "Unknown": "Ocorreu um erro inesperado do Git."
+}

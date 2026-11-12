@@ -4,9 +4,10 @@ import { Cloud, FileDiff, Inbox, Laptop, PanelLeftOpen, PanelRightOpen, Tag, Tre
 import IconButton from '@/components/ui/IconButton.vue'
 import {
   ADVANCED_SECTION_KEYS,
-  SECTION_LABELS,
+  SECTION_LABEL_KEYS,
   type SectionKey,
 } from '@/lib/preferences'
+import { translate } from '@/locales'
 import { useUiStore } from '@/stores/ui'
 import { useSidebarSectionCounts } from '@/features/branch-sidebar/useSidebarSectionCounts'
 
@@ -34,7 +35,7 @@ const sections = computed(() =>
   ).map(({ key, icon }) => ({
     key,
     icon,
-    label: SECTION_LABELS[key],
+    label: translate(SECTION_LABEL_KEYS[key]),
     count: sectionCount(key),
   })),
 )

@@ -3,7 +3,8 @@ import { COMMAND_IDS, COMMAND_META, defaultKeymap, formatBindings } from './keyb
 
 export interface ShortcutEntry {
   keys: string
-  description: string
+  /** Catalog key (`shortcuts.*`), translated where the cheatsheet is rendered. */
+  descriptionKey: string
   /** When true, only shown in Advanced mode. */
   advanced?: boolean
 }
@@ -12,7 +13,7 @@ function buildEntries(): ShortcutEntry[] {
   const defaults = defaultKeymap()
   return COMMAND_IDS.map((id) => ({
     keys: formatBindings(defaults[id]),
-    description: COMMAND_META[id].title,
+    descriptionKey: COMMAND_META[id].titleKey,
     ...(COMMAND_META[id].advanced ? { advanced: true as const } : {}),
   }))
 }

@@ -1,1 +1,60 @@
-{}
+{
+  "columns": {
+    "author": "Author",
+    "sha": "SHA",
+    "when": "When"
+  },
+  "columnWidths": {
+    "refs": "Branch / tag",
+    "graph": "Graph",
+    "commit": "Commit",
+    "author": "Author",
+    "sha": "SHA",
+    "when": "When",
+    "ariaLabel": "{name} column width"
+  },
+  "sections": {
+    "favorites": "Favorites",
+    "localBranches": "Local Branches",
+    "remoteBranches": "Remote Branches",
+    "tags": "Tags",
+    "stashes": "Stashes",
+    "worktrees": "Worktrees"
+  },
+  "sectionStates": {
+    "expanded": "Expanded",
+    "collapsed": "Collapsed",
+    "hidden": "Hidden"
+  },
+  "themes": {
+    "default": {
+      "label": "Default",
+      "description": "Dark palette with blue accents."
+    },
+    "dracula": {
+      "label": "Dracula",
+      "description": "Classic Dracula theme with purple and pink accents."
+    },
+    "light": {
+      "label": "Light",
+      "description": "Clean light palette inspired by GitHub and VS Code."
+    },
+    "claude": {
+      "label": "Claude",
+      "description": "Dark warm charcoal palette inspired by claude.ai."
+    },
+    "tokyo-night": {
+      "label": "Tokyo Night",
+      "description": "Dark blue Tokyo Night palette with vivid blue and purple accents."
+    },
+    "system": {
+      "label": "System",
+      "description": "Matches your operating system appearance."
+    }
+  },
+  "shortcuts": {
+    "disable": "Disable {name} shortcut",
+    "reset": "Reset {name} shortcut",
+    "conflictsWith": "Conflicts with: {names}"
+  }
+}

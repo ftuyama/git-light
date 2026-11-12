@@ -1,27 +1,41 @@
-import { describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it } from 'vitest'
+import { applyLocale } from '@/lib/locales'
 import {
   APP_ZOOM_MAX,
   APP_ZOOM_MIN,
-  HELP_ITEMS,
   appMenuLabels,
   bindingToAccelerator,
   clampZoom,
+  helpItems,
   nextZoom,
 } from './appMenu'
 
+afterEach(() => {
+  applyLocale('en')
+})
+
 describe('tauri app menu', () => {
   it('exposes stable item labels', () => {
-    expect(appMenuLabels.checkForUpdates).toBe('Check for Updates…')
-    expect(appMenuLabels.quit).toBe('Quit Git Light')
-    expect(appMenuLabels.settings).toBe('Settings…')
-    expect(appMenuLabels.file).toBe('File')
-    expect(appMenuLabels.view).toBe('View')
-    expect(appMenuLabels.window).toBe('Window')
+    const labels = appMenuLabels()
+    expect(labels.checkForUpdates).toBe('Check for Updates…')
+    expect(labels.quit).toBe('Quit Git Light')
+    expect(labels.settings).toBe('Settings…')
+    expect(labels.file).toBe('File')
+    expect(labels.view).toBe('View')
+    expect(labels.window).toBe('Window')
+  })
+
+  it('follows the active locale instead of freezing labels at import time', () => {
+    applyLocale('pt-BR')
+    const labels = appMenuLabels()
+    expect(labels.quit).toBe('Encerrar Git Light')
+    expect(labels.settings).toBe('Configurações…')
+    expect(labels.file).toBe('Arquivo')
   })
 
   it('links help entries to https urls', () => {
-    expect(HELP_ITEMS).toHaveLength(4)
-    for (const item of HELP_ITEMS) {
+    expect(helpItems()).toHaveLength(4)
+    for (const item of helpItems()) {
       expect(item.url.startsWith('https://')).toBe(true)
     }
   })

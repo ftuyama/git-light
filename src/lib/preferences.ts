@@ -6,10 +6,11 @@ export type CommitColumnKey = 'author' | 'sha' | 'when'
 
 export type FileListView = 'path' | 'tree'
 
-export const COLUMN_LABELS: Record<CommitColumnKey, string> = {
-  author: 'Author',
-  sha: 'SHA',
-  when: 'When',
+/** Catalog keys (`settings.columns.*`); translate at render time. */
+export const COLUMN_LABEL_KEYS: Record<CommitColumnKey, string> = {
+  author: 'settings.columns.author',
+  sha: 'settings.columns.sha',
+  when: 'settings.columns.when',
 }
 
 export const SECTION_KEYS = [
@@ -23,13 +24,14 @@ export const SECTION_KEYS = [
 
 export type SectionKey = (typeof SECTION_KEYS)[number]
 
-export const SECTION_LABELS: Record<SectionKey, string> = {
-  favorites: 'Favorites',
-  localBranches: 'Local Branches',
-  remoteBranches: 'Remote Branches',
-  tags: 'Tags',
-  stashes: 'Stashes',
-  worktrees: 'Worktrees',
+/** Catalog keys (`settings.sections.*`); translate at render time. */
+export const SECTION_LABEL_KEYS: Record<SectionKey, string> = {
+  favorites: 'settings.sections.favorites',
+  localBranches: 'settings.sections.localBranches',
+  remoteBranches: 'settings.sections.remoteBranches',
+  tags: 'settings.sections.tags',
+  stashes: 'settings.sections.stashes',
+  worktrees: 'settings.sections.worktrees',
 }
 
 export const ADVANCED_SECTION_KEYS = ['tags', 'stashes', 'worktrees'] as const satisfies readonly SectionKey[]
@@ -38,10 +40,11 @@ export type SidebarSectionState = 'expanded' | 'collapsed' | 'hidden'
 
 export const SIDEBAR_SECTION_STATES: readonly SidebarSectionState[] = ['expanded', 'collapsed', 'hidden']
 
-export const SIDEBAR_SECTION_STATE_LABELS: Record<SidebarSectionState, string> = {
-  expanded: 'Expanded',
-  collapsed: 'Collapsed',
-  hidden: 'Hidden',
+/** Catalog keys (`settings.sectionStates.*`); translate at render time. */
+export const SIDEBAR_SECTION_STATE_LABEL_KEYS: Record<SidebarSectionState, string> = {
+  expanded: 'settings.sectionStates.expanded',
+  collapsed: 'settings.sectionStates.collapsed',
+  hidden: 'settings.sectionStates.hidden',
 }
 
 export const DEFAULT_VISIBLE_SECTIONS: Record<SectionKey, boolean> = {
@@ -238,13 +241,14 @@ export const DEFAULT_COLUMN_WIDTHS: CommitColumnWidths = {
   when: 96,
 }
 
-export const COLUMN_WIDTH_LABELS: Record<CommitColumnWidthKey, string> = {
-  refs: 'Branch / tag',
-  graph: 'Graph',
-  commit: 'Commit',
-  author: 'Author',
-  sha: 'SHA',
-  when: 'When',
+/** Catalog keys (`settings.columnWidths.*`); translate at render time. */
+export const COLUMN_WIDTH_LABEL_KEYS: Record<CommitColumnWidthKey, string> = {
+  refs: 'settings.columnWidths.refs',
+  graph: 'settings.columnWidths.graph',
+  commit: 'settings.columnWidths.commit',
+  author: 'settings.columnWidths.author',
+  sha: 'settings.columnWidths.sha',
+  when: 'settings.columnWidths.when',
 }
 
 export const COLUMN_WIDTH_LIMITS: Record<CommitColumnWidthKey, { min: number; max: number }> = {

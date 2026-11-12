@@ -1,1 +1,60 @@
-{}
+{
+  "columns": {
+    "author": "Autor",
+    "sha": "SHA",
+    "when": "Quando"
+  },
+  "columnWidths": {
+    "refs": "Branch / tag",
+    "graph": "Grafo",
+    "commit": "Commit",
+    "author": "Autor",
+    "sha": "SHA",
+    "when": "Quando",
+    "ariaLabel": "Largura da coluna {name}"
+  },
+  "sections": {
+    "favorites": "Favoritos",
+    "localBranches": "Branches locais",
+    "remoteBranches": "Branches remotos",
+    "tags": "Tags",
+    "stashes": "Stashes",
+    "worktrees": "Worktrees"
+  },
+  "sectionStates": {
+    "expanded": "Expandida",
+    "collapsed": "Recolhida",
+    "hidden": "Oculta"
+  },
+  "themes": {
+    "default": {
+      "label": "Padrão",
+      "description": "Paleta escura com detalhes em azul."
+    },
+    "dracula": {
+      "label": "Dracula",
+      "description": "Tema Dracula clássico com detalhes em roxo e rosa."
+    },
+    "light": {
+      "label": "Claro",
+      "description": "Paleta clara e limpa inspirada no GitHub e no VS Code."
+    },
+    "claude": {
+      "label": "Claude",
+      "description": "Paleta escura e quente inspirada no claude.ai."
+    },
+    "tokyo-night": {
+      "label": "Tokyo Night",
+      "description": "Paleta Tokyo Night em azul-escuro com detalhes em azul e roxo."
+    },
+    "system": {
+      "label": "Sistema",
+      "description": "Acompanha a aparência do sistema operacional."
+    }
+  },
+  "shortcuts": {
+    "disable": "Desativar o atalho de {name}",
+    "reset": "Restaurar o atalho de {name}",
+    "conflictsWith": "Conflita com: {names}"
+  }
+}

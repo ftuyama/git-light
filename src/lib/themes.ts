@@ -6,46 +6,47 @@ export type ThemePreference = (typeof THEME_PREFERENCES)[number]
 
 export interface ThemeDefinition {
   id: ThemePreference
-  label: string
-  description: string
+  /** Catalog keys in `settings.themes.*`; translated at render time. */
+  labelKey: string
+  descriptionKey: string
   swatches: string[]
 }
 
 export const THEMES: ThemeDefinition[] = [
   {
     id: 'default',
-    label: 'Default',
-    description: 'Dark palette with blue accents.',
+    labelKey: 'settings.themes.default.label',
+    descriptionKey: 'settings.themes.default.description',
     swatches: ['#12151a', '#1b2028', '#6e9fff', '#e6edf3'],
   },
   {
     id: 'dracula',
-    label: 'Dracula',
-    description: 'Classic Dracula theme with purple and pink accents.',
+    labelKey: 'settings.themes.dracula.label',
+    descriptionKey: 'settings.themes.dracula.description',
     swatches: ['#282a36', '#44475a', '#bd93f9', '#f8f8f2'],
   },
   {
     id: 'light',
-    label: 'Light',
-    description: 'Clean light palette inspired by GitHub and VS Code.',
+    labelKey: 'settings.themes.light.label',
+    descriptionKey: 'settings.themes.light.description',
     swatches: ['#ffffff', '#f6f8fa', '#0969da', '#1f2328'],
   },
   {
     id: 'claude',
-    label: 'Claude',
-    description: 'Dark warm charcoal palette inspired by claude.ai.',
+    labelKey: 'settings.themes.claude.label',
+    descriptionKey: 'settings.themes.claude.description',
     swatches: ['#141413', '#252320', '#d97757', '#faf9f5'],
   },
   {
     id: 'tokyo-night',
-    label: 'Tokyo Night',
-    description: 'Dark blue Tokyo Night palette with vivid blue and purple accents.',
+    labelKey: 'settings.themes.tokyo-night.label',
+    descriptionKey: 'settings.themes.tokyo-night.description',
     swatches: ['#1a1b26', '#24283b', '#7aa2f7', '#c0caf5'],
   },
   {
     id: 'system',
-    label: 'System',
-    description: 'Matches your operating system appearance.',
+    labelKey: 'settings.themes.system.label',
+    descriptionKey: 'settings.themes.system.description',
     swatches: ['#12151a', '#ffffff', '#6e9fff', '#0969da'],
   },
 ]

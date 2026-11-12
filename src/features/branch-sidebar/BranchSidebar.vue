@@ -13,7 +13,7 @@ import { useSidebarSectionCounts } from './useSidebarSectionCounts'
 import { useSidebarSectionMenu } from './useSidebarSectionMenu'
 import { useRepositoryStore } from '@/stores/repository'
 import { useUiStore } from '@/stores/ui'
-import { SECTION_KEYS, SECTION_LABELS, ADVANCED_SECTION_KEYS, type SectionKey } from '@/lib/preferences'
+import { SECTION_KEYS, SECTION_LABEL_KEYS, ADVANCED_SECTION_KEYS, type SectionKey } from '@/lib/preferences'
 import { formatBindings } from '@/lib/keybindings'
 import type { MergeMode } from '@/lib/mergeMode'
 
@@ -145,7 +145,7 @@ async function confirmIntegrate(mode: 'merge' | 'rebase', mergeMode?: MergeMode)
         v-for="sectionKey in openSectionKeys"
         :key="sectionKey"
         :section-key="sectionKey"
-        :title="SECTION_LABELS[sectionKey]"
+        :title="$t(SECTION_LABEL_KEYS[sectionKey])"
         :count="sectionCount(sectionKey)"
       >
         <BranchSidebarSectionContent :section="sectionKey" />
@@ -160,7 +160,7 @@ async function confirmIntegrate(mode: 'merge' | 'rebase', mergeMode?: MergeMode)
         v-for="sectionKey in collapsedSectionKeys"
         :key="sectionKey"
         :section-key="sectionKey"
-        :title="SECTION_LABELS[sectionKey]"
+        :title="$t(SECTION_LABEL_KEYS[sectionKey])"
         :count="sectionCount(sectionKey)"
       >
         <BranchSidebarSectionContent :section="sectionKey" />

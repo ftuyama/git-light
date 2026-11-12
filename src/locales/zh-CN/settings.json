@@ -1,1 +1,60 @@
-{}
+{
+  "columns": {
+    "author": "作者",
+    "sha": "SHA",
+    "when": "时间"
+  },
+  "columnWidths": {
+    "refs": "分支 / 标签",
+    "graph": "提交图",
+    "commit": "提交",
+    "author": "作者",
+    "sha": "SHA",
+    "when": "时间",
+    "ariaLabel": "{name}列宽"
+  },
+  "sections": {
+    "favorites": "收藏",
+    "localBranches": "本地分支",
+    "remoteBranches": "远程分支",
+    "tags": "标签",
+    "stashes": "贮藏",
+    "worktrees": "工作树"
+  },
+  "sectionStates": {
+    "expanded": "展开",
+    "collapsed": "折叠",
+    "hidden": "隐藏"
+  },
+  "themes": {
+    "default": {
+      "label": "默认",
+      "description": "以蓝色为点缀的深色配色。"
+    },
+    "dracula": {
+      "label": "Dracula",
+      "description": "经典的 Dracula 主题，紫色与粉色点缀。"
+    },
+    "light": {
+      "label": "浅色",
+      "description": "灵感来自 GitHub 与 VS Code 的清爽浅色配色。"
+    },
+    "claude": {
+      "label": "Claude",
+      "description": "灵感来自 claude.ai 的暖色调深色配色。"
+    },
+    "tokyo-night": {
+      "label": "Tokyo Night",
+      "description": "Tokyo Night 深蓝配色，蓝色与紫色点缀更为鲜明。"
+    },
+    "system": {
+      "label": "跟随系统",
+      "description": "与操作系统的外观保持一致。"
+    }
+  },
+  "shortcuts": {
+    "disable": "禁用 {name} 快捷键",
+    "reset": "重置 {name} 快捷键",
+    "conflictsWith": "冲突于：{names}"
+  }
+}
