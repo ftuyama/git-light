@@ -21,7 +21,7 @@ const repo = useRepositoryStore()
 const tabsStore = useRepoTabsStore()
 const prompt = usePromptStore()
 const ui = useUiStore()
-const { repoMenu } = useRepoMenu()
+const { repoMenu, newTabMenu } = useRepoMenu()
 const { tabs, activePath } = storeToRefs(tabsStore)
 
 const tabsRow = ref<HTMLElement | null>(null)
@@ -237,10 +237,6 @@ function tabMenu(tab: RepoTab): MenuItem[] {
 function tabLabel(tab: RepoTab): string {
   return tab.alias ?? tab.name
 }
-
-function openNewRepository(): void {
-  void repo.pickAndOpenRepository()
-}
 </script>
 
 <template>
@@ -310,14 +306,15 @@ function openNewRepository(): void {
           </button>
         </ContextMenu>
 
-        <button
-          type="button"
-          class="app-no-drag focus-ring flex h-8 w-8 shrink-0 items-center justify-center rounded text-[var(--color-fg-subtle)] transition-colors hover:bg-[var(--color-hover)] hover:text-[var(--color-fg)]"
-          aria-label="Open repository"
-          @click="openNewRepository"
-        >
-          <Plus :size="14" />
-        </button>
+        <DropdownMenu :items="newTabMenu" align="start">
+          <button
+            type="button"
+            class="app-no-drag focus-ring flex h-8 w-8 shrink-0 items-center justify-center rounded text-[var(--color-fg-subtle)] transition-colors hover:bg-[var(--color-hover)] hover:text-[var(--color-fg)]"
+            aria-label="Open repository"
+          >
+            <Plus :size="14" />
+          </button>
+        </DropdownMenu>
       </div>
     </div>
 

@@ -69,12 +69,14 @@ const branchMenu = computed<MenuItem[]>(() =>
 )
 
 const remoteMenu = computed<MenuItem[]>(() => {
-  const items: MenuItem[] = [{ label: 'Fetch', icon: CloudDownload, onSelect: () => run('fetch') }]
+  const items: MenuItem[] = []
   if (ui.isAdvanced) {
-    items.push({ label: 'Sync', icon: ArrowDownUp, onSelect: () => run('sync') })
+    items.push(
+      { label: 'Sync', icon: ArrowDownUp, onSelect: () => run('sync') },
+      { separator: true },
+    )
   }
   items.push(
-    { separator: true },
     { label: 'Fetch All', icon: CloudDownload, onSelect: () => run('fetch-all') },
     { label: 'Prune Stale Remotes', onSelect: () => run('prune') },
     { label: 'Push Tags', onSelect: () => run('push-tags') },
@@ -191,6 +193,7 @@ const moreMenu = computed<MenuItem[]>(() => {
 
       <IconButton caption="Pull" :icon="ArrowDown" label="Pull" :shortcut="pullShortcut" :busy="isBusy('pull')" @click="run('pull')" />
       <IconButton caption="Push" :icon="ArrowUp" label="Push" :shortcut="pushShortcut" :busy="isBusy('push')" @click="run('push')" />
+      <IconButton caption="Fetch" :icon="CloudDownload" label="Fetch" :busy="isBusy('fetch')" @click="run('fetch')" />
       <DropdownMenu :items="remoteMenu" align="start">
         <IconButton caption="Remote" :icon="MoreHorizontal" label="More remote actions" />
       </DropdownMenu>

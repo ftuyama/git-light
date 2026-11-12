@@ -10,6 +10,14 @@ export function useRepoMenu() {
   const repo = useRepositoryStore()
   const tabsStore = useRepoTabsStore()
 
+  /** Actions offered by the "new tab" button in the tab strip. */
+  const newTabMenu = computed<MenuItem[]>(() => [
+    { label: 'Open Repository…', icon: FolderOpen, onSelect: () => void repo.pickAndOpenRepository() },
+    { label: 'Clone Repository…', icon: FolderGit2, onSelect: () => void cloneRepository() },
+    { label: 'Initialize Repository…', icon: Plus, onSelect: () => void initRepository() },
+    { label: 'Find Repositories in Folder…', icon: FolderSearch, onSelect: () => void scanFolder() },
+  ])
+
   const repoMenu = computed<MenuItem[]>(() => {
     const items: MenuItem[] = tabsStore.tabs.map((tab) => ({
       label: tab.alias ?? tab.name,
@@ -22,14 +30,11 @@ export function useRepoMenu() {
 
     if (items.length > 0) items.push({ separator: true })
     items.push(
-      { label: 'Open Repository…', icon: FolderOpen, onSelect: () => void repo.pickAndOpenRepository() },
-      { label: 'Clone Repository…', icon: FolderGit2, onSelect: () => void cloneRepository() },
-      { label: 'Initialize Repository…', icon: Plus, onSelect: () => void initRepository() },
-      { label: 'Find Repositories in Folder…', icon: FolderSearch, onSelect: () => void scanFolder() },
+      ...newTabMenu.value,
       { label: 'Close Repository', onSelect: () => void repo.closeRepository() },
     )
     return items
   })
 
-  return { repoMenu }
+  return { repoMenu, newTabMenu }
 }
