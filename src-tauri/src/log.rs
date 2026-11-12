@@ -346,6 +346,12 @@ pub async fn fetch_commit_log(
     if all {
         args.push("--all".to_string());
     }
+    // Plain `git log` only orders by commit date, so a merge and its parent
+    // with the same timestamp can come out parent-first when multiple refs are
+    // walked. `--date-order` keeps the date ordering but never shows a parent
+    // before all of its children, which keeps the graph lanes topologically
+    // sound (a merged branch commit must not render above its merge).
+    args.push("--date-order".to_string());
     args.push("--date=iso-strict".to_string());
     args.push(format!("--format={}", log_format()));
     args.push("--decorate=full".to_string());
@@ -397,6 +403,60 @@ mod tests {
             bundle.commits.last().map(|c| c.sha.as_str())
         );
         assert!(!bundle.authors.is_empty());
+    }
+
+    #[tokio::test]
+    async fn orders_merge_before_its_merged_parent_on_timestamp_ties() {
+        use std::process::Command;
+
+        let dir = tempfile::tempdir().expect("tempdir");
+        let cwd = dir.path();
+        let git = |args: &[&str], date: &str| {
+            let out = Command::new("git")
+                .args(args)
+                .current_dir(cwd)
+                .env("GIT_AUTHOR_DATE", date)
+                .env("GIT_COMMITTER_DATE", date)
+                .env("GIT_AUTHOR_NAME", "t")
+                .env("GIT_AUTHOR_EMAIL", "t@t")
+                .env("GIT_COMMITTER_NAME", "t")
+                .env("GIT_COMMITTER_EMAIL", "t@t")
+                .output()
+                .expect("git spawn");
+            assert!(
+                out.status.success(),
+                "git {args:?} failed: {}",
+                String::from_utf8_lossy(&out.stderr)
+            );
+        };
+
+        let tie = "2026-01-01T00:00:02+0000";
+        git(&["init", "-b", "main"], "2026-01-01T00:00:00+0000");
+        std::fs::write(cwd.join("a.txt"), "one\n").unwrap();
+        git(&["add", "-A"], "2026-01-01T00:00:00+0000");
+        git(&["commit", "-m", "base"], "2026-01-01T00:00:01+0000");
+        git(&["checkout", "-b", "side"], tie);
+        std::fs::write(cwd.join("a.txt"), "side\n").unwrap();
+        git(&["commit", "-am", "side"], tie);
+        git(&["checkout", "main"], tie);
+        std::fs::write(cwd.join("b.txt"), "main\n").unwrap();
+        git(&["add", "-A"], tie);
+        git(&["commit", "-m", "main work"], tie);
+        git(&["merge", "--no-ff", "side", "-m", "merge"], tie);
+
+        let bundle = fetch_commit_log(cwd, 10, true, None, 0)
+            .await
+            .expect("log must work");
+        let position = |subject: &str| {
+            bundle
+                .commits
+                .iter()
+                .position(|c| c.subject == subject)
+                .unwrap_or_else(|| panic!("missing commit {subject}"))
+        };
+        // A merged branch commit is a parent of the merge: it must never be
+        // listed above it, even when both carry the same timestamp.
+        assert!(position("merge") < position("side"));
     }
 
     fn commit_record(decorations: &str) -> String {
