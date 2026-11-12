@@ -314,13 +314,9 @@ pub fn filter_graph_commits(commits: Vec<WireCommit>) -> Vec<WireCommit> {
                 return false;
             }
             let lower = c.subject.to_lowercase();
-            if lower.starts_with("wip on ")
+            !(lower.starts_with("wip on ")
                 || lower.starts_with("on ")
-                || lower.starts_with("index on ")
-            {
-                return false;
-            }
-            true
+                || lower.starts_with("index on "))
         })
         .collect()
 }
