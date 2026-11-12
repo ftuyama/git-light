@@ -10,7 +10,7 @@ import { translate } from '@/locales'
  */
 
 /** Prompt for a directory, returning the picked path or null when cancelled. */
-export async function pickFolder(): Promise<string | null> {
+async function pickFolder(): Promise<string | null> {
   try {
     const picked = await open({ directory: true, multiple: false })
     return typeof picked === 'string' ? picked : null

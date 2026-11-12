@@ -27,13 +27,6 @@
     "fallbackName": "repository"
   },
   "operation": {
-    "inProgress": "{operation} in progress",
-    "kindMerge": "merge",
-    "kindRebase": "rebase",
-    "kindCherryPick": "cherry-pick",
-    "kindRevert": "revert",
-    "kindBisect": "bisect",
-    "unresolvedConflicts": "{count} unresolved conflict | {count} unresolved conflicts",
     "continueBlocked": "Resolve all conflicts before continuing",
     "bisectGood": "Good",
     "bisectGoodHint": "Mark the current commit as good",

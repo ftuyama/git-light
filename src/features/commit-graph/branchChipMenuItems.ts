@@ -32,7 +32,7 @@ export interface BranchChipMenuOptions {
 }
 
 /** Full ref name used for git commands: `origin/feature` for remote branches. */
-export function branchRefName(branch: Branch): string {
+function branchRefName(branch: Branch): string {
   return branch.kind === 'remote' && branch.remote ? `${branch.remote}/${branch.name}` : branch.name
 }
 

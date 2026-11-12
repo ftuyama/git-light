@@ -61,7 +61,7 @@ type CacheableStore = Pick<
  * and avoids a full `structuredClone` of thousands of rows on every tab
  * switch. Only Vue reactivity proxies are unwrapped via `toRaw`.
  */
-export function captureTabState(store: CacheableStore): CachedTabState | null {
+function captureTabState(store: CacheableStore): CachedTabState | null {
   if (!store.repository) return null
   const layout = toRaw(store.layout)
   const laneState = layout.laneState ? { lanes: [...layout.laneState.lanes] } : undefined

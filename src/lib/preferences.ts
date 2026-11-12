@@ -75,7 +75,7 @@ export function clampCommitGraphLimit(value: number): number {
 export type DiffViewMode = 'unified' | 'split'
 
 export type UiMode = 'basic' | 'advanced'
-export function isUiMode(value: unknown): value is UiMode {
+function isUiMode(value: unknown): value is UiMode {
   return value === 'basic' || value === 'advanced'
 }
 
@@ -102,15 +102,17 @@ export function clampAutoFetchIntervalSec(value: unknown): number {
     : DEFAULT_AUTO_FETCH_INTERVAL_SEC
 }
 
-export const WORKING_TREE_CHANGES_SIZE_MIN = 20
-export const WORKING_TREE_CHANGES_SIZE_MAX = 80
-export const DEFAULT_WORKING_TREE_CHANGES_SIZE = 62
+const WORKING_TREE_CHANGES_SIZE_MIN = 20
+const WORKING_TREE_CHANGES_SIZE_MAX = 80
+const DEFAULT_WORKING_TREE_CHANGES_SIZE = 62
+
+/** Round to the nearest integer and keep it inside the inclusive range. */
+function clamp(value: number, min: number, max: number): number {
+  return Math.min(max, Math.max(min, Math.round(value)))
+}
 
 export function clampWorkingTreeChangesSize(value: number): number {
-  return Math.min(
-    WORKING_TREE_CHANGES_SIZE_MAX,
-    Math.max(WORKING_TREE_CHANGES_SIZE_MIN, Math.round(value)),
-  )
+  return clamp(value, WORKING_TREE_CHANGES_SIZE_MIN, WORKING_TREE_CHANGES_SIZE_MAX)
 }
 
 export const LEFT_SIDEBAR_SIZE_MIN = 14
@@ -124,17 +126,11 @@ export const RIGHT_SIDEBAR_COLLAPSE_SIZE = 14
 export const RIGHT_SIDEBAR_COLLAPSE_HINT_SIZE = RIGHT_SIDEBAR_COLLAPSE_SIZE + 6
 
 export function clampLeftSidebarSize(value: number): number {
-  return Math.min(
-    LEFT_SIDEBAR_SIZE_MAX,
-    Math.max(LEFT_SIDEBAR_SIZE_MIN, Math.round(value)),
-  )
+  return clamp(value, LEFT_SIDEBAR_SIZE_MIN, LEFT_SIDEBAR_SIZE_MAX)
 }
 
 export function clampRightSidebarSize(value: number): number {
-  return Math.min(
-    RIGHT_SIDEBAR_SIZE_MAX,
-    Math.max(RIGHT_SIDEBAR_SIZE_MIN, Math.round(value)),
-  )
+  return clamp(value, RIGHT_SIDEBAR_SIZE_MIN, RIGHT_SIDEBAR_SIZE_MAX)
 }
 
 export function shouldCollapseLeftSidebar(size: number): boolean {
@@ -265,7 +261,7 @@ export const COLUMN_WIDTH_LIMITS: Record<CommitColumnWidthKey, { min: number; ma
 
 export function clampColumnWidth(key: CommitColumnWidthKey, value: number): number {
   const { min, max } = COLUMN_WIDTH_LIMITS[key]
-  return Math.min(max, Math.max(min, Math.round(value)))
+  return clamp(value, min, max)
 }
 
 export function defaultPreferences(): UserPreferences {

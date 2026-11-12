@@ -54,7 +54,7 @@ const aliasMap: Record<string, string> = {
   vue: 'xml',
 }
 
-export function resolveHighlightLanguage(language: string): string {
+function resolveHighlightLanguage(language: string): string {
   return aliasMap[language] ?? language
 }
 

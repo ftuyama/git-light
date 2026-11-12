@@ -1,4 +1,4 @@
-export const THEME_IDS = ['default', 'dracula', 'light', 'claude', 'tokyo-night'] as const
+const THEME_IDS = ['default', 'dracula', 'light', 'claude', 'tokyo-night'] as const
 export type ThemeId = (typeof THEME_IDS)[number]
 
 export const THEME_PREFERENCES = [...THEME_IDS, 'system'] as const
@@ -51,15 +51,11 @@ export const THEMES: ThemeDefinition[] = [
   },
 ]
 
-export function isThemeId(value: unknown): value is ThemeId {
-  return typeof value === 'string' && (THEME_IDS as readonly string[]).includes(value)
-}
-
 export function isThemePreference(value: unknown): value is ThemePreference {
   return typeof value === 'string' && (THEME_PREFERENCES as readonly string[]).includes(value)
 }
 
-export function prefersDarkColorScheme(): boolean {
+function prefersDarkColorScheme(): boolean {
   if (typeof globalThis.matchMedia !== 'function') {
     return true
   }
@@ -73,7 +69,7 @@ export function resolveTheme(preference: ThemePreference): ThemeId {
   return preference
 }
 
-export const THEME_APP_COLORS: Record<ThemeId, string> = {
+const THEME_APP_COLORS: Record<ThemeId, string> = {
   default: '#12151a',
   dracula: '#282a36',
   light: '#ffffff',

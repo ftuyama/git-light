@@ -27,13 +27,6 @@
     "fallbackName": "repositório"
   },
   "operation": {
-    "inProgress": "{operation} em andamento",
-    "kindMerge": "merge",
-    "kindRebase": "rebase",
-    "kindCherryPick": "cherry-pick",
-    "kindRevert": "reversão",
-    "kindBisect": "bisect",
-    "unresolvedConflicts": "{count} conflito não resolvido | {count} conflitos não resolvidos",
     "continueBlocked": "Resolva todos os conflitos antes de continuar",
     "bisectGood": "Bom",
     "bisectGoodHint": "Marcar o commit atual como bom",

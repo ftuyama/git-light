@@ -99,8 +99,6 @@ fn extract_conflict_files(text: &str) -> Vec<String> {
 
 pub struct RunResult {
     pub stdout: String,
-    /// Retained for progress plumbing + error classification parity with TS.
-    #[allow(dead_code)]
     pub stderr: String,
     pub exit_code: Option<i32>,
 }

@@ -46,11 +46,3 @@ export function scheduleSnapshotRefresh(
     void refresh(merged)
   }, 150)
 }
-
-export function resetRefreshScheduler(): void {
-  if (refreshTimer) clearTimeout(refreshTimer)
-  refreshTimer = null
-  pendingRefreshScopes = undefined
-  pendingFullRefresh = false
-  suppressWatcherUntil = 0
-}

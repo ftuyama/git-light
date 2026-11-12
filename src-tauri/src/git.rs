@@ -467,6 +467,19 @@ pub async fn git_text(cwd: &Path, args: &[&str]) -> Result<(bool, String, String
     ))
 }
 
+/// Parent SHAs of `sha`, in `rev-list` order. Empty when the lookup fails.
+pub async fn commit_parents(cwd: &Path, sha: &str) -> Result<Vec<String>, GitError> {
+    let (ok, stdout, _) = git_text(cwd, &["rev-list", "--parents", "-n", "1", sha]).await?;
+    if !ok {
+        return Ok(Vec::new());
+    }
+    Ok(stdout
+        .split_whitespace()
+        .skip(1)
+        .map(str::to_string)
+        .collect())
+}
+
 /// Spawn `git` with argv only (never through a shell) and return raw bytes.
 /// Needed for binary blobs (`git show <rev>:<path>`); `git_text` would
 /// corrupt them via UTF-8 lossy conversion.

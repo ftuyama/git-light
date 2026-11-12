@@ -1,5 +1,5 @@
 export const DIFF_ROW_HEIGHT = 20
-export const MONO_CHAR_WIDTH = 6
+const MONO_CHAR_WIDTH = 6
 
 export function estimateWrappedLineCount(content: string, codeWidth: number): number {
   if (codeWidth <= 0) return 1

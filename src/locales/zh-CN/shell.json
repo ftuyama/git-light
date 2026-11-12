@@ -27,13 +27,6 @@
     "fallbackName": "仓库"
   },
   "operation": {
-    "inProgress": "{operation}进行中",
-    "kindMerge": "合并",
-    "kindRebase": "变基",
-    "kindCherryPick": "拣选",
-    "kindRevert": "还原",
-    "kindBisect": "二分查找",
-    "unresolvedConflicts": "{count} 个未解决的冲突",
     "continueBlocked": "请先解决所有冲突再继续",
     "bisectGood": "好",
     "bisectGoodHint": "将当前提交标记为良好",

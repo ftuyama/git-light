@@ -1,7 +1,7 @@
 import { computed, ref, watch, type ComputedRef, type Ref } from 'vue'
 import { useVirtualizer } from '@tanstack/vue-virtual'
+import { DIFF_ROW_HEIGHT } from '@/lib/diff/estimateWrappedRowHeight'
 
-export const DIFF_ROW_HEIGHT = 20
 const OVERSCAN = 24
 
 export function useDiffLineVirtualizer(

@@ -5,7 +5,7 @@ import type { CommitColumnWidthKey } from '@/lib/preferences'
 import { translate } from '@/locales'
 import { useUiStore } from '@/stores/ui'
 
-export const ROW_HORIZONTAL_PADDING = 24
+const ROW_HORIZONTAL_PADDING = 24
 /** Matches Tailwind `pl-3` on commit graph rows. */
 export const ROW_LEFT_PADDING = ROW_HORIZONTAL_PADDING / 2
 export function useCommitGraphColumns(scrollbarWidth: Ref<number>) {

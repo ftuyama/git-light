@@ -3,12 +3,12 @@ import { setWindowBackground } from '@/lib/tauri/appBridge'
 
 let systemThemeUnwatch: (() => void) | null = null
 
-export function applyTheme(preference: ThemePreference): void {
+function applyTheme(preference: ThemePreference): void {
   const resolved = resolveTheme(preference)
   document.documentElement.dataset.theme = resolved
 }
 
-export function watchSystemTheme(onChange: () => void): () => void {
+function watchSystemTheme(onChange: () => void): () => void {
   const mq = window.matchMedia('(prefers-color-scheme: dark)')
   mq.addEventListener('change', onChange)
   return () => mq.removeEventListener('change', onChange)
@@ -28,9 +28,4 @@ export function syncThemePreference(preference: ThemePreference): void {
       void setWindowBackground(themeAppColor('system'))
     })
   }
-}
-
-export function stopThemeWatcher(): void {
-  systemThemeUnwatch?.()
-  systemThemeUnwatch = null
 }

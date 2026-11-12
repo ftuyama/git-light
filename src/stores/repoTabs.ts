@@ -10,7 +10,7 @@ export interface RepoTab {
   alias?: string
 }
 
-export const MAX_CLOSED_TABS = 25
+const MAX_CLOSED_TABS = 25
 
 export const useRepoTabsStore = defineStore('repoTabs', {
   state: () => ({

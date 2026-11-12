@@ -3,7 +3,7 @@ use std::path::Path;
 use base64::Engine;
 
 use crate::diff::{assert_path_inside_repo, DiffSource};
-use crate::git::{git_bytes, git_text, GitError};
+use crate::git::{commit_parents, git_bytes, GitError};
 
 /// Max bytes per side before the preview bails out with `tooLarge`.
 /// Text diffs cap at 512 KiB; images are useful well beyond that, but
@@ -80,17 +80,6 @@ async fn blob_at_rev(cwd: &Path, rev: &str, path: &str) -> Option<Vec<u8>> {
     read_git_blob(cwd, &spec).await
 }
 
-async fn commit_parents(cwd: &Path, sha: &str) -> Vec<String> {
-    match git_text(cwd, &["rev-list", "--parents", "-n", "1", sha]).await {
-        Ok((true, stdout, _)) => stdout
-            .split_whitespace()
-            .skip(1)
-            .map(str::to_string)
-            .collect(),
-        _ => Vec::new(),
-    }
-}
-
 fn validate_sha(value: Option<&str>) -> Result<Option<String>, GitError> {
     let Some(raw) = value else {
         return Ok(None);
@@ -151,7 +140,7 @@ pub async fn fetch_image_preview(
         }
         DiffSource::Commit => {
             let rev = sha.clone().unwrap_or_else(|| "HEAD".to_string());
-            let parents = commit_parents(cwd, &rev).await;
+            let parents = commit_parents(cwd, &rev).await.unwrap_or_default();
             let old = if let Some(first) = parents.first() {
                 blob_at_rev(cwd, first, &safe_path).await
             } else {

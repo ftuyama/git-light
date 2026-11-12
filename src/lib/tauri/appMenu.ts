@@ -105,7 +105,7 @@ export function helpItems(): { label: string; url: string }[] {
 /** Zoom bounds and step for the webview (1 = 100%). */
 export const APP_ZOOM_MIN = 0.5
 export const APP_ZOOM_MAX = 2
-export const APP_ZOOM_STEP = 0.1
+const APP_ZOOM_STEP = 0.1
 
 /** Clamp a zoom factor into the supported range and round off float drift. */
 export function clampZoom(value: number): number {

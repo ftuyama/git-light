@@ -1,16 +1,16 @@
 import { computed, ref, type Ref } from 'vue'
 
-export const BASE_ROW_HEIGHT = 35
-export const BASE_LANE_WIDTH = 18
-export const BASE_NODE_SIZE = 18
+const BASE_ROW_HEIGHT = 35
+const BASE_LANE_WIDTH = 18
+const BASE_NODE_SIZE = 18
 export const LANE_LEFT_PAD = 44
 export const LANE_RIGHT_PAD = 14
-export const DEFAULT_ZOOM = 1.15
-export const MIN_ZOOM = 0.75
-export const MAX_ZOOM = 1.6
-export const ZOOM_STEP = 0.1
-export const MIN_ZOOM_PERCENT = Math.round((MIN_ZOOM / DEFAULT_ZOOM) * 100)
-export const MAX_ZOOM_PERCENT = Math.round((MAX_ZOOM / DEFAULT_ZOOM) * 100)
+const DEFAULT_ZOOM = 1.15
+const MIN_ZOOM = 0.75
+const MAX_ZOOM = 1.6
+const ZOOM_STEP = 0.1
+const MIN_ZOOM_PERCENT = Math.round((MIN_ZOOM / DEFAULT_ZOOM) * 100)
+const MAX_ZOOM_PERCENT = Math.round((MAX_ZOOM / DEFAULT_ZOOM) * 100)
 export const ZOOM_PRESETS = [MIN_ZOOM_PERCENT, 70, 80, 90, 100, 110, 120, 130, MAX_ZOOM_PERCENT]
 
 const zoom = ref(DEFAULT_ZOOM)

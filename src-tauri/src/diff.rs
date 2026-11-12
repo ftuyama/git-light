@@ -1,9 +1,10 @@
 use std::path::Path;
 
 use crate::git::{
-    BlameResult, ConflictBlock, ConflictResult, ConflictVersions, DiffHunk, DiffLine, DiffLineType,
-    DiffResult, FileHistoryEntry, FileHistoryResult, GitError, RebaseCommitEntry,
-    RebaseCommitsResult, SearchCommitHit, SearchResults, WireBlameLine, WireWorkingTreeFile,
+    commit_parents, BlameResult, ConflictBlock, ConflictResult, ConflictVersions, DiffHunk,
+    DiffLine, DiffLineType, DiffResult, FileHistoryEntry, FileHistoryResult, GitError,
+    RebaseCommitEntry, RebaseCommitsResult, SearchCommitHit, SearchResults, WireBlameLine,
+    WireWorkingTreeFile,
 };
 use crate::refs::parse_numstat;
 
@@ -663,16 +664,6 @@ pub async fn fetch_diff(cwd: &Path, req: &DiffFetch) -> Result<DiffResult, GitEr
     let arg_refs: Vec<&str> = args.iter().map(String::as_str).collect();
     let (_, stdout, _) = git_text(cwd, &arg_refs).await?;
     Ok(parse_unified_diff(&safe_path, &stdout))
-}
-
-async fn commit_parents(cwd: &Path, sha: &str) -> Result<Vec<String>, GitError> {
-    use crate::git::git_text;
-    let (ok, stdout, _) = git_text(cwd, &["rev-list", "--parents", "-n", "1", sha]).await?;
-    if !ok {
-        return Ok(Vec::new());
-    }
-    let parts: Vec<&str> = stdout.split_whitespace().collect();
-    Ok(parts.into_iter().skip(1).map(str::to_string).collect())
 }
 
 /// Intent-to-add so untracked files appear in `git diff` (mirrors provider).

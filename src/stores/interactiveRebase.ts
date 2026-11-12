@@ -34,10 +34,6 @@ export const REBASE_ACTION_LABEL_KEYS: Record<RebaseTodoAction, string> = {
   drop: 'rebase.actions.drop',
 }
 
-export function rebaseActionLabel(action: RebaseTodoAction): string {
-  return translate(REBASE_ACTION_LABEL_KEYS[action])
-}
-
 export const useInteractiveRebaseStore = defineStore('interactiveRebase', {
   state: (): InteractiveRebaseState => ({
     isOpen: false,

@@ -160,7 +160,7 @@ export function normalizeKey(key: string): string {
   return lower
 }
 
-export function isValidKeyBinding(value: unknown): value is KeyBinding {
+function isValidKeyBinding(value: unknown): value is KeyBinding {
   if (typeof value !== 'object' || value == null) return false
   const v = value as Record<string, unknown>
   return (

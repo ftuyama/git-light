@@ -18,7 +18,7 @@ export interface TimeMarkerThreshold {
   labelKey: string
 }
 
-export const TIME_MARKER_THRESHOLDS: readonly TimeMarkerThreshold[] = [
+const TIME_MARKER_THRESHOLDS: readonly TimeMarkerThreshold[] = [
   { ms: HOUR, labelKey: 'graph.timeMarkers.hour1' },
   { ms: 2 * HOUR, labelKey: 'graph.timeMarkers.hours2' },
   { ms: 6 * HOUR, labelKey: 'graph.timeMarkers.hours6' },

@@ -56,7 +56,7 @@ and rules: [src/locales/GLOSSARY.md](src/locales/GLOSSARY.md).
 |--------|---------|
 | `models.ts` | Wire types (ISO date strings, serializable snapshots) |
 | `actions.ts` | `GitActionKind` + `GitAction` — single source of truth |
-| `errors.ts` | `GitError`, `classifyGitError()`, serialized error payloads |
+| `errors.ts` | `GitError` code taxonomy + serialized error payloads |
 | `refLabel.ts` | Branch/tag/ref display labels shared by renderer and parsers |
 | `avatar.ts` | Avatar URL helpers (GitHub login, Gravatar hash) and initials for commit authors |
 | `githubAuthors.ts` | Parse repo commit payloads into email → GitHub login maps |

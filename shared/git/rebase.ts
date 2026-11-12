@@ -29,12 +29,3 @@ export interface RebaseTodoLine {
   /** Replacement commit message when action is `reword`. */
   message?: string
 }
-
-export const REBASE_ACTION_LABELS: Record<RebaseTodoAction, string> = {
-  pick: 'Pick',
-  reword: 'Reword',
-  edit: 'Edit',
-  squash: 'Squash',
-  fixup: 'Fixup',
-  drop: 'Drop',
-}

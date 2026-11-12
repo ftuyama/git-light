@@ -11,7 +11,7 @@ export interface GithubAuthorLookup {
 
 const GITHUB_API_BASE = 'https://api.github.com'
 
-export const GITHUB_AUTHOR_PAGE_SIZE = 100
+const GITHUB_AUTHOR_PAGE_SIZE = 100
 /** Five pages is 500 commits, matching the default commit-graph depth. */
 export const GITHUB_AUTHOR_MAX_PAGES = 5
 

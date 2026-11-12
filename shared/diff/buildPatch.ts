@@ -1,7 +1,7 @@
 import type { DiffHunk, DiffLine } from '@shared/git/models'
 
 /** Builds a unified diff patch for `git apply --cached`. */
-export function buildPatch(path: string, hunks: DiffHunk[], oldPath?: string): string {
+function buildPatch(path: string, hunks: DiffHunk[], oldPath?: string): string {
   const aPath = oldPath ?? path
   let out = `diff --git a/${aPath} b/${path}\n`
   out += `--- a/${aPath}\n`
