@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import type { GraphScope } from '@shared/git/models'
 import { syncThemePreference } from '@/lib/applyTheme'
+import { applyLocale, DEFAULT_LOCALE, isAppLocale, type AppLocale } from '@/lib/locales'
 import { defaultKeymap, sanitizeKeymap, type CommandId, type KeyBinding, type Keymap } from '@/lib/keybindings'
 import {
   clampAutoFetchIntervalSec,
@@ -72,6 +73,7 @@ function snapshot(state: {
   diffViewMode: DiffViewMode
   theme: ThemePreference
   uiMode: UiMode
+  locale: AppLocale | null
   ignoreWhitespace: boolean
   blameWordWrap: boolean
   diffWordWrap: boolean
@@ -100,6 +102,7 @@ function snapshot(state: {
     diffViewMode: state.diffViewMode,
     theme: state.theme,
     uiMode: state.uiMode,
+    locale: state.locale,
     ignoreWhitespace: state.ignoreWhitespace,
     blameWordWrap: state.blameWordWrap,
     diffWordWrap: state.diffWordWrap,
@@ -131,6 +134,9 @@ export const useUiStore = defineStore('ui', {
     diffViewMode: 'unified' as DiffViewMode,
     theme: defaultPreferences().theme,
     uiMode: defaultPreferences().uiMode,
+    locale: null as AppLocale | null,
+    /** OS/browser locale, used when the user has no explicit preference. */
+    systemLocale: DEFAULT_LOCALE as AppLocale,
     ignoreWhitespace: false,
     blameWordWrap: false,
     diffWordWrap: false,
@@ -155,6 +161,10 @@ export const useUiStore = defineStore('ui', {
     isAdvanced(state): boolean {
       return state.uiMode === 'advanced'
     },
+    /** Locale the UI is rendered in: explicit choice, else detected system. */
+    resolvedLocale(state): AppLocale {
+      return state.locale ?? state.systemLocale
+    },
   },
   actions: {
     async hydrate(): Promise<void> {
@@ -178,6 +188,7 @@ export const useUiStore = defineStore('ui', {
       this.diffViewMode = saved.diffViewMode
       this.theme = saved.theme
       this.uiMode = saved.uiMode
+      this.locale = saved.locale
       this.ignoreWhitespace = saved.ignoreWhitespace
       this.blameWordWrap = saved.blameWordWrap
       this.diffWordWrap = saved.diffWordWrap
@@ -218,6 +229,7 @@ export const useUiStore = defineStore('ui', {
           diffViewMode: this.diffViewMode,
           theme: this.theme,
           uiMode: this.uiMode,
+          locale: this.locale,
           ignoreWhitespace: this.ignoreWhitespace,
           blameWordWrap: this.blameWordWrap,
           diffWordWrap: this.diffWordWrap,
@@ -407,6 +419,19 @@ export const useUiStore = defineStore('ui', {
     },
     setUiMode(mode: UiMode): void {
       this.uiMode = mode
+    },
+    /** Records the locale detected from the OS/browser and applies it. */
+    setSystemLocale(locale: AppLocale): void {
+      this.systemLocale = locale
+      this.syncLocale()
+    },
+    /** `null` reverts to following the system locale. */
+    setLocale(locale: AppLocale | null): void {
+      this.locale = isAppLocale(locale) ? locale : null
+      this.syncLocale()
+    },
+    syncLocale(): void {
+      applyLocale(this.resolvedLocale)
     },
     resetLayout(): void {
       const d = defaultPreferences()

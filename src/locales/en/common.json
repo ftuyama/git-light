@@ -1,0 +1,59 @@
+{
+  "actions": {
+    "cancel": "Cancel",
+    "close": "Close",
+    "save": "Save",
+    "delete": "Delete",
+    "remove": "Remove",
+    "rename": "Rename",
+    "copy": "Copy",
+    "copied": "Copied",
+    "retry": "Retry",
+    "refresh": "Refresh",
+    "open": "Open",
+    "apply": "Apply",
+    "discard": "Discard",
+    "confirm": "Confirm",
+    "create": "Create",
+    "edit": "Edit",
+    "add": "Add",
+    "select": "Select",
+    "search": "Search",
+    "clear": "Clear",
+    "learnMore": "Learn more",
+    "showMore": "Show more",
+    "showLess": "Show less"
+  },
+  "labels": {
+    "author": "Author",
+    "date": "Date",
+    "message": "Message",
+    "path": "Path",
+    "branch": "Branch",
+    "tag": "Tag",
+    "commit": "Commit",
+    "repository": "Repository",
+    "remote": "Remote",
+    "stash": "Stash",
+    "worktree": "Worktree",
+    "changes": "Changes",
+    "conflict": "Conflict",
+    "file": "File",
+    "yes": "Yes",
+    "no": "No"
+  },
+  "state": {
+    "loading": "Loading…",
+    "empty": "Nothing to show here",
+    "error": "Something went wrong",
+    "unknown": "Unknown",
+    "upToDate": "Up to date"
+  },
+  "count": {
+    "commits": "{count} commit | {count} commits",
+    "files": "{count} file | {count} files",
+    "changes": "{count} change | {count} changes",
+    "conflicts": "{count} conflict | {count} conflicts",
+    "branches": "{count} branch | {count} branches"
+  }
+}

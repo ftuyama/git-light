@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import { formatDistanceToNow } from 'date-fns'
 import { FolderGit2, FolderOpen, FolderSearch, GitFork, Loader2, Plus, Trash2 } from '@lucide/vue'
 import { open } from '@tauri-apps/plugin-dialog'
 import { storeToRefs } from 'pinia'
@@ -12,6 +11,7 @@ import CloneDialog from './CloneDialog.vue'
 import InitDialog from './InitDialog.vue'
 import { useRepositoryStore } from '@/stores/repository'
 import { useUiStore } from '@/stores/ui'
+import { relativeTime } from '@/lib/format'
 
 const repo = useRepositoryStore()
 const ui = useUiStore()
@@ -202,7 +202,7 @@ async function scanFolder(): Promise<void> {
                 <div class="truncate text-xs text-[var(--color-fg-subtle)]">{{ item.path }}</div>
               </div>
               <span class="shrink-0 text-xs text-[var(--color-fg-subtle)]">
-                {{ formatDistanceToNow(item.lastOpened, { addSuffix: true }) }}
+                {{ relativeTime(item.lastOpened) }}
               </span>
             </button>
             <button

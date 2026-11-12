@@ -33,6 +33,7 @@
     "site": "python3 -m http.server 4173 --directory docs",
     "preview": "vite preview",
     "typecheck": "vue-tsc --noEmit -p tsconfig.json --composite false",
+    "i18n:audit": "node scripts/i18n-audit.mjs",
     "sync-version": "node scripts/sync-version.mjs",
     "test": "vitest run",
     "test:watch": "vitest"
@@ -65,6 +66,7 @@
     "@tauri-apps/plugin-dialog": "^2.8.3",
     "@tauri-apps/plugin-opener": "^2.7.2",
     "@tauri-apps/plugin-os": "^2.4.0",
-    "file-icons-js": "^1.1.0"
+    "file-icons-js": "^1.1.0",
+    "vue-i18n": "^11.4.19"
   }
 }

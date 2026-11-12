@@ -4,6 +4,7 @@ import type { RecentRepository } from '@shared/git/models'
 import { isTauri } from '@/lib/backend'
 import { useMockGitServiceIfRequested } from '@/lib/git'
 import App from './App.vue'
+import { i18n, resolveSystemLocale } from './locales'
 import { syncThemePreference } from './lib/applyTheme'
 import { useUiStore } from './stores/ui'
 import { useRepositoryStore } from './stores/repository'
@@ -55,6 +56,7 @@ async function bootstrap(): Promise<void> {
   const app = createApp(App)
   const pinia = createPinia()
   app.use(pinia)
+  app.use(i18n)
   app.config.errorHandler = (err) => console.error('[git-light] render error:', err)
 
   // Mount first so a backend/startup failure can never leave a black screen:
@@ -73,6 +75,12 @@ async function bootstrap(): Promise<void> {
     await ui.hydrate()
   } catch (err) {
     console.error('[git-light] UI prefs hydrate failed:', err)
+  }
+  try {
+    // Persisted choice wins; otherwise follow the OS locale.
+    ui.setSystemLocale(await resolveSystemLocale())
+  } catch (err) {
+    console.error('[git-light] locale detection failed:', err)
   }
   try {
     syncThemePreference(ui.theme)

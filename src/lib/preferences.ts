@@ -1,5 +1,6 @@
 import { isThemePreference, type ThemePreference } from './themes'
 import { sanitizeKeymap, type Keymap } from './keybindings'
+import { isAppLocale, type AppLocale } from './locales'
 
 export type CommitColumnKey = 'author' | 'sha' | 'when'
 
@@ -189,6 +190,8 @@ export interface UserPreferences {
   diffViewMode: DiffViewMode
   theme: ThemePreference
   uiMode: UiMode
+  /** `null` = follow the OS locale detected at startup. */
+  locale: AppLocale | null
   ignoreWhitespace: boolean
   blameWordWrap: boolean
   diffWordWrap: boolean
@@ -279,6 +282,7 @@ export function defaultPreferences(): UserPreferences {
     diffViewMode: 'unified',
     theme: 'default',
     uiMode: 'advanced',
+    locale: null,
     ignoreWhitespace: false,
     blameWordWrap: false,
     diffWordWrap: false,
@@ -328,6 +332,7 @@ export function mergePreferences(saved: Partial<UserPreferences> | null): UserPr
     diffViewMode: saved.diffViewMode === 'split' ? 'split' : 'unified',
     theme: isThemePreference(saved.theme) ? saved.theme : defaults.theme,
     uiMode: isUiMode(saved.uiMode) ? saved.uiMode : defaults.uiMode,
+    locale: isAppLocale(saved.locale) ? saved.locale : defaults.locale,
     ignoreWhitespace: saved.ignoreWhitespace ?? defaults.ignoreWhitespace,
     blameWordWrap: saved.blameWordWrap ?? defaults.blameWordWrap,
     diffWordWrap: saved.diffWordWrap ?? defaults.diffWordWrap,
