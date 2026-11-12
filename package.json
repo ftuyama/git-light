@@ -35,7 +35,11 @@
     "typecheck": "vue-tsc --noEmit -p tsconfig.json --composite false",
     "sync-version": "node scripts/sync-version.mjs",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "wt:add": "node scripts/worktree.mjs add",
+    "wt:ls": "node scripts/worktree.mjs list",
+    "wt:rm": "node scripts/worktree.mjs remove",
+    "wt:prune": "node scripts/worktree.mjs prune"
   },
   "devDependencies": {
     "@faker-js/faker": "^10.6.0",

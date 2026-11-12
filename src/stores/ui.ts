@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import type { GraphScope } from '@shared/git/models'
 import { syncThemePreference } from '@/lib/applyTheme'
+import { setRemoteAvatarsEnabled } from '@/lib/avatarCache'
 import { defaultKeymap, sanitizeKeymap, type CommandId, type KeyBinding, type Keymap } from '@/lib/keybindings'
 import {
   clampAutoFetchIntervalSec,
@@ -77,6 +78,7 @@ function snapshot(state: {
   diffWordWrap: boolean
   signOffCommit: boolean
   signCommit: boolean
+  remoteAvatars: boolean
   autoFetchIntervalSec: number
   keybindings: Keymap
 }): UserPreferences {
@@ -105,6 +107,7 @@ function snapshot(state: {
     diffWordWrap: state.diffWordWrap,
     signOffCommit: state.signOffCommit,
     signCommit: state.signCommit,
+    remoteAvatars: state.remoteAvatars,
     autoFetchIntervalSec: state.autoFetchIntervalSec,
     keybindings: state.keybindings,
   }
@@ -136,6 +139,7 @@ export const useUiStore = defineStore('ui', {
     diffWordWrap: false,
     signOffCommit: false,
     signCommit: false,
+    remoteAvatars: true,
     autoFetchIntervalSec: defaultPreferences().autoFetchIntervalSec,
     keybindings: defaultKeymap(),
     commandPaletteOpen: false,
@@ -183,6 +187,8 @@ export const useUiStore = defineStore('ui', {
       this.diffWordWrap = saved.diffWordWrap
       this.signOffCommit = saved.signOffCommit
       this.signCommit = saved.signCommit
+      this.remoteAvatars = saved.remoteAvatars
+      setRemoteAvatarsEnabled(saved.remoteAvatars)
       this.autoFetchIntervalSec = saved.autoFetchIntervalSec
       this.keybindings = saved.keybindings ? sanitizeKeymap(saved.keybindings) : defaultKeymap()
       syncThemePreference(this.theme)
@@ -223,6 +229,7 @@ export const useUiStore = defineStore('ui', {
           diffWordWrap: this.diffWordWrap,
           signOffCommit: this.signOffCommit,
           signCommit: this.signCommit,
+          remoteAvatars: this.remoteAvatars,
           autoFetchIntervalSec: this.autoFetchIntervalSec,
           keybindings: this.keybindings,
         }),
@@ -394,6 +401,10 @@ export const useUiStore = defineStore('ui', {
     },
     setSignCommit(value: boolean): void {
       this.signCommit = value
+    },
+    setRemoteAvatars(value: boolean): void {
+      this.remoteAvatars = value
+      setRemoteAvatarsEnabled(value)
     },
     setAutoFetchIntervalSec(value: number): void {
       this.autoFetchIntervalSec = clampAutoFetchIntervalSec(value)

@@ -26,6 +26,7 @@ import { isHeadSymbolicRef } from '@/lib/git/headRef'
 import { formatRefLabel } from '@shared/git/refLabel'
 import { githubCommitUrl } from '@shared/git/githubUrl'
 import type { Commit, Ref } from '@/types/git'
+import type { CommitColumnWidthKey } from '@/lib/preferences'
 import type { GraphNode } from '@/lib/graph/computeGraphLayout'
 import { findLaneBranchPreview } from '@/lib/graph/commitLaneBranchPreview'
 import { useRepositoryStore } from '@/stores/repository'
@@ -45,6 +46,7 @@ const props = defineProps<{
   nodeSize: number
   rowHeight: number
   selected: boolean
+  fillColumn: CommitColumnWidthKey
 }>()
 
 const repo = useRepositoryStore()
@@ -84,6 +86,12 @@ const isStashCommit = computed(
     props.commit.refs.some((r) => r.type === 'stash') ||
     /^(WIP on|On) /.test(props.commit.subject ?? ''),
 )
+
+const commitDescription = computed(() => {
+  const body = props.commit.body?.trim()
+  if (!body) return ''
+  return body.replace(/\s+/g, ' ')
+})
 
 const displayRefs = computed((): DisplayRef[] => {
   const byLabel = new Map<string, Ref>()
@@ -440,7 +448,8 @@ function openOnGithub(): void {
       </div>
 
       <div
-        class="relative flex h-full shrink-0 items-center gap-2 px-2"
+        class="relative flex h-full items-center gap-2 px-2"
+        :class="fillColumn === 'commit' ? 'min-w-0 flex-auto' : 'shrink-0'"
         :style="{ width: `${columnWidths.commit}px` }"
       >
         <div
@@ -460,21 +469,30 @@ function openOnGithub(): void {
         >
           <GitMerge :size="14" />
         </span>
-        <span
-          class="truncate"
-          :class="
-            selected
-              ? 'font-medium text-[var(--color-fg)]'
-              : 'text-[var(--color-fg)]/90'
-          "
-        >
-          {{ commit.subject }}
-        </span>
+        <div class="min-w-0 flex-1 truncate">
+          <span
+            :class="
+              selected
+                ? 'font-medium text-[var(--color-fg)]'
+                : 'text-[var(--color-fg)]/90'
+            "
+          >
+            {{ commit.subject }}
+          </span>
+          <span
+            v-if="commitDescription"
+            class="text-[var(--color-fg-subtle)]"
+            :title="commitDescription"
+          >
+            · {{ commitDescription }}
+          </span>
+        </div>
       </div>
 
       <div
         v-if="ui.isColumnVisible('author')"
-        class="relative flex shrink-0 items-center justify-end gap-2 px-2"
+        class="relative flex items-center justify-end gap-2 px-2"
+        :class="fillColumn === 'author' ? 'min-w-0 flex-auto' : 'shrink-0'"
         :style="{ width: `${columnWidths.author}px` }"
       >
         <Avatar :author="commit.author" :size="18" />
@@ -484,14 +502,16 @@ function openOnGithub(): void {
       </div>
       <span
         v-if="ui.isColumnVisible('sha')"
-        class="relative shrink-0 truncate px-2 font-mono text-[11px] text-[var(--color-fg-subtle)]"
+        class="relative truncate px-2 font-mono text-[11px] text-[var(--color-fg-subtle)]"
+        :class="fillColumn === 'sha' ? 'min-w-0 flex-auto' : 'shrink-0'"
         :style="{ width: `${columnWidths.sha}px` }"
       >
         {{ commit.shortSha }}
       </span>
       <span
         v-if="ui.isColumnVisible('when')"
-        class="relative shrink-0 truncate px-2 text-right text-[11px] text-[var(--color-fg-subtle)]"
+        class="relative truncate px-2 text-right text-[11px] text-[var(--color-fg-subtle)]"
+        :class="fillColumn === 'when' ? 'min-w-0 flex-auto' : 'shrink-0'"
         :style="{ width: `${columnWidths.when}px` }"
       >
         {{ relativeTime(commit.date) }}

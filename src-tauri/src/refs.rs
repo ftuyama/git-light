@@ -426,6 +426,37 @@ pub fn parse_numstat(stdout: &str) -> HashMap<String, NumstatEntry> {
     map
 }
 
+/// Git only sniffs the first 8 KiB of a blob when deciding whether it is binary.
+pub const BINARY_SNIFF_BYTES: usize = 8000;
+
+/// Counts the lines an untracked file would add, mirroring `git diff --numstat`.
+/// `None` means the content looks binary (NUL byte in the first 8 KiB, the same
+/// rule git uses), so callers keep the 0/0 of a binary numstat row.
+pub fn count_added_lines(bytes: &[u8]) -> Option<u32> {
+    let sniff = &bytes[..bytes.len().min(BINARY_SNIFF_BYTES)];
+    if sniff.contains(&0) {
+        return None;
+    }
+    let newlines = bytes.iter().filter(|&&b| b == b'\n').count() as u64;
+    let lines = newlines + u64::from(!bytes.is_empty() && !bytes.ends_with(b"\n"));
+    u32::try_from(lines).ok()
+}
+
+/// Counts the lines of an untracked file. Returns `None` for binaries,
+/// directories, unreadable paths and files too large to be worth reading.
+async fn untracked_additions(root: &Path, rel_path: &str) -> Option<u32> {
+    // Safety valve: untracked dumps/archives can be huge and their stat badge
+    // is not worth loading gigabytes into memory.
+    const MAX_BYTES: u64 = 16 * 1024 * 1024;
+    let path = root.join(rel_path);
+    let meta = tokio::fs::metadata(&path).await.ok()?;
+    if !meta.is_file() || meta.len() > MAX_BYTES {
+        return None;
+    }
+    let bytes = tokio::fs::read(&path).await.ok()?;
+    count_added_lines(&bytes)
+}
+
 pub fn map_code(code: char) -> WireFileStatus {
     match code {
         'A' => WireFileStatus::Added,
@@ -813,11 +844,26 @@ pub async fn fetch_working_tree(cwd: &Path) -> Result<Vec<WireWorkingTreeFile>, 
     let unstaged = unstaged_out
         .map(|(_, out, _)| parse_numstat(&out))
         .unwrap_or_default();
-    Ok(parse_status(StatusInput {
+    let mut files = parse_status(StatusInput {
         porcelain: &porcelain,
         staged: &staged,
         unstaged: &unstaged,
-    }))
+    });
+    // `git diff --numstat` never lists untracked files, so their rows would stay
+    // at 0/0 and the sidebar would hide their stats. Count their lines directly;
+    // files already reported by git (e.g. intent-to-add) keep git's numbers.
+    for file in files
+        .iter_mut()
+        .filter(|file| matches!(file.status, WireFileStatus::Untracked))
+    {
+        if file.additions > 0 || file.deletions > 0 {
+            continue;
+        }
+        if let Some(additions) = untracked_additions(cwd, &file.path).await {
+            file.additions = additions;
+        }
+    }
+    Ok(files)
 }
 
 #[cfg(test)]
@@ -1104,6 +1150,57 @@ mod tests {
         });
         assert_eq!(files.iter().filter(|f| f.staged).count(), 1);
         assert_eq!(files.iter().filter(|f| !f.staged).count(), 1);
+    }
+
+    #[test]
+    fn counts_added_lines_for_untracked_text() {
+        assert_eq!(count_added_lines(b""), Some(0));
+        assert_eq!(count_added_lines(b"\n"), Some(1));
+        assert_eq!(count_added_lines(b"one\ntwo\n"), Some(2));
+        // No trailing newline still counts as one added line.
+        assert_eq!(count_added_lines(b"one\ntwo"), Some(2));
+        assert_eq!(count_added_lines(b"one"), Some(1));
+    }
+
+    #[test]
+    fn treats_nul_bytes_as_binary() {
+        assert_eq!(count_added_lines(b"abc\0def"), None);
+        // A NUL past the 8 KiB sniff window does not mark the file binary.
+        let mut late = vec![b'a'; BINARY_SNIFF_BYTES + 1];
+        late.push(0);
+        assert_eq!(count_added_lines(&late), Some(1));
+    }
+
+    #[tokio::test]
+    async fn counts_lines_for_untracked_files() {
+        let dir =
+            std::env::temp_dir().join(format!("git-light-untracked-stats-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&dir);
+        std::fs::create_dir_all(&dir).unwrap();
+        let run = |args: &[&str]| {
+            std::process::Command::new("git")
+                .args(args)
+                .current_dir(&dir)
+                .output()
+                .unwrap()
+        };
+        assert!(run(&["init"]).status.success());
+        run(&["config", "user.name", "T"]);
+        run(&["config", "user.email", "t@t"]);
+        run(&["config", "commit.gpgsign", "false"]);
+        std::fs::write(dir.join("new.ts"), "a\nb\nc\n").unwrap();
+        std::fs::write(dir.join("intent.ts"), "x\ny\n").unwrap();
+        assert!(run(&["add", "-N", "intent.ts"]).status.success());
+        std::fs::write(dir.join("logo.png"), b"\x89PNG\0binary").unwrap();
+
+        let files = fetch_working_tree(&dir).await.expect("status");
+        let find = |path: &str| files.iter().find(|f| f.path == path).expect(path);
+        assert_eq!(find("new.ts").additions, 3);
+        assert_eq!(find("new.ts").deletions, 0);
+        assert_eq!(find("intent.ts").additions, 2);
+        let binary = find("logo.png");
+        assert_eq!((binary.additions, binary.deletions), (0, 0));
+        let _ = std::fs::remove_dir_all(&dir);
     }
 
     #[test]

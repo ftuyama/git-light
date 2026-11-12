@@ -6,6 +6,7 @@ import ContextMenu from '@/components/ui/ContextMenu.vue'
 import type { MenuItem } from '@/components/ui/menu'
 import { relativeTime } from '@/lib/format'
 import type { Stash } from '@/types/git'
+import type { CommitColumnWidthKey } from '@/lib/preferences'
 import { useRepositoryStore } from '@/stores/repository'
 import { useUiStore } from '@/stores/ui'
 
@@ -14,6 +15,7 @@ const props = defineProps<{
   graphWidth: number
   rowHeight: number
   selected: boolean
+  fillColumn: CommitColumnWidthKey
 }>()
 
 const repo = useRepositoryStore()
@@ -102,7 +104,8 @@ const menu = computed<MenuItem[]>(() => [
       />
 
       <div
-        class="relative flex h-full shrink-0 items-center gap-2 px-2"
+        class="relative flex h-full items-center gap-2 px-2"
+        :class="fillColumn === 'commit' ? 'min-w-0 flex-auto' : 'shrink-0'"
         :style="{ width: `${columnWidths.commit}px` }"
       >
         <div
@@ -135,19 +138,22 @@ const menu = computed<MenuItem[]>(() => [
 
       <div
         v-if="ui.isColumnVisible('author')"
-        class="relative flex shrink-0 items-center justify-end gap-2 px-2"
+        class="relative flex items-center justify-end gap-2 px-2"
+        :class="fillColumn === 'author' ? 'min-w-0 flex-auto' : 'shrink-0'"
         :style="{ width: `${columnWidths.author}px` }"
       />
       <span
         v-if="ui.isColumnVisible('sha')"
-        class="relative shrink-0 truncate px-2 font-mono text-[11px] text-[var(--color-fg-subtle)]"
+        class="relative truncate px-2 font-mono text-[11px] text-[var(--color-fg-subtle)]"
+        :class="fillColumn === 'sha' ? 'min-w-0 flex-auto' : 'shrink-0'"
         :style="{ width: `${columnWidths.sha}px` }"
       >
         {{ stashRef }}
       </span>
       <span
         v-if="ui.isColumnVisible('when')"
-        class="relative shrink-0 truncate px-2 text-right text-[11px] text-[var(--color-fg-subtle)]"
+        class="relative truncate px-2 text-right text-[11px] text-[var(--color-fg-subtle)]"
+        :class="fillColumn === 'when' ? 'min-w-0 flex-auto' : 'shrink-0'"
         :style="{ width: `${columnWidths.when}px` }"
       >
         {{ relativeTime(stash.date) }}

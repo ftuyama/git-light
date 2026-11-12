@@ -41,6 +41,27 @@ VITE_USE_MOCK=true npm run dev
 | `npm run rust:fmt:check` | `cargo fmt --check` |
 | `npm run rust:test` | `cargo test` |
 | `npm run check` | `typecheck` + `clippy` + `fmt:check` |
+| `npm run wt:add -- <name>` | Create branch `<name>` checked out at `worktrees/<name>` |
+| `npm run wt:ls` | List worktrees |
+| `npm run wt:rm -- <name>` | Remove `worktrees/<name>` (keeps the branch) |
+| `npm run wt:prune` | Drop stale worktree metadata |
+
+## Parallel checkouts (git worktrees)
+
+Worktrees live in `worktrees/` at the repo root (gitignored); the root checkout stays on `main` and each worktree owns one branch.
+
+```bash
+npm run wt:add -- feature/graph-zoom --base main   # branch + worktrees/feature/graph-zoom
+cd worktrees/feature/graph-zoom
+npm install
+npm run dev
+```
+
+Notes:
+
+- `node_modules` and `src-tauri/target/` are per worktree; the first Rust build in a new worktree is a full rebuild. Do not share `CARGO_TARGET_DIR` between concurrently built worktrees.
+- Vite is `strictPort` on `:1420`, so only one `npm run dev` (Tauri window) runs at a time. For a second worktree use `VITE_USE_MOCK=true npx vite --port 1421` (UI-only) or `npx tauri dev --config '{"build":{"devUrl":"http://localhost:1421"}}'`.
+- `npm run wt:rm -- <name> --delete-branch` also deletes the branch (uses `git branch -d`, so unmerged branches are kept).
 
 ## Architecture
 

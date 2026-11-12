@@ -1,5 +1,9 @@
 import { ref, watch, type MaybeRefOrGetter, toValue } from 'vue'
-import { markAvatarMissing, resolveAuthorAvatarUrl } from '@/lib/avatarCache'
+import {
+  avatarCacheVersion,
+  markAvatarSourceMissing,
+  resolveAuthorAvatarUrl,
+} from '@/lib/avatarCache'
 
 export function useAvatarImage(
   email: MaybeRefOrGetter<string>,
@@ -9,7 +13,7 @@ export function useAvatarImage(
   const resolvedUrl = ref<string | null>(null)
 
   watch(
-    [() => toValue(email), () => toValue(avatarUrl), () => toValue(size)],
+    [() => toValue(email), () => toValue(avatarUrl), () => toValue(size), avatarCacheVersion],
     () => {
       resolvedUrl.value = resolveAuthorAvatarUrl(
         toValue(email),
@@ -21,8 +25,9 @@ export function useAvatarImage(
   )
 
   function onImageError(): void {
-    markAvatarMissing(toValue(email))
+    const failedUrl = resolvedUrl.value
     resolvedUrl.value = null
+    if (failedUrl) markAvatarSourceMissing(toValue(email), failedUrl)
   }
 
   return { resolvedUrl, onImageError }

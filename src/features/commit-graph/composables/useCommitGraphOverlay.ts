@@ -4,6 +4,7 @@ import { graphEdgePath } from '@/lib/graph/graphEdgePath'
 import { commitMatchesFilter, isGraphFiltering, stashMatchesFilter } from '@/lib/graph/graphFilter'
 import { stashVirtualIndexByStash } from '@/lib/graph/stashGraphRows'
 import { buildCommitIndex } from '@/lib/graph/commitIndex'
+import { nodeEdgeEndInset } from '@/lib/graph/nodeEdgeInset'
 import type { GraphRow } from '@/lib/graph/stashGraphRows'
 import { useRepositoryStore } from '@/stores/repository'
 import { useSelectionStore } from '@/stores/selection'
@@ -40,6 +41,7 @@ export function useCommitGraphOverlay(options: {
   pendingRowSelected: ComputedRef<boolean>
   rowHeight: ComputedRef<number>
   laneWidth: ComputedRef<number>
+  nodeSize: ComputedRef<number>
   resolveCommitIndex: (virtualIndex: number) => number | null
   resolveStashIndex: (virtualIndex: number) => number | null
   virtualIndexForCommitIndex: (commitIndex: number) => number
@@ -56,6 +58,7 @@ export function useCommitGraphOverlay(options: {
     pendingRowSelected,
     rowHeight,
     laneWidth,
+    nodeSize,
     resolveCommitIndex,
     resolveStashIndex,
     virtualIndexForCommitIndex,
@@ -85,6 +88,25 @@ export function useCommitGraphOverlay(options: {
       return commit ? !commitMatchesFilter(commit, graphFilter.value) : false
     }
 
+    /**
+     * Converging edges join the target lane at the next row's center. When a
+     * node sits there, stop the stroke at its opaque ring: avatar images are
+     * transparent at the circular edge, so a stroke reaching the center shows
+     * through the node as a sliver of the branch color.
+     *
+     * The returned value is also the horizontal run left for the arc, which is
+     * used as the corner radius below so the curve meets the node tangentially
+     * instead of leaving a short flat stub at the join.
+     */
+    const convergeEndX = (band: number, toLane: number, x1: number, x2: number): number => {
+      const node = repo.layout.nodes[band + 1]
+      const commit = repo.commits[band + 1]
+      if (!node || !commit || node.lane !== toLane) return x2
+      const inset = nodeEdgeEndInset(nodeSize.value, commit.isMerge)
+      if (inset <= 0) return x2
+      return x2 + Math.sign(x1 - x2) * Math.min(inset, Math.abs(x1 - x2))
+    }
+
     const visibleCommitIndices = items
       .map((item) => resolveCommitIndex(item.index))
       .filter((index): index is number => index !== null)
@@ -107,11 +129,16 @@ export function useCommitGraphOverlay(options: {
           const seg = segments[i]
           const x1 = laneX(seg.fromLane, laneWidth)
           const x2 = laneX(seg.toLane, laneWidth)
-          const cornerRadius = Math.min(
-            seg.kind === 'merge' ? 9 : 6,
-            laneWidth.value * 0.35,
-          )
-          const d = graphEdgePath(x1, y1, x2, y2, cornerRadius, seg.kind)
+          const x2e =
+            seg.kind === 'converge' ? convergeEndX(band, seg.toLane, x1, x2) : x2
+          // A converging edge that lands on a node should sweep into it: take
+          // the whole horizontal run as the corner radius (capped to half a
+          // lane) so there is no leftover straight segment against the ring.
+          const cornerRadius =
+            seg.kind === 'converge' && x2e !== x2
+              ? Math.min(Math.abs(x1 - x2e), laneWidth.value * 0.5)
+              : Math.min(seg.kind === 'merge' ? 9 : 6, laneWidth.value * 0.35)
+          const d = graphEdgePath(x1, y1, x2e, y2, cornerRadius, seg.kind)
           edges.push({ key: `${band}-${i}`, d, color: seg.color, dimmed: isCommitDimmed(band) })
         }
       }

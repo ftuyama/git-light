@@ -66,3 +66,32 @@ export const STATUS_META: Record<FileStatus, StatusMeta> = {
 }
 
 export const STATUS_ORDER: FileStatus[] = ['modified', 'added', 'untracked', 'deleted', 'renamed', 'conflicted']
+
+export interface FileStatusGroup {
+  status: FileStatus
+  count: number
+}
+
+/**
+ * Group files into the display-order status summary used by the working tree
+ * and commit rows. Untracked files count as added.
+ */
+export function groupFileStatuses(files: { status: FileStatus }[]): FileStatusGroup[] {
+  const counts = new Map<FileStatus, number>()
+  for (const file of files) {
+    counts.set(file.status, (counts.get(file.status) ?? 0) + 1)
+  }
+  const added = (counts.get('added') ?? 0) + (counts.get('untracked') ?? 0)
+  const groups: FileStatusGroup[] = []
+  const push = (status: FileStatus, count: number | undefined) => {
+    if (count) groups.push({ status, count })
+  }
+  push('modified', counts.get('modified'))
+  push('added', added)
+  push('deleted', counts.get('deleted'))
+  push('renamed', counts.get('renamed'))
+  push('copied', counts.get('copied'))
+  push('conflicted', counts.get('conflicted'))
+  push('ignored', counts.get('ignored'))
+  return groups
+}

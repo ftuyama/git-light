@@ -47,7 +47,9 @@ Git Light is a Tauri 2 desktop app with a Vue 3 renderer. The UI depends on a `G
 | `actions.ts` | `GitActionKind` + `GitAction` — single source of truth |
 | `errors.ts` | `GitError`, `classifyGitError()`, serialized error payloads |
 | `refLabel.ts` | Branch/tag/ref display labels shared by renderer and parsers |
-| `avatar.ts` | Gravatar URL helpers for commit authors |
+| `avatar.ts` | Avatar URL helpers (GitHub login, Gravatar hash) and initials for commit authors |
+| `githubAuthors.ts` | Parse repo commit payloads into email → GitHub login maps |
+| `md5.ts` | MD5 hex digest, used for Gravatar avatar URLs |
 | `rebase.ts` | Interactive rebase entry types and sequence helpers |
 | `undoPolicy.ts` | Reflog-based undo/redo eligibility rules |
 | `destructive.ts` | Shared destructive-action set for UI + ActionRouter |
@@ -78,6 +80,8 @@ Git Light is a Tauri 2 desktop app with a Vue 3 renderer. The UI depends on a `G
 | `updater.ts` + `updateCheck.ts` (`src/lib/tauri/`) | GitHub Releases check, semver compare, snooze |
 | `favorites.ts` (`src/lib/tauri/`) | Pinned-branch persistence bridge |
 | `keybindings.ts` (`src/lib/`) | Central shortcut registry (`COMMAND_IDS`), defaults, conflict detection, persistence |
+| `avatarCache.ts` (`src/lib/`) | Per-author avatar lookup cache (GitHub login, per-source misses), localStorage-backed |
+| `githubAvatarSync.ts` (`src/lib/`) | Reads public GitHub commits once per repository per day to fill the email → login map |
 | `imageFiles.ts` / `imageZoom.ts` (`src/lib/`) | Image-path detection + zoom/pan transform helpers for `ImageDiffView` |
 | `graphFilter.ts` (`src/lib/graph/`) | Local commit/stash matcher that dims non-matching graph rows during search |
 | `MockGitService.ts` | Generated data; used when `VITE_USE_MOCK=true` (browser/dev) |

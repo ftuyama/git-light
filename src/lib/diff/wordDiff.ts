@@ -7,9 +7,42 @@ export interface WordSegment {
 
 const MAX_TOKENS_FOR_LCS = 200
 
+/**
+ * Split on word boundaries, keeping whitespace attached to the token before it.
+ * Whitespace must not be its own token: the LCS compares tokens by equality, so
+ * a bare space would freely "match" an unrelated space elsewhere on the line and
+ * punch unhighlighted holes inside an otherwise changed run.
+ */
 function tokenize(text: string): string[] {
   if (!text) return []
-  return text.split(/(\s+)/).filter((t) => t.length > 0)
+  const tokens: string[] = []
+  for (const part of text.split(/(\s+)/)) {
+    if (!part) continue
+    if (/^\s+$/.test(part) && tokens.length > 0) {
+      tokens[tokens.length - 1] += part
+    } else {
+      tokens.push(part)
+    }
+  }
+  return tokens
+}
+
+/**
+ * Coalesce neighbouring segments with the same `changed` state so a changed run
+ * renders as one continuous tint instead of one little box per word.
+ */
+function mergeSegments(segments: WordSegment[]): WordSegment[] {
+  const merged: WordSegment[] = []
+  for (const seg of segments) {
+    if (!seg.text) continue
+    const last = merged[merged.length - 1]
+    if (last && last.changed === seg.changed) {
+      last.text += seg.text
+    } else {
+      merged.push({ text: seg.text, changed: seg.changed })
+    }
+  }
+  return merged
 }
 
 function commonPrefixLen(a: string[], b: string[]): number {
@@ -110,7 +143,7 @@ export function diffWords(
     const oldMid = oldTokens.slice(prefix, oldTokens.length - suffix).join('')
     const newMid = newTokens.slice(prefix, newTokens.length - suffix).join('')
     return {
-      oldSegments: [
+      oldSegments: mergeSegments([
         ...(prefix > 0
           ? [{ text: oldTokens.slice(0, prefix).join(''), changed: false as const }]
           : []),
@@ -123,8 +156,8 @@ export function diffWords(
               },
             ]
           : []),
-      ],
-      newSegments: [
+      ]),
+      newSegments: mergeSegments([
         ...(prefix > 0
           ? [{ text: newTokens.slice(0, prefix).join(''), changed: false as const }]
           : []),
@@ -137,7 +170,7 @@ export function diffWords(
               },
             ]
           : []),
-      ],
+      ]),
     }
   }
 
@@ -201,7 +234,7 @@ export function diffWords(
   }
   flushRuns()
 
-  return { oldSegments, newSegments }
+  return { oldSegments: mergeSegments(oldSegments), newSegments: mergeSegments(newSegments) }
 }
 
 /** True when an inline word highlight is meaningful for the pair. */

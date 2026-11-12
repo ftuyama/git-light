@@ -7,10 +7,7 @@ pub const RECORD: char = '\x1e';
 
 /// Pretty-format for `git log`. Must stay in sync with the TS `LOG_FORMAT`.
 pub fn log_format() -> String {
-    [
-        "%H", "%P", "%an", "%ae", "%cn", "%ce", "%at", "%D", "%s", "%b",
-    ]
-    .join(&FIELD.to_string())
+    ["%H", "%P", "%an", "%ae", "%cn", "%ce", "%at", "%D", "%B"].join(&FIELD.to_string())
         + &RECORD.to_string()
 }
 
@@ -241,12 +238,12 @@ pub fn parse_commits(stdout: &str, authors: &mut AuthorRegistry) -> Vec<WireComm
             continue;
         }
         let fields: Vec<&str> = cleaned.split(FIELD).collect();
-        if fields.len() < 10 {
+        if fields.len() < 9 {
             continue;
         }
-        let (sha, parents_raw, an, ae, cn, ce, at, decorations, subject, body) = (
+        let (sha, parents_raw, an, ae, cn, ce, at, decorations, message) = (
             fields[0], fields[1], fields[2], fields[3], fields[4], fields[5], fields[6], fields[7],
-            fields[8], fields[9],
+            fields[8],
         );
         if sha.is_empty() {
             continue;
@@ -256,7 +253,15 @@ pub fn parse_commits(stdout: &str, authors: &mut AuthorRegistry) -> Vec<WireComm
         } else {
             parents_raw.split_whitespace().map(str::to_string).collect()
         };
-        let body_text = body.trim_end().to_string();
+        // `%B` keeps the message line breaks, unlike `%s` (which folds them into
+        // spaces) and `%b` (which drops lines before the first blank line).
+        // Treat the first line as the subject so messages written without a
+        // blank line after the title still get a separate body.
+        let message = message.trim_end_matches(['\r', '\n']);
+        let (subject, body_text) = match message.split_once('\n') {
+            Some((first, rest)) => (first.trim_end(), rest.trim().to_string()),
+            None => (message.trim_end(), String::new()),
+        };
         let Ok(timestamp) = at.trim().parse::<i64>() else {
             continue;
         };
@@ -405,7 +410,6 @@ mod tests {
             "1700000000",
             decorations,
             "subject",
-            "",
         ]
         .join(&FIELD.to_string())
             + &RECORD.to_string()
@@ -517,6 +521,51 @@ mod tests {
     }
 
     #[test]
+    fn splits_first_line_into_subject_when_body_has_no_blank_line() {
+        let record = [
+            "abc1234567890abcdef1234567890abcdef1234567",
+            "",
+            "Author",
+            "author@example.com",
+            "Author",
+            "author@example.com",
+            "1700000000",
+            "",
+            "Add a feature\n- first change\n- second change",
+        ]
+        .join(&FIELD.to_string())
+            + &RECORD.to_string();
+        let mut authors = AuthorRegistry::default();
+        let commits = parse_commits(&record, &mut authors);
+        assert_eq!(commits[0].subject, "Add a feature");
+        assert_eq!(
+            commits[0].body.as_deref(),
+            Some("- first change\n- second change")
+        );
+    }
+
+    #[test]
+    fn splits_subject_and_body_when_separated_by_blank_line() {
+        let record = [
+            "abc1234567890abcdef1234567890abcdef1234567",
+            "",
+            "Author",
+            "author@example.com",
+            "Author",
+            "author@example.com",
+            "1700000000",
+            "",
+            "Add a feature\n\nDetails of the change.",
+        ]
+        .join(&FIELD.to_string())
+            + &RECORD.to_string();
+        let mut authors = AuthorRegistry::default();
+        let commits = parse_commits(&record, &mut authors);
+        assert_eq!(commits[0].subject, "Add a feature");
+        assert_eq!(commits[0].body.as_deref(), Some("Details of the change."));
+    }
+
+    #[test]
     fn detects_cherry_picks() {
         let mut authors = AuthorRegistry::default();
         let body_record = [
@@ -528,8 +577,7 @@ mod tests {
             "author@example.com",
             "1700000000",
             "",
-            "fix",
-            "(cherry picked from commit deadbeef1234)",
+            "fix\n\n(cherry picked from commit deadbeef1234)",
         ]
         .join(&FIELD.to_string())
             + &RECORD.to_string();

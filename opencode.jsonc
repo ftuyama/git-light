@@ -4,7 +4,7 @@
   "formatter": true,
   "plugins": ["@upstash/context7-opencode"],
   "watcher": {
-    "ignore": ["target/**", "src-tauri/target/**", "src-tauri/gen/**", "dist/**", "out/**", "node_modules/**", "coverage/**"]
+    "ignore": ["target/**", "src-tauri/target/**", "src-tauri/gen/**", "dist/**", "out/**", "node_modules/**", "coverage/**", "worktrees/**"]
   },
   "permissions": [
     { "action": "shell", "resource": "cargo *", "effect": "allow" },

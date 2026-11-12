@@ -30,6 +30,15 @@ export interface GraphLayout {
   laneState?: GraphLaneState
 }
 
+/**
+ * Color of an edge segment. Straight and merge segments belong to the lane they
+ * target, but a convergence is the branch's own history reaching back into the
+ * lane it forked from, so it keeps the straying lane's color.
+ */
+export function edgeColor(fromLane: number, toLane: number, kind: GraphEdgeKind): string {
+  return laneColor(kind === 'converge' ? fromLane : toLane)
+}
+
 interface LaneContext {
   lanes: (string | null)[]
   waitingShas: Set<string>
@@ -136,7 +145,7 @@ function assignEdges(
     const key = `${fromLane}>${toLane}:${kind}`
     if (seen[band].has(key)) return
     seen[band].add(key)
-    bands[band].push({ fromLane, toLane, color: laneColor(toLane), kind })
+    bands[band].push({ fromLane, toLane, color: edgeColor(fromLane, toLane, kind), kind })
   }
 
   for (let i = startRow; i < commits.length; i++) {

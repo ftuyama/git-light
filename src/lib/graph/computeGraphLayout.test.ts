@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { computeGraphLayout, extendGraphLayout } from './computeGraphLayout'
+import { laneColor } from '@/lib/utils'
 import type { Commit } from '@/types/git'
 
 function makeCommit(sha: string, parents: string[]): Commit {
@@ -91,6 +92,38 @@ describe('computeGraphLayout', () => {
     ]
     const layout = computeGraphLayout(commits)
     expect(layout.nodes.find((node) => node.sha === 'a')!.lane).toBe(0)
+  })
+
+  it('colors the branch convergence with the branch lane, not the main lane', () => {
+    // main: m2 <- m1; test branched off m1 with t2 <- t1.
+    const commits = [
+      makeCommit('m2', ['m1']),
+      makeCommit('t2', ['t1']),
+      makeCommit('t1', ['m1']),
+      makeCommit('m1', []),
+    ]
+    const layout = computeGraphLayout(commits)
+    expect(layout.nodes.map((node) => node.lane)).toEqual([0, 1, 1, 0])
+
+    const branchLane = layout.nodes[1].lane
+    const converge = layout.bands[2].find((edge) => edge.kind === 'converge')
+    expect(converge).toBeDefined()
+    expect(converge!.fromLane).toBe(branchLane)
+    expect(converge!.toLane).toBe(0)
+    expect(converge!.color).toBe(laneColor(branchLane))
+    expect(converge!.color).not.toBe(laneColor(0))
+  })
+
+  it('keeps the merged branch color on a merge fan-out', () => {
+    const commits = [
+      makeCommit('m', ['d', 'f']),
+      makeCommit('d', ['a']),
+      makeCommit('f', ['a']),
+      makeCommit('a', []),
+    ]
+    const layout = computeGraphLayout(commits)
+    const mergeFork = layout.bands[0].find((edge) => edge.kind === 'merge')!
+    expect(mergeFork.color).toBe(laneColor(mergeFork.toLane))
   })
 
   it('handles an octopus merge with three parents', () => {

@@ -4,11 +4,15 @@ import { storeToRefs } from 'pinia'
 import BranchNameChipInput from './BranchNameChipInput.vue'
 import { useBranchInputFocus } from './composables/useBranchInputFocus'
 import { ROW_LEFT_PADDING } from './composables/useCommitGraphColumns'
+import type { CommitColumnWidthKey } from '@/lib/preferences'
 import { useRepositoryStore } from '@/stores/repository'
 import { PENDING_BRANCH_ROW, useSelectionStore } from '@/stores/selection'
 import { useUiStore } from '@/stores/ui'
-import { STATUS_META } from '@/features/working-tree/fileStatus'
-import type { FileStatus } from '@/types/git'
+import {
+  groupFileStatuses,
+  STATUS_META,
+  type FileStatusGroup,
+} from '@/features/working-tree/fileStatus'
 
 const props = defineProps<{
   graphWidth: number
@@ -16,6 +20,7 @@ const props = defineProps<{
   nodeSize: number
   rowHeight: number
   selected: boolean
+  fillColumn: CommitColumnWidthKey
 }>()
 
 const repo = useRepositoryStore()
@@ -34,28 +39,11 @@ const messageWidth = computed(() => {
   return `${len + 1}ch`
 })
 
-interface StatusGroup {
-  status: FileStatus
-  count: number
-}
-
-const statusBreakdown = computed<StatusGroup[]>(() => {
-  const counts = new Map<FileStatus, number>()
-  for (const file of repo.workingTree) {
-    counts.set(file.status, (counts.get(file.status) ?? 0) + 1)
-  }
-  const added = (counts.get('added') ?? 0) + (counts.get('untracked') ?? 0)
-  const groups: StatusGroup[] = []
-  if (counts.get('modified')) groups.push({ status: 'modified', count: counts.get('modified')! })
-  if (added) groups.push({ status: 'added', count: added })
-  if (counts.get('deleted')) groups.push({ status: 'deleted', count: counts.get('deleted')! })
-  if (counts.get('renamed')) groups.push({ status: 'renamed', count: counts.get('renamed')! })
-  if (counts.get('copied')) groups.push({ status: 'copied', count: counts.get('copied')! })
-  if (counts.get('conflicted'))
-    groups.push({ status: 'conflicted', count: counts.get('conflicted')! })
-  if (counts.get('ignored')) groups.push({ status: 'ignored', count: counts.get('ignored')! })
-  if (!groups.length && changedCount.value)
+const statusBreakdown = computed<FileStatusGroup[]>(() => {
+  const groups = groupFileStatuses(repo.workingTree)
+  if (!groups.length && changedCount.value) {
     groups.push({ status: 'modified', count: changedCount.value })
+  }
   return groups
 })
 
@@ -127,7 +115,8 @@ function onBranchNameCancel(): void {
     />
 
     <div
-      class="relative flex shrink-0 items-center gap-2 px-2"
+      class="relative flex items-center gap-2 px-2"
+      :class="fillColumn === 'commit' ? 'min-w-0 flex-auto' : 'shrink-0'"
       :style="{ width: `${columnWidths.commit}px` }"
     >
       <input

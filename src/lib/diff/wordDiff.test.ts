@@ -29,6 +29,28 @@ describe('diffWords', () => {
     expect(changed).toBe('1')
     expect(oldSegments.map((s) => s.text).join('')).toBe('foo1')
   })
+
+  it('never matches an unrelated space from the other line', () => {
+    const { newSegments } = diffWords(
+      '| Cached `author` avatar URLs |',
+      '| Cached GitHub logins and failed avatar sources per author email |',
+    )
+    const changed = newSegments.filter((s) => s.changed).map((s) => s.text).join('')
+    // The changed run must be contiguous: no unhighlighted space inside it.
+    expect(changed).toContain('GitHub logins')
+    expect(changed).toContain('sources per author email')
+  })
+
+  it('merges adjacent segments with the same state into one run', () => {
+    const { oldSegments, newSegments } = diffWords('foo bar baz', 'foo qux quux baz')
+    for (const segs of [oldSegments, newSegments]) {
+      for (let i = 1; i < segs.length; i++) {
+        expect(segs[i].changed).not.toBe(segs[i - 1].changed)
+      }
+    }
+    expect(newSegments.filter((s) => s.changed).map((s) => s.text).join('')).toBe('qux quux ')
+    expect(newSegments.map((s) => s.text).join('')).toBe('foo qux quux baz')
+  })
 })
 
 describe('shouldInlineHighlight', () => {
@@ -51,6 +73,12 @@ describe('renderInlineDiff', () => {
     // Unchanged part is present without a word wrapper around the whole line.
     expect(newHtml).toContain('const foo =')
     expect(newHtml).not.toMatch(/^<span class="diff-word-add">.*<\/span>$/)
+  })
+
+  it('emits a single span for a multi-word changed run', () => {
+    const { newHtml } = renderInlineDiff('a foo b', 'a one two b', 'plaintext')
+    expect(newHtml).toBe('a <span class="diff-word-add">one two </span>b')
+    expect(newHtml).not.toContain('</span><span')
   })
 
   it('escapes markup in changed segments', () => {

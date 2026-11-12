@@ -173,7 +173,7 @@ watch(compareRange, (range) => {
       <CommitDetailHeader
         v-if="selectedCommit"
         :commit="selectedCommit"
-        :file-count="commitFiles.length"
+        :files="commitFiles"
       />
 
       <div class="flex min-h-0 flex-1 flex-col">

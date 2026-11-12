@@ -1,16 +1,24 @@
 <script setup lang="ts">
+import { computed } from 'vue'
 import { Copy, GitMerge } from '@lucide/vue'
 import Avatar from '@/components/ui/Avatar.vue'
 import { fullTimestamp, relativeTime } from '@/lib/format'
-import type { Commit } from '@/types/git'
+import type { Commit, FileStatus, WorkingTreeFile } from '@/types/git'
 import { useToastStore } from '@/stores/toast'
+import { groupFileStatuses, STATUS_META } from './fileStatus'
 
 const props = defineProps<{
   commit: Commit
-  fileCount: number
+  files: WorkingTreeFile[]
 }>()
 
 const toast = useToastStore()
+
+const statusBreakdown = computed(() => groupFileStatuses(props.files))
+
+function statusLabel(status: FileStatus): string {
+  return STATUS_META[status].label.toLowerCase()
+}
 
 function copySha(): void {
   void navigator.clipboard?.writeText(props.commit.sha)
@@ -24,12 +32,12 @@ function shortParent(sha: string): string {
 
 <template>
   <div class="shrink-0 border-b border-[var(--color-border)] px-3 py-2.5">
-    <p class="text-[13px] font-medium leading-snug text-[var(--color-fg)]">
+    <p class="text-[15px] font-semibold leading-snug text-[var(--color-fg)]">
       {{ commit.subject }}
     </p>
     <p
       v-if="commit.body?.trim()"
-      class="mt-1 max-h-20 overflow-y-auto whitespace-pre-wrap text-[12px] leading-relaxed text-[var(--color-fg-muted)]"
+      class="mt-2 max-h-20 overflow-y-auto border-t border-[var(--color-border)] pt-2 whitespace-pre-wrap text-[12px] leading-relaxed text-[var(--color-fg-muted)]"
     >
       {{ commit.body.trim() }}
     </p>
@@ -73,8 +81,29 @@ function shortParent(sha: string): string {
         {{ commit.shortSha }}
         <Copy :size="11" />
       </button>
-      <span class="text-[var(--color-fg-subtle)]">·</span>
-      <span class="text-[var(--color-fg-muted)]">{{ fileCount }} {{ fileCount === 1 ? 'file' : 'files' }}</span>
+      <span v-if="statusBreakdown.length" class="text-[var(--color-fg-subtle)]">·</span>
+      <span
+        v-if="statusBreakdown.length"
+        class="flex flex-wrap items-center gap-x-2.5 gap-y-1 text-[var(--color-fg-muted)]"
+      >
+        <span
+          v-for="group in statusBreakdown"
+          :key="group.status"
+          class="flex items-center gap-1"
+          :title="STATUS_META[group.status].label"
+        >
+          <component
+            :is="STATUS_META[group.status].icon"
+            v-if="STATUS_META[group.status].icon"
+            :size="11"
+            :style="{ color: STATUS_META[group.status].color }"
+          />
+          <span v-else class="font-mono" :style="{ color: STATUS_META[group.status].color }">
+            {{ STATUS_META[group.status].letter }}
+          </span>
+          <span>{{ group.count }} {{ statusLabel(group.status) }}</span>
+        </span>
+      </span>
     </div>
 
   </div>

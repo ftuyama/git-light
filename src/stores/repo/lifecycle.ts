@@ -16,6 +16,7 @@ import { isAutoFetchInFlight } from './gitActions'
 import { useRepoTabsStore } from '@/stores/repoTabs'
 import { applyCachedTabState, useRepoTabCacheStore, type CachedTabState } from '@/stores/repoTabCache'
 import { markBackendRepoPending, whenBackendRepoReady } from '@/lib/tauri/backendGate'
+import { syncGithubAuthors } from '@/lib/githubAvatarSync'
 import type { RepositoryState } from './types'
 import { sameRepoPath } from '@/lib/git/repoPath'
 
@@ -233,6 +234,9 @@ export const lifecycleActions = {
       commitPage: page ?? gitService.commitPage ?? { ...EMPTY_PAGE },
       layout,
     })
+
+    // Best-effort: resolve commit-author emails to GitHub avatars in the background.
+    void syncGithubAuthors(data.repository?.remoteUrl)
   },
 
   resetCommitBox(this: LifecycleStore): void {

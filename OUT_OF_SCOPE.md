@@ -25,9 +25,8 @@ For what **is** planned, see [README.md](README.md).
 | Issue tracker links | Host-specific; low value without OAuth. |
 | CI pipeline status on commits | Requires host APIs (GitHub Actions, GitLab CI, etc.), polling or webhooks, and auth — same surface as OAuth integrations. |
 | Multi-account / multi-org profiles | Enterprise multi-account territory. |
-| Avatars or metadata from hosting APIs | Gravatar from commit email is sufficient for local work. |
 
-**In scope instead:** parse `remote -v` for basic “open on GitHub” (or equivalent) deep links where possible.
+**In scope instead:** parse `remote -v` for basic “open on GitHub” (or equivalent) deep links where possible, and read public GitHub author avatars from the commits API (no OAuth, no token).
 
 ---
 

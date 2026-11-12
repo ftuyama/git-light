@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, ref } from 'vue'
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { GitCommitHorizontal, Inbox, Settings } from '@lucide/vue'
 import CommitRow from './CommitRow.vue'
 import PendingChangesRow from './PendingChangesRow.vue'
@@ -10,7 +10,10 @@ import DropdownMenu from '@/components/ui/DropdownMenu.vue'
 import { useRepoDiffStore } from '@/stores/repoDiff'
 import ConflictPanel from '@/features/conflicts/ConflictPanel.vue'
 import DiffPanel from '@/features/diff/DiffPanel.vue'
-import { useCommitGraphColumns } from './composables/useCommitGraphColumns'
+import {
+  ROW_LEFT_PADDING,
+  useCommitGraphColumns,
+} from './composables/useCommitGraphColumns'
 import { useCommitGraphOverlay } from './composables/useCommitGraphOverlay'
 import { useCommitGraphScroll } from './composables/useCommitGraphScroll'
 import {
@@ -26,6 +29,8 @@ import { buildTimeMarkers } from '@/lib/graph/timeMarkers'
 
 const diffStore = useRepoDiffStore()
 const ui = useUiStore()
+/** Width of the body's vertical scrollbar, reserved on the header side too. */
+const scrollbarWidth = ref(0)
 const { repo, showLoading, hasPendingRow, headIndex, pendingRowSelected } = useCommitGraphState()
 const {
   selectedSha,
@@ -41,13 +46,40 @@ const {
   refsColumnWidth,
   graphColumnWidth,
   columnMenu,
+  fillColumn,
+  headerContentWidth,
   rowContentWidth,
   resizeColumn,
-} = useCommitGraphColumns()
+} = useCommitGraphColumns(scrollbarWidth)
 const { rowHeight, laneWidth, nodeSize, selectionRingRadius, onWheel } = useCommitGraphZoom()
 const graphScroll = useCommitGraphScroll()
 const { scrollEl, headerScrollEl, syncHorizontalScroll, onBodyScroll } = graphScroll
 void headerScrollEl
+
+/**
+ * Measure the body scrollbar so the header can reserve the same width on its
+ * right edge; otherwise the last header cell sits ~scrollbar-width too far right.
+ */
+let scrollbarObserver: ResizeObserver | undefined
+function measureScrollbarWidth(): void {
+  const el = scrollEl.value
+  scrollbarWidth.value = el ? Math.max(0, el.offsetWidth - el.clientWidth) : 0
+}
+watch(
+  scrollEl,
+  (el) => {
+    scrollbarObserver?.disconnect()
+    scrollbarObserver = undefined
+    if (!el) {
+      scrollbarWidth.value = 0
+      return
+    }
+    measureScrollbarWidth()
+    scrollbarObserver = new ResizeObserver(measureScrollbarWidth)
+    scrollbarObserver.observe(el)
+  },
+  { immediate: true },
+)
 const {
   virtualItems,
   totalSize,
@@ -70,6 +102,7 @@ const { graphContentWidth, visibleEdges, visibleNodes, laneX } = useCommitGraphO
   pendingRowSelected,
   rowHeight,
   laneWidth,
+  nodeSize,
   resolveCommitIndex,
   resolveStashIndex,
   virtualIndexForCommitIndex,
@@ -93,6 +126,8 @@ onMounted(() => {
 
 onUnmounted(() => {
   if (nowTimer !== undefined) clearInterval(nowTimer)
+  scrollbarObserver?.disconnect()
+  scrollbarObserver = undefined
 })
 
 /**
@@ -177,7 +212,7 @@ function checkoutCommitAt(commitIndex: number, event?: Event): void {
           <div v-show="!diffStore.selectedFilePath" class="flex min-h-0 flex-1 flex-col">
     <!-- Column header -->
     <div
-      class="flex h-8 shrink-0 items-stretch border-b border-[var(--color-border)]"
+      class="relative flex h-8 shrink-0 items-stretch border-b border-[var(--color-border)]"
     >
       <div
         ref="headerScrollEl"
@@ -186,7 +221,10 @@ function checkoutCommitAt(commitIndex: number, event?: Event): void {
       >
         <div
           class="flex h-full items-center pr-3 pl-3 text-[11px] font-semibold tracking-wide text-[var(--color-fg-subtle)] uppercase"
-          :style="{ minWidth: `${rowContentWidth}px` }"
+          :style="{
+            minWidth: `${headerContentWidth}px`,
+            paddingRight: `${ROW_LEFT_PADDING + scrollbarWidth}px`,
+          }"
         >
           <CommitGraphHeaderCell
             label="Branch / tag"
@@ -203,6 +241,7 @@ function checkoutCommitAt(commitIndex: number, event?: Event): void {
           <CommitGraphHeaderCell
             label="Commit"
             :width="columnWidths.commit"
+            :grow="fillColumn === 'commit'"
             resizable
             @resize="resizeColumn('commit', $event)"
           />
@@ -210,6 +249,7 @@ function checkoutCommitAt(commitIndex: number, event?: Event): void {
             v-if="columns.author"
             label="Author"
             :width="columnWidths.author"
+            :grow="fillColumn === 'author'"
             align="right"
             resizable
             @resize="resizeColumn('author', $event)"
@@ -218,6 +258,7 @@ function checkoutCommitAt(commitIndex: number, event?: Event): void {
             v-if="columns.sha"
             label="SHA"
             :width="columnWidths.sha"
+            :grow="fillColumn === 'sha'"
             resizable
             @resize="resizeColumn('sha', $event)"
           />
@@ -225,13 +266,14 @@ function checkoutCommitAt(commitIndex: number, event?: Event): void {
             v-if="columns.when"
             label="When"
             :width="columnWidths.when"
+            :grow="fillColumn === 'when'"
             align="right"
             resizable
             @resize="resizeColumn('when', $event)"
           />
         </div>
       </div>
-      <div class="flex shrink-0 items-center pr-3">
+      <div class="absolute top-0 right-0 z-10 flex h-full items-center pr-3">
         <DropdownMenu :items="columnMenu" align="end">
           <button
             class="app-no-drag focus-ring ml-1 flex h-6 w-6 shrink-0 items-center justify-center rounded text-[var(--color-fg-subtle)] transition-colors hover:bg-[var(--color-hover)] hover:text-[var(--color-fg)]"
@@ -402,6 +444,7 @@ function checkoutCommitAt(commitIndex: number, event?: Event): void {
               :stash="repo.stashes[resolveStashIndex(item.index)!]"
               :graph-width="graphColumnWidth"
               :row-height="rowHeight"
+              :fill-column="fillColumn"
               :selected="
                 selection.selectedStash ===
                 repo.stashes[resolveStashIndex(item.index)!]?.id
@@ -425,6 +468,7 @@ function checkoutCommitAt(commitIndex: number, event?: Event): void {
               :node-x="laneX(repo.layout.nodes[headIndex]?.lane ?? 0)"
               :node-size="nodeSize"
               :row-height="rowHeight"
+              :fill-column="fillColumn"
               :selected="pendingRowSelected"
             />
           </div>
@@ -450,6 +494,7 @@ function checkoutCommitAt(commitIndex: number, event?: Event): void {
               :node-x="laneX(repo.layout.nodes[resolveCommitIndex(item.index)!]?.lane ?? 0)"
               :node-size="nodeSize"
               :row-height="rowHeight"
+              :fill-column="fillColumn"
               :selected="selectedSha === repo.commits[resolveCommitIndex(item.index)!]?.sha"
             />
           </div>

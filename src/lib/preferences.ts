@@ -194,6 +194,7 @@ export interface UserPreferences {
   diffWordWrap: boolean
   signOffCommit: boolean
   signCommit: boolean
+  remoteAvatars: boolean
   autoFetchIntervalSec: number
   keybindings?: Keymap
 }
@@ -284,6 +285,7 @@ export function defaultPreferences(): UserPreferences {
     diffWordWrap: false,
     signOffCommit: false,
     signCommit: false,
+    remoteAvatars: true,
     autoFetchIntervalSec: DEFAULT_AUTO_FETCH_INTERVAL_SEC,
     keybindings: undefined,
   }
@@ -333,6 +335,7 @@ export function mergePreferences(saved: Partial<UserPreferences> | null): UserPr
     diffWordWrap: saved.diffWordWrap ?? defaults.diffWordWrap,
     signOffCommit: saved.signOffCommit ?? defaults.signOffCommit,
     signCommit: saved.signCommit ?? defaults.signCommit,
+    remoteAvatars: saved.remoteAvatars ?? defaults.remoteAvatars,
     autoFetchIntervalSec: clampAutoFetchIntervalSec(
       saved.autoFetchIntervalSec ?? defaults.autoFetchIntervalSec,
     ),

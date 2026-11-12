@@ -5,6 +5,8 @@ defineProps<{
   label: string
   description?: string
   modelValue: boolean
+  /** Optional DOM id used to scroll to and highlight the row from settings search. */
+  anchor?: string
 }>()
 
 defineEmits<{ 'update:modelValue': [boolean] }>()
@@ -12,6 +14,7 @@ defineEmits<{ 'update:modelValue': [boolean] }>()
 
 <template>
   <label
+    :id="anchor"
     class="flex cursor-pointer items-start justify-between gap-4 rounded-lg px-3 py-2.5 transition-colors hover:bg-[var(--color-hover)]"
   >
     <div class="min-w-0 pt-0.5">
