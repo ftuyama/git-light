@@ -3,6 +3,7 @@ import { Copy, GitMerge } from '@lucide/vue'
 import Avatar from '@/components/ui/Avatar.vue'
 import { fullTimestamp, relativeTime } from '@/lib/format'
 import type { Commit } from '@/types/git'
+import { translate } from '@/locales'
 import { useToastStore } from '@/stores/toast'
 
 const props = defineProps<{
@@ -14,7 +15,7 @@ const toast = useToastStore()
 
 function copySha(): void {
   void navigator.clipboard?.writeText(props.commit.sha)
-  toast.push('Copied SHA to clipboard', 'info')
+  toast.push(translate('workingTree.commit.shaCopied'), 'info')
 }
 
 function shortParent(sha: string): string {
@@ -37,13 +38,13 @@ function shortParent(sha: string): string {
     <div v-if="commit.isMerge" class="mt-1.5 flex flex-wrap items-center gap-1.5">
       <span
         class="shrink-0 text-[var(--color-info)]"
-        title="Merge commit"
-        aria-label="Merge commit"
+        :title="$t('workingTree.commit.mergeCommit')"
+        :aria-label="$t('workingTree.commit.mergeCommit')"
       >
         <GitMerge :size="14" />
       </span>
       <span class="text-[11px] text-[var(--color-fg-subtle)]">
-        Parents:
+        {{ $t('workingTree.commit.parents') }}
         <span
           v-for="(parent, index) in commit.parents"
           :key="parent"
@@ -74,7 +75,9 @@ function shortParent(sha: string): string {
         <Copy :size="11" />
       </button>
       <span class="text-[var(--color-fg-subtle)]">·</span>
-      <span class="text-[var(--color-fg-muted)]">{{ fileCount }} {{ fileCount === 1 ? 'file' : 'files' }}</span>
+      <span class="text-[var(--color-fg-muted)]">{{
+        $t('common.count.files', { count: fileCount })
+      }}</span>
     </div>
 
   </div>

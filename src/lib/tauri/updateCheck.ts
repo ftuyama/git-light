@@ -1,6 +1,7 @@
 import { ask, message } from '@tauri-apps/plugin-dialog'
 import { arch, platform } from '@tauri-apps/plugin-os'
 import { APP_VERSION } from '@shared/app/metadata'
+import { translate } from '@/locales'
 import { openExternalUrl } from './appBridge'
 import { selfUpdate } from './appSelfUpdate'
 import {
@@ -66,8 +67,8 @@ export async function runUpdateCheck(source: UpdateCheckSource): Promise<void> {
       const download = await ask(detail, {
         title,
         kind: 'info',
-        okLabel: 'Download',
-        cancelLabel: 'Later',
+        okLabel: translate('shell.update.download'),
+        cancelLabel: translate('shell.update.later'),
       })
       return download ? 'download' : 'later'
     },
@@ -88,8 +89,8 @@ export async function runUpdateCheck(source: UpdateCheckSource): Promise<void> {
               // Never strand the user: fall back to the browser download.
               console.error('[git-light] in-place update failed:', error)
               await message(
-                'In-place update failed, opening the GitHub download page instead.',
-                { title: 'Update failed', kind: 'warning' },
+                translate('shell.update.failedBody'),
+                { title: translate('shell.update.failedTitle'), kind: 'warning' },
               )
               return 'open-download' as const
             }
@@ -99,7 +100,7 @@ export async function runUpdateCheck(source: UpdateCheckSource): Promise<void> {
     platform: platform(),
     selfUpdateHint:
       platform() === 'macos'
-        ? '"Download" installs the new version in place and restarts the app.'
-        : 'Download starts the installer from GitHub.',
+        ? translate('shell.update.hintMac')
+        : translate('shell.update.hintOther'),
   })
 }

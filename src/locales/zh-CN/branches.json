@@ -1,1 +1,71 @@
-{}
+{
+  "sidebar": {
+    "hide": "隐藏左侧边栏",
+    "searchPlaceholder": "搜索分支",
+    "noMatches": "没有匹配“{query}”的分支",
+    "allHidden": "所有面板已隐藏 — 右键点击可显示面板"
+  },
+  "row": {
+    "dragHint": "拖到另一个分支上以进行合并或变基",
+    "pin": "固定分支",
+    "unpin": "取消固定分支"
+  },
+  "menu": {
+    "checkout": "检出",
+    "checkoutLocal": "检出本地分支",
+    "deleteRemote": "删除远程分支",
+    "createHere": "在此创建分支",
+    "setUpstream": "设置上游",
+    "compareWithCurrent": "与当前分支比较",
+    "pin": "固定到收藏",
+    "unpin": "取消固定",
+    "deleteInFolder": "删除文件夹“{folder}”中的 {count} 个分支",
+    "noneToDelete": "没有可删除的分支"
+  },
+  "tags": {
+    "checkout": "检出标签",
+    "deleteTag": "删除标签",
+    "create": "创建标签"
+  },
+  "stashes": {
+    "pop": "弹出",
+    "drop": "丢弃",
+    "summary": "基于 {branch} · {count} 个文件"
+  },
+  "worktrees": {
+    "reveal": "在访达中显示",
+    "remove": "移除工作树",
+    "add": "添加工作树"
+  },
+  "favorites": {
+    "empty": "固定分支后即可在此查看"
+  },
+  "integrate": {
+    "title": "整合分支",
+    "description": "选择如何将 {source} 与 {target} 整合。",
+    "mergeTitle": "合并到目标分支",
+    "mergeDescription": "将 {source} 合并到 {target}",
+    "mergeStrategy": "合并策略",
+    "merge": "使用所选策略合并",
+    "rebaseTitle": "变基到目标分支",
+    "rebaseDescription": "将 {source} 变基到 {target}"
+  },
+  "mergeModes": {
+    "default": {
+      "label": "默认",
+      "description": "尽可能快进，否则创建合并提交"
+    },
+    "ffOnly": {
+      "label": "仅快进",
+      "description": "无法快进时拒绝合并"
+    },
+    "noFf": {
+      "label": "禁用快进",
+      "description": "始终创建合并提交"
+    },
+    "squash": {
+      "label": "压缩",
+      "description": "将源分支的所有提交压缩为一个提交"
+    }
+  }
+}

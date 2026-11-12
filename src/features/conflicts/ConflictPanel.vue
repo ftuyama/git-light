@@ -41,13 +41,13 @@ function lineRows(text: string): string[] {
     >
       <span class="flex-1 truncate normal-case text-[var(--color-danger)]">{{ path }}</span>
       <span v-if="blockCount" class="font-mono text-[10px] normal-case text-[var(--color-warning)]">
-        {{ blockCount }} conflict{{ blockCount === 1 ? '' : 's' }}
+        {{ $t('common.count.conflicts', blockCount) }}
       </span>
       <button
         class="focus-ring rounded px-1.5 py-0.5 text-[10px] normal-case text-[var(--color-fg-subtle)] hover:bg-[var(--color-hover)]"
         @click="diffStore.selectFile(null)"
       >
-        Close
+        {{ $t('common.actions.close') }}
       </button>
     </header>
 
@@ -55,23 +55,23 @@ function lineRows(text: string): string[] {
       v-if="diffStore.conflictLoading"
       class="flex flex-1 items-center justify-center text-xs text-[var(--color-fg-subtle)]"
     >
-      <Loader2 :size="16" class="mr-2 animate-spin" /> Loading conflict…
+      <Loader2 :size="16" class="mr-2 animate-spin" /> {{ $t('conflicts.loading') }}
     </div>
 
     <div
       v-else-if="conflict?.binary"
       class="flex flex-1 items-center justify-center px-4 text-center text-xs text-[var(--color-fg-subtle)]"
     >
-      Binary file — resolve using an external merge tool or choose ours/theirs.
+      {{ $t('conflicts.binary') }}
     </div>
 
     <template v-else-if="conflict">
       <div class="flex shrink-0 items-center gap-2 border-b border-[var(--color-border)] px-3 py-2">
         <Button size="sm" variant="secondary" @click="repo.resolveConflictOurs(path!)">
-          Use Ours
+          {{ $t('conflicts.useOurs') }}
         </Button>
         <Button size="sm" variant="secondary" @click="repo.resolveConflictTheirs(path!)">
-          Use Theirs
+          {{ $t('conflicts.useTheirs') }}
         </Button>
         <Button
           v-if="!conflict.hasMarkers"
@@ -79,7 +79,7 @@ function lineRows(text: string): string[] {
           variant="primary"
           @click="repo.markConflictResolved(path!)"
         >
-          <Check :size="13" /> Mark Resolved
+          <Check :size="13" /> {{ $t('conflicts.markResolved') }}
         </Button>
       </div>
 
@@ -87,7 +87,7 @@ function lineRows(text: string): string[] {
         v-if="!conflict.hasMarkers"
         class="flex flex-1 items-center justify-center px-4 text-center text-xs text-[var(--color-fg-subtle)]"
       >
-        No conflict markers remain. Mark this file as resolved to stage it.
+        {{ $t('conflicts.noMarkers') }}
       </div>
 
       <div v-else class="conflict-view min-h-0 flex-1 overflow-y-auto p-2 space-y-3">
@@ -99,21 +99,21 @@ function lineRows(text: string): string[] {
           <header
             class="flex items-center justify-between gap-2 border-b border-[var(--color-border)] bg-[var(--color-danger)]/8 px-2 py-1.5 text-[10px] font-semibold uppercase tracking-wide text-[var(--color-fg-muted)]"
           >
-            <span>Conflict {{ block.index + 1 }}</span>
+            <span>{{ $t('conflicts.blockTitle', { index: block.index + 1 }) }}</span>
             <div class="flex items-center gap-1 normal-case">
               <Button
                 size="sm"
                 variant="ghost"
                 @click="repo.resolveConflictBlock(path!, block.index, 'ours')"
               >
-                Use Ours
+                {{ $t('conflicts.useOurs') }}
               </Button>
               <Button
                 size="sm"
                 variant="ghost"
                 @click="repo.resolveConflictBlock(path!, block.index, 'theirs')"
               >
-                Use Theirs
+                {{ $t('conflicts.useTheirs') }}
               </Button>
             </div>
           </header>
@@ -123,7 +123,7 @@ function lineRows(text: string): string[] {
               <div
                 class="border-b border-[var(--color-border)] bg-[var(--color-success)]/8 px-2 py-1 text-[10px] font-medium text-[var(--color-success)]"
               >
-                Ours — {{ block.oursLabel }}
+                {{ $t('conflicts.oursHeader', { label: block.oursLabel }) }}
               </div>
               <pre class="max-h-32 overflow-auto p-2 font-mono text-[11px] leading-5 text-[var(--color-fg)]"><code
                 v-for="(line, i) in lineRows(block.ours)"
@@ -136,7 +136,7 @@ function lineRows(text: string): string[] {
               <div
                 class="border-b border-[var(--color-border)] bg-[var(--color-info)]/8 px-2 py-1 text-[10px] font-medium text-[var(--color-info)]"
               >
-                Theirs — {{ block.theirsLabel }}
+                {{ $t('conflicts.theirsHeader', { label: block.theirsLabel }) }}
               </div>
               <pre class="max-h-32 overflow-auto p-2 font-mono text-[11px] leading-5 text-[var(--color-fg)]"><code
                 v-for="(line, i) in lineRows(block.theirs)"
@@ -152,7 +152,7 @@ function lineRows(text: string): string[] {
             class="border-t border-[var(--color-border)] bg-[var(--color-panel)]"
           >
             <div class="px-2 py-1 text-[10px] font-medium text-[var(--color-fg-muted)]">
-              Base (common ancestor)
+              {{ $t('conflicts.base') }}
             </div>
             <pre class="max-h-20 overflow-auto px-2 pb-2 font-mono text-[11px] leading-5 text-[var(--color-fg-muted)]"><code
               v-for="(line, i) in lineRows(block.base)"
@@ -169,7 +169,7 @@ function lineRows(text: string): string[] {
       v-else
       class="flex flex-1 items-center justify-center px-4 text-center text-xs text-[var(--color-fg-subtle)]"
     >
-      <X :size="14" class="mr-1.5 shrink-0" /> Could not load conflict details.
+      <X :size="14" class="mr-1.5 shrink-0" /> {{ $t('conflicts.loadError') }}
     </div>
   </section>
 </template>

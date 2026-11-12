@@ -1,1 +1,43 @@
-{}
+{
+  "title": "命令面板",
+  "placeholder": "输入命令或分支…",
+  "empty": "没有匹配的命令。",
+  "checkoutBranch": "检出 {branch}",
+  "commands": {
+    "fetch": "获取",
+    "fetchAll": "全部获取（清理）",
+    "pull": "拉取",
+    "push": "推送",
+    "pushTags": "推送标签",
+    "prune": "清理过期的远程",
+    "sync": "同步（获取 + 拉取）",
+    "refresh": "刷新",
+    "stash": "贮藏更改",
+    "popStash": "弹出贮藏",
+    "merge": "合并分支…",
+    "rebase": "变基到…",
+    "interactiveRebase": "交互式变基…",
+    "cherryPick": "拣选提交…",
+    "createBranch": "创建分支…",
+    "createTag": "创建标签…",
+    "bisect": "开始二分查找…",
+    "lfsTrack": "使用 Git LFS 跟踪…",
+    "lfsUntrack": "停止使用 Git LFS 跟踪…",
+    "lfsPrune": "清理 Git LFS 对象",
+    "stageAll": "暂存所有更改",
+    "search": "搜索提交和文件…",
+    "terminal": "打开系统终端",
+    "sidebarLeft": "切换左侧边栏",
+    "sidebarRight": "切换右侧边栏",
+    "settings": "打开设置…"
+  },
+  "search": {
+    "title": "搜索仓库",
+    "placeholder": "搜索提交和文件…",
+    "searching": "正在搜索…",
+    "commits": "提交",
+    "files": "文件",
+    "noResults": "没有结果。按 Enter 搜索。",
+    "hint": "输入内容以搜索提交和已跟踪的文件。"
+  }
+}

@@ -1,4 +1,5 @@
 import { defineStore } from 'pinia'
+import { translate } from '@/locales'
 
 export interface ConfirmOptions {
   title: string
@@ -38,8 +39,8 @@ export const usePromptStore = defineStore('prompt', {
     message: '',
     placeholder: '',
     value: '',
-    confirmLabel: 'OK',
-    cancelLabel: 'Cancel',
+    confirmLabel: '',
+    cancelLabel: '',
     danger: false,
     resolver: null,
   }),
@@ -50,8 +51,8 @@ export const usePromptStore = defineStore('prompt', {
         this.mode = 'confirm'
         this.title = options.title
         this.message = options.message
-        this.confirmLabel = options.confirmLabel ?? 'Confirm'
-        this.cancelLabel = options.cancelLabel ?? 'Cancel'
+        this.confirmLabel = options.confirmLabel ?? translate('common.actions.confirm')
+        this.cancelLabel = options.cancelLabel ?? translate('common.actions.cancel')
         this.danger = options.danger ?? false
         this.resolver = (result) => resolve(result === true)
       })
@@ -65,8 +66,8 @@ export const usePromptStore = defineStore('prompt', {
         this.message = options.message ?? ''
         this.placeholder = options.placeholder ?? ''
         this.value = options.defaultValue ?? ''
-        this.confirmLabel = options.confirmLabel ?? 'OK'
-        this.cancelLabel = options.cancelLabel ?? 'Cancel'
+        this.confirmLabel = options.confirmLabel ?? translate('shell.dialog.ok')
+        this.cancelLabel = options.cancelLabel ?? translate('common.actions.cancel')
         this.danger = false
         this.resolver = (result) => resolve(typeof result === 'string' ? result : null)
       })

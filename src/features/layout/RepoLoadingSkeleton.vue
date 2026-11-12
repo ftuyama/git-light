@@ -54,7 +54,7 @@ function barWidth(seed: number, min: number, span: number): string {
         class="pointer-events-none absolute top-10 left-1/2 z-10 flex -translate-x-1/2 items-center gap-2 rounded-full border border-[var(--color-border)] bg-[var(--color-panel)] px-3 py-1 text-[11px] text-[var(--color-fg-muted)] shadow-sm"
       >
         <Loader2 :size="13" class="animate-spin" />
-        <span>Opening {{ repoName ?? 'repository' }}…</span>
+        <span>{{ $t('shell.skeleton.opening', { name: repoName ?? $t('shell.skeleton.fallbackName') }) }}</span>
       </div>
 
       <!-- Branch sidebar -->

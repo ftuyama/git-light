@@ -51,9 +51,11 @@ onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown, true))
         ? 'animate-pulse border-[var(--color-accent)] bg-[var(--color-accent-soft)] text-[var(--color-accent)]'
         : 'border-[var(--color-border)] bg-[var(--color-app)] text-[var(--color-fg-muted)] hover:border-[var(--color-accent)] hover:text-[var(--color-fg)]'
     "
-    :aria-label="recording ? 'Press keys for shortcut, Esc to cancel' : 'Click to record new shortcut'"
+    :aria-label="
+      recording ? $t('settings.shortcuts.recordingHint') : $t('settings.shortcuts.recordHint')
+    "
     @click="start"
   >
-    {{ recording ? 'Press keys…' : formatBindings(props.bindings) }}
+    {{ recording ? $t('settings.shortcuts.recording') : formatBindings(props.bindings) }}
   </button>
 </template>

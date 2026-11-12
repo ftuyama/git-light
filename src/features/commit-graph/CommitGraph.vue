@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { GitCommitHorizontal, Inbox, Settings } from '@lucide/vue'
 import CommitRow from './CommitRow.vue'
 import PendingChangesRow from './PendingChangesRow.vue'
@@ -24,6 +25,7 @@ import { commitMatchesFilter, isGraphFiltering, stashMatchesFilter } from '@/lib
 import { buildCommitIndex } from '@/lib/graph/commitIndex'
 import { buildTimeMarkers } from '@/lib/graph/timeMarkers'
 
+const { t } = useI18n()
 const diffStore = useRepoDiffStore()
 const ui = useUiStore()
 const { repo, showLoading, hasPendingRow, headIndex, pendingRowSelected } = useCommitGraphState()
@@ -132,11 +134,17 @@ function stashNodeX(stashIndex: number): number {
 /** Tooltip for the dotted stash box; names the base when it is floating. */
 function stashBoxTitle(stashIndex: number): string {
   const stash = repo.stashes[stashIndex]
-  if (!stash?.baseSha) return 'Stash (base desconhecida)'
+  if (!stash?.baseSha) return t('graph.stashRow.boxTitleNoBase')
+  const sha = stash.baseSha.slice(0, 7)
   const anchored = commitIndexBySha.value.has(stash.baseSha)
-  if (anchored) return `Stash sobre ${stash.baseSha.slice(0, 7)}`
-  const subject = stash.baseSubject ? ` “${stash.baseSubject}”` : ''
-  return `Stash sobre ${stash.baseSha.slice(0, 7)}${subject} — fora da vista carregada`
+  if (anchored) return t('graph.stashRow.boxTitle', { sha })
+  if (stash.baseSubject) {
+    return t('graph.stashRow.boxTitleOutsideViewWithSubject', {
+      sha,
+      subject: stash.baseSubject,
+    })
+  }
+  return t('graph.stashRow.boxTitleOutsideView', { sha })
 }
 
 const graphFilterText = computed(() => selection.graphFilter ?? '')
@@ -189,26 +197,26 @@ function checkoutCommitAt(commitIndex: number, event?: Event): void {
           :style="{ minWidth: `${rowContentWidth}px` }"
         >
           <CommitGraphHeaderCell
-            label="Branch / tag"
+            :label="$t('graph.columns.refs')"
             :width="refsColumnWidth"
             resizable
             @resize="resizeColumn('refs', $event)"
           />
           <CommitGraphHeaderCell
-            label="Graph"
+            :label="$t('graph.columns.graph')"
             :width="graphColumnWidth"
             resizable
             @resize="resizeColumn('graph', $event)"
           />
           <CommitGraphHeaderCell
-            label="Commit"
+            :label="$t('common.labels.commit')"
             :width="columnWidths.commit"
             resizable
             @resize="resizeColumn('commit', $event)"
           />
           <CommitGraphHeaderCell
             v-if="columns.author"
-            label="Author"
+            :label="$t('common.labels.author')"
             :width="columnWidths.author"
             align="right"
             resizable
@@ -216,14 +224,14 @@ function checkoutCommitAt(commitIndex: number, event?: Event): void {
           />
           <CommitGraphHeaderCell
             v-if="columns.sha"
-            label="SHA"
+            :label="$t('graph.columns.sha')"
             :width="columnWidths.sha"
             resizable
             @resize="resizeColumn('sha', $event)"
           />
           <CommitGraphHeaderCell
             v-if="columns.when"
-            label="When"
+            :label="$t('graph.columns.when')"
             :width="columnWidths.when"
             align="right"
             resizable
@@ -235,8 +243,8 @@ function checkoutCommitAt(commitIndex: number, event?: Event): void {
         <DropdownMenu :items="columnMenu" align="end">
           <button
             class="app-no-drag focus-ring ml-1 flex h-6 w-6 shrink-0 items-center justify-center rounded text-[var(--color-fg-subtle)] transition-colors hover:bg-[var(--color-hover)] hover:text-[var(--color-fg)]"
-            title="Show columns"
-            aria-label="Show columns"
+            :title="$t('graph.showColumns')"
+            :aria-label="$t('graph.showColumns')"
           >
             <Settings :size="14" />
           </button>
@@ -260,9 +268,9 @@ function checkoutCommitAt(commitIndex: number, event?: Event): void {
       class="flex flex-1 flex-col items-center justify-center gap-2 p-8 text-center"
     >
       <GitCommitHorizontal :size="32" class="text-[var(--color-fg-subtle)]" />
-      <p class="text-[14px] font-medium text-[var(--color-fg-muted)]">No commits yet</p>
+      <p class="text-[14px] font-medium text-[var(--color-fg-muted)]">{{ $t('graph.empty.title') }}</p>
       <p class="max-w-xs text-[12px] text-[var(--color-fg-subtle)]">
-        Make your first commit to see history appear here.
+        {{ $t('graph.empty.body') }}
       </p>
     </div>
 
@@ -481,7 +489,7 @@ function checkoutCommitAt(commitIndex: number, event?: Event): void {
         v-if="repo.loadingMoreCommits"
         class="sticky bottom-0 flex items-center justify-center py-2 text-[12px] text-[var(--color-fg-subtle)]"
       >
-        Loading more commits…
+        {{ $t('graph.loadingMore') }}
       </div>
     </div>
     </div>

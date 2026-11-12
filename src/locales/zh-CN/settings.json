@@ -1,4 +1,126 @@
 {
+  "button": "设置",
+  "dialog": {
+    "title": "偏好设置",
+    "close": "关闭偏好设置"
+  },
+  "categories": {
+    "general": "通用",
+    "appearance": "外观",
+    "layout": "布局",
+    "ui": "界面",
+    "commitGraph": "提交图",
+    "sidebar": "侧边栏",
+    "repository": "仓库",
+    "changes": "更改",
+    "commits": "提交",
+    "sync": "同步",
+    "application": "应用",
+    "shortcuts": "快捷键",
+    "credits": "致谢"
+  },
+  "appearance": {
+    "interface": "界面",
+    "interfaceDescription": "基础模式会隐藏贮藏、变基和终端等高级操作，高级模式则显示全部功能。",
+    "themeDescription": "选择应用界面的配色方案。",
+    "basic": "基础",
+    "basicDescription": "仅保留核心 Git 操作，隐藏贮藏、变基、拣选、标签等。",
+    "advanced": "高级",
+    "advancedDescription": "完整工具栏、侧边栏分区和提交操作。"
+  },
+  "language": {
+    "title": "语言",
+    "description": "应用界面语言。",
+    "system": "跟随系统",
+    "systemDescription": "跟随操作系统的语言。当前为 {language}。"
+  },
+  "layout": {
+    "description": "控制面板的显示与隐藏，并恢复默认的三栏布局。",
+    "panels": "面板",
+    "showLeftSidebar": "显示左侧边栏",
+    "showLeftSidebarDescription": "在左侧显示分支侧边栏。",
+    "showRightPanel": "显示右侧面板",
+    "showRightPanelDescription": "在右侧显示工作区和差异面板。",
+    "reset": "重置",
+    "resetDescription": "恢复默认面板大小并展开两侧面板。",
+    "resetAction": "重置面板布局"
+  },
+  "changes": {
+    "description": "控制更改的文件在工作区和提交面板中的列出方式。",
+    "fileList": "文件列表",
+    "treeView": "树状视图",
+    "treeViewDescription": "将更改的文件按可折叠的文件夹层级分组。"
+  },
+  "commits": {
+    "description": "应用于新提交的默认选项。",
+    "options": "提交选项",
+    "signOff": "为提交署名",
+    "signOffDescription": "在提交信息中添加 Signed-off-by 尾注（--signoff）。",
+    "sign": "为提交签名（GPG/SSH）",
+    "signDescription": "使用 GPG/SSH 密钥签名（-S）。需要在 git config 中设置 user.signingkey。"
+  },
+  "commitGraph": {
+    "description": "控制提交图中显示哪些提交以及显示哪些列。",
+    "history": "历史",
+    "showAllBranches": "显示所有分支",
+    "showAllBranchesDescription": "显示所有分支的提交，而不只是当前检出的分支。",
+    "recentCommits": "加载的最近提交数",
+    "recentCommitsDescription": "提交图获取的最大提交数。最小值为 {min}；推荐 {recommended}。",
+    "columns": "列",
+    "columnsDescription": "选择提交图各行中显示的可选列。",
+    "indicators": "指示器",
+    "timeIndicators": "时间指示器",
+    "timeIndicatorsDescription": "在提交图中的提交之间显示类似“一周前”的分隔线。",
+    "mergeIndicators": "合并指示器",
+    "mergeIndicatorsDescription": "在提交信息列中用合并图标标记合并提交。",
+    "columnWidths": "列宽",
+    "resetWidths": "重置列宽",
+    "columnWidthsDescription": "精确的像素宽度，也可以在提交图表头拖动列边缘。"
+  },
+  "columnDescriptions": {
+    "author": "在每行显示提交作者的头像和名称。",
+    "sha": "在每行显示提交的缩写哈希。",
+    "when": "显示每个提交是多久之前创建的。"
+  },
+  "sidebar": {
+    "description": "选择分支侧边栏各分区的显示方式：展开、折叠到标题，或完全隐藏。",
+    "sections": "分区"
+  },
+  "sectionDescriptions": {
+    "favorites": "置顶显示在侧边栏顶部的分支。",
+    "localBranches": "本地分支列表和分支分组。",
+    "remoteBranches": "按远程分组的远程跟踪分支。",
+    "tags": "仓库中的附注标签和轻量标签。",
+    "stashes": "已保存的贮藏，包含提交信息和分支上下文。",
+    "worktrees": "链接的工作树及其检出路径。"
+  },
+  "sync": {
+    "description": "无需离开应用即可保持远程跟踪分支为最新状态。",
+    "backgroundFetch": "后台获取",
+    "autoFetchInterval": "自动获取间隔",
+    "autoFetchIntervalDescription": "按计划静默获取所有远程。没有横幅、没有通知——提交图会自动更新。"
+  },
+  "intervals": {
+    "disabled": "已禁用",
+    "everyMinute": "每分钟",
+    "every5Minutes": "每 5 分钟",
+    "every10Minutes": "每 10 分钟",
+    "every30Minutes": "每 30 分钟",
+    "everyHour": "每小时",
+    "every2Hours": "每 2 小时"
+  },
+  "credits": {
+    "version": "版本 {version}",
+    "description": "免费开源的桌面 Git 客户端（Tauri 2、Vue 3、TypeScript、Rust）——以提交图为先的 GitKraken 替代方案，提供提交图、分支、暂存和真实的本地 Git 操作。",
+    "builtBy": "制作者",
+    "license": "{license} 许可证",
+    "website": "网站",
+    "sourceCode": "源代码",
+    "sponsor": "在 Ko-fi 上赞助",
+    "links": "链接",
+    "openSource": "开源",
+    "openSourceDescription": "Git Light 的实现离不开这些项目及其贡献者。"
+  },
   "columns": {
     "author": "作者",
     "sha": "SHA",
@@ -11,7 +133,8 @@
     "author": "作者",
     "sha": "SHA",
     "when": "时间",
-    "ariaLabel": "{name}列宽"
+    "ariaLabel": "{name}列宽",
+    "hidden": "{range} · 已隐藏"
   },
   "sections": {
     "favorites": "收藏",
@@ -55,6 +178,13 @@
   "shortcuts": {
     "disable": "禁用 {name} 快捷键",
     "reset": "重置 {name} 快捷键",
-    "conflictsWith": "冲突于：{names}"
+    "conflictsWith": "冲突于：{names}",
+    "description": "点击快捷键即可录制新的快捷键。按 Esc 取消。冲突的快捷键会高亮显示。",
+    "restoreDefaults": "恢复默认",
+    "disableTooltip": "禁用（清除快捷键）",
+    "resetTooltip": "恢复默认值",
+    "recordHint": "点击录制新的快捷键",
+    "recordingHint": "按下快捷键组合，按 Esc 取消",
+    "recording": "请按下按键…"
   }
 }

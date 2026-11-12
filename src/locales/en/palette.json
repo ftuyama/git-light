@@ -1,1 +1,43 @@
-{}
+{
+  "title": "Command palette",
+  "placeholder": "Type a command or branch…",
+  "empty": "No matching commands.",
+  "checkoutBranch": "Checkout {branch}",
+  "commands": {
+    "fetch": "Fetch",
+    "fetchAll": "Fetch All (prune)",
+    "pull": "Pull",
+    "push": "Push",
+    "pushTags": "Push Tags",
+    "prune": "Prune Stale Remotes",
+    "sync": "Sync (fetch + pull)",
+    "refresh": "Refresh",
+    "stash": "Stash Changes",
+    "popStash": "Pop Stash",
+    "merge": "Merge Branch…",
+    "rebase": "Rebase Onto…",
+    "interactiveRebase": "Interactive Rebase…",
+    "cherryPick": "Cherry Pick Commit…",
+    "createBranch": "Create Branch…",
+    "createTag": "Create Tag…",
+    "bisect": "Start Bisect…",
+    "lfsTrack": "Track with Git LFS…",
+    "lfsUntrack": "Untrack Git LFS…",
+    "lfsPrune": "Prune Git LFS Objects",
+    "stageAll": "Stage All Changes",
+    "search": "Search Commits and Files…",
+    "terminal": "Open System Terminal",
+    "sidebarLeft": "Toggle Left Sidebar",
+    "sidebarRight": "Toggle Right Sidebar",
+    "settings": "Open Settings…"
+  },
+  "search": {
+    "title": "Search repository",
+    "placeholder": "Search commits and files…",
+    "searching": "Searching…",
+    "commits": "Commits",
+    "files": "Files",
+    "noResults": "No results. Press Enter to search.",
+    "hint": "Type to search commits and tracked files."
+  }
+}

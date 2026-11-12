@@ -1,1 +1,29 @@
-{}
+{
+  "dialog": {
+    "title": "Interactive Rebase",
+    "ariaLabel": "Interactive rebase",
+    "onto": "Rebase onto",
+    "basePlaceholder": "HEAD~5, main, or commit SHA",
+    "load": "Load",
+    "commitsAfter": "{count} commit after {sha} | {count} commits after {sha}",
+    "warning": "This rewrites commit history. Reorder commits by dragging, choose an action for each row, then start the rebase.",
+    "loading": "Loading commits…",
+    "empty": "Enter a base ref and load commits to build your rebase plan.",
+    "start": "Start Rebase"
+  },
+  "actions": {
+    "pick": "Pick",
+    "reword": "Reword",
+    "edit": "Edit",
+    "squash": "Squash",
+    "fixup": "Fixup",
+    "drop": "Drop"
+  },
+  "row": {
+    "dragToReorder": "Drag to reorder",
+    "messagePlaceholder": "New commit message"
+  },
+  "toast": {
+    "baseRequired": "Enter a base ref (e.g. HEAD~5 or a branch)"
+  }
+}

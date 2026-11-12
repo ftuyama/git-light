@@ -103,7 +103,7 @@ function onBlur(): void {
       v-model="value"
       type="text"
       class="min-w-0 flex-1 bg-transparent text-[11px] font-medium outline-none placeholder:font-normal placeholder:text-[var(--color-fg-subtle)]"
-      placeholder="Enter branch name"
+      :placeholder="$t('graph.branchInput.placeholder')"
       spellcheck="false"
       @keydown="onKeydown"
       @blur="onBlur"

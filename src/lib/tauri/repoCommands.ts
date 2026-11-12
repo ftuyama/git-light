@@ -1,6 +1,7 @@
 import { open } from '@tauri-apps/plugin-dialog'
 import { usePromptStore } from '@/stores/prompt'
 import { useRepositoryStore } from '@/stores/repository'
+import { translate } from '@/locales'
 
 /**
  * Repository lifecycle commands that combine a native folder picker (or text
@@ -23,10 +24,10 @@ export async function pickFolder(): Promise<string | null> {
 export async function cloneRepository(): Promise<void> {
   const prompt = usePromptStore()
   const url = await prompt.prompt({
-    title: 'Clone repository',
-    message: 'Repository URL (https:// or git@host:). Auth uses your SSH keys or credential manager.',
+    title: translate('shell.clone.title'),
+    message: translate('shell.clone.promptMessage'),
     placeholder: 'https://github.com/org/repo.git',
-    confirmLabel: 'Next',
+    confirmLabel: translate('shell.clone.next'),
   })
   if (!url) return
   const parentPath = await pickFolder()
@@ -40,10 +41,10 @@ export async function initRepository(): Promise<void> {
   if (!folder) return
   const prompt = usePromptStore()
   const branch = await prompt.prompt({
-    title: 'Initialize repository',
-    message: `Initial branch for ${folder} (empty uses the git default).`,
+    title: translate('shell.init.title'),
+    message: translate('shell.init.promptMessage', { folder }),
     placeholder: 'main',
-    confirmLabel: 'Initialize',
+    confirmLabel: translate('shell.init.submit'),
   })
   if (branch === null) return
   await useRepositoryStore().initRepository({ path: folder, defaultBranch: branch || undefined })

@@ -1,1 +1,13 @@
-{}
+{
+  "loading": "Loading conflict…",
+  "binary": "Binary file — resolve with an external merge tool or choose ours/theirs.",
+  "useOurs": "Use Ours",
+  "useTheirs": "Use Theirs",
+  "markResolved": "Mark Resolved",
+  "noMarkers": "No conflict markers remain. Mark this file as resolved to stage it.",
+  "blockTitle": "Conflict {index}",
+  "oursHeader": "Ours — {label}",
+  "theirsHeader": "Theirs — {label}",
+  "base": "Base (common ancestor)",
+  "loadError": "Could not load conflict details."
+}

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, onUnmounted, ref, watch } from 'vue'
-import { GitCommitHorizontal, Heart, Keyboard, LayoutPanelLeft, Palette, PanelLeft, PenLine, RefreshCw, Rows3, X } from '@lucide/vue'
+import { Check, GitCommitHorizontal, Heart, Keyboard, LayoutPanelLeft, Palette, PanelLeft, PenLine, RefreshCw, Rows3, X } from '@lucide/vue'
 import { storeToRefs } from 'pinia'
 import { useI18n } from 'vue-i18n'
 import Button from '@/components/ui/Button.vue'
@@ -10,6 +10,7 @@ import SettingsSegmentedRow from './SettingsSegmentedRow.vue'
 import ThemePicker from './ThemePicker.vue'
 import UiModePicker from './UiModePicker.vue'
 import ShortcutRecorder from './ShortcutRecorder.vue'
+import { APP_LOCALES, LOCALE_LABELS, type AppLocale } from '@/lib/locales'
 import {
   COMMAND_IDS,
   COMMAND_META,
@@ -80,37 +81,42 @@ interface SettingsGroup {
 
 const preferenceGroups: SettingsGroup[] = [
   {
-    label: 'General',
+    label: 'settings.categories.general',
     items: [
-      { id: 'appearance', label: 'Appearance', icon: Palette },
-      { id: 'layout', label: 'Layout', icon: LayoutPanelLeft },
+      { id: 'appearance', label: 'settings.categories.appearance', icon: Palette },
+      { id: 'layout', label: 'settings.categories.layout', icon: LayoutPanelLeft },
     ],
   },
   {
-    label: 'UI',
+    label: 'settings.categories.ui',
     items: [
-      { id: 'commit-graph', label: 'Commit Graph', icon: GitCommitHorizontal },
-      { id: 'sidebar', label: 'Sidebar', icon: PanelLeft },
+      { id: 'commit-graph', label: 'settings.categories.commitGraph', icon: GitCommitHorizontal },
+      { id: 'sidebar', label: 'settings.categories.sidebar', icon: PanelLeft },
     ],
   },
   {
-    label: 'Repository',
+    label: 'settings.categories.repository',
     items: [
-      { id: 'changes', label: 'Changes', icon: Rows3 },
-      { id: 'commits', label: 'Commits', icon: PenLine },
-      { id: 'sync', label: 'Sync', icon: RefreshCw },
+      { id: 'changes', label: 'settings.categories.changes', icon: Rows3 },
+      { id: 'commits', label: 'settings.categories.commits', icon: PenLine },
+      { id: 'sync', label: 'settings.categories.sync', icon: RefreshCw },
     ],
   },
   {
-    label: 'Application',
+    label: 'settings.categories.application',
     items: [
-      { id: 'shortcuts', label: 'Shortcuts', icon: Keyboard },
-      { id: 'credits', label: 'Credits', icon: Heart },
+      { id: 'shortcuts', label: 'settings.categories.shortcuts', icon: Keyboard },
+      { id: 'credits', label: 'settings.categories.credits', icon: Heart },
     ],
   },
 ]
 
 const categories = preferenceGroups.flatMap((group) => group.items)
+
+const activeCategoryLabel = computed(() => {
+  const labelKey = categories.find((category) => category.id === activeCategory.value)?.label
+  return labelKey ? t(labelKey) : ''
+})
 
 const visibleShortcutGroups = computed(() => {
   const groups = new Map<CommandCategory, CommandId[]>()
@@ -146,18 +152,61 @@ function onCapture(id: CommandId, binding: KeyBinding): void {
 }
 
 const columnDescriptions: Record<CommitColumnKey, string> = {
-  author: 'Show the commit author avatar and name in each row.',
-  sha: 'Show the abbreviated commit hash in each row.',
-  when: 'Show how long ago each commit was made.',
+  author: 'settings.columnDescriptions.author',
+  sha: 'settings.columnDescriptions.sha',
+  when: 'settings.columnDescriptions.when',
 }
 
 const sectionDescriptions: Partial<Record<SectionKey, string>> = {
-  favorites: 'Pinned branches shown at the top of the sidebar.',
-  localBranches: 'Local branch list and branch groups.',
-  remoteBranches: 'Remote-tracking branches grouped by remote.',
-  tags: 'Annotated and lightweight tags in the repository.',
-  stashes: 'Saved stashes with message and branch context.',
-  worktrees: 'Linked worktrees and their checkout paths.',
+  favorites: 'settings.sectionDescriptions.favorites',
+  localBranches: 'settings.sectionDescriptions.localBranches',
+  remoteBranches: 'settings.sectionDescriptions.remoteBranches',
+  tags: 'settings.sectionDescriptions.tags',
+  stashes: 'settings.sectionDescriptions.stashes',
+  worktrees: 'settings.sectionDescriptions.worktrees',
+}
+
+function sectionDescription(key: SectionKey): string {
+  const descriptionKey = sectionDescriptions[key]
+  return descriptionKey ? t(descriptionKey) : ''
+}
+
+interface LanguageOption {
+  /** `null` follows the OS/browser locale. */
+  value: AppLocale | null
+  label: string
+  description?: string
+}
+
+const languageOptions = computed<LanguageOption[]>(() => [
+  {
+    value: null,
+    label: t('settings.language.system'),
+    description: t('settings.language.systemDescription', {
+      language: LOCALE_LABELS[ui.resolvedLocale],
+    }),
+  },
+  ...APP_LOCALES.map((code) => ({ value: code, label: LOCALE_LABELS[code] })),
+])
+
+function selectLanguage(value: AppLocale | null): void {
+  ui.setLocale(value)
+}
+
+const autoFetchIntervalKeys: Record<number, string> = {
+  0: 'settings.intervals.disabled',
+  60: 'settings.intervals.everyMinute',
+  300: 'settings.intervals.every5Minutes',
+  600: 'settings.intervals.every10Minutes',
+  1800: 'settings.intervals.every30Minutes',
+  3600: 'settings.intervals.everyHour',
+  7200: 'settings.intervals.every2Hours',
+}
+
+/** Catalog-backed interval labels, falling back to the formatter for new values. */
+function autoFetchIntervalLabel(sec: number): string {
+  const key = autoFetchIntervalKeys[sec]
+  return key ? t(key) : formatAutoFetchInterval(sec)
 }
 
 function onKeydown(event: KeyboardEvent): void {
@@ -190,7 +239,7 @@ function columnWidthHint(key: CommitColumnWidthKey): string {
   const { min, max } = COLUMN_WIDTH_LIMITS[key]
   const range = Number.isFinite(max) ? `${min}–${max} px` : `${min}+ px`
   if (key === 'refs' || key === 'graph' || key === 'commit') return range
-  return ui.isColumnVisible(key) ? range : `${range} · hidden`
+  return ui.isColumnVisible(key) ? range : t('settings.columnWidths.hidden', { range })
 }
 
 function columnWidthMax(key: CommitColumnWidthKey): number | undefined {
@@ -223,7 +272,7 @@ onUnmounted(() => document.removeEventListener('keydown', onKeydown))
         class="flex h-[min(560px,85vh)] w-full max-w-3xl overflow-hidden rounded-xl border border-[var(--color-border-strong)] bg-[var(--color-panel)] shadow-2xl"
         role="dialog"
         aria-modal="true"
-        aria-label="Preferences"
+        :aria-label="$t('settings.dialog.title')"
       >
         <!-- Sidebar nav -->
         <nav
@@ -237,7 +286,7 @@ onUnmounted(() => document.removeEventListener('keydown', onKeydown))
             <p
               class="mb-1 px-4 text-[11px] font-semibold tracking-wide text-[var(--color-fg-subtle)] uppercase"
             >
-              {{ group.label }}
+              {{ $t(group.label) }}
             </p>
             <button
               v-for="category in group.items"
@@ -251,7 +300,7 @@ onUnmounted(() => document.removeEventListener('keydown', onKeydown))
               @click="activeCategory = category.id"
             >
               <component :is="category.icon" :size="15" class="shrink-0" />
-              {{ category.label }}
+              {{ $t(category.label) }}
             </button>
           </div>
         </nav>
@@ -262,11 +311,11 @@ onUnmounted(() => document.removeEventListener('keydown', onKeydown))
             class="flex shrink-0 items-center justify-between border-b border-[var(--color-border)] px-5 py-3.5"
           >
             <h2 class="text-sm font-semibold text-[var(--color-fg)]">
-              {{ categories.find((c) => c.id === activeCategory)?.label }}
+              {{ activeCategoryLabel }}
             </h2>
             <button
               class="focus-ring rounded p-1 text-[var(--color-fg-subtle)] hover:bg-[var(--color-hover)] hover:text-[var(--color-fg)]"
-              aria-label="Close preferences"
+              :aria-label="$t('settings.dialog.close')"
               @click="ui.closeSettings()"
             >
               <X :size="16" />
@@ -280,42 +329,85 @@ onUnmounted(() => document.removeEventListener('keydown', onKeydown))
                 <h3
                   class="pb-1 text-[11px] font-semibold tracking-wide text-[var(--color-fg-subtle)] uppercase"
                 >
-                  Interface
+                  {{ $t('settings.appearance.interface') }}
                 </h3>
                 <p class="mb-3 text-[12px] text-[var(--color-fg-muted)]">
-                  Basic hides advanced actions like stash, rebase, and terminal. Advanced shows
-                  everything.
+                  {{ $t('settings.appearance.interfaceDescription') }}
                 </p>
                 <UiModePicker :model-value="uiMode" />
               </section>
               <p class="mb-3 px-3 text-[12px] text-[var(--color-fg-muted)]">
-                Choose a color palette for the application interface.
+                {{ $t('settings.appearance.themeDescription') }}
               </p>
               <section class="px-3">
                 <ThemePicker :model-value="theme" />
+              </section>
+              <section class="mt-6 px-3">
+                <h3
+                  class="pb-1 text-[11px] font-semibold tracking-wide text-[var(--color-fg-subtle)] uppercase"
+                >
+                  {{ $t('settings.language.title') }}
+                </h3>
+                <p class="mb-3 text-[12px] text-[var(--color-fg-muted)]">
+                  {{ $t('settings.language.description') }}
+                </p>
+                <div class="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                  <button
+                    v-for="option in languageOptions"
+                    :key="option.value ?? 'system'"
+                    type="button"
+                    class="focus-ring flex items-start gap-3 rounded-lg border px-3 py-3 text-left transition-colors"
+                    :class="
+                      ui.locale === option.value
+                        ? 'border-[var(--color-accent)] bg-[var(--color-accent-soft)]'
+                        : 'border-[var(--color-border)] hover:border-[var(--color-border-strong)] hover:bg-[var(--color-hover)]'
+                    "
+                    :aria-pressed="ui.locale === option.value"
+                    @click="selectLanguage(option.value)"
+                  >
+                    <div class="flex min-w-0 flex-1 flex-col gap-1">
+                      <div class="flex items-center gap-2">
+                        <span class="text-[13px] font-medium text-[var(--color-fg)]">
+                          {{ option.label }}
+                        </span>
+                        <Check
+                          v-if="ui.locale === option.value"
+                          :size="14"
+                          class="shrink-0 text-[var(--color-accent)]"
+                        />
+                      </div>
+                      <p
+                        v-if="option.description"
+                        class="text-[12px] leading-snug text-[var(--color-fg-muted)]"
+                      >
+                        {{ option.description }}
+                      </p>
+                    </div>
+                  </button>
+                </div>
               </section>
             </template>
 
             <!-- Layout -->
             <template v-else-if="activeCategory === 'layout'">
               <p class="mb-3 px-3 text-[12px] text-[var(--color-fg-muted)]">
-                Control panel visibility and restore the default three-pane layout.
+                {{ $t('settings.layout.description') }}
               </p>
               <section class="space-y-0.5">
                 <h3
                   class="px-3 pb-1 text-[11px] font-semibold tracking-wide text-[var(--color-fg-subtle)] uppercase"
                 >
-                  Panels
+                  {{ $t('settings.layout.panels') }}
                 </h3>
                 <SettingsRow
-                  label="Show Left Sidebar"
-                  description="Display the branch sidebar on the left."
+                  :label="$t('settings.layout.showLeftSidebar')"
+                  :description="$t('settings.layout.showLeftSidebarDescription')"
                   :model-value="!leftCollapsed"
                   @update:model-value="ui.setLeftVisible($event)"
                 />
                 <SettingsRow
-                  label="Show Right Panel"
-                  description="Display the working tree and diff panel on the right."
+                  :label="$t('settings.layout.showRightPanel')"
+                  :description="$t('settings.layout.showRightPanelDescription')"
                   :model-value="!rightCollapsed"
                   @update:model-value="ui.setRightVisible($event)"
                 />
@@ -324,30 +416,30 @@ onUnmounted(() => document.removeEventListener('keydown', onKeydown))
                 <h3
                   class="pb-1 text-[11px] font-semibold tracking-wide text-[var(--color-fg-subtle)] uppercase"
                 >
-                  Reset
+                  {{ $t('settings.layout.reset') }}
                 </h3>
                 <p class="text-[12px] text-[var(--color-fg-muted)]">
-                  Restore default panel sizes and expand both side panels.
+                  {{ $t('settings.layout.resetDescription') }}
                 </p>
                 <Button variant="secondary" size="sm" @click="ui.resetLayout()">
-                  Reset Panel Layout
+                  {{ $t('settings.layout.resetAction') }}
                 </Button>
               </section>
             </template>
 
             <template v-else-if="activeCategory === 'changes'">
               <p class="mb-3 px-3 text-[12px] text-[var(--color-fg-muted)]">
-                Control how changed files are listed in the working tree and commit panels.
+                {{ $t('settings.changes.description') }}
               </p>
               <section class="space-y-0.5">
                 <h3
                   class="px-3 pb-1 text-[11px] font-semibold tracking-wide text-[var(--color-fg-subtle)] uppercase"
                 >
-                  File list
+                  {{ $t('settings.changes.fileList') }}
                 </h3>
                 <SettingsRow
-                  label="Tree view"
-                  description="Group changed files in a collapsible folder hierarchy."
+                  :label="$t('settings.changes.treeView')"
+                  :description="$t('settings.changes.treeViewDescription')"
                   :model-value="fileListView === 'tree'"
                   @update:model-value="ui.setFileListView($event ? 'tree' : 'path')"
                 />
@@ -356,23 +448,23 @@ onUnmounted(() => document.removeEventListener('keydown', onKeydown))
 
             <template v-else-if="activeCategory === 'commits'">
               <p class="mb-3 px-3 text-[12px] text-[var(--color-fg-muted)]">
-                Default options applied to new commits.
+                {{ $t('settings.commits.description') }}
               </p>
               <section class="space-y-0.5">
                 <h3
                   class="px-3 pb-1 text-[11px] font-semibold tracking-wide text-[var(--color-fg-subtle)] uppercase"
                 >
-                  Commit options
+                  {{ $t('settings.commits.options') }}
                 </h3>
                 <SettingsRow
-                  label="Sign off commit"
-                  description="Add a Signed-off-by trailer to commit messages (--signoff)."
+                  :label="$t('settings.commits.signOff')"
+                  :description="$t('settings.commits.signOffDescription')"
                   :model-value="signOffCommit"
                   @update:model-value="ui.setSignOffCommit($event)"
                 />
                 <SettingsRow
-                  label="Sign commit (GPG/SSH)"
-                  description="Sign with GPG/SSH key (-S). Requires user.signingkey in git config."
+                  :label="$t('settings.commits.sign')"
+                  :description="$t('settings.commits.signDescription')"
                   :model-value="signCommit"
                   @update:model-value="ui.setSignCommit($event)"
                 />
@@ -382,17 +474,17 @@ onUnmounted(() => document.removeEventListener('keydown', onKeydown))
             <!-- Commit Graph -->
             <template v-else-if="activeCategory === 'commit-graph'">
               <p class="mb-3 px-3 text-[12px] text-[var(--color-fg-muted)]">
-                Control which commits appear in the graph and which columns are shown.
+                {{ $t('settings.commitGraph.description') }}
               </p>
               <section class="space-y-0.5">
                 <h3
                   class="px-3 pb-1 text-[11px] font-semibold tracking-wide text-[var(--color-fg-subtle)] uppercase"
                 >
-                  History
+                  {{ $t('settings.commitGraph.history') }}
                 </h3>
                 <SettingsRow
-                  label="Show all branches"
-                  description="Display commits from every branch, not just the checked-out branch."
+                  :label="$t('settings.commitGraph.showAllBranches')"
+                  :description="$t('settings.commitGraph.showAllBranchesDescription')"
                   :model-value="graphScopeAll"
                   @update:model-value="onGraphScopeAll($event)"
                 />
@@ -401,12 +493,15 @@ onUnmounted(() => document.removeEventListener('keydown', onKeydown))
                 >
                   <div class="min-w-0 pt-0.5">
                     <div class="text-[13px] font-medium text-[var(--color-fg)]">
-                      Recent commits to load
+                      {{ $t('settings.commitGraph.recentCommits') }}
                     </div>
                     <p class="mt-0.5 text-[12px] leading-snug text-[var(--color-fg-muted)]">
-                      Maximum number of commits fetched for the graph. Minimum
-                      {{ COMMIT_GRAPH_LIMIT_MIN }};
-                      {{ COMMIT_GRAPH_LIMIT_RECOMMENDED }} recommended.
+                      {{
+                        $t('settings.commitGraph.recentCommitsDescription', {
+                          min: COMMIT_GRAPH_LIMIT_MIN,
+                          recommended: COMMIT_GRAPH_LIMIT_RECOMMENDED,
+                        })
+                      }}
                     </p>
                   </div>
                   <input
@@ -414,7 +509,7 @@ onUnmounted(() => document.removeEventListener('keydown', onKeydown))
                     class="focus-ring w-20 rounded-md border border-[var(--color-border)] bg-[var(--color-app)] px-2 py-1 text-right text-[13px] text-[var(--color-fg)]"
                     :min="COMMIT_GRAPH_LIMIT_MIN"
                     :value="commitGraphLimit"
-                    aria-label="Recent commits to load"
+                    :aria-label="$t('settings.commitGraph.recentCommits')"
                     @change="
                       onCommitGraphLimit(Number(($event.target as HTMLInputElement).value))
                     "
@@ -425,16 +520,16 @@ onUnmounted(() => document.removeEventListener('keydown', onKeydown))
                 <h3
                   class="px-3 pb-1 text-[11px] font-semibold tracking-wide text-[var(--color-fg-subtle)] uppercase"
                 >
-                  Columns
+                  {{ $t('settings.commitGraph.columns') }}
                 </h3>
                 <p class="px-3 pb-1 text-[12px] text-[var(--color-fg-muted)]">
-                  Choose which optional columns are shown in the graph rows.
+                  {{ $t('settings.commitGraph.columnsDescription') }}
                 </p>
                 <SettingsRow
                   v-for="key in columnKeys"
                   :key="key"
                   :label="$t(COLUMN_LABEL_KEYS[key])"
-                  :description="columnDescriptions[key]"
+                  :description="$t(columnDescriptions[key])"
                   :model-value="ui.isColumnVisible(key)"
                   @update:model-value="ui.setColumnVisible(key, $event)"
                 />
@@ -443,17 +538,17 @@ onUnmounted(() => document.removeEventListener('keydown', onKeydown))
                 <h3
                   class="px-3 pb-1 text-[11px] font-semibold tracking-wide text-[var(--color-fg-subtle)] uppercase"
                 >
-                  Indicators
+                  {{ $t('settings.commitGraph.indicators') }}
                 </h3>
                 <SettingsRow
-                  label="Time indicators"
-                  description="Show dividers like “a week ago” between commits in the graph."
+                  :label="$t('settings.commitGraph.timeIndicators')"
+                  :description="$t('settings.commitGraph.timeIndicatorsDescription')"
                   :model-value="ui.showTimeMarkers"
                   @update:model-value="ui.setShowTimeMarkers($event)"
                 />
                 <SettingsRow
-                  label="Merge indicators"
-                  description="Mark merge commits with a merge icon in the commit message column."
+                  :label="$t('settings.commitGraph.mergeIndicators')"
+                  :description="$t('settings.commitGraph.mergeIndicatorsDescription')"
                   :model-value="ui.showMergeIndicators"
                   @update:model-value="ui.setShowMergeIndicators($event)"
                 />
@@ -463,14 +558,14 @@ onUnmounted(() => document.removeEventListener('keydown', onKeydown))
                   <h3
                     class="text-[11px] font-semibold tracking-wide text-[var(--color-fg-subtle)] uppercase"
                   >
-                    Column widths
+                    {{ $t('settings.commitGraph.columnWidths') }}
                   </h3>
                   <Button variant="secondary" size="sm" @click="ui.resetColumnWidths()">
-                    Reset widths
+                    {{ $t('settings.commitGraph.resetWidths') }}
                   </Button>
                 </div>
                 <p class="px-3 pb-1 text-[12px] text-[var(--color-fg-muted)]">
-                  Exact pixel widths, or drag the column edges in the graph header.
+                  {{ $t('settings.commitGraph.columnWidthsDescription') }}
                 </p>
                 <div
                   v-for="key in columnWidthKeys"
@@ -501,20 +596,19 @@ onUnmounted(() => document.removeEventListener('keydown', onKeydown))
             </template>
             <template v-else-if="activeCategory === 'sidebar'">
               <p class="mb-3 px-3 text-[12px] text-[var(--color-fg-muted)]">
-                Choose how each branch sidebar section is shown: expanded, collapsed to its header,
-                or hidden entirely.
+                {{ $t('settings.sidebar.description') }}
               </p>
               <section class="space-y-0.5">
                 <h3
                   class="px-3 pb-1 text-[11px] font-semibold tracking-wide text-[var(--color-fg-subtle)] uppercase"
                 >
-                  Sections
+                  {{ $t('settings.sidebar.sections') }}
                 </h3>
                 <SettingsSegmentedRow
                   v-for="key in sidebarSectionKeys"
                   :key="key"
                   :label="$t(SECTION_LABEL_KEYS[key])"
-                  :description="sectionDescriptions[key]"
+                  :description="sectionDescription(key)"
                   :model-value="ui.sectionState(key)"
                   :options="sectionStateOptions"
                   @update:model-value="onSectionState(key, $event)"
@@ -524,30 +618,29 @@ onUnmounted(() => document.removeEventListener('keydown', onKeydown))
 
             <template v-else-if="activeCategory === 'sync'">
               <p class="mb-3 px-3 text-[12px] text-[var(--color-fg-muted)]">
-                Keep remote-tracking branches fresh without leaving the app.
+                {{ $t('settings.sync.description') }}
               </p>
               <section class="space-y-0.5">
                 <h3
                   class="px-3 pb-1 text-[11px] font-semibold tracking-wide text-[var(--color-fg-subtle)] uppercase"
                 >
-                  Background fetch
+                  {{ $t('settings.sync.backgroundFetch') }}
                 </h3>
                 <div
                   class="flex items-start justify-between gap-4 rounded-lg px-3 py-2.5 transition-colors hover:bg-[var(--color-hover)]"
                 >
                   <div class="min-w-0 pt-0.5">
                     <div class="text-[13px] font-medium text-[var(--color-fg)]">
-                      Auto-fetch interval
+                      {{ $t('settings.sync.autoFetchInterval') }}
                     </div>
                     <p class="mt-0.5 text-[12px] leading-snug text-[var(--color-fg-muted)]">
-                      Silently fetch all remotes on a schedule. No banner, no toast — the
-                      graph just updates.
+                      {{ $t('settings.sync.autoFetchIntervalDescription') }}
                     </p>
                   </div>
                   <select
                     class="focus-ring shrink-0 rounded-md border border-[var(--color-border)] bg-[var(--color-app)] px-2 py-1 text-[13px] text-[var(--color-fg)]"
                     :value="autoFetchIntervalSec"
-                    aria-label="Auto-fetch interval"
+                    :aria-label="$t('settings.sync.autoFetchInterval')"
                     @change="
                       onAutoFetchIntervalSec(Number(($event.target as HTMLSelectElement).value))
                     "
@@ -557,7 +650,7 @@ onUnmounted(() => document.removeEventListener('keydown', onKeydown))
                       :key="option"
                       :value="option"
                     >
-                      {{ formatAutoFetchInterval(option) }}
+                      {{ autoFetchIntervalLabel(option) }}
                     </option>
                   </select>
                 </div>
@@ -567,10 +660,10 @@ onUnmounted(() => document.removeEventListener('keydown', onKeydown))
             <template v-else-if="activeCategory === 'shortcuts'">
               <div class="mb-3 flex items-start justify-between gap-3 px-3">
                 <p class="text-[12px] text-[var(--color-fg-muted)]">
-                  Click a shortcut to record a new one. Esc cancels. Conflicts are highlighted.
+                  {{ $t('settings.shortcuts.description') }}
                 </p>
                 <Button variant="secondary" size="sm" class="shrink-0" @click="ui.resetAllKeybindings()">
-                  Restore defaults
+                  {{ $t('settings.shortcuts.restoreDefaults') }}
                 </Button>
               </div>
               <section v-for="[group, ids] in visibleShortcutGroups" :key="group" class="mb-4 space-y-0.5">
@@ -587,7 +680,7 @@ onUnmounted(() => document.removeEventListener('keydown', onKeydown))
                   <div class="min-w-0">
                     <div class="text-[13px] text-[var(--color-fg)]">{{ $t(COMMAND_META[id].titleKey) }}</div>
                     <div v-if="isConflicted(id)" class="mt-0.5 text-[11px] text-[var(--color-danger)]">
-                      Conflicts with: {{ conflictNames(id) }}
+                      {{ conflictNames(id) }}
                     </div>
                   </div>
                   <div class="flex shrink-0 items-center gap-1.5">
@@ -599,7 +692,7 @@ onUnmounted(() => document.removeEventListener('keydown', onKeydown))
                       v-if="ui.keybindings[id]?.length"
                       class="focus-ring rounded px-1.5 py-0.5 text-[11px] text-[var(--color-fg-subtle)] hover:bg-[var(--color-hover)] hover:text-[var(--color-fg)]"
                       :aria-label="t('settings.shortcuts.disable', { name: $t(COMMAND_META[id].titleKey) })"
-                      title="Disable (clear shortcut)"
+                      :title="$t('settings.shortcuts.disableTooltip')"
                       @click="ui.clearBinding(id)"
                     >
                       ×
@@ -607,7 +700,7 @@ onUnmounted(() => document.removeEventListener('keydown', onKeydown))
                     <button
                       class="focus-ring rounded px-1.5 py-0.5 text-[11px] text-[var(--color-fg-subtle)] hover:bg-[var(--color-hover)] hover:text-[var(--color-fg)]"
                       :aria-label="t('settings.shortcuts.reset', { name: $t(COMMAND_META[id].titleKey) })"
-                      title="Reset to default"
+                      :title="$t('settings.shortcuts.resetTooltip')"
                       @click="ui.resetBinding(id)"
                     >
                       ↺

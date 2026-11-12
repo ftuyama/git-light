@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, useTemplateRef } from 'vue'
+import { useI18n } from 'vue-i18n'
 import {
   Check,
   Cherry,
@@ -52,6 +53,7 @@ const selection = useSelectionStore()
 const interactiveRebase = useInteractiveRebaseStore()
 const toast = useToastStore()
 const ui = useUiStore()
+const { t } = useI18n()
 const { columnWidths } = storeToRefs(ui)
 const { hoveredSha, branchCreation } = storeToRefs(selection)
 
@@ -224,35 +226,35 @@ const nodeToBarConnectorStyle = computed((): Record<string, string> | null => {
 
   const menu = computed<MenuItem[]>(() => {
   const items: MenuItem[] = [
-    { label: 'Checkout Commit', icon: Check, onSelect: () => act('checkout-commit') },
-    { label: 'Create Branch Here', icon: GitBranch, onSelect: () => beginBranchHere() },
+    { label: t('graph.commitMenu.checkout'), icon: Check, onSelect: () => act('checkout-commit') },
+    { label: t('graph.commitMenu.createBranch'), icon: GitBranch, onSelect: () => beginBranchHere() },
   ]
 
   if (ui.isAdvanced) {
-    items.push({ label: 'Tag Commit', icon: TagIcon, onSelect: () => repo.createTagAt(props.commit.sha) })
+    items.push({ label: t('graph.commitMenu.tag'), icon: TagIcon, onSelect: () => repo.createTagAt(props.commit.sha) })
   }
 
   items.push({ separator: true })
 
   if (ui.isAdvanced) {
-    items.push({ label: 'Cherry Pick', icon: Cherry, onSelect: () => act('cherry-pick') })
-    items.push({ label: 'Revert Commit', icon: Undo2, onSelect: () => act('revert') })
+    items.push({ label: t('graph.commitMenu.cherryPick'), icon: Cherry, onSelect: () => act('cherry-pick') })
+    items.push({ label: t('graph.commitMenu.revert'), icon: Undo2, onSelect: () => act('revert') })
   }
 
   items.push({
-    label: 'Merge into Current',
+    label: t('graph.commitMenu.mergeIntoCurrent'),
     icon: GitMerge,
     children: [
-      { label: 'Merge', onSelect: () => act('merge') },
-      { label: 'Squash merge', shortcut: '--squash', onSelect: () => mergeSquash() },
+      { label: t('graph.commitMenu.merge'), onSelect: () => act('merge') },
+      { label: t('graph.commitMenu.squashMerge'), shortcut: '--squash', onSelect: () => mergeSquash() },
     ],
   })
 
   if (ui.isAdvanced) {
     items.push(
-      { label: 'Rebase From Here', icon: Spline, onSelect: () => act('rebase-from-here') },
+      { label: t('graph.commitMenu.rebaseFromHere'), icon: Spline, onSelect: () => act('rebase-from-here') },
       {
-        label: 'Interactive Rebase From Here',
+        label: t('graph.commitMenu.interactiveRebase'),
         icon: ListTree,
         onSelect: () => interactiveRebase.open(props.commit.sha),
       },
@@ -261,17 +263,17 @@ const nodeToBarConnectorStyle = computed((): Record<string, string> | null => {
 
   items.push(
     {
-      label: 'Reset Current Branch to Here',
+      label: t('graph.commitMenu.resetToHere'),
       icon: RotateCcw,
       children: [
-        { label: 'Soft', shortcut: '--soft', onSelect: () => act('reset-soft') },
-        { label: 'Mixed', shortcut: '--mixed', onSelect: () => act('reset-mixed') },
-        { label: 'Hard', shortcut: '--hard', danger: true, onSelect: () => act('reset-hard') },
+        { label: t('graph.commitMenu.resetSoft'), shortcut: '--soft', onSelect: () => act('reset-soft') },
+        { label: t('graph.commitMenu.resetMixed'), shortcut: '--mixed', onSelect: () => act('reset-mixed') },
+        { label: t('graph.commitMenu.resetHard'), shortcut: '--hard', danger: true, onSelect: () => act('reset-hard') },
       ],
     },
     { separator: true },
-    { label: 'Copy SHA', icon: Copy, shortcut: '⌘C', onSelect: copySha },
-    { label: 'Open on GitHub', icon: ExternalLink, onSelect: openOnGithub },
+    { label: t('graph.commitMenu.copySha'), icon: Copy, shortcut: '⌘C', onSelect: copySha },
+    { label: t('graph.commitMenu.openOnGithub'), icon: ExternalLink, onSelect: openOnGithub },
   )
 
   return items
@@ -314,18 +316,18 @@ function mergeSquash(): void {
 
 function copySha(): void {
   void navigator.clipboard?.writeText(props.commit.sha)
-  toast.push('Copied SHA to clipboard', 'info')
+  toast.push(t('graph.toast.copiedSha'), 'info')
 }
 
 function openOnGithub(): void {
   const remoteUrl = repo.repository?.remoteUrl ?? ''
   const url = githubCommitUrl(remoteUrl, props.commit.sha)
   if (!url) {
-    toast.push('No GitHub remote configured for this repository', 'error')
+    toast.push(t('graph.toast.noGithubRemote'), 'error')
     return
   }
   void openExternalUrl(url)
-  toast.push('Opening commit on GitHub', 'info')
+  toast.push(t('graph.toast.openingOnGithub'), 'info')
 }
 </script>
 
@@ -395,7 +397,7 @@ function openOnGithub(): void {
               <span
                 v-if="hiddenCount"
                 class="flex h-[22px] min-w-[22px] shrink-0 cursor-default items-center justify-center rounded-md border border-[var(--color-border-strong)] bg-[var(--color-panel-raised)] px-1 text-[11px] font-semibold text-[var(--color-fg-muted)] transition-opacity group-hover/extra:opacity-0"
-                :title="`+${hiddenCount} more`"
+                :title="$t('graph.commitRow.hiddenRefs', { count: hiddenCount })"
               >
                 +{{ hiddenCount }}
               </span>
@@ -455,8 +457,8 @@ function openOnGithub(): void {
         <span
           v-if="commit.isMerge && !isStashCommit && ui.showMergeIndicators"
           class="shrink-0 text-[var(--color-info)]"
-          title="Merge commit"
-          aria-label="Merge commit"
+          :title="$t('graph.commitRow.mergeCommit')"
+          :aria-label="$t('graph.commitRow.mergeCommit')"
         >
           <GitMerge :size="14" />
         </span>

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
+import { I18nT } from 'vue-i18n'
 import { GitMerge, Spline } from '@lucide/vue'
 import Dialog from '@/components/ui/Dialog.vue'
 import Button from '@/components/ui/Button.vue'
@@ -35,12 +36,16 @@ const targetLabel = computed(() => (props.target ? branchIntegrateLabel(props.ta
 </script>
 
 <template>
-  <Dialog :open="open" title="Integrate branches" @cancel="emit('cancel')">
+  <Dialog :open="open" :title="$t('branches.integrate.title')" @cancel="emit('cancel')">
     <p class="text-sm text-[var(--color-fg-muted)]">
-      Choose how to integrate
-      <span class="font-medium text-[var(--color-fg)]">{{ sourceLabel }}</span>
-      with
-      <span class="font-medium text-[var(--color-fg)]">{{ targetLabel }}</span>.
+      <I18nT keypath="branches.integrate.description" scope="global">
+        <template #source>
+          <span class="font-medium text-[var(--color-fg)]">{{ sourceLabel }}</span>
+        </template>
+        <template #target>
+          <span class="font-medium text-[var(--color-fg)]">{{ targetLabel }}</span>
+        </template>
+      </I18nT>
     </p>
 
     <div class="grid gap-2 pt-1">
@@ -50,12 +55,14 @@ const targetLabel = computed(() => (props.target ? branchIntegrateLabel(props.ta
         <div class="flex items-start gap-3">
           <GitMerge :size="16" class="mt-0.5 shrink-0 text-[var(--color-info)]" />
           <div class="min-w-0 flex-1">
-            <span class="block text-[13px] font-medium text-[var(--color-fg)]">Merge into target</span>
+            <span class="block text-[13px] font-medium text-[var(--color-fg)]">{{
+              $t('branches.integrate.mergeTitle')
+            }}</span>
             <span class="mt-0.5 block text-xs text-[var(--color-fg-subtle)]">
-              Merge {{ sourceLabel }} into {{ targetLabel }}
+              {{ $t('branches.integrate.mergeDescription', { source: sourceLabel, target: targetLabel }) }}
             </span>
             <fieldset class="mt-2.5 space-y-1.5 border-0 p-0">
-              <legend class="sr-only">Merge strategy</legend>
+              <legend class="sr-only">{{ $t('branches.integrate.mergeStrategy') }}</legend>
               <label
                 v-for="option in MERGE_MODE_OPTIONS"
                 :key="option.value"
@@ -69,8 +76,8 @@ const targetLabel = computed(() => (props.target ? branchIntegrateLabel(props.ta
                   class="mt-0.5 accent-[var(--color-accent)]"
                 />
                 <span class="min-w-0">
-                  <span class="block text-[12px] font-medium text-[var(--color-fg)]">{{ option.label }}</span>
-                  <span class="block text-[11px] text-[var(--color-fg-subtle)]">{{ option.description }}</span>
+                  <span class="block text-[12px] font-medium text-[var(--color-fg)]">{{ $t(option.labelKey) }}</span>
+                  <span class="block text-[11px] text-[var(--color-fg-subtle)]">{{ $t(option.descriptionKey) }}</span>
                 </span>
               </label>
             </fieldset>
@@ -79,7 +86,7 @@ const targetLabel = computed(() => (props.target ? branchIntegrateLabel(props.ta
               class="app-no-drag focus-ring mt-2 w-full rounded-md border border-[var(--color-border-strong)] bg-[var(--color-active)] px-3 py-1.5 text-[12px] font-medium text-[var(--color-fg)] transition-colors hover:bg-[var(--color-hover)]"
               @click="emit('merge', mergeMode)"
             >
-              Merge with selected strategy
+              {{ $t('branches.integrate.merge') }}
             </button>
           </div>
         </div>
@@ -93,16 +100,18 @@ const targetLabel = computed(() => (props.target ? branchIntegrateLabel(props.ta
       >
         <Spline :size="16" class="mt-0.5 shrink-0 text-[var(--color-warning)]" />
         <span>
-          <span class="block text-[13px] font-medium text-[var(--color-fg)]">Rebase onto target</span>
+          <span class="block text-[13px] font-medium text-[var(--color-fg)]">{{
+            $t('branches.integrate.rebaseTitle')
+          }}</span>
           <span class="mt-0.5 block text-xs text-[var(--color-fg-subtle)]">
-            Rebase {{ sourceLabel }} onto {{ targetLabel }}
+            {{ $t('branches.integrate.rebaseDescription', { source: sourceLabel, target: targetLabel }) }}
           </span>
         </span>
       </button>
     </div>
 
     <template #footer>
-      <Button variant="ghost" @click="emit('cancel')">Cancel</Button>
+      <Button variant="ghost" @click="emit('cancel')">{{ $t('common.actions.cancel') }}</Button>
     </template>
   </Dialog>
 </template>

@@ -1,1 +1,87 @@
-{}
+{
+  "headers": {
+    "changedFiles": "更改的文件",
+    "files": "文件",
+    "changes": "更改（{count}）",
+    "staged": "已暂存（{count}）",
+    "conflicts": "冲突（{count}）"
+  },
+  "actions": {
+    "discardAll": "丢弃所有更改",
+    "stageAll": "全部暂存",
+    "unstageAll": "全部取消暂存"
+  },
+  "state": {
+    "loadingFiles": "正在加载文件…",
+    "noFilesInCommit": "此提交中没有更改的文件",
+    "noChangesBetweenCommits": "这些提交之间没有文件更改",
+    "noUnstaged": "没有未暂存的更改",
+    "nothingStaged": "暂存文件后即可提交"
+  },
+  "changes": {
+    "summary": "{branch} 上有 {count} 个文件更改"
+  },
+  "stash": {
+    "wipOn": "在 {branch} 上的 WIP",
+    "wip": "WIP",
+    "close": "关闭贮藏文件"
+  },
+  "commit": {
+    "summary": "提交 {count} 个文件的更改",
+    "summaryAmend": "修补 {count} 个文件的更改",
+    "summaryPlaceholder": "提交摘要",
+    "summaryPlaceholderAmend": "提交摘要（留空则保留原信息）",
+    "summaryLimit": "最多 {count} 个字符",
+    "descriptionPlaceholder": "描述",
+    "noCommitsToAmend": "还没有可修补的提交",
+    "amend": "修补上一个提交",
+    "commitAndPush": "提交并推送",
+    "amendAndPush": "修补并推送",
+    "commitAndForcePush": "提交并强制推送（带 lease）",
+    "amendAndForcePush": "修补并强制推送（带 lease）",
+    "pushOptions": "提交和推送选项",
+    "shaCopied": "SHA 已复制到剪贴板",
+    "mergeCommit": "合并提交",
+    "parents": "父提交："
+  },
+  "compare": {
+    "title": "正在比较提交",
+    "filesChanged": "{count} 个文件更改",
+    "hint": "按住 Shift 点击另一个提交进行比较",
+    "exit": "退出比较模式"
+  },
+  "fileHistory": {
+    "title": "文件历史"
+  },
+  "fileMenu": {
+    "viewHistory": "查看文件历史",
+    "revealInFinder": "在访达中显示",
+    "copyPath": "复制路径",
+    "pathCopied": "路径已复制到剪贴板",
+    "viewDiff": "查看差异",
+    "restoreVersion": "从此版本还原文件",
+    "useOurs": "使用当前分支版本",
+    "useTheirs": "使用对方分支版本",
+    "markResolved": "标记为已解决",
+    "resolveConflict": "解决冲突",
+    "stage": "暂存更改",
+    "unstage": "取消暂存更改",
+    "discard": "丢弃更改",
+    "stageFile": "暂存文件",
+    "unstageFile": "取消暂存文件"
+  },
+  "view": {
+    "aria": "文件列表视图",
+    "path": "路径视图",
+    "tree": "树形视图"
+  },
+  "status": {
+    "modified": "已修改",
+    "added": "已添加",
+    "deleted": "已删除",
+    "renamed": "已重命名",
+    "conflicted": "冲突",
+    "copied": "已复制",
+    "ignored": "已忽略"
+  }
+}

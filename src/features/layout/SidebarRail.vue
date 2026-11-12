@@ -7,7 +7,6 @@ import {
   SECTION_LABEL_KEYS,
   type SectionKey,
 } from '@/lib/preferences'
-import { translate } from '@/locales'
 import { useUiStore } from '@/stores/ui'
 import { useSidebarSectionCounts } from '@/features/branch-sidebar/useSidebarSectionCounts'
 
@@ -35,7 +34,7 @@ const sections = computed(() =>
   ).map(({ key, icon }) => ({
     key,
     icon,
-    label: translate(SECTION_LABEL_KEYS[key]),
+    labelKey: SECTION_LABEL_KEYS[key],
     count: sectionCount(key),
   })),
 )
@@ -54,7 +53,7 @@ function openSection(key: SectionKey): void {
   >
     <IconButton
       :icon="side === 'left' ? PanelLeftOpen : PanelRightOpen"
-      :label="`Expand ${side} panel`"
+      :label="side === 'left' ? $t('shell.sidebar.expandLeft') : $t('shell.sidebar.expandRight')"
       :tooltip-side="side === 'left' ? 'right' : 'left'"
       @click="$emit('expand')"
     />
@@ -66,7 +65,7 @@ function openSection(key: SectionKey): void {
         v-for="section in sections"
         :key="section.key"
         :icon="section.icon"
-        :label="section.label"
+        :label="$t(section.labelKey)"
         :count="section.count"
         tooltip-side="right"
         @click="openSection(section.key)"
@@ -76,7 +75,7 @@ function openSection(key: SectionKey): void {
     <IconButton
       v-else
       :icon="FileDiff"
-      label="Changes"
+      :label="$t('common.labels.changes')"
       tooltip-side="left"
       @click="$emit('expand')"
     />

@@ -15,7 +15,7 @@ const emit = defineEmits<{ close: [] }>()
     <div class="flex items-start gap-2">
       <div class="min-w-0 flex-1">
         <p class="text-[11px] font-semibold tracking-wide text-[var(--color-fg-subtle)] uppercase">
-          Comparing commits
+          {{ $t('workingTree.compare.title') }}
         </p>
         <p class="mt-1 font-mono text-[12px] text-[var(--color-fg)]">
           {{ range.fromShortSha }}
@@ -23,14 +23,16 @@ const emit = defineEmits<{ close: [] }>()
           {{ range.toShortSha }}
         </p>
         <p class="mt-0.5 text-[11px] text-[var(--color-fg-muted)]">
-          {{ fileCount }} {{ fileCount === 1 ? 'file changed' : 'files changed' }}
-          <span class="text-[var(--color-fg-subtle)]">· Shift+click another commit to compare</span>
+          {{ $t('workingTree.compare.filesChanged', { count: fileCount }) }}
+          <span class="text-[var(--color-fg-subtle)]"
+            >· {{ $t('workingTree.compare.hint') }}</span
+          >
         </p>
       </div>
       <button
         class="focus-ring shrink-0 rounded p-1 text-[var(--color-fg-subtle)] hover:bg-[var(--color-hover)] hover:text-[var(--color-fg)]"
-        title="Exit compare mode"
-        aria-label="Exit compare mode"
+        :title="$t('workingTree.compare.exit')"
+        :aria-label="$t('workingTree.compare.exit')"
         @click="emit('close')"
       >
         <X :size="14" />

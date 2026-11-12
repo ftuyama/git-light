@@ -1,1 +1,29 @@
-{}
+{
+  "dialog": {
+    "title": "交互式变基",
+    "ariaLabel": "交互式变基",
+    "onto": "变基到",
+    "basePlaceholder": "HEAD~5、main 或提交 SHA",
+    "load": "加载",
+    "commitsAfter": "{sha} 之后有 {count} 个提交",
+    "warning": "这会改写提交历史。拖动可调整提交顺序，为每一行选择操作，然后开始变基。",
+    "loading": "正在加载提交…",
+    "empty": "请输入基准引用并加载提交，以生成变基计划。",
+    "start": "开始变基"
+  },
+  "actions": {
+    "pick": "保留",
+    "reword": "修改信息",
+    "edit": "编辑",
+    "squash": "压缩",
+    "fixup": "修正",
+    "drop": "删除"
+  },
+  "row": {
+    "dragToReorder": "拖动以重新排序",
+    "messagePlaceholder": "新的提交信息"
+  },
+  "toast": {
+    "baseRequired": "请输入基准引用（例如 HEAD~5 或分支名）"
+  }
+}

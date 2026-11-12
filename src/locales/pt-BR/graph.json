@@ -1,1 +1,112 @@
-{}
+{
+  "columns": {
+    "refs": "Branch / tag",
+    "graph": "Grafo",
+    "sha": "SHA",
+    "when": "Quando"
+  },
+  "showColumns": "Mostrar colunas",
+  "columnMenu": {
+    "sha": "SHA",
+    "when": "Quando",
+    "timeIndicators": "Indicadores de tempo",
+    "mergeIndicators": "Indicadores de merge"
+  },
+  "empty": {
+    "title": "Nenhum commit ainda",
+    "body": "Faça seu primeiro commit para ver o histórico aparecer aqui."
+  },
+  "loadingMore": "Carregando mais commits…",
+  "commitRow": {
+    "hiddenRefs": "+{count} mais",
+    "mergeCommit": "Commit de merge"
+  },
+  "branchInput": {
+    "placeholder": "Digite o nome do branch"
+  },
+  "commitMenu": {
+    "checkout": "Fazer checkout do commit",
+    "createBranch": "Criar branch aqui",
+    "tag": "Criar tag no commit",
+    "cherryPick": "Cherry-pick",
+    "revert": "Reverter commit",
+    "mergeIntoCurrent": "Mesclar no branch atual",
+    "merge": "Merge",
+    "squashMerge": "Merge com squash",
+    "rebaseFromHere": "Rebase a partir daqui",
+    "interactiveRebase": "Rebase interativo a partir daqui",
+    "resetToHere": "Resetar o branch atual até aqui",
+    "resetSoft": "Soft",
+    "resetMixed": "Mixed",
+    "resetHard": "Hard",
+    "copySha": "Copiar SHA",
+    "openOnGithub": "Abrir no GitHub"
+  },
+  "branchMenu": {
+    "checkout": "Fazer checkout",
+    "checkoutLocal": "Fazer checkout do branch local",
+    "createBranch": "Criar branch aqui",
+    "createWorktree": "Criar worktree a partir do branch",
+    "mergeIntoCurrent": "Mesclar no branch atual",
+    "rebaseCurrentOntoThis": "Fazer rebase do branch atual sobre este",
+    "interactiveRebaseOntoThis": "Rebase interativo sobre este…",
+    "cherryPickTip": "Cherry-pick do commit da ponta",
+    "copyBranchName": "Copiar nome do branch",
+    "copyTipSha": "Copiar SHA do commit da ponta",
+    "copyCommitLink": "Copiar link do commit no GitHub",
+    "copyBranchLink": "Copiar link do branch no GitHub",
+    "copy": "Copiar",
+    "compareWithCurrent": "Comparar com o branch atual",
+    "setUpstream": "Definir upstream…",
+    "rename": "Renomear…",
+    "pin": "Fixar nos favoritos",
+    "unpin": "Desafixar dos favoritos",
+    "createTag": "Criar tag aqui…",
+    "deleteRemote": "Excluir branch remoto",
+    "delete": "Excluir branch"
+  },
+  "stashMenu": {
+    "apply": "Aplicar stash",
+    "pop": "Pop no stash",
+    "delete": "Excluir stash",
+    "editMessage": "Editar mensagem do stash"
+  },
+  "stashRow": {
+    "wipOn": "WIP em {branch}",
+    "wip": "WIP",
+    "unknownBase": "base desconhecida",
+    "hint": "base {sha} · fora da vista",
+    "hintWithSubject": "base {sha} · {subject} · fora da vista",
+    "title": "Stash criado sobre {base}. Esse commit não está na janela carregada (carregue mais commits) ou foi reescrito por amend/rebase — nesse caso aplique o stash manualmente no commit sucessor.",
+    "titleWithSubject": "Stash criado sobre {base}, “{subject}”. Esse commit não está na janela carregada (carregue mais commits) ou foi reescrito por amend/rebase — nesse caso aplique o stash manualmente no commit sucessor.",
+    "boxTitleNoBase": "Stash (base desconhecida)",
+    "boxTitle": "Stash sobre {sha}",
+    "boxTitleOutsideView": "Stash sobre {sha} — fora da vista carregada",
+    "boxTitleOutsideViewWithSubject": "Stash sobre {sha} “{subject}” — fora da vista carregada"
+  },
+  "pendingRow": {
+    "messagePlaceholder": "Mensagem do commit",
+    "status": {
+      "modified": "Modificado",
+      "added": "Adicionado",
+      "deleted": "Excluído",
+      "renamed": "Renomeado",
+      "copied": "Copiado",
+      "conflicted": "Em conflito",
+      "ignored": "Ignorado"
+    }
+  },
+  "toast": {
+    "copiedSha": "SHA copiado para a área de transferência",
+    "openingOnGithub": "Abrindo o commit no GitHub",
+    "noGithubRemote": "Nenhum remoto do GitHub configurado neste repositório",
+    "clipboardUnavailable": "A área de transferência não está disponível",
+    "copyFailed": "Não foi possível copiar para a área de transferência",
+    "copied": "{target} copiado"
+  },
+  "copyTarget": {
+    "branchName": "nome do branch",
+    "commitSha": "SHA do commit",
+    "link": "link"
+  }
+}

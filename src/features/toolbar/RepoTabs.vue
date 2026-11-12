@@ -2,6 +2,7 @@
 import { Folder, FolderGit2, Pencil, Plus, Undo2, X } from '@lucide/vue'
 import { storeToRefs } from 'pinia'
 import { computed, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import ContextMenu from '@/components/ui/ContextMenu.vue'
 import DropdownMenu from '@/components/ui/DropdownMenu.vue'
 import IconButton from '@/components/ui/IconButton.vue'
@@ -21,6 +22,7 @@ const repo = useRepositoryStore()
 const tabsStore = useRepoTabsStore()
 const prompt = usePromptStore()
 const ui = useUiStore()
+const { t } = useI18n()
 const { repoMenu, newTabMenu } = useRepoMenu()
 const { tabs, activePath } = storeToRefs(tabsStore)
 
@@ -122,10 +124,10 @@ function onTabMouseUp(): void {
 async function switchTo(path: string): Promise<void> {
   try {
     const ok = await repo.switchRepository(path)
-    if (!ok) useToastStore().push(`Could not open ${path}.`, 'error')
+    if (!ok) useToastStore().push(t('shell.toasts.couldNotOpen', { path }), 'error')
   } catch (err) {
     console.error('[git-light] switch repository failed:', err)
-    useToastStore().push(`Could not open ${path}.`, 'error')
+    useToastStore().push(t('shell.toasts.couldNotOpen', { path }), 'error')
   }
 }
 
@@ -181,8 +183,8 @@ async function closeTabsToRight(tab: RepoTab): Promise<void> {
 
 async function aliasTab(tab: RepoTab): Promise<void> {
   const alias = await prompt.prompt({
-    title: 'Alias Repository',
-    message: 'Choose a display name for this repository tab.',
+    title: t('shell.tabs.aliasTitle'),
+    message: t('shell.tabs.aliasMessage'),
     placeholder: tab.name,
     defaultValue: tab.alias ?? tab.name,
   })
@@ -195,26 +197,26 @@ function tabMenu(tab: RepoTab): MenuItem[] {
   const hasTabsToRight = index !== -1 && index < tabs.value.length - 1
 
   const items: MenuItem[] = [
-    { label: 'Close tab', icon: X, onSelect: () => void closeTab(tab.path) },
+    { label: t('shell.tabs.closeTab'), icon: X, onSelect: () => void closeTab(tab.path) },
     {
-      label: 'Close other tabs',
+      label: t('shell.tabs.closeOthers'),
       icon: X,
       disabled: tabs.value.length <= 1,
       onSelect: () => void closeOtherTabs(tab),
     },
     {
-      label: 'Close tabs to the right',
+      label: t('shell.tabs.closeToRight'),
       icon: X,
       disabled: !hasTabsToRight,
       onSelect: () => void closeTabsToRight(tab),
     },
     { separator: true },
-    { label: 'Alias repository', icon: Pencil, onSelect: () => void aliasTab(tab) },
+    { label: t('shell.tabs.alias'), icon: Pencil, onSelect: () => void aliasTab(tab) },
   ]
 
   if (tab.alias) {
     items.push({
-      label: 'Remove alias',
+      label: t('shell.tabs.removeAlias'),
       icon: Pencil,
       onSelect: () => tabsStore.setAlias(tab.path, null),
     })
@@ -223,7 +225,7 @@ function tabMenu(tab: RepoTab): MenuItem[] {
   items.push(
     { separator: true },
     {
-      label: 'Reopen Closed Tab',
+      label: t('shell.tabs.reopenClosed'),
       icon: Undo2,
       shortcut: formatBindings(ui.keybindings.reopenClosedTab),
       disabled: tabsStore.closedStack.length === 0,
@@ -248,14 +250,14 @@ function tabLabel(tab: RepoTab): string {
 
     <div class="app-no-drag flex min-w-0 items-start gap-1 pr-3">
       <DropdownMenu :items="repoMenu" align="start">
-        <IconButton :icon="Folder" label="Repository management" />
+        <IconButton :icon="Folder" :label="$t('shell.tabs.management')" />
       </DropdownMenu>
 
       <div
         ref="tabsRow"
         class="flex min-w-0 items-start gap-1 overflow-x-auto"
         role="tablist"
-        aria-label="Open repositories"
+        :aria-label="$t('shell.tabs.openList')"
       >
         <ContextMenu
           v-for="tab in displayTabs"
@@ -297,7 +299,7 @@ function tabLabel(tab: RepoTab): string {
               data-tab-close
               class="app-no-drag focus-ring flex h-4 w-4 shrink-0 items-center justify-center rounded-sm opacity-0 transition-opacity group-hover:opacity-100"
               :class="tab.path === activePath ? 'opacity-60 hover:opacity-100' : ''"
-              aria-label="Close repository tab"
+              :aria-label="$t('shell.tabs.closeTabAria')"
               @mousedown.stop
               @click="closeTab(tab.path, $event)"
             >
@@ -310,7 +312,7 @@ function tabLabel(tab: RepoTab): string {
           <button
             type="button"
             class="app-no-drag focus-ring flex h-8 w-8 shrink-0 items-center justify-center rounded text-[var(--color-fg-subtle)] transition-colors hover:bg-[var(--color-hover)] hover:text-[var(--color-fg)]"
-            aria-label="Open repository"
+            :aria-label="$t('shell.tabs.openAria')"
           >
             <Plus :size="14" />
           </button>

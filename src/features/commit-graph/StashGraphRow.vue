@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { ArchiveRestore, ArrowDownToLine, Pencil, Trash2 } from '@lucide/vue'
 import { storeToRefs } from 'pinia'
 import ContextMenu from '@/components/ui/ContextMenu.vue'
@@ -18,12 +19,15 @@ const props = defineProps<{
 
 const repo = useRepositoryStore()
 const ui = useUiStore()
+const { t } = useI18n()
 const { columnWidths } = storeToRefs(ui)
 
 const stashRef = computed(() => `stash@{${props.stash.index}}`)
 /** Short GitKraken-style label: `WIP on <branch>`. */
 const shortMessage = computed(() =>
-  props.stash.branch ? `WIP on ${props.stash.branch}` : 'WIP',
+  props.stash.branch
+    ? t('graph.stashRow.wipOn', { branch: props.stash.branch })
+    : t('graph.stashRow.wip'),
 )
 
 /**
@@ -43,41 +47,46 @@ const isAnchored = computed(
 )
 const anchorHint = computed(() => {
   if (isAnchored.value) return null
-  if (baseShort.value == null) return 'base desconhecida'
-  const subject = props.stash.baseSubject ? ` · ${props.stash.baseSubject}` : ''
-  return `base ${baseShort.value}${subject} · fora da vista`
+  if (baseShort.value == null) return t('graph.stashRow.unknownBase')
+  if (props.stash.baseSubject) {
+    return t('graph.stashRow.hintWithSubject', {
+      sha: baseShort.value,
+      subject: props.stash.baseSubject,
+    })
+  }
+  return t('graph.stashRow.hint', { sha: baseShort.value })
 })
 const anchorTitle = computed(() => {
   if (isAnchored.value) return null
-  const subject = props.stash.baseSubject
-    ? `“${props.stash.baseSubject}”. `
-    : ''
-  return (
-    `Stash criado sobre ${baseShort.value ?? 'base desconhecida'} ${subject}` +
-    `Esse commit não está na janela carregada (carregue mais commits) ou foi ` +
-    `reescrito por amend/rebase — nesse caso aplique o stash manualmente no commit sucessor.`
-  )
+  const base = baseShort.value ?? t('graph.stashRow.unknownBase')
+  if (props.stash.baseSubject) {
+    return t('graph.stashRow.titleWithSubject', {
+      base,
+      subject: props.stash.baseSubject,
+    })
+  }
+  return t('graph.stashRow.title', { base })
 })
 
 const menu = computed<MenuItem[]>(() => [
   {
-    label: 'Apply Stash',
+    label: t('graph.stashMenu.apply'),
     icon: ArrowDownToLine,
     onSelect: () => void repo.runAction({ kind: 'apply-stash', target: stashRef.value }),
   },
   {
-    label: 'Pop Stash',
+    label: t('graph.stashMenu.pop'),
     icon: ArchiveRestore,
     onSelect: () => void repo.runAction({ kind: 'pop-stash', target: stashRef.value }),
   },
   {
-    label: 'Delete Stash',
+    label: t('graph.stashMenu.delete'),
     icon: Trash2,
     danger: true,
     onSelect: () => void repo.runAction({ kind: 'drop-stash', target: stashRef.value }),
   },
   {
-    label: 'Edit stash message',
+    label: t('graph.stashMenu.editMessage'),
     icon: Pencil,
     onSelect: () => void repo.renameStash(stashRef.value, props.stash.message),
   },
@@ -129,7 +138,7 @@ const menu = computed<MenuItem[]>(() => [
           v-if="stash.filesChanged > 0"
           class="shrink-0 text-[11px] text-[var(--color-fg-subtle)]"
         >
-          {{ stash.filesChanged }} files
+          {{ $t('common.count.files', { count: stash.filesChanged }, stash.filesChanged) }}
         </span>
       </div>
 

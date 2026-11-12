@@ -33,17 +33,17 @@ onUnmounted(() => document.removeEventListener('keydown', onKeydown))
         class="flex max-h-[min(88vh,760px)] w-full max-w-2xl flex-col overflow-hidden rounded-xl border border-[var(--color-border-strong)] bg-[var(--color-panel)] shadow-2xl"
         role="dialog"
         aria-modal="true"
-        aria-label="Interactive rebase"
+        :aria-label="$t('rebase.dialog.ariaLabel')"
       >
         <header class="flex items-center justify-between border-b border-[var(--color-border)] px-4 py-3">
           <div class="flex items-center gap-2">
             <ListTree :size="18" class="text-[var(--color-accent)]" />
-            <h2 class="text-sm font-semibold text-[var(--color-fg)]">Interactive Rebase</h2>
+            <h2 class="text-sm font-semibold text-[var(--color-fg)]">{{ $t('rebase.dialog.title') }}</h2>
           </div>
           <button
             type="button"
             class="focus-ring rounded p-1 text-[var(--color-fg-subtle)] hover:bg-[var(--color-hover)] hover:text-[var(--color-fg)] disabled:opacity-50"
-            aria-label="Close"
+            :aria-label="$t('common.actions.close')"
             :disabled="starting"
             @click="rebase.close()"
           >
@@ -53,19 +53,18 @@ onUnmounted(() => document.removeEventListener('keydown', onKeydown))
 
         <div class="space-y-4 overflow-y-auto px-4 py-4">
           <div class="space-y-2">
-            <label class="text-xs font-medium text-[var(--color-fg-muted)]">Rebase onto</label>
+            <label class="text-xs font-medium text-[var(--color-fg-muted)]">{{ $t('rebase.dialog.onto') }}</label>
             <div class="flex gap-2" @keydown.enter.prevent="rebase.loadCommits()">
               <SearchInput
                 :model-value="base"
                 class="flex-1"
-                placeholder="HEAD~5, main, or commit SHA"
+                :placeholder="$t('rebase.dialog.basePlaceholder')"
                 @update:model-value="rebase.setBase($event)"
               />
-              <Button variant="secondary" :busy="loading" @click="rebase.loadCommits()">Load</Button>
+              <Button variant="secondary" :busy="loading" @click="rebase.loadCommits()">{{ $t('rebase.dialog.load') }}</Button>
             </div>
             <p v-if="baseShortSha" class="text-[11px] text-[var(--color-fg-subtle)]">
-              {{ entries.length }} commit{{ entries.length === 1 ? '' : 's' }} after
-              <code class="font-mono">{{ baseShortSha }}</code>
+              {{ $t('rebase.dialog.commitsAfter', { count: entries.length, sha: baseShortSha }) }}
             </p>
           </div>
 
@@ -74,14 +73,13 @@ onUnmounted(() => document.removeEventListener('keydown', onKeydown))
           >
             <AlertTriangle :size="14" class="mt-0.5 shrink-0 text-amber-400" />
             <p>
-              This rewrites commit history. Reorder commits by dragging, choose an action for each
-              row, then start the rebase.
+              {{ $t('rebase.dialog.warning') }}
             </p>
           </div>
 
           <div v-if="loading" class="flex items-center justify-center gap-2 py-10 text-sm text-[var(--color-fg-muted)]">
             <Loader2 :size="16" class="animate-spin" />
-            Loading commits…
+            {{ $t('rebase.dialog.loading') }}
           </div>
 
           <div v-else-if="entries.length > 0" class="space-y-2">
@@ -94,19 +92,19 @@ onUnmounted(() => document.removeEventListener('keydown', onKeydown))
           </div>
 
           <p v-else class="py-8 text-center text-sm text-[var(--color-fg-muted)]">
-            Enter a base ref and load commits to build your rebase plan.
+            {{ $t('rebase.dialog.empty') }}
           </p>
         </div>
 
         <footer class="flex justify-end gap-2 border-t border-[var(--color-border)] px-4 py-3">
-          <Button variant="ghost" :disabled="starting" @click="rebase.close()">Cancel</Button>
+          <Button variant="ghost" :disabled="starting" @click="rebase.close()">{{ $t('common.actions.cancel') }}</Button>
           <Button
             variant="primary"
             :disabled="entries.length === 0 || loading"
             :busy="starting"
             @click="rebase.start()"
           >
-            Start Rebase
+            {{ $t('rebase.dialog.start') }}
           </Button>
         </footer>
       </div>

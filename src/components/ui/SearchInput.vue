@@ -8,7 +8,7 @@ withDefaults(
     placeholder?: string
     shortcut?: string
   }>(),
-  { placeholder: 'Search' },
+  { placeholder: '' },
 )
 
 const emit = defineEmits<{ 'update:modelValue': [string] }>()
@@ -27,7 +27,7 @@ defineExpose({
     <input
       ref="input"
       :value="modelValue"
-      :placeholder="placeholder"
+      :placeholder="placeholder || $t('common.actions.search')"
       class="min-w-0 flex-1 bg-transparent text-[13px] text-[var(--color-fg)] placeholder:text-[var(--color-fg-subtle)] focus:outline-none"
       spellcheck="false"
       @input="emit('update:modelValue', ($event.target as HTMLInputElement).value)"
@@ -36,7 +36,7 @@ defineExpose({
       v-if="modelValue"
       type="button"
       class="shrink-0 rounded p-0.5 text-[var(--color-fg-subtle)] hover:text-[var(--color-fg)]"
-      aria-label="Clear search"
+      :aria-label="$t('shell.search.clear')"
       @click="emit('update:modelValue', '')"
     >
       <X :size="13" />

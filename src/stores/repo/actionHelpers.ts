@@ -1,23 +1,25 @@
+import { translate } from '@/locales'
 import type { GitAction } from '@/types/git'
 
 export { scopesForAction } from '@shared/git/snapshotScopes'
 
 export function describeAction(action: GitAction): string {
   const target = action.target ? ` "${action.target}"` : ''
+  const params = { action: action.kind, target }
   switch (action.kind) {
     case 'force-push':
     case 'commit-and-force-push':
-      return `Are you sure you want to run ${action.kind}${target}? Uses --force-with-lease to protect unpulled remote work. This cannot be undone.`
+      return translate('shell.operations.describe.forcePush', params)
     case 'discard-file':
     case 'discard-all':
     case 'discard-patch':
-      return `Are you sure you want to run ${action.kind}${target}? Working-tree changes will be lost permanently and cannot be undone.`
+      return translate('shell.operations.describe.discard', params)
     case 'drop-stash':
-      return `Are you sure you want to drop stash${target}? The stash entry will be permanently deleted and cannot be undone.`
+      return translate('shell.operations.describe.dropStash', params)
     case 'reset-hard':
-      return `Are you sure you want to run reset-hard${target}? Working-tree changes will be lost. HEAD can be restored with Undo.`
+      return translate('shell.operations.describe.resetHard', params)
     default:
-      return `Are you sure you want to run ${action.kind}${target}? This cannot be undone.`
+      return translate('shell.operations.describe.fallback', params)
   }
 }
 
@@ -34,43 +36,49 @@ export function labelForOperation(action: GitAction): string | null {
   switch (action.kind) {
     case 'fetch':
     case 'fetch-all':
-      return 'Fetching...'
+      return translate('shell.operations.progress.fetching')
     case 'pull':
-      return 'Pulling...'
+      return translate('shell.operations.progress.pulling')
     case 'push':
-      return 'Pushing...'
+      return translate('shell.operations.progress.pushing')
     case 'force-push':
-      return 'Force-pushing (with lease)...'
+      return translate('shell.operations.progress.forcePushing')
     case 'sync':
-      return 'Syncing...'
+      return translate('shell.operations.progress.syncing')
     case 'commit-and-push':
-      return 'Committing and pushing...'
+      return translate('shell.operations.progress.committingAndPushing')
     case 'commit-and-force-push':
-      return 'Committing and force-pushing (with lease)...'
+      return translate('shell.operations.progress.committingAndForcePushing')
     case 'rebase':
     case 'interactive-rebase':
     case 'rebase-from-here':
-      return 'Rebasing...'
+      return translate('shell.operations.progress.rebasing')
     case 'merge':
-      return 'Merging...'
+      return translate('shell.operations.progress.merging')
     case 'lfs-track':
     case 'lfs-untrack':
     case 'lfs-prune':
-      return 'Updating Git LFS...'
+      return translate('shell.operations.progress.lfs')
     case 'bisect-start':
     case 'bisect-good':
     case 'bisect-bad':
     case 'bisect-skip':
     case 'bisect-reset':
-      return 'Bisecting...'
+      return translate('shell.operations.progress.bisecting')
     case 'checkout':
-      return `Switching to ${action.target ?? 'branch'}...`
+      return translate('shell.operations.progress.switchingTo', {
+        branch: action.target ?? translate('common.labels.branch'),
+      })
     case 'checkout-commit':
-      return 'Checking out commit...'
+      return translate('shell.operations.progress.checkingOutCommit')
     case 'checkout-tag':
-      return `Checking out ${action.target ?? 'tag'}...`
+      return translate('shell.operations.progress.checkingOutTag', {
+        tag: action.target ?? translate('common.labels.tag'),
+      })
     case 'create-branch':
-      return `Switching to ${String(action.meta?.name ?? 'branch')}...`
+      return translate('shell.operations.progress.creatingBranch', {
+        branch: String(action.meta?.name ?? translate('common.labels.branch')),
+      })
     default:
       return null
   }

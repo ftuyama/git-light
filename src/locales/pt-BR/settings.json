@@ -1,4 +1,126 @@
 {
+  "button": "Configurações",
+  "dialog": {
+    "title": "Preferências",
+    "close": "Fechar preferências"
+  },
+  "categories": {
+    "general": "Geral",
+    "appearance": "Aparência",
+    "layout": "Layout",
+    "ui": "Interface",
+    "commitGraph": "Grafo de commits",
+    "sidebar": "Barra lateral",
+    "repository": "Repositório",
+    "changes": "Alterações",
+    "commits": "Commits",
+    "sync": "Sincronização",
+    "application": "Aplicativo",
+    "shortcuts": "Atalhos",
+    "credits": "Créditos"
+  },
+  "appearance": {
+    "interface": "Interface",
+    "interfaceDescription": "O modo Básico oculta ações avançadas como stash, rebase e terminal. O modo Avançado mostra tudo.",
+    "themeDescription": "Escolha uma paleta de cores para a interface do aplicativo.",
+    "basic": "Básico",
+    "basicDescription": "Apenas as ações essenciais do Git. Oculta stash, rebase, cherry-pick, tags e mais.",
+    "advanced": "Avançado",
+    "advancedDescription": "Barra de ferramentas completa, seções da barra lateral e ações de commit."
+  },
+  "language": {
+    "title": "Idioma",
+    "description": "Idioma da interface do aplicativo.",
+    "system": "Sistema",
+    "systemDescription": "Acompanha o idioma do sistema operacional. Atualmente: {language}."
+  },
+  "layout": {
+    "description": "Controle a visibilidade dos painéis e restaure o layout padrão de três painéis.",
+    "panels": "Painéis",
+    "showLeftSidebar": "Mostrar barra lateral esquerda",
+    "showLeftSidebarDescription": "Exibe a barra lateral de branches à esquerda.",
+    "showRightPanel": "Mostrar painel direito",
+    "showRightPanelDescription": "Exibe o painel da árvore de trabalho e do diff à direita.",
+    "reset": "Restaurar",
+    "resetDescription": "Restaura os tamanhos padrão dos painéis e expande os dois painéis laterais.",
+    "resetAction": "Restaurar layout dos painéis"
+  },
+  "changes": {
+    "description": "Controle como os arquivos alterados são listados na árvore de trabalho e nos painéis de commit.",
+    "fileList": "Lista de arquivos",
+    "treeView": "Visualização em árvore",
+    "treeViewDescription": "Agrupa os arquivos alterados em uma hierarquia de pastas recolhível."
+  },
+  "commits": {
+    "description": "Opções padrão aplicadas aos novos commits.",
+    "options": "Opções de commit",
+    "signOff": "Assinar commit com sign-off",
+    "signOffDescription": "Adiciona um trailer Signed-off-by às mensagens de commit (--signoff).",
+    "sign": "Assinar commit (GPG/SSH)",
+    "signDescription": "Assina com chave GPG/SSH (-S). Requer user.signingkey na configuração do git."
+  },
+  "commitGraph": {
+    "description": "Controle quais commits aparecem no grafo e quais colunas são exibidas.",
+    "history": "Histórico",
+    "showAllBranches": "Mostrar todos os branches",
+    "showAllBranchesDescription": "Exibe commits de todos os branches, não apenas do branch em checkout.",
+    "recentCommits": "Commits recentes a carregar",
+    "recentCommitsDescription": "Número máximo de commits buscados para o grafo. Mínimo de {min}; {recommended} recomendado.",
+    "columns": "Colunas",
+    "columnsDescription": "Escolha quais colunas opcionais são exibidas nas linhas do grafo.",
+    "indicators": "Indicadores",
+    "timeIndicators": "Indicadores de tempo",
+    "timeIndicatorsDescription": "Mostra divisórias como “uma semana atrás” entre os commits do grafo.",
+    "mergeIndicators": "Indicadores de merge",
+    "mergeIndicatorsDescription": "Marca commits de merge com um ícone de merge na coluna de mensagem do commit.",
+    "columnWidths": "Larguras das colunas",
+    "resetWidths": "Restaurar larguras",
+    "columnWidthsDescription": "Larguras exatas em pixels, ou arraste as bordas das colunas no cabeçalho do grafo."
+  },
+  "columnDescriptions": {
+    "author": "Mostra o avatar e o nome do autor do commit em cada linha.",
+    "sha": "Mostra o hash abreviado do commit em cada linha.",
+    "when": "Mostra há quanto tempo cada commit foi feito."
+  },
+  "sidebar": {
+    "description": "Escolha como cada seção da barra lateral de branches é exibida: expandida, recolhida até o cabeçalho ou totalmente oculta.",
+    "sections": "Seções"
+  },
+  "sectionDescriptions": {
+    "favorites": "Branches fixados exibidos no topo da barra lateral.",
+    "localBranches": "Lista de branches locais e grupos de branches.",
+    "remoteBranches": "Branches de rastreamento remoto agrupados por remoto.",
+    "tags": "Tags anotadas e leves do repositório.",
+    "stashes": "Stashes salvos com a mensagem e o contexto do branch.",
+    "worktrees": "Worktrees vinculados e seus caminhos de checkout."
+  },
+  "sync": {
+    "description": "Mantenha os branches de rastreamento remoto atualizados sem sair do aplicativo.",
+    "backgroundFetch": "Fetch em segundo plano",
+    "autoFetchInterval": "Intervalo de fetch automático",
+    "autoFetchIntervalDescription": "Busca silenciosamente todos os remotos em um intervalo. Sem banner, sem notificação — o grafo apenas se atualiza."
+  },
+  "intervals": {
+    "disabled": "Desativado",
+    "everyMinute": "A cada minuto",
+    "every5Minutes": "A cada 5 minutos",
+    "every10Minutes": "A cada 10 minutos",
+    "every30Minutes": "A cada 30 minutos",
+    "everyHour": "A cada hora",
+    "every2Hours": "A cada 2 horas"
+  },
+  "credits": {
+    "version": "Versão {version}",
+    "description": "Cliente Git desktop gratuito e de código aberto (Tauri 2, Vue 3, TypeScript, Rust) — alternativa ao GitKraken centrada no grafo, com grafo de commits, branches, staging e operações reais de Git local.",
+    "builtBy": "Criado por",
+    "license": "Licença {license}",
+    "website": "Site",
+    "sourceCode": "Código-fonte",
+    "sponsor": "Apoiar no Ko-fi",
+    "links": "Links",
+    "openSource": "Código aberto",
+    "openSourceDescription": "O Git Light é possível graças a estes projetos e seus colaboradores."
+  },
   "columns": {
     "author": "Autor",
     "sha": "SHA",
@@ -11,7 +133,8 @@
     "author": "Autor",
     "sha": "SHA",
     "when": "Quando",
-    "ariaLabel": "Largura da coluna {name}"
+    "ariaLabel": "Largura da coluna {name}",
+    "hidden": "{range} · oculta"
   },
   "sections": {
     "favorites": "Favoritos",
@@ -55,6 +178,13 @@
   "shortcuts": {
     "disable": "Desativar o atalho de {name}",
     "reset": "Restaurar o atalho de {name}",
-    "conflictsWith": "Conflita com: {names}"
+    "conflictsWith": "Conflita com: {names}",
+    "description": "Clique em um atalho para gravar um novo. Esc cancela. Conflitos são destacados.",
+    "restoreDefaults": "Restaurar padrões",
+    "disableTooltip": "Desativar (limpar atalho)",
+    "resetTooltip": "Restaurar padrão",
+    "recordHint": "Clique para gravar um novo atalho",
+    "recordingHint": "Pressione as teclas do atalho; Esc cancela",
+    "recording": "Pressione as teclas…"
   }
 }

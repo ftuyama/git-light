@@ -2,6 +2,7 @@ import { defineStore } from 'pinia'
 import type { BlameResult, ConflictResult, DiffResult, FileHistoryEntry } from '@shared/git/models'
 import type { WorkingTreeFile } from '@/types/git'
 import { gitService } from '@/lib/git'
+import { translate } from '@/locales'
 import { useRepositoryStore } from './repository'
 import { useSelectionStore } from './selection'
 import { useToastStore } from './toast'
@@ -92,7 +93,7 @@ export const useRepoDiffStore = defineStore('repoDiff', {
       } catch (error) {
         this.commitFiles = []
         const detail = error instanceof Error ? error.message : String(error)
-        useToastStore().push(`Could not load commit files: ${detail}`, 'error')
+        useToastStore().push(translate('diff.toast.commitFilesFailed', { detail }), 'error')
       } finally {
         this.commitFilesLoading = false
       }
@@ -110,7 +111,7 @@ export const useRepoDiffStore = defineStore('repoDiff', {
       } catch (error) {
         this.compareFiles = []
         const detail = error instanceof Error ? error.message : String(error)
-        useToastStore().push(`Could not compare commits: ${detail}`, 'error')
+        useToastStore().push(translate('diff.toast.compareFailed', { detail }), 'error')
       } finally {
         this.compareFilesLoading = false
       }
@@ -219,7 +220,7 @@ export const useRepoDiffStore = defineStore('repoDiff', {
       } catch (error) {
         this.diff = null
         const detail = error instanceof Error ? error.message : String(error)
-        useToastStore().push(`Could not load diff: ${detail}`, 'error')
+        useToastStore().push(translate('diff.toast.diffFailed', { detail }), 'error')
       } finally {
         this.diffLoading = false
       }
@@ -235,7 +236,7 @@ export const useRepoDiffStore = defineStore('repoDiff', {
       } catch (error) {
         this.blame = null
         const detail = error instanceof Error ? error.message : String(error)
-        useToastStore().push(`Could not load blame: ${detail}`, 'error')
+        useToastStore().push(translate('diff.toast.blameFailed', { detail }), 'error')
       } finally {
         this.blameLoading = false
       }
@@ -252,7 +253,7 @@ export const useRepoDiffStore = defineStore('repoDiff', {
         this.fileHistoryEntries = []
         if (this.fileHistoryOpen) {
           const detail = error instanceof Error ? error.message : String(error)
-          useToastStore().push(`Could not load file history: ${detail}`, 'error')
+          useToastStore().push(translate('diff.toast.historyFailed', { detail }), 'error')
         }
       } finally {
         this.fileHistoryLoading = false
@@ -305,7 +306,7 @@ export const useRepoDiffStore = defineStore('repoDiff', {
       } catch (error) {
         this.conflict = null
         const detail = error instanceof Error ? error.message : String(error)
-        useToastStore().push(`Could not load conflict: ${detail}`, 'error')
+        useToastStore().push(translate('diff.toast.conflictFailed', { detail }), 'error')
       } finally {
         this.conflictLoading = false
       }

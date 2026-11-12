@@ -1,1 +1,43 @@
-{}
+{
+  "title": "Paleta de comandos",
+  "placeholder": "Digite um comando ou branch…",
+  "empty": "Nenhum comando correspondente.",
+  "checkoutBranch": "Fazer checkout de {branch}",
+  "commands": {
+    "fetch": "Fetch",
+    "fetchAll": "Fetch all (prune)",
+    "pull": "Pull",
+    "push": "Push",
+    "pushTags": "Push de tags",
+    "prune": "Limpar remotos obsoletos",
+    "sync": "Sincronizar (fetch + pull)",
+    "refresh": "Atualizar",
+    "stash": "Fazer stash das alterações",
+    "popStash": "Pop no stash",
+    "merge": "Mesclar branch…",
+    "rebase": "Rebase sobre…",
+    "interactiveRebase": "Rebase interativo…",
+    "cherryPick": "Cherry-pick de commit…",
+    "createBranch": "Criar branch…",
+    "createTag": "Criar tag…",
+    "bisect": "Iniciar bisect…",
+    "lfsTrack": "Rastrear com Git LFS…",
+    "lfsUntrack": "Parar de rastrear com Git LFS…",
+    "lfsPrune": "Limpar objetos do Git LFS",
+    "stageAll": "Preparar todas as alterações",
+    "search": "Buscar commits e arquivos…",
+    "terminal": "Abrir terminal do sistema",
+    "sidebarLeft": "Alternar barra lateral esquerda",
+    "sidebarRight": "Alternar barra lateral direita",
+    "settings": "Abrir configurações…"
+  },
+  "search": {
+    "title": "Buscar no repositório",
+    "placeholder": "Buscar commits e arquivos…",
+    "searching": "Buscando…",
+    "commits": "Commits",
+    "files": "Arquivos",
+    "noResults": "Nenhum resultado. Pressione Enter para buscar.",
+    "hint": "Digite para buscar commits e arquivos rastreados."
+  }
+}

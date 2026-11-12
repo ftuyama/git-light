@@ -42,11 +42,11 @@ function toggleIgnoreWhitespace(value: boolean): void {
       class="flex h-8 shrink-0 items-center gap-2 border-b border-[var(--color-border)] px-3 text-[11px] font-semibold tracking-wide text-[var(--color-fg-muted)] uppercase"
     >
       <span class="flex-1 truncate normal-case">{{ diffStore.selectedFilePath }}</span>
-      <Tooltip label="Close file">
+      <Tooltip :label="$t('diff.panel.closeFile')">
         <button
           type="button"
           class="focus-ring rounded p-1 text-[var(--color-fg-subtle)] transition-colors hover:bg-[var(--color-hover)] hover:text-[var(--color-fg)]"
-          aria-label="Close file"
+          :aria-label="$t('diff.panel.closeFile')"
           @click="diffStore.selectFile(null)"
         >
           <X :size="12" class="block" />
@@ -57,27 +57,27 @@ function toggleIgnoreWhitespace(value: boolean): void {
       class="flex h-8 shrink-0 items-center gap-2 border-b border-[var(--color-border)] px-3"
     >
       <div class="flex items-center rounded border border-[var(--color-border)] p-0.5">
-        <Tooltip label="Diff view">
+        <Tooltip :label="$t('diff.panel.diffView')">
           <button
             type="button"
             class="focus-ring flex items-center gap-1 rounded bg-[var(--color-active)] px-1.5 py-0.5 text-[10px] text-[var(--color-fg)] transition-colors"
-            aria-label="Diff view"
+            :aria-label="$t('diff.panel.diffView')"
             :aria-pressed="true"
           >
             <Rows3 :size="12" class="shrink-0" />
-            Diff
+            {{ $t('diff.panel.diff') }}
           </button>
         </Tooltip>
-        <Tooltip label="Blame view">
+        <Tooltip :label="$t('diff.panel.blameView')">
           <button
             type="button"
             class="focus-ring flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px] transition-colors text-[var(--color-fg-subtle)] hover:bg-[var(--color-hover)]"
-            aria-label="Blame view"
+            :aria-label="$t('diff.panel.blameView')"
             :aria-pressed="false"
             @click="diffStore.setPanelMode('blame')"
           >
             <UserSearch :size="12" class="shrink-0" />
-            Blame
+            {{ $t('diff.panel.blame') }}
           </button>
         </Tooltip>
       </div>
@@ -85,28 +85,28 @@ function toggleIgnoreWhitespace(value: boolean): void {
         v-if="diff && !diff.binary && !diff.tooLarge"
         class="flex items-center rounded border border-[var(--color-border)] p-0.5"
       >
-        <Tooltip label="Unified diff">
+        <Tooltip :label="$t('diff.panel.unified')">
           <button
             type="button"
             class="focus-ring rounded px-1.5 py-0.5 text-[10px] transition-colors"
             :class="ui.diffViewMode === 'unified'
               ? 'bg-[var(--color-active)] text-[var(--color-fg)]'
               : 'text-[var(--color-fg-subtle)] hover:bg-[var(--color-hover)]'"
-            aria-label="Unified diff"
+            :aria-label="$t('diff.panel.unified')"
             :aria-pressed="ui.diffViewMode === 'unified'"
             @click="ui.setDiffViewMode('unified')"
           >
             <Rows3 :size="12" class="inline" />
           </button>
         </Tooltip>
-        <Tooltip label="Split diff">
+        <Tooltip :label="$t('diff.panel.split')">
           <button
             type="button"
             class="focus-ring rounded px-1.5 py-0.5 text-[10px] transition-colors"
             :class="ui.diffViewMode === 'split'
               ? 'bg-[var(--color-active)] text-[var(--color-fg)]'
               : 'text-[var(--color-fg-subtle)] hover:bg-[var(--color-hover)]'"
-            aria-label="Split diff"
+            :aria-label="$t('diff.panel.split')"
             :aria-pressed="ui.diffViewMode === 'split'"
             @click="ui.setDiffViewMode('split')"
           >
@@ -115,28 +115,28 @@ function toggleIgnoreWhitespace(value: boolean): void {
         </Tooltip>
       </div>
       <div v-if="!isImageDiff" class="flex items-center rounded border border-[var(--color-border)] p-0.5">
-        <Tooltip label="Ignore Leading/Trailing Space">
+        <Tooltip :label="$t('diff.panel.ignoreWhitespace')">
           <button
             type="button"
             class="focus-ring rounded px-1.5 py-0.5 text-[10px] transition-colors"
             :class="ui.ignoreWhitespace
               ? 'bg-[var(--color-active)] text-[var(--color-fg)]'
               : 'text-[var(--color-fg-subtle)] hover:bg-[var(--color-hover)]'"
-            aria-label="Ignore Leading/Trailing Space"
+            :aria-label="$t('diff.panel.ignoreWhitespace')"
             :aria-pressed="ui.ignoreWhitespace"
             @click="toggleIgnoreWhitespace(!ui.ignoreWhitespace)"
           >
             <Pilcrow :size="12" class="inline" />
           </button>
         </Tooltip>
-        <Tooltip label="Word Wrap">
+        <Tooltip :label="$t('diff.panel.wordWrap')">
           <button
             type="button"
             class="focus-ring rounded px-1.5 py-0.5 text-[10px] transition-colors"
             :class="ui.diffWordWrap
               ? 'bg-[var(--color-active)] text-[var(--color-fg)]'
               : 'text-[var(--color-fg-subtle)] hover:bg-[var(--color-hover)]'"
-            aria-label="Word Wrap"
+            :aria-label="$t('diff.panel.wordWrap')"
             :aria-pressed="ui.diffWordWrap"
             @click="ui.setDiffWordWrap(!ui.diffWordWrap)"
           >
@@ -155,7 +155,7 @@ function toggleIgnoreWhitespace(value: boolean): void {
       class="flex flex-1 items-center justify-center text-xs text-[var(--color-fg-subtle)]"
     >
       <Loader2 :size="16" class="mr-2 animate-spin" />
-      Loading diff…
+      {{ $t('diff.panel.loading') }}
     </div>
 
     <template v-else>
@@ -163,7 +163,7 @@ function toggleIgnoreWhitespace(value: boolean): void {
         v-if="diff?.tooLarge"
         class="flex flex-1 items-center justify-center px-4 text-center text-xs text-[var(--color-fg-subtle)]"
       >
-        File is too large to diff in the UI.
+        {{ $t('diff.panel.tooLarge') }}
       </div>
 
       <div
@@ -177,7 +177,7 @@ function toggleIgnoreWhitespace(value: boolean): void {
         v-else-if="diff?.binary"
         class="flex flex-1 items-center justify-center px-4 text-center text-xs text-[var(--color-fg-subtle)]"
       >
-        Binary file — no text diff available.
+        {{ $t('diff.panel.binary') }}
       </div>
 
       <UnifiedDiffView v-else-if="diff && ui.diffViewMode === 'unified'" :diff="diff" />

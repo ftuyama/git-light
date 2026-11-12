@@ -8,6 +8,7 @@ import SidebarVirtualList from './SidebarVirtualList.vue'
 import { sortCurrentBranchFirst } from './sortBranches'
 import type { BranchSidebarData } from './useBranchSidebarData'
 import type { SectionKey } from '@/lib/preferences'
+import { translate } from '@/locales'
 import type { Branch, Stash, Tag } from '@/types/git'
 
 const props = defineProps<{ section: SectionKey }>()
@@ -117,17 +118,17 @@ const rows = computed<Row[]>(() => {
 
 function tagMenu(tag: Tag): MenuItem[] {
   return [
-    { label: 'Checkout Tag', onSelect: () => void repo.runAction({ kind: 'checkout-tag', target: tag.name }) },
-    { label: 'Delete Tag', danger: true, onSelect: () => void repo.runAction({ kind: 'delete-tag', target: tag.name }) },
+    { label: translate('branches.tags.checkout'), onSelect: () => void repo.runAction({ kind: 'checkout-tag', target: tag.name }) },
+    { label: translate('branches.tags.deleteTag'), danger: true, onSelect: () => void repo.runAction({ kind: 'delete-tag', target: tag.name }) },
   ]
 }
 
 function stashMenu(stash: Stash): MenuItem[] {
   const ref = `stash@{${stash.index}}`
   return [
-    { label: 'Apply', onSelect: () => void repo.runAction({ kind: 'apply-stash', target: ref }) },
-    { label: 'Pop', onSelect: () => void repo.runAction({ kind: 'pop-stash', target: ref }) },
-    { label: 'Drop', danger: true, onSelect: () => void repo.runAction({ kind: 'drop-stash', target: ref }) },
+    { label: translate('common.actions.apply'), onSelect: () => void repo.runAction({ kind: 'apply-stash', target: ref }) },
+    { label: translate('branches.stashes.pop'), onSelect: () => void repo.runAction({ kind: 'pop-stash', target: ref }) },
+    { label: translate('branches.stashes.drop'), danger: true, onSelect: () => void repo.runAction({ kind: 'drop-stash', target: ref }) },
   ]
 }
 
@@ -135,12 +136,14 @@ function groupMenu(row: Extract<Row, { kind: 'group' }>): MenuItem[] {
   if (row.remote) return []
   const deletable = row.branches.filter((branch) => !branch.isCurrent)
   if (deletable.length === 0) {
-    return [{ label: 'No branches to delete', disabled: true }]
+    return [{ label: translate('branches.menu.noneToDelete'), disabled: true }]
   }
-  const count = `${deletable.length} ${deletable.length === 1 ? 'branch' : 'branches'}`
   return [
     {
-      label: `Delete ${count} in folder "${row.label}"`,
+      label: translate('branches.menu.deleteInFolder', {
+        count: deletable.length,
+        folder: row.label,
+      }),
       icon: Trash2,
       danger: true,
       onSelect: () =>
@@ -155,14 +158,14 @@ function groupMenu(row: Extract<Row, { kind: 'group' }>): MenuItem[] {
 function worktreeMenu(worktree: { path: string; isMain: boolean }): MenuItem[] {
   const items: MenuItem[] = [
     {
-      label: 'Reveal in Finder',
+      label: translate('branches.worktrees.reveal'),
       icon: FolderOpen,
       onSelect: () => void repo.runAction({ kind: 'reveal-in-finder', target: worktree.path }),
     },
   ]
   if (!worktree.isMain) {
     items.push({
-      label: 'Remove Worktree',
+      label: translate('branches.worktrees.remove'),
       icon: Trash2,
       danger: true,
       onSelect: () => void repo.removeWorktree(worktree.path),
@@ -194,7 +197,7 @@ function worktreeMenu(worktree: { path: string; isMain: boolean }): MenuItem[] {
       class="mx-2 mt-1 w-[calc(100%-1rem)] rounded-md px-2 py-1 text-left text-xs text-[var(--color-accent)] hover:bg-[var(--color-hover)]"
       @click="repo.createTag()"
     >
-      + Create tag
+      <span aria-hidden="true">+</span> {{ $t('branches.tags.create') }}
     </button>
   </template>
 
@@ -207,7 +210,7 @@ function worktreeMenu(worktree: { path: string; isMain: boolean }): MenuItem[] {
         <div class="min-w-0 flex-1">
           <div class="truncate">{{ stash.message }}</div>
           <div class="truncate text-[10px] text-[var(--color-fg-subtle)]">
-            on {{ stash.branch }} · {{ stash.filesChanged }} files
+            {{ $t('branches.stashes.summary', { branch: stash.branch, count: stash.filesChanged }) }}
           </div>
         </div>
       </div>
@@ -234,7 +237,7 @@ function worktreeMenu(worktree: { path: string; isMain: boolean }): MenuItem[] {
       class="mx-2 mt-1 w-[calc(100%-1rem)] rounded-md px-2 py-1 text-left text-xs text-[var(--color-accent)] hover:bg-[var(--color-hover)]"
       @click="repo.addWorktree()"
     >
-      + Add worktree
+      <span aria-hidden="true">+</span> {{ $t('branches.worktrees.add') }}
     </button>
   </template>
 
@@ -243,7 +246,7 @@ function worktreeMenu(worktree: { path: string; isMain: boolean }): MenuItem[] {
       v-if="section === 'favorites' && rows.length === 0"
       class="px-6 py-1 text-xs text-[var(--color-fg-subtle)]"
     >
-      <Star :size="12" class="mr-1 inline" /> Pin branches to see them here
+      <Star :size="12" class="mr-1 inline" /> {{ $t('branches.favorites.empty') }}
     </div>
 
     <SidebarVirtualList v-else :count="rows.length" :row-height="ROW_HEIGHT">

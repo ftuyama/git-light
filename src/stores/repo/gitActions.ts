@@ -11,6 +11,7 @@ import { useToastStore } from '@/stores/toast'
 import { useUiStore } from '@/stores/ui'
 import { useGitOutputStore } from '@/stores/gitOutput'
 import { mergeMetaForMode, type MergeMode } from '@/lib/mergeMode'
+import { translate } from '@/locales'
 import {
   describeAction,
   isBranchSwitchAction,
@@ -68,9 +69,9 @@ export const gitActions = {
         })
       })
       const ok = await usePromptStore().confirm({
-        title: 'Confirm destructive action',
+        title: translate('shell.prompts.confirmDestructive'),
         message: describeAction(action),
-        confirmLabel: 'Continue',
+        confirmLabel: translate('shell.prompts.destructiveContinue'),
         danger: true,
       })
       if (!ok) return false
@@ -92,7 +93,7 @@ export const gitActions = {
       for (const part of parts) {
         if (part === '..') {
           if (resolved.length === 0 || resolved[resolved.length - 1] === '..') {
-            useToastStore().push('Invalid path.', 'error')
+            useToastStore().push(translate('shell.toasts.invalidPath'), 'error')
             return false
           }
           resolved.pop()
@@ -102,7 +103,7 @@ export const gitActions = {
       }
       const safe = resolved.join('/')
       if (!safe.startsWith(this.repository.path)) {
-        useToastStore().push('Invalid path.', 'error')
+        useToastStore().push(translate('shell.toasts.invalidPath'), 'error')
         return false
       }
       await gitService.revealPath(safe)
@@ -111,7 +112,7 @@ export const gitActions = {
 
     if (action.kind === 'refresh') {
       this.busyAction = 'refresh'
-      this.operation = 'Refreshing...'
+      this.operation = translate('shell.operations.refreshing')
       this.refreshing = true
       try {
         await this.refreshSnapshot(undefined, { invalidateCommits: true })
@@ -120,7 +121,7 @@ export const gitActions = {
         this.busyAction = null
         this.operation = null
       }
-      useToastStore().push('Refreshed repository', 'success')
+      useToastStore().push(translate('shell.toasts.refreshed'), 'success')
       return true
     }
 
@@ -243,7 +244,7 @@ export const gitActions = {
     }
 
     if (!sourceSha) {
-      useToastStore().push('No commit to create branch from', 'error')
+      useToastStore().push(translate('shell.toasts.noCommit'), 'error')
       return
     }
 
@@ -303,8 +304,8 @@ export const gitActions = {
 
   async renameBranch(this: GitActionsStore, branchName: string): Promise<void> {
     const newName = await usePromptStore().prompt({
-      title: 'Rename Branch',
-      message: `Rename ${branchName}`,
+      title: translate('shell.prompts.renameBranchTitle'),
+      message: translate('shell.prompts.renameBranchMessage', { name: branchName }),
       defaultValue: branchName,
     })
     if (!newName || newName === branchName) return
@@ -329,12 +330,17 @@ export const gitActions = {
         requestAnimationFrame(() => resolve())
       })
     })
-    const count = `${targets.length} ${targets.length === 1 ? 'branch' : 'branches'}`
-    const scope = folder ? ` in folder "${folder}"` : ''
+    const dialogTitle = translate('shell.prompts.deleteBranchesTitle', { count: targets.length })
+    const message = folder
+      ? translate('shell.prompts.deleteBranchesFolderMessage', {
+          count: targets.length,
+          folder,
+        })
+      : translate('shell.prompts.deleteBranchesMessage', { count: targets.length })
     const ok = await usePromptStore().confirm({
-      title: `Delete ${count}`,
-      message: `Delete ${count}${scope}? This cannot be undone.`,
-      confirmLabel: 'Delete',
+      title: dialogTitle,
+      message,
+      confirmLabel: translate('common.actions.delete'),
       danger: true,
     })
     if (!ok) return
@@ -349,8 +355,8 @@ export const gitActions = {
 
   async setUpstream(this: GitActionsStore, branchName: string): Promise<void> {
     const upstream = await usePromptStore().prompt({
-      title: 'Set Upstream',
-      message: `Upstream for ${branchName}`,
+      title: translate('shell.prompts.setUpstreamTitle'),
+      message: translate('shell.prompts.setUpstreamMessage', { name: branchName }),
       placeholder: 'origin/main',
     })
     if (!upstream) return
@@ -359,8 +365,8 @@ export const gitActions = {
 
   async mergeBranch(this: GitActionsStore, mergeMode: MergeMode = 'default'): Promise<void> {
     const target = await usePromptStore().prompt({
-      title: 'Merge Branch',
-      message: 'Branch to merge into the current branch',
+      title: translate('shell.prompts.mergeTitle'),
+      message: translate('shell.prompts.mergeMessage'),
       placeholder: 'feature/my-branch',
     })
     if (!target) return
@@ -369,8 +375,8 @@ export const gitActions = {
 
   async rebaseOnto(this: GitActionsStore): Promise<void> {
     const target = await usePromptStore().prompt({
-      title: 'Rebase',
-      message: 'Rebase current branch onto',
+      title: translate('shell.prompts.rebaseTitle'),
+      message: translate('shell.prompts.rebaseMessage'),
       placeholder: 'main',
     })
     if (!target) return
@@ -387,7 +393,7 @@ export const gitActions = {
     if (source.id === target.id) return
 
     if (this.busyAction || this.inProgressOperation) {
-      useToastStore().push('Finish the current operation first', 'error')
+      useToastStore().push(translate('shell.toasts.operationInProgress'), 'error')
       return
     }
 
@@ -429,8 +435,8 @@ export const gitActions = {
     const target =
       sha ??
       (await usePromptStore().prompt({
-        title: 'Cherry Pick',
-        message: 'Commit SHA to cherry-pick',
+        title: translate('shell.prompts.cherryPickTitle'),
+        message: translate('shell.prompts.cherryPickMessage'),
         placeholder: 'abc1234',
       }))
     if (!target) return
@@ -441,8 +447,8 @@ export const gitActions = {
     const target =
       sha ??
       (await usePromptStore().prompt({
-        title: 'Reset',
-        message: 'Commit to reset to (leave empty for HEAD)',
+        title: translate('shell.prompts.resetTitle'),
+        message: translate('shell.prompts.resetMessage'),
         placeholder: 'HEAD~1',
       }))
     await this.runAction({ kind: mode, target: target || 'HEAD' })
@@ -450,8 +456,8 @@ export const gitActions = {
 
   async stashChanges(this: GitActionsStore): Promise<void> {
     const message = await usePromptStore().prompt({
-      title: 'Stash Changes',
-      message: 'Optional stash message',
+      title: translate('shell.prompts.stashTitle'),
+      message: translate('shell.prompts.stashMessage'),
       defaultValue: 'WIP',
     })
     if (message === null) return
@@ -460,8 +466,8 @@ export const gitActions = {
 
   async renameStash(this: GitActionsStore, target: string, currentMessage: string): Promise<void> {
     const message = await usePromptStore().prompt({
-      title: 'Edit stash message',
-      message: 'Stash message',
+      title: translate('shell.prompts.renameStashTitle'),
+      message: translate('shell.prompts.renameStashMessage'),
       defaultValue: currentMessage,
     })
     if (message === null || message.trim() === '') return
@@ -470,14 +476,14 @@ export const gitActions = {
 
   async createTag(this: GitActionsStore): Promise<void> {
     const name = await usePromptStore().prompt({
-      title: 'Create Tag',
-      message: 'Tag name',
+      title: translate('shell.prompts.createTagTitle'),
+      message: translate('shell.prompts.tagNameMessage'),
       placeholder: 'v1.0.0',
     })
     if (!name) return
     const message = await usePromptStore().prompt({
-      title: 'Tag Message',
-      message: 'Annotated tag message (optional)',
+      title: translate('shell.prompts.tagMessageTitle'),
+      message: translate('shell.prompts.tagMessageMessage'),
       placeholder: name,
     })
     await this.runAction({
@@ -488,14 +494,14 @@ export const gitActions = {
 
   async createTagAt(this: GitActionsStore, sha: string): Promise<void> {
     const name = await usePromptStore().prompt({
-      title: 'Create Tag',
-      message: `Tag name for ${sha.slice(0, 7)}`,
+      title: translate('shell.prompts.createTagTitle'),
+      message: translate('shell.prompts.tagNameForSha', { sha: sha.slice(0, 7) }),
       placeholder: 'v1.0.0',
     })
     if (!name) return
     const message = await usePromptStore().prompt({
-      title: 'Tag Message',
-      message: 'Annotated tag message (optional)',
+      title: translate('shell.prompts.tagMessageTitle'),
+      message: translate('shell.prompts.tagMessageMessage'),
       placeholder: name,
     })
     await this.runAction({
@@ -506,14 +512,14 @@ export const gitActions = {
 
   async addWorktree(this: GitActionsStore, defaultBranch?: string): Promise<void> {
     const path = await usePromptStore().prompt({
-      title: 'Add Worktree',
-      message: 'Path for the new worktree',
+      title: translate('shell.prompts.addWorktreeTitle'),
+      message: translate('shell.prompts.worktreePathMessage'),
       placeholder: '../my-repo-feature',
     })
     if (!path) return
     const branch = await usePromptStore().prompt({
-      title: 'Branch (optional)',
-      message: 'Branch to check out (leave empty for detached HEAD)',
+      title: translate('shell.prompts.worktreeBranchTitle'),
+      message: translate('shell.prompts.worktreeBranchMessage'),
       placeholder: 'feature/my-branch',
       ...(defaultBranch ? { defaultValue: defaultBranch } : {}),
     })
@@ -550,18 +556,18 @@ export const gitActions = {
 
   async startBisect(this: GitActionsStore): Promise<void> {
     if (this.busyAction || this.inProgressOperation) {
-      useToastStore().push('Finish the current operation first', 'error')
+      useToastStore().push(translate('shell.toasts.operationInProgress'), 'error')
       return
     }
     const bad = await usePromptStore().prompt({
-      title: 'Start Bisect',
-      message: 'Known-bad commit (empty for HEAD)',
+      title: translate('shell.prompts.bisectTitle'),
+      message: translate('shell.prompts.bisectBadMessage'),
       placeholder: 'HEAD',
     })
     if (bad === null) return
     const good = await usePromptStore().prompt({
-      title: 'Start Bisect',
-      message: 'Known-good commit (optional)',
+      title: translate('shell.prompts.bisectTitle'),
+      message: translate('shell.prompts.bisectGoodMessage'),
       placeholder: 'v1.0.0',
     })
     if (good === null) return
@@ -589,8 +595,8 @@ export const gitActions = {
 
   async lfsTrack(this: GitActionsStore): Promise<void> {
     const pattern = await usePromptStore().prompt({
-      title: 'Track with Git LFS',
-      message: 'File pattern to track (e.g. *.zip)',
+      title: translate('shell.prompts.lfsTrackTitle'),
+      message: translate('shell.prompts.lfsTrackMessage'),
       placeholder: '*.zip',
     })
     if (!pattern) return
@@ -599,8 +605,8 @@ export const gitActions = {
 
   async lfsUntrack(this: GitActionsStore): Promise<void> {
     const pattern = await usePromptStore().prompt({
-      title: 'Untrack from Git LFS',
-      message: 'File pattern to stop tracking',
+      title: translate('shell.prompts.lfsUntrackTitle'),
+      message: translate('shell.prompts.lfsUntrackMessage'),
       placeholder: '*.zip',
     })
     if (!pattern) return

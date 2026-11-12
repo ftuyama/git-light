@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, nextTick, ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { CornerDownLeft, Search, X } from '@lucide/vue'
 import SearchInput from '@/components/ui/SearchInput.vue'
 import { filterCommands, type PaletteCommand } from '@/lib/commands'
@@ -7,6 +8,7 @@ import { useInteractiveRebaseStore } from '@/stores/interactiveRebase'
 import { useRepositoryStore } from '@/stores/repository'
 import { useUiStore } from '@/stores/ui'
 
+const { t } = useI18n()
 const repo = useRepositoryStore()
 const ui = useUiStore()
 const interactiveRebase = useInteractiveRebaseStore()
@@ -19,32 +21,32 @@ const open = computed(() => ui.commandPaletteOpen)
 
 const allCommands = computed<PaletteCommand[]>(() => {
   const commands: PaletteCommand[] = [
-    { id: 'fetch', title: 'Fetch', keywords: 'download remote update', run: () => repo.runAction({ kind: 'fetch' }) },
-    { id: 'fetch-all', title: 'Fetch All (prune)', keywords: 'download remote update prune', run: () => repo.runAction({ kind: 'fetch-all' }) },
-    { id: 'pull', title: 'Pull', keywords: 'download merge fast-forward', run: () => repo.runAction({ kind: 'pull' }) },
-    { id: 'push', title: 'Push', keywords: 'upload remote publish', run: () => repo.runAction({ kind: 'push' }) },
-    { id: 'push-tags', title: 'Push Tags', keywords: 'upload remote publish tags', run: () => repo.runAction({ kind: 'push-tags' }) },
-    { id: 'prune', title: 'Prune Stale Remotes', keywords: 'clean remote prune', run: () => repo.runAction({ kind: 'prune' }) },
-    { id: 'sync', title: 'Sync (fetch + pull)', keywords: 'download update', run: () => repo.runAction({ kind: 'sync' }) },
-    { id: 'refresh', title: 'Refresh', keywords: 'reload update status', run: () => repo.runAction({ kind: 'refresh' }) },
-    { id: 'stash', title: 'Stash Changes', keywords: 'save wip shelf', run: () => repo.stashChanges() },
-    { id: 'pop-stash', title: 'Pop Stash', keywords: 'restore apply unshelve', run: () => repo.runAction({ kind: 'pop-stash' }) },
-    { id: 'merge', title: 'Merge Branch…', keywords: 'integrate join', run: () => repo.mergeBranch() },
-    { id: 'rebase', title: 'Rebase Onto…', keywords: 'integrate replay move', run: () => repo.rebaseOnto() },
-    { id: 'interactive-rebase', title: 'Interactive Rebase…', keywords: 'rewrite squash edit history', run: () => interactiveRebase.open() },
-    { id: 'cherry-pick', title: 'Cherry Pick Commit…', keywords: 'copy apply commit', run: () => repo.cherryPickCommit() },
-    { id: 'create-branch', title: 'Create Branch…', keywords: 'new checkout', run: () => repo.createBranch() },
-    { id: 'create-tag', title: 'Create Tag…', keywords: 'new release version', run: () => repo.createTag() },
-    { id: 'bisect', title: 'Start Bisect…', keywords: 'debug find regression binary search', run: () => repo.startBisect() },
-    { id: 'lfs-track', title: 'Track with Git LFS…', keywords: 'large files binary', run: () => repo.lfsTrack() },
-    { id: 'lfs-untrack', title: 'Untrack Git LFS…', keywords: 'large files binary remove', run: () => repo.lfsUntrack() },
-    { id: 'lfs-prune', title: 'Prune Git LFS Objects', keywords: 'large files binary clean', run: () => repo.lfsPrune() },
-    { id: 'stage-all', title: 'Stage All Changes', keywords: 'add index', run: () => repo.runAction({ kind: 'stage-all' }) },
-    { id: 'search', title: 'Search Commits and Files…', keywords: 'find grep', run: () => repo.openSearch() },
-    { id: 'terminal', title: 'Open System Terminal', keywords: 'shell cli console', run: () => repo.runAction({ kind: 'open-terminal' }) },
-    { id: 'sidebar-left', title: 'Toggle Left Sidebar', keywords: 'branches panel view', run: () => ui.toggleLeft() },
-    { id: 'sidebar-right', title: 'Toggle Right Sidebar', keywords: 'working tree panel view', run: () => ui.toggleRight() },
-    { id: 'settings', title: 'Open Settings…', keywords: 'preferences appearance theme', run: () => ui.openSettings() },
+    { id: 'fetch', title: t('palette.commands.fetch'), keywords: 'download remote update', run: () => repo.runAction({ kind: 'fetch' }) },
+    { id: 'fetch-all', title: t('palette.commands.fetchAll'), keywords: 'download remote update prune', run: () => repo.runAction({ kind: 'fetch-all' }) },
+    { id: 'pull', title: t('palette.commands.pull'), keywords: 'download merge fast-forward', run: () => repo.runAction({ kind: 'pull' }) },
+    { id: 'push', title: t('palette.commands.push'), keywords: 'upload remote publish', run: () => repo.runAction({ kind: 'push' }) },
+    { id: 'push-tags', title: t('palette.commands.pushTags'), keywords: 'upload remote publish tags', run: () => repo.runAction({ kind: 'push-tags' }) },
+    { id: 'prune', title: t('palette.commands.prune'), keywords: 'clean remote prune', run: () => repo.runAction({ kind: 'prune' }) },
+    { id: 'sync', title: t('palette.commands.sync'), keywords: 'download update', run: () => repo.runAction({ kind: 'sync' }) },
+    { id: 'refresh', title: t('palette.commands.refresh'), keywords: 'reload update status', run: () => repo.runAction({ kind: 'refresh' }) },
+    { id: 'stash', title: t('palette.commands.stash'), keywords: 'save wip shelf', run: () => repo.stashChanges() },
+    { id: 'pop-stash', title: t('palette.commands.popStash'), keywords: 'restore apply unshelve', run: () => repo.runAction({ kind: 'pop-stash' }) },
+    { id: 'merge', title: t('palette.commands.merge'), keywords: 'integrate join', run: () => repo.mergeBranch() },
+    { id: 'rebase', title: t('palette.commands.rebase'), keywords: 'integrate replay move', run: () => repo.rebaseOnto() },
+    { id: 'interactive-rebase', title: t('palette.commands.interactiveRebase'), keywords: 'rewrite squash edit history', run: () => interactiveRebase.open() },
+    { id: 'cherry-pick', title: t('palette.commands.cherryPick'), keywords: 'copy apply commit', run: () => repo.cherryPickCommit() },
+    { id: 'create-branch', title: t('palette.commands.createBranch'), keywords: 'new checkout', run: () => repo.createBranch() },
+    { id: 'create-tag', title: t('palette.commands.createTag'), keywords: 'new release version', run: () => repo.createTag() },
+    { id: 'bisect', title: t('palette.commands.bisect'), keywords: 'debug find regression binary search', run: () => repo.startBisect() },
+    { id: 'lfs-track', title: t('palette.commands.lfsTrack'), keywords: 'large files binary', run: () => repo.lfsTrack() },
+    { id: 'lfs-untrack', title: t('palette.commands.lfsUntrack'), keywords: 'large files binary remove', run: () => repo.lfsUntrack() },
+    { id: 'lfs-prune', title: t('palette.commands.lfsPrune'), keywords: 'large files binary clean', run: () => repo.lfsPrune() },
+    { id: 'stage-all', title: t('palette.commands.stageAll'), keywords: 'add index', run: () => repo.runAction({ kind: 'stage-all' }) },
+    { id: 'search', title: t('palette.commands.search'), keywords: 'find grep', run: () => repo.openSearch() },
+    { id: 'terminal', title: t('palette.commands.terminal'), keywords: 'shell cli console', run: () => repo.runAction({ kind: 'open-terminal' }) },
+    { id: 'sidebar-left', title: t('palette.commands.sidebarLeft'), keywords: 'branches panel view', run: () => ui.toggleLeft() },
+    { id: 'sidebar-right', title: t('palette.commands.sidebarRight'), keywords: 'working tree panel view', run: () => ui.toggleRight() },
+    { id: 'settings', title: t('palette.commands.settings'), keywords: 'preferences appearance theme', run: () => ui.openSettings() },
   ]
   if (repo.canUndo) {
     commands.push({ id: 'undo', title: repo.undoTooltip, keywords: 'revert back', run: () => repo.runAction({ kind: 'undo' }) })
@@ -55,7 +57,7 @@ const allCommands = computed<PaletteCommand[]>(() => {
   for (const branch of repo.localBranches.slice(0, 8)) {
     commands.push({
       id: `checkout:${branch.name}`,
-      title: `Checkout ${branch.name}`,
+      title: t('palette.checkoutBranch', { branch: branch.name }),
       keywords: 'branch switch',
       run: () => repo.checkoutBranch(branch.name),
     })
@@ -116,7 +118,7 @@ function onKeydown(event: KeyboardEvent): void {
       <div
         class="w-full max-w-xl overflow-hidden rounded-xl border border-[var(--color-border-strong)] bg-[var(--color-panel)] shadow-2xl"
         role="dialog"
-        aria-label="Command palette"
+        :aria-label="$t('palette.title')"
       >
         <div class="flex items-center gap-2 border-b border-[var(--color-border)] p-3">
           <Search :size="18" class="shrink-0 text-[var(--color-fg-subtle)]" />
@@ -124,7 +126,7 @@ function onKeydown(event: KeyboardEvent): void {
             ref="inputRef"
             v-model="query"
             class="flex-1"
-            placeholder="Type a command or branch…"
+            :placeholder="$t('palette.placeholder')"
           />
           <button
             class="focus-ring rounded p-1 text-[var(--color-fg-subtle)] hover:bg-[var(--color-hover)]"
@@ -150,7 +152,7 @@ function onKeydown(event: KeyboardEvent): void {
             </span>
           </button>
           <div v-if="!results.length" class="py-8 text-center text-sm text-[var(--color-fg-subtle)]">
-            No matching commands.
+            {{ $t('palette.empty') }}
           </div>
         </div>
       </div>

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { storeToRefs } from 'pinia'
+import { useI18n } from 'vue-i18n'
 import { ArrowDown, ArrowUp, Check, Cloud, GitBranch, Star } from '@lucide/vue'
 import ContextMenu from '@/components/ui/ContextMenu.vue'
 import { branchMenuItems } from './branchMenuItems'
@@ -19,6 +20,7 @@ const repo = useRepositoryStore()
 const selection = useSelectionStore()
 const branchDrag = useBranchDragStore()
 const { selectedBranchId } = storeToRefs(selection)
+const { t } = useI18n()
 
 const dragEnabled = computed(
   () => !repo.branchSwitching && !repo.busyAction && !repo.inProgressOperation,
@@ -85,7 +87,7 @@ const displayName = computed(() => {
   return props.branch.name.split('/').slice(1).join('/')
 })
 
-const menu = computed(() => branchMenuItems(repo, props.branch))
+const menu = computed(() => branchMenuItems(repo, props.branch, (key) => t(key)))
 </script>
 
 <template>
@@ -102,7 +104,7 @@ const menu = computed(() => branchMenuItems(repo, props.branch))
       :aria-selected="isSidebarSelected"
       :style="{ paddingLeft: indent }"
       :draggable="dragEnabled"
-      :title="dragEnabled ? 'Drag onto another branch to merge or rebase' : undefined"
+      :title="dragEnabled ? $t('branches.row.dragHint') : undefined"
       @dragstart="onDragStart"
       @dragend="onDragEnd"
       @dragover="onDragOver"
@@ -144,7 +146,7 @@ const menu = computed(() => branchMenuItems(repo, props.branch))
               : 'text-[var(--color-fg-subtle)] opacity-0 group-hover/branch:opacity-100 hover:text-[var(--color-warning)]',
           )
         "
-        :aria-label="branch.isFavorite ? 'Unpin branch' : 'Pin branch'"
+        :aria-label="branch.isFavorite ? $t('branches.row.unpin') : $t('branches.row.pin')"
         @click.stop="repo.toggleFavorite(branch.id)"
       >
         <Star :size="12" :fill="branch.isFavorite ? 'currentColor' : 'none'" />

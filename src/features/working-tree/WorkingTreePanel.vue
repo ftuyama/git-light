@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, watch } from 'vue'
 import { storeToRefs } from 'pinia'
+import { useI18n } from 'vue-i18n'
 import { Splitpanes, Pane, type SplitpanesResizedPayload } from 'splitpanes'
 import { CheckCheck, ChevronRight, Loader2, Trash2, X } from '@lucide/vue'
 import IconButton from '@/components/ui/IconButton.vue'
@@ -18,6 +19,7 @@ const repo = useRepositoryStore()
 const diffStore = useRepoDiffStore()
 const selection = useSelectionStore()
 const ui = useUiStore()
+const { t } = useI18n()
 const { selectedSha, selectedStash, compareRange, isCompareMode } = storeToRefs(selection)
 const { workingTreeChangesSize } = storeToRefs(ui)
 
@@ -39,8 +41,8 @@ const selectedStashEntry = computed(() =>
 )
 const selectedStashLabel = computed(() =>
   selectedStashEntry.value?.branch
-    ? `WIP on ${selectedStashEntry.value.branch}`
-    : 'WIP',
+    ? t('workingTree.stash.wipOn', { branch: selectedStashEntry.value.branch })
+    : t('workingTree.stash.wip'),
 )
 const showWorkingTree = computed(
   () => !selectedSha.value && selectedStash.value == null && !isCompareMode.value,
@@ -69,19 +71,20 @@ const workingTreeStagedSize = computed(() => 100 - workingTreeChangesSize.value)
 
 const changedFileCount = computed(() => new Set(repo.workingTree.map((f) => f.path)).size)
 const branchName = computed(() => repo.currentBranch?.name ?? '—')
-const changesSummary = computed(() => {
-  const n = changedFileCount.value
-  const fileWord = n === 1 ? 'file' : 'files'
-  return `${n} ${fileWord} changed on ${branchName.value}`
-})
+const changesSummary = computed(() =>
+  t('workingTree.changes.summary', {
+    count: changedFileCount.value,
+    branch: branchName.value,
+  }),
+)
 const canDiscardAll = computed(() => changedFileCount.value > 0 && conflicts.value.length === 0)
 
-const commitEmptyMessage = 'No files changed in this commit'
+const commitEmptyMessage = computed(() => t('workingTree.state.noFilesInCommit'))
 
 function discardAllChanges(): void {
   void repo.discardAllChanges()
 }
-const compareEmptyMessage = 'No file changes between these commits'
+const compareEmptyMessage = computed(() => t('workingTree.state.noChangesBetweenCommits'))
 
 function onWorkingTreeResized(payload: SplitpanesResizedPayload): void {
   const size = payload.panes[0]?.size
@@ -132,14 +135,13 @@ watch(compareRange, (range) => {
         <header
           class="flex h-9 shrink-0 items-center gap-2 px-3 text-[11px] font-semibold tracking-wide text-[var(--color-fg-muted)] uppercase"
         >
-          <span class="flex-1">Changed files</span>
+          <span class="flex-1">{{ $t('workingTree.headers.changedFiles') }}</span>
           <span
             v-if="compareFiles.length"
             class="shrink-0 font-mono text-[10px] font-medium normal-case tracking-normal"
           >
             <span class="text-[var(--color-fg-muted)]"
-              >{{ compareFileStats.count }}
-              {{ compareFileStats.count === 1 ? 'file' : 'files' }}</span
+              >{{ $t('common.count.files', { count: compareFileStats.count }) }}</span
             >
             <span class="text-[var(--color-fg-subtle)]"> · </span>
             <span class="text-[var(--color-success)]">+{{ compareFileStats.additions }}</span>
@@ -152,7 +154,7 @@ watch(compareRange, (range) => {
           v-if="diffStore.compareFilesLoading"
           class="flex flex-1 items-center justify-center text-xs text-[var(--color-fg-subtle)]"
         >
-          <Loader2 :size="16" class="mr-2 animate-spin" /> Loading files…
+          <Loader2 :size="16" class="mr-2 animate-spin" /> {{ $t('workingTree.state.loadingFiles') }}
         </div>
         <FileList
           v-else-if="compareFiles.length"
@@ -180,14 +182,13 @@ watch(compareRange, (range) => {
         <header
           class="flex h-9 shrink-0 items-center gap-2 px-3 text-[11px] font-semibold tracking-wide text-[var(--color-fg-muted)] uppercase"
         >
-          <span class="flex-1">Files</span>
+          <span class="flex-1">{{ $t('workingTree.headers.files') }}</span>
           <span
             v-if="commitFiles.length"
             class="shrink-0 font-mono text-[10px] font-medium normal-case tracking-normal"
           >
             <span class="text-[var(--color-fg-muted)]"
-              >{{ commitFileStats.count }}
-              {{ commitFileStats.count === 1 ? 'file' : 'files' }}</span
+              >{{ $t('common.count.files', { count: commitFileStats.count }) }}</span
             >
             <span class="text-[var(--color-fg-subtle)]"> · </span>
             <span class="text-[var(--color-success)]">+{{ commitFileStats.additions }}</span>
@@ -200,7 +201,7 @@ watch(compareRange, (range) => {
           v-if="diffStore.commitFilesLoading"
           class="flex flex-1 items-center justify-center text-xs text-[var(--color-fg-subtle)]"
         >
-          <Loader2 :size="16" class="mr-2 animate-spin" /> Loading files…
+          <Loader2 :size="16" class="mr-2 animate-spin" /> {{ $t('workingTree.state.loadingFiles') }}
         </div>
         <FileList
           v-else-if="commitFiles.length"
@@ -224,14 +225,14 @@ watch(compareRange, (range) => {
             {{ selectedStashLabel }}
           </p>
           <p class="mt-0.5 truncate font-mono text-[11px] text-[var(--color-fg-subtle)]">
-            {{ selectedStash }} · {{ commitFiles.length }}
-            {{ commitFiles.length === 1 ? 'file' : 'files' }}
+            {{ selectedStash }} ·
+            {{ $t('common.count.files', { count: commitFiles.length }) }}
           </p>
         </div>
         <button
           class="focus-ring flex h-6 w-6 shrink-0 items-center justify-center rounded text-[var(--color-fg-subtle)] hover:bg-[var(--color-hover)] hover:text-[var(--color-fg)]"
-          title="Close stash files"
-          aria-label="Close stash files"
+          :title="$t('workingTree.stash.close')"
+          :aria-label="$t('workingTree.stash.close')"
           @click="exitStash"
         >
           <X :size="14" />
@@ -242,14 +243,13 @@ watch(compareRange, (range) => {
         <header
           class="flex h-9 shrink-0 items-center gap-2 px-3 text-[11px] font-semibold tracking-wide text-[var(--color-fg-muted)] uppercase"
         >
-          <span class="flex-1">Files</span>
+          <span class="flex-1">{{ $t('workingTree.headers.files') }}</span>
           <span
             v-if="commitFiles.length"
             class="shrink-0 font-mono text-[10px] font-medium normal-case tracking-normal"
           >
             <span class="text-[var(--color-fg-muted)]"
-              >{{ commitFileStats.count }}
-              {{ commitFileStats.count === 1 ? 'file' : 'files' }}</span
+              >{{ $t('common.count.files', { count: commitFileStats.count }) }}</span
             >
             <span class="text-[var(--color-fg-subtle)]"> · </span>
             <span class="text-[var(--color-success)]">+{{ commitFileStats.additions }}</span>
@@ -262,7 +262,7 @@ watch(compareRange, (range) => {
           v-if="diffStore.commitFilesLoading"
           class="flex flex-1 items-center justify-center text-xs text-[var(--color-fg-subtle)]"
         >
-          <Loader2 :size="16" class="mr-2 animate-spin" /> Loading files…
+          <Loader2 :size="16" class="mr-2 animate-spin" /> {{ $t('workingTree.state.loadingFiles') }}
         </div>
         <FileList
           v-else-if="commitFiles.length"
@@ -285,7 +285,7 @@ watch(compareRange, (range) => {
       >
         <IconButton
           :icon="Trash2"
-          label="Discard all changes"
+          :label="$t('workingTree.actions.discardAll')"
           danger
           tooltip-side="left"
           :disabled="!canDiscardAll"
@@ -308,13 +308,13 @@ watch(compareRange, (range) => {
             <header
               class="flex h-9 shrink-0 items-center gap-2 px-3 text-[11px] font-semibold tracking-wide text-[var(--color-fg-muted)] uppercase"
             >
-              <span class="flex-1">Changes ({{ unstaged.length }})</span>
+              <span class="flex-1">{{ $t('workingTree.headers.changes', { count: unstaged.length }) }}</span>
               <button
                 v-if="unstaged.length"
                 class="focus-ring flex items-center gap-1 rounded px-1.5 py-0.5 text-[11px] font-medium text-[var(--color-success)] normal-case hover:bg-[var(--color-success)]/10"
                 @click="repo.stageAll()"
               >
-                <CheckCheck :size="13" /> Stage All
+                <CheckCheck :size="13" /> {{ $t('workingTree.actions.stageAll') }}
               </button>
             </header>
             <FileList v-if="unstaged.length" :files="unstaged" />
@@ -322,7 +322,7 @@ watch(compareRange, (range) => {
               v-else
               class="flex flex-1 items-center justify-center px-4 text-center text-xs text-[var(--color-fg-subtle)]"
             >
-              No unstaged changes
+              {{ $t('workingTree.state.noUnstaged') }}
             </div>
 
             <div v-if="conflicts.length" class="shrink-0 border-t border-[var(--color-border)]">
@@ -335,7 +335,9 @@ watch(compareRange, (range) => {
                   class="transition-transform"
                   :class="ui.isSectionOpen('conflicts') ? 'rotate-90' : ''"
                 />
-                <span class="flex-1 text-left">Conflicts ({{ conflicts.length }})</span>
+                <span class="flex-1 text-left">{{
+                  $t('workingTree.headers.conflicts', { count: conflicts.length })
+                }}</span>
               </button>
               <div
                 v-if="ui.isSectionOpen('conflicts')"
@@ -352,13 +354,13 @@ watch(compareRange, (range) => {
             <header
               class="flex h-9 shrink-0 items-center gap-2 px-3 text-[11px] font-semibold tracking-wide text-[var(--color-fg-muted)] uppercase"
             >
-              <span class="flex-1">Staged ({{ staged.length }})</span>
+              <span class="flex-1">{{ $t('workingTree.headers.staged', { count: staged.length }) }}</span>
               <button
                 v-if="staged.length"
                 class="focus-ring flex items-center gap-1 rounded px-1.5 py-0.5 text-[11px] font-medium text-[var(--color-fg-muted)] normal-case hover:bg-[var(--color-hover)]"
                 @click="repo.unstageAll()"
               >
-                <X :size="13" /> Unstage All
+                <X :size="13" /> {{ $t('workingTree.actions.unstageAll') }}
               </button>
             </header>
             <FileList v-if="staged.length" :files="staged" />
@@ -366,7 +368,7 @@ watch(compareRange, (range) => {
               v-else
               class="flex flex-1 items-center justify-center px-4 text-center text-xs text-[var(--color-fg-subtle)]"
             >
-              Stage files to commit them
+              {{ $t('workingTree.state.nothingStaged') }}
             </div>
           </div>
         </Pane>

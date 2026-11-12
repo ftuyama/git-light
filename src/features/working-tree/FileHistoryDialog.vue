@@ -36,18 +36,20 @@ onUnmounted(() => document.removeEventListener('keydown', onKeydown))
         class="flex h-[min(480px,80vh)] w-full max-w-lg flex-col overflow-hidden rounded-xl border border-[var(--color-border-strong)] bg-[var(--color-panel)] shadow-2xl"
         role="dialog"
         aria-modal="true"
-        aria-label="File history"
+        :aria-label="$t('workingTree.fileHistory.title')"
       >
         <header
           class="flex shrink-0 items-center justify-between border-b border-[var(--color-border)] px-4 py-3"
         >
           <div class="min-w-0">
-            <h2 class="text-sm font-semibold text-[var(--color-fg)]">File History</h2>
+            <h2 class="text-sm font-semibold text-[var(--color-fg)]">
+              {{ $t('workingTree.fileHistory.title') }}
+            </h2>
             <p class="truncate text-[12px] text-[var(--color-fg-muted)]">{{ path }}</p>
           </div>
           <button
             class="focus-ring shrink-0 rounded p-1 text-[var(--color-fg-subtle)] hover:bg-[var(--color-hover)] hover:text-[var(--color-fg)]"
-            aria-label="Close"
+            :aria-label="$t('common.actions.close')"
             @click="diffStore.closeFileHistory()"
           >
             <X :size="16" />

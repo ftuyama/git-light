@@ -1,4 +1,5 @@
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { Check, FolderGit2, FolderOpen, FolderSearch, Plus } from '@lucide/vue'
 import type { MenuItem } from '@/components/ui/menu'
 import { useRepositoryStore } from '@/stores/repository'
@@ -9,13 +10,14 @@ import { cloneRepository, initRepository, scanFolder } from '@/lib/tauri/repoCom
 export function useRepoMenu() {
   const repo = useRepositoryStore()
   const tabsStore = useRepoTabsStore()
+  const { t } = useI18n()
 
   /** Actions offered by the "new tab" button in the tab strip. */
   const newTabMenu = computed<MenuItem[]>(() => [
-    { label: 'Open Repository…', icon: FolderOpen, onSelect: () => void repo.pickAndOpenRepository() },
-    { label: 'Clone Repository…', icon: FolderGit2, onSelect: () => void cloneRepository() },
-    { label: 'Initialize Repository…', icon: Plus, onSelect: () => void initRepository() },
-    { label: 'Find Repositories in Folder…', icon: FolderSearch, onSelect: () => void scanFolder() },
+    { label: t('shell.startup.openRepository'), icon: FolderOpen, onSelect: () => void repo.pickAndOpenRepository() },
+    { label: t('shell.newTab.clone'), icon: FolderGit2, onSelect: () => void cloneRepository() },
+    { label: t('shell.newTab.init'), icon: Plus, onSelect: () => void initRepository() },
+    { label: t('shell.newTab.findInFolder'), icon: FolderSearch, onSelect: () => void scanFolder() },
   ])
 
   const repoMenu = computed<MenuItem[]>(() => {
@@ -31,7 +33,7 @@ export function useRepoMenu() {
     if (items.length > 0) items.push({ separator: true })
     items.push(
       ...newTabMenu.value,
-      { label: 'Close Repository', onSelect: () => void repo.closeRepository() },
+      { label: t('shell.newTab.closeRepository'), onSelect: () => void repo.closeRepository() },
     )
     return items
   })

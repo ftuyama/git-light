@@ -135,7 +135,7 @@ function onBranchNameCancel(): void {
         type="text"
         :placeholder="MESSAGE_PLACEHOLDER"
         spellcheck="false"
-        aria-label="Commit message"
+        :aria-label="$t('graph.pendingRow.messagePlaceholder')"
         :style="{ width: messageWidth }"
         class="w-auto min-w-[4ch] max-w-full shrink truncate bg-transparent font-mono text-[13px] text-[var(--color-fg-muted)] placeholder:text-[var(--color-fg-subtle)]/60 focus:outline-none"
       />
@@ -144,7 +144,7 @@ function onBranchNameCancel(): void {
           v-for="group in statusBreakdown"
           :key="group.status"
           class="flex items-center gap-1"
-          :title="STATUS_META[group.status].label"
+          :title="$t(`graph.pendingRow.status.${group.status}`)"
         >
           <component
             :is="STATUS_META[group.status].icon"

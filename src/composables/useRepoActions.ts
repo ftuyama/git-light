@@ -1,6 +1,7 @@
 import { useRepositoryStore } from '@/stores/repository'
 import { useRepoTabsStore } from '@/stores/repoTabs'
 import { useToastStore } from '@/stores/toast'
+import { translate } from '@/locales'
 
 /**
  * Repository tab actions shared by the in-app UI (App.vue keybindings) and the
@@ -13,10 +14,10 @@ export async function switchToRepositoryTab(path: string | null): Promise<void> 
   if (!path) return
   try {
     const ok = await useRepositoryStore().switchRepository(path)
-    if (!ok) useToastStore().push(`Could not open ${path}.`, 'error')
+    if (!ok) useToastStore().push(translate('shell.toasts.couldNotOpen', { path }), 'error')
   } catch (err) {
     console.error('[git-light] switch tab failed:', err)
-    useToastStore().push(`Could not open ${path}.`, 'error')
+    useToastStore().push(translate('shell.toasts.couldNotOpen', { path }), 'error')
   }
 }
 
