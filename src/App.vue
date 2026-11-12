@@ -45,6 +45,9 @@ import { COMMAND_META, type CommandId } from '@/lib/keybindings'
 import { sameRepoPath } from '@/lib/git/repoPath'
 import { useDelayedFlag } from '@/composables/useDelayedFlag'
 import { useCommitGraphZoom } from '@/features/commit-graph/composables/useCommitGraphZoom'
+import { sortFilesForDisplay } from '@/features/working-tree/fileStatus'
+import { fileNavTargetIndex, selectedFileIndex } from '@/features/working-tree/fileNavigation'
+import type { WorkingTreeFile } from '@/types/git'
 
 const ui = useUiStore()
 const repo = useRepositoryStore()
@@ -148,6 +151,36 @@ function onResized(payload: SplitpanesResizedPayload): void {
   })
 }
 
+/**
+ * Files the open commit/compare/stash diff can step through. The working tree
+ * keeps arrow keys for the graph; its lists are navigated while focused.
+ */
+function navigableFiles(): WorkingTreeFile[] {
+  if (selection.compareRange) return sortFilesForDisplay(diffStore.compareFiles)
+  if (selection.selectedSha || selection.selectedStash) {
+    return sortFilesForDisplay(diffStore.commitFiles)
+  }
+  return []
+}
+
+/**
+ * Step to the previous/next file while a diff is open. Returns true when the
+ * key was consumed, so it never doubles as a commit move (which would clear
+ * the file list the user is reading).
+ */
+function navigateOpenDiff(delta: 1 | -1): boolean {
+  if (!diffStore.selectedFilePath) return false
+  const files = navigableFiles()
+  if (!files.length) return false
+  const current = selectedFileIndex(files, diffStore.selectedFilePath, diffStore.selectedFileStaged)
+  if (current < 0) return false
+  const target = fileNavTargetIndex(current, files.length, delta > 0 ? 'ArrowDown' : 'ArrowUp')
+  if (target == null || target === current) return true
+  const file = files[target]
+  diffStore.selectFile(file.path, { staged: file.staged })
+  return true
+}
+
 const dynamicShortcuts = computed<ShortcutHandler[]>(() => {
   const keymap = ui.keybindings
   const out: ShortcutHandler[] = []
@@ -174,8 +207,12 @@ const dynamicShortcuts = computed<ShortcutHandler[]>(() => {
   push('push', () => void repo.runAction({ kind: 'push' }))
   push('undo', () => { if (repo.canUndo) void repo.runAction({ kind: 'undo' }) })
   push('redo', () => { if (repo.canRedo) void repo.runAction({ kind: 'redo' }) })
-  push('graphNavDown', () => selection.moveBy(1))
-  push('graphNavUp', () => selection.moveBy(-1))
+  push('graphNavDown', () => {
+    if (!navigateOpenDiff(1)) selection.moveBy(1)
+  })
+  push('graphNavUp', () => {
+    if (!navigateOpenDiff(-1)) selection.moveBy(-1)
+  })
   push('toggleLeftSidebar', () => ui.toggleLeft())
   push('graphZoomIn', () => graphZoom.zoomIn())
   push('graphZoomOut', () => graphZoom.zoomOut())

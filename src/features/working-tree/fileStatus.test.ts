@@ -1,9 +1,22 @@
 import { describe, expect, it } from 'vitest'
-import { groupFileStatuses } from './fileStatus'
-import type { FileStatus } from '@/types/git'
+import { groupFileStatuses, sortFilesForDisplay } from './fileStatus'
+import type { FileStatus, WorkingTreeFile } from '@/types/git'
 
 function filesOf(...statuses: FileStatus[]): { status: FileStatus }[] {
   return statuses.map((status) => ({ status }))
+}
+
+function file(path: string, status: FileStatus): WorkingTreeFile {
+  return {
+    id: `file:${path}`,
+    path,
+    fileName: path.split('/').pop() ?? path,
+    directory: '',
+    status,
+    staged: false,
+    additions: 0,
+    deletions: 0,
+  }
 }
 
 describe('groupFileStatuses', () => {
@@ -29,5 +42,28 @@ describe('groupFileStatuses', () => {
       { status: 'copied', count: 1 },
       { status: 'conflicted', count: 1 },
     ])
+  })
+})
+
+describe('sortFilesForDisplay', () => {
+  it('orders by status, then by path', () => {
+    const sorted = sortFilesForDisplay([
+      file('src/z.ts', 'deleted'),
+      file('src/b.ts', 'modified'),
+      file('src/a.ts', 'modified'),
+      file('docs/new.md', 'added'),
+    ])
+    expect(sorted.map((f) => f.path)).toEqual([
+      'src/a.ts',
+      'src/b.ts',
+      'docs/new.md',
+      'src/z.ts',
+    ])
+  })
+
+  it('keeps the input untouched', () => {
+    const input = [file('b.ts', 'modified'), file('a.ts', 'modified')]
+    sortFilesForDisplay(input)
+    expect(input.map((f) => f.path)).toEqual(['b.ts', 'a.ts'])
   })
 })

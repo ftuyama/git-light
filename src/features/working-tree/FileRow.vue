@@ -111,6 +111,12 @@ const menu = computed<MenuItem[]>(() => {
   ]
 })
 
+/** Focus the row so arrow keys can walk the list without leaving it. */
+function onRowClick(event: MouseEvent): void {
+  if (event.currentTarget instanceof HTMLElement) event.currentTarget.focus()
+  diffStore.selectFile(props.file.path, { staged: props.file.staged })
+}
+
 function reveal(): void {
   if (!repo.repository) return
   void repo.runAction({
@@ -128,9 +134,12 @@ function copyPath(): void {
 <template>
   <ContextMenu :items="menu">
     <div
-      class="group/file flex h-7 cursor-pointer items-center gap-2 rounded-md px-2 transition-colors hover:bg-[var(--color-hover)]"
+      class="group/file flex h-7 cursor-pointer items-center gap-2 rounded-md px-2 transition-colors outline-none hover:bg-[var(--color-hover)]"
       :class="cn(selected && 'bg-[var(--color-accent-soft)]')"
-      @click="diffStore.selectFile(file.path, { staged: file.staged })"
+      tabindex="-1"
+      :data-file-row-id="file.id"
+      :data-file-selected="selected ? 'true' : undefined"
+      @click="onRowClick"
     >
       <span
         class="flex size-4 shrink-0 items-center justify-center"

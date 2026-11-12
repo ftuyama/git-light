@@ -1,18 +1,27 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
+import { computed, nextTick, ref, watch } from 'vue'
 import { ChevronRight, Folder } from '@lucide/vue'
 import FileRow from './FileRow.vue'
 import { buildFileTree, flattenFileTree } from './buildFileTree'
 import type { FileTreeFolder, FileTreeNode } from './buildFileTree'
+import { fileNavTargetIndex, isPlainFileNavEvent, selectedFileIndex } from './fileNavigation'
 import type { WorkingTreeFile } from '@/types/git'
 import { cn } from '@/lib/utils'
+import { useRepoDiffStore } from '@/stores/repoDiff'
 
 const props = defineProps<{ files: WorkingTreeFile[]; readonly?: boolean }>()
 
+const diffStore = useRepoDiffStore()
 const collapsed = ref(new Set<string>())
+const rootEl = ref<HTMLElement | null>(null)
 
 const tree = computed(() => buildFileTree(props.files))
 const rows = computed(() => flattenFileTree(tree.value, collapsed.value))
+
+/** Files in the order they are painted, skipping folder rows. */
+const visibleFiles = computed(() =>
+  rows.value.flatMap((row) => (row.file ? [row.file] : [])),
+)
 
 // Drop collapse state for folders that no longer exist when the file set changes
 // (e.g. switching working-tree → commit → compare).
@@ -46,10 +55,47 @@ function toggleFolder(folder: FileTreeFolder): void {
 function isExpanded(folder: FileTreeFolder): boolean {
   return !collapsed.value.has(folder.path)
 }
+
+async function focusRow(id: string): Promise<void> {
+  await nextTick()
+  rootEl.value?.querySelector<HTMLElement>(`[data-file-row-id="${id}"]`)?.focus()
+}
+
+/** Keep the selected row visible when the diff is steered from outside the list (graph arrows). */
+watch(
+  [() => diffStore.selectedFilePath, () => diffStore.selectedFileStaged],
+  async () => {
+    await nextTick()
+    rootEl.value
+      ?.querySelector<HTMLElement>('[data-file-selected="true"]')
+      ?.scrollIntoView({ block: 'nearest' })
+  },
+)
+
+/** ArrowUp/ArrowDown (and Home/End) walk the expanded files while the tree has focus. */
+function onListKeydown(event: KeyboardEvent): void {
+  if (!isPlainFileNavEvent(event)) return
+  const files = visibleFiles.value
+  const current = selectedFileIndex(files, diffStore.selectedFilePath, diffStore.selectedFileStaged)
+  const target = fileNavTargetIndex(current, files.length, event.key)
+  if (target == null) return
+  // Stop here so the global graph shortcut does not also move the commit selection.
+  event.preventDefault()
+  event.stopPropagation()
+  if (target === current) return
+  const file = files[target]
+  diffStore.selectFile(file.path, { staged: file.staged })
+  void focusRow(file.id)
+}
 </script>
 
 <template>
-  <div class="min-h-0 flex-1 overflow-y-auto px-1">
+  <div
+    ref="rootEl"
+    class="min-h-0 flex-1 overflow-y-auto px-1 outline-none"
+    tabindex="0"
+    @keydown="onListKeydown"
+  >
     <template v-for="(row, index) in rows" :key="`${row.kind}-${row.folder?.path ?? row.file?.id ?? index}`">
       <button
         v-if="row.kind === 'folder' && row.folder"

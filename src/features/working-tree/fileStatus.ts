@@ -1,7 +1,7 @@
 import type { Component } from 'vue'
 import { Minus, Pencil, Plus } from '@lucide/vue'
 import { translate } from '@/locales'
-import type { FileStatus } from '@/types/git'
+import type { FileStatus, WorkingTreeFile } from '@/types/git'
 
 interface StatusMeta {
   letter: string
@@ -84,6 +84,14 @@ export const STATUS_META: Record<FileStatus, StatusMeta> = {
 }
 
 export const STATUS_ORDER: FileStatus[] = ['modified', 'added', 'untracked', 'deleted', 'renamed', 'conflicted']
+
+/** Display order shared by the file lists and keyboard navigation: status, then path. */
+export function sortFilesForDisplay(files: WorkingTreeFile[]): WorkingTreeFile[] {
+  return [...files].sort((a, b) => {
+    const byStatus = STATUS_ORDER.indexOf(a.status) - STATUS_ORDER.indexOf(b.status)
+    return byStatus !== 0 ? byStatus : a.path.localeCompare(b.path)
+  })
+}
 
 export interface FileStatusGroup {
   status: FileStatus
