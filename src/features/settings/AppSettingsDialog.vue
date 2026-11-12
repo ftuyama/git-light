@@ -37,6 +37,7 @@ import {
   COLUMN_WIDTH_LIMITS,
   COMMIT_GRAPH_LIMIT_MIN,
   COMMIT_GRAPH_LIMIT_RECOMMENDED,
+  FONT_SCALE_OPTIONS,
   SECTION_KEYS,
   SECTION_LABEL_KEYS,
   SIDEBAR_SECTION_STATE_LABEL_KEYS,
@@ -54,7 +55,7 @@ import { resetGithubAuthorSync, syncGithubAuthors } from '@/lib/githubAvatarSync
 const { t } = useI18n()
 const ui = useUiStore()
 const repo = useRepositoryStore()
-const { leftCollapsed, rightCollapsed, settingsOpen, graphScopeAll, commitGraphLimit, fileListView, theme, uiMode, signOffCommit, signCommit, remoteAvatars, autoFetchIntervalSec } =
+const { leftCollapsed, rightCollapsed, settingsOpen, graphScopeAll, commitGraphLimit, fileListView, theme, fontScale, uiMode, signOffCommit, signCommit, remoteAvatars, autoFetchIntervalSec } =
   storeToRefs(ui)
 
 const activeCategory = ref<SettingsCategory>('appearance')
@@ -68,6 +69,12 @@ const sectionStateOptions = computed(() =>
     label: t(SIDEBAR_SECTION_STATE_LABEL_KEYS[state]),
   })),
 )
+
+/** Percent labels are locale-independent; only the row label/description translate. */
+const fontScaleOptions = FONT_SCALE_OPTIONS.map((value) => ({
+  value: String(value),
+  label: `${Math.round(value * 100)}%`,
+}))
 
 const sidebarSectionKeys = computed(() =>
   ui.isAdvanced
@@ -541,6 +548,16 @@ onUnmounted(() => clearTimeout(avatarCacheClearedTimer))
                     </p>
                     <section id="settings-theme" class="px-3">
                       <ThemePicker :model-value="theme" />
+                    </section>
+                    <section class="mt-4 px-3">
+                      <SettingsSegmentedRow
+                        anchor="settings-font-size"
+                        :label="$t('settings.fontSize.title')"
+                        :description="$t('settings.fontSize.description')"
+                        :model-value="String(fontScale)"
+                        :options="fontScaleOptions"
+                        @update:model-value="ui.setFontScale(Number($event))"
+                      />
                     </section>
                     <section id="settings-language" class="mt-6 px-3">
                       <h3

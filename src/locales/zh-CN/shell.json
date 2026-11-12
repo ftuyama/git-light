@@ -138,7 +138,9 @@
     "refresh": "刷新",
     "captionCommand": "Cmd",
     "captionTerminal": "终端",
-    "captionRemote": "远程"
+    "captionRemote": "远程",
+    "captionPopStash": "弹出",
+    "captionMore": "更多"
   },
   "statusBar": {
     "zoomIn": "放大",

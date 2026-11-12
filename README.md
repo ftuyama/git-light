@@ -26,7 +26,7 @@ Git Light is a lightweight app for browsing history, managing branches, staging 
 - Multi-repo tabs with aliases, close others/reopen, command palette (⌘K), custom shortcuts
 - Git output log for every command
 - Clone / init / folder discovery, terminal at repo root (⌘T)
-- Themes, Basic/Advanced UI mode, resizable layout + auto-refresh
+- Themes, adjustable font size, Basic/Advanced UI mode, resizable layout + auto-refresh
 - Interface in English, Portuguese (Brazil) and Simplified Chinese — follows your OS language, switchable in Settings
 - LFS support, auto-update check, Open on GitHub
 

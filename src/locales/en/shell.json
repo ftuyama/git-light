@@ -138,7 +138,9 @@
     "refresh": "Refresh",
     "captionCommand": "Cmd",
     "captionTerminal": "Term",
-    "captionRemote": "Remote"
+    "captionRemote": "Remote",
+    "captionPopStash": "Pop",
+    "captionMore": "More"
   },
   "statusBar": {
     "zoomIn": "Zoom in",

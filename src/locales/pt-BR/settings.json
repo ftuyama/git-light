@@ -29,6 +29,10 @@
     "advanced": "Avançado",
     "advancedDescription": "Barra de ferramentas completa, seções da barra lateral e ações de commit."
   },
+  "fontSize": {
+    "title": "Tamanho da fonte",
+    "description": "Aumente ou reduza o texto e os elementos da interface em todo o app."
+  },
   "language": {
     "title": "Idioma",
     "description": "Idioma da interface do aplicativo.",

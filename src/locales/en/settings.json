@@ -29,6 +29,10 @@
     "advanced": "Advanced",
     "advancedDescription": "Full toolbar, sidebar sections, and commit actions."
   },
+  "fontSize": {
+    "title": "Font size",
+    "description": "Increase or decrease text and interface elements across the whole app."
+  },
   "language": {
     "title": "Language",
     "description": "Language of the app interface.",

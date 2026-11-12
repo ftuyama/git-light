@@ -204,12 +204,12 @@ const moreMenu = computed<MenuItem[]>(() => {
 
       <template v-if="ui.isAdvanced">
         <IconButton :caption="$t('shell.toolbar.stash')" :icon="Inbox" :label="$t('shell.toolbar.stash')" @click="repo.stashChanges()" />
-        <IconButton :caption="$t('shell.toolbar.popStash')" :icon="ArchiveRestore" :label="$t('shell.toolbar.popStash')" @click="run('pop-stash')" />
+        <IconButton :caption="$t('shell.toolbar.captionPopStash')" :icon="ArchiveRestore" :label="$t('shell.toolbar.popStash')" @click="run('pop-stash')" />
         <div class="mx-1 h-6 w-px bg-[var(--color-border)]" />
       </template>
 
       <DropdownMenu :items="moreMenu" align="end">
-        <IconButton :caption="$t('shell.toolbar.more')" :icon="MoreHorizontal" :label="$t('shell.toolbar.more')" />
+        <IconButton :caption="$t('shell.toolbar.captionMore')" :icon="MoreHorizontal" :label="$t('shell.toolbar.more')" />
       </DropdownMenu>
     </div>
 

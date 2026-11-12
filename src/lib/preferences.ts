@@ -79,6 +79,17 @@ export function isUiMode(value: unknown): value is UiMode {
   return value === 'basic' || value === 'advanced'
 }
 
+/** Global text/interface scale offered by the Appearance > Font size setting. */
+export const FONT_SCALE_OPTIONS = [0.9, 1, 1.1, 1.25, 1.5] as const
+
+export const DEFAULT_FONT_SCALE = 1
+
+export function clampFontScale(value: unknown): number {
+  return typeof value === 'number' && (FONT_SCALE_OPTIONS as readonly number[]).includes(value)
+    ? value
+    : DEFAULT_FONT_SCALE
+}
+
 export const AUTO_FETCH_INTERVAL_OPTIONS = [0, 60, 300, 600, 1800, 3600, 7200] as const
 
 export const DEFAULT_AUTO_FETCH_INTERVAL_SEC = 300
@@ -181,6 +192,8 @@ export interface UserPreferences {
   openRepoTabs: RepoTabPref[]
   diffViewMode: DiffViewMode
   theme: ThemePreference
+  /** Global text/interface scale; `1` = 100%. See `FONT_SCALE_OPTIONS`. */
+  fontScale: number
   uiMode: UiMode
   /** `null` = follow the OS locale detected at startup. */
   locale: AppLocale | null
@@ -275,6 +288,7 @@ export function defaultPreferences(): UserPreferences {
     openRepoTabs: [],
     diffViewMode: 'unified',
     theme: 'default',
+    fontScale: DEFAULT_FONT_SCALE,
     uiMode: 'advanced',
     locale: null,
     ignoreWhitespace: false,
@@ -326,6 +340,7 @@ export function mergePreferences(saved: Partial<UserPreferences> | null): UserPr
       : defaults.openRepoTabs,
     diffViewMode: saved.diffViewMode === 'split' ? 'split' : 'unified',
     theme: isThemePreference(saved.theme) ? saved.theme : defaults.theme,
+    fontScale: clampFontScale(saved.fontScale ?? defaults.fontScale),
     uiMode: isUiMode(saved.uiMode) ? saved.uiMode : defaults.uiMode,
     locale: isAppLocale(saved.locale) ? saved.locale : defaults.locale,
     ignoreWhitespace: saved.ignoreWhitespace ?? defaults.ignoreWhitespace,

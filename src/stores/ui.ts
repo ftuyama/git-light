@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import type { GraphScope } from '@shared/git/models'
 import { syncThemePreference } from '@/lib/applyTheme'
+import { applyFontScale } from '@/lib/applyFontScale'
 import { setRemoteAvatarsEnabled } from '@/lib/avatarCache'
 import { applyLocale, DEFAULT_LOCALE, isAppLocale, type AppLocale } from '@/lib/locales'
 import { defaultKeymap, sanitizeKeymap, type CommandId, type KeyBinding, type Keymap } from '@/lib/keybindings'
@@ -8,6 +9,7 @@ import {
   clampAutoFetchIntervalSec,
   clampCommitGraphLimit,
   clampColumnWidth,
+  clampFontScale,
   clampLeftSidebarSize,
   clampRightSidebarSize,
   clampWorkingTreeChangesSize,
@@ -73,6 +75,7 @@ function snapshot(state: {
   openRepoTabs: RepoTabPref[]
   diffViewMode: DiffViewMode
   theme: ThemePreference
+  fontScale: number
   uiMode: UiMode
   locale: AppLocale | null
   ignoreWhitespace: boolean
@@ -103,6 +106,7 @@ function snapshot(state: {
     openRepoTabs: state.openRepoTabs,
     diffViewMode: state.diffViewMode,
     theme: state.theme,
+    fontScale: state.fontScale,
     uiMode: state.uiMode,
     locale: state.locale,
     ignoreWhitespace: state.ignoreWhitespace,
@@ -136,6 +140,7 @@ export const useUiStore = defineStore('ui', {
     openRepoTabs: [] as RepoTabPref[],
     diffViewMode: 'unified' as DiffViewMode,
     theme: defaultPreferences().theme,
+    fontScale: defaultPreferences().fontScale,
     uiMode: defaultPreferences().uiMode,
     locale: null as AppLocale | null,
     /** OS/browser locale, used when the user has no explicit preference. */
@@ -191,6 +196,7 @@ export const useUiStore = defineStore('ui', {
       this.openRepoTabs = saved.openRepoTabs.map((tab) => ({ ...tab }))
       this.diffViewMode = saved.diffViewMode
       this.theme = saved.theme
+      this.fontScale = saved.fontScale
       this.uiMode = saved.uiMode
       this.locale = saved.locale
       this.ignoreWhitespace = saved.ignoreWhitespace
@@ -203,6 +209,7 @@ export const useUiStore = defineStore('ui', {
       this.autoFetchIntervalSec = saved.autoFetchIntervalSec
       this.keybindings = saved.keybindings ? sanitizeKeymap(saved.keybindings) : defaultKeymap()
       syncThemePreference(this.theme)
+      void applyFontScale(this.fontScale)
       if (persistenceBound) return
       persistenceBound = true
       this.$subscribe(() => {
@@ -234,6 +241,7 @@ export const useUiStore = defineStore('ui', {
           openRepoTabs: this.openRepoTabs,
           diffViewMode: this.diffViewMode,
           theme: this.theme,
+          fontScale: this.fontScale,
           uiMode: this.uiMode,
           locale: this.locale,
           ignoreWhitespace: this.ignoreWhitespace,
@@ -427,6 +435,10 @@ export const useUiStore = defineStore('ui', {
     setTheme(theme: ThemePreference): void {
       this.theme = theme
       syncThemePreference(theme)
+    },
+    setFontScale(scale: number): void {
+      this.fontScale = clampFontScale(scale)
+      void applyFontScale(this.fontScale)
     },
     setUiMode(mode: UiMode): void {
       this.uiMode = mode

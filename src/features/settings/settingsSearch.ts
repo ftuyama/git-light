@@ -80,6 +80,14 @@ const BASE_ENTRIES: SearchEntrySource[] = [
     keywords: ['palette', 'dark', 'light', 'colors'],
   },
   {
+    id: 'font-size',
+    category: 'appearance',
+    labelKey: 'settings.fontSize.title',
+    descriptionKey: 'settings.fontSize.description',
+    anchor: 'settings-font-size',
+    keywords: ['font', 'text', 'zoom', 'size', 'accessibility', 'readability'],
+  },
+  {
     id: 'remote-avatars',
     category: 'appearance',
     labelKey: 'settings.avatars.authorAvatars',

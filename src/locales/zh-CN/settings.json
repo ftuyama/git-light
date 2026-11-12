@@ -29,6 +29,10 @@
     "advanced": "高级",
     "advancedDescription": "完整工具栏、侧边栏分区和提交操作。"
   },
+  "fontSize": {
+    "title": "字体大小",
+    "description": "调整整个应用的文字和界面元素大小。"
+  },
   "language": {
     "title": "语言",
     "description": "应用界面语言。",
