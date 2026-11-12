@@ -72,8 +72,8 @@
   },
   "view": {
     "aria": "Visualização da lista de arquivos",
-    "path": "Visualização por caminho",
-    "tree": "Visualização em árvore"
+    "path": "Caminho",
+    "tree": "Árvore"
   },
   "status": {
     "modified": "Modificado",

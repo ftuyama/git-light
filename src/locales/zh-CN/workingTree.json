@@ -72,8 +72,8 @@
   },
   "view": {
     "aria": "文件列表视图",
-    "path": "路径视图",
-    "tree": "树形视图"
+    "path": "路径",
+    "tree": "树形"
   },
   "status": {
     "modified": "已修改",

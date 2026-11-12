@@ -72,8 +72,8 @@
   },
   "view": {
     "aria": "File list view",
-    "path": "Path view",
-    "tree": "Tree view"
+    "path": "Path",
+    "tree": "Tree"
   },
   "status": {
     "modified": "Modified",
