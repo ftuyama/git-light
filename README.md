@@ -6,9 +6,9 @@
 
 > Free, open-source desktop Git client — commit graph, branches, staging and real local Git operations. No account required.
 
-[![Latest release](https://img.shields.io/github/v/release/ftuyama/git-light)](https://github.com/ftuyama/git-light/releases) [![License: MIT](https://img.shields.io/github/license/ftuyama/git-light)](LICENSE) [![Downloads](https://img.shields.io/github/downloads/ftuyama/git-light/total)](https://github.com/ftuyama/git-light/releases) [![Stars](https://img.shields.io/github/stars/ftuyama/git-light?style=flat)](https://github.com/ftuyama/git-light/stargazers) [![Platforms](https://img.shields.io/badge/platform-macOS%20%7C%20Windows%20%7C%20Linux-blue)](https://github.com/ftuyama/git-light/releases)
+[![Latest release](https://img.shields.io/github/v/release/ftuyama/git-light)](https://github.com/ftuyama/git-light/releases) [![License: MIT](https://img.shields.io/github/license/ftuyama/git-light)](LICENSE) [![Downloads](https://img.shields.io/github/downloads/ftuyama/git-light/total)](https://github.com/ftuyama/git-light/releases) [![Stars](https://img.shields.io/github/stars/ftuyama/git-light?style=flat)](https://github.com/ftuyama/git-light/stargazers) [![Platforms](https://img.shields.io/badge/platform-macOS%20%7C%20Windows%20%7C%20Linux-blue)](https://github.com/ftuyama/git-light/releases) [![Website](https://img.shields.io/badge/website-ftuyama.github.io%2Fgit--light-blue)](https://ftuyama.github.io/git-light/)
 
-**[ftuyama.github.io/git-light](https://ftuyama.github.io/git-light/)** · MIT License · Built with Tauri 2, Vue 3, TypeScript, Rust
+**Website: [https://ftuyama.github.io/git-light/](https://ftuyama.github.io/git-light/)** — screenshots, FAQ and downloads · MIT License · Built with Tauri 2, Vue 3, TypeScript, Rust
 
 ![Git Light — AwesomeShop repository with repo tabs, commit graph, branch sidebar, and working tree](docs/screenshot.png)
 
@@ -63,7 +63,7 @@ Installs to /Applications from GitHub Releases, checksum-verified. Re-running it
 
 | Platform | File | Install |
 |----------|------|---------|
-| macOS | `.dmg` | Drag to Applications; if macOS blocks it, see the [note below](#macos-gatekeeper-note) |
+| macOS (Apple Silicon) | `.dmg` | Drag to Applications; if macOS blocks it, see the [note below](#macos-gatekeeper-note) |
 | Windows | `.exe` | Run the installer |
 | Linux | `.AppImage` or `.deb` | Make executable and run / `sudo dpkg -i git-light_*.deb` |
 
@@ -77,6 +77,39 @@ xattr -dr com.apple.quarantine "/Applications/Git Light.app"
 ```
 
 Updates: **Git Light → Check for Updates…** in the app menu (macOS installs and restarts in place).
+
+### Requirements
+
+- **macOS** 10.15 (Catalina) or newer, **Apple Silicon only** — Intel Macs are not supported by the current builds
+- **Windows** 10/11 (x64) or **Linux** x86_64 (`.AppImage`, `.deb` or `.rpm`)
+- **Git 2.x** installed and on your `PATH` — Git Light runs your own `git` binary and does not bundle one
+- ~150 MB of disk space; no account, no background service, no telemetry
+
+## FAQ
+
+**Is Git Light really free?**
+Yes. MIT licensed, no paid tier, no trial, no ads, no feature gates. Every feature listed above is available in the free build.
+
+**Do I need a GitHub, GitLab or Bitbucket account?**
+No. There is no sign-in, no license key and no telemetry. Git Light works with any repository on disk and with any remote your own Git is already configured for, over HTTPS or SSH.
+
+**Does it work offline?**
+Yes. Browsing history, the commit graph, staging, diffs, commits, branches, merges, rebases and stashes are all local operations. Only fetch, pull, push and clone need network access.
+
+**Does it come with its own Git install?**
+No — it runs your system `git` binary, so your existing config, aliases, credential helper, SSH keys, hooks and `.gitignore` behaviour all apply unchanged.
+
+**Can I use my existing repositories?**
+Yes. Open any folder that contains a `.git` directory (or clone / init a new one). Git Light adds no proprietary index and writes no extra files into your repository.
+
+**Does it work on Apple Silicon and Intel Macs?**
+Apple Silicon (arm64) is fully supported. Intel Macs are not supported by the current builds — the release pipeline only produces an `aarch64` `.dmg`. Windows x64 and Linux x86_64 builds are also available.
+
+**macOS says the app is damaged or moves it to the Trash.**
+That is Gatekeeper reacting to an ad-hoc signature, not a broken download — see [macOS Gatekeeper note](#macos-gatekeeper-note).
+
+**Which languages are supported?**
+English, Portuguese (Brazil) and Simplified Chinese. The UI follows your OS language and can be switched in Settings.
 
 ## For developers
 
