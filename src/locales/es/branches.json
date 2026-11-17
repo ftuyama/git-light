@@ -1,0 +1,71 @@
+{
+  "sidebar": {
+    "hide": "Ocultar la barra lateral izquierda",
+    "searchPlaceholder": "Buscar ramas",
+    "noMatches": "Ninguna rama coincide con «{query}»",
+    "allHidden": "Todos los paneles están ocultos — haz clic derecho para mostrar paneles"
+  },
+  "row": {
+    "dragHint": "Arrastra sobre otra rama para fusionar o hacer rebase",
+    "pin": "Fijar rama",
+    "unpin": "Dejar de fijar la rama"
+  },
+  "menu": {
+    "checkout": "Checkout",
+    "checkoutLocal": "Hacer checkout de la rama local",
+    "deleteRemote": "Eliminar rama remota",
+    "createHere": "Crear rama aquí",
+    "setUpstream": "Establecer upstream",
+    "compareWithCurrent": "Comparar con la actual",
+    "pin": "Fijar en favoritos",
+    "unpin": "Dejar de fijar",
+    "deleteInFolder": "Eliminar {count} rama de la carpeta \"{folder}\" | Eliminar {count} ramas de la carpeta \"{folder}\"",
+    "noneToDelete": "No hay ramas que eliminar"
+  },
+  "tags": {
+    "checkout": "Hacer checkout de la etiqueta",
+    "deleteTag": "Eliminar etiqueta",
+    "create": "Crear etiqueta"
+  },
+  "stashes": {
+    "pop": "Pop",
+    "drop": "Descartar",
+    "summary": "en {branch} · {count} archivo | en {branch} · {count} archivos"
+  },
+  "worktrees": {
+    "reveal": "Mostrar en el Finder",
+    "remove": "Eliminar worktree",
+    "add": "Añadir worktree"
+  },
+  "favorites": {
+    "empty": "Fija ramas para verlas aquí"
+  },
+  "integrate": {
+    "title": "Integrar ramas",
+    "description": "Elige cómo integrar {source} con {target}.",
+    "mergeTitle": "Fusionar en el destino",
+    "mergeDescription": "Fusionar {source} en {target}",
+    "mergeStrategy": "Estrategia de fusión",
+    "merge": "Fusionar con la estrategia seleccionada",
+    "rebaseTitle": "Hacer rebase sobre el destino",
+    "rebaseDescription": "Hacer rebase de {source} sobre {target}"
+  },
+  "mergeModes": {
+    "default": {
+      "label": "Predeterminada",
+      "description": "Avance rápido cuando sea posible; de lo contrario, crea un commit de fusión"
+    },
+    "ffOnly": {
+      "label": "Solo avance rápido",
+      "description": "Rechazar la fusión salvo que sea posible un avance rápido"
+    },
+    "noFf": {
+      "label": "Sin avance rápido",
+      "description": "Crear siempre un commit de fusión"
+    },
+    "squash": {
+      "label": "Squash",
+      "description": "Combinar todos los commits de la rama de origen en un solo commit"
+    }
+  }
+}

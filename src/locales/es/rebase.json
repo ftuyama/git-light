@@ -1,0 +1,29 @@
+{
+  "dialog": {
+    "title": "Rebase interactivo",
+    "ariaLabel": "Rebase interactivo",
+    "onto": "Hacer rebase sobre",
+    "basePlaceholder": "HEAD~5, main o SHA de commit",
+    "load": "Cargar",
+    "commitsAfter": "{count} commit después de {sha} | {count} commits después de {sha}",
+    "warning": "Esto reescribe el historial de commits. Reordena los commits arrastrando, elige una acción para cada fila y luego inicia el rebase.",
+    "loading": "Cargando commits…",
+    "empty": "Introduce una referencia base y carga commits para crear tu plan de rebase.",
+    "start": "Iniciar rebase"
+  },
+  "actions": {
+    "pick": "Tomar",
+    "reword": "Reescribir",
+    "edit": "Editar",
+    "squash": "Squash",
+    "fixup": "Fixup",
+    "drop": "Descartar"
+  },
+  "row": {
+    "dragToReorder": "Arrastra para reordenar",
+    "messagePlaceholder": "Nuevo mensaje del commit"
+  },
+  "toast": {
+    "baseRequired": "Introduce una referencia base (p. ej. HEAD~5 o una rama)"
+  }
+}

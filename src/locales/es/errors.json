@@ -1,0 +1,14 @@
+{
+  "MergeConflict": "La operación produjo conflictos de fusión que deben resolverse.",
+  "Authentication": "La autenticación falló. Comprueba tus claves SSH o el gestor de credenciales.",
+  "RepositoryNotFound": "No se encontró el repositorio.",
+  "NotARepository": "Esta carpeta no es un repositorio Git.",
+  "BareRepository": "No se admiten repositorios bare.",
+  "DetachedHead": "HEAD está separado.",
+  "RemoteRejected": "El remoto rechazó el push.",
+  "NothingToCommit": "No hay cambios preparados para hacer commit.",
+  "Network": "Se produjo un error de red al contactar con el remoto.",
+  "DirtyWorktree": "Tienes cambios sin confirmar que se sobrescribirían.",
+  "Cancelled": "La operación se canceló.",
+  "Unknown": "Se produjo un error inesperado de Git."
+}

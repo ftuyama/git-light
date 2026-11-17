@@ -1,0 +1,87 @@
+{
+  "headers": {
+    "changedFiles": "Archivos modificados",
+    "files": "Archivos",
+    "changes": "Cambios ({count})",
+    "staged": "Preparados ({count})",
+    "conflicts": "Conflictos ({count})"
+  },
+  "actions": {
+    "discardAll": "Descartar todos los cambios",
+    "stageAll": "Preparar todo",
+    "unstageAll": "Quitar todo de la preparación"
+  },
+  "state": {
+    "loadingFiles": "Cargando archivos…",
+    "noFilesInCommit": "Ningún archivo modificado en este commit",
+    "noChangesBetweenCommits": "No hay cambios de archivos entre estos commits",
+    "noUnstaged": "No hay cambios sin preparar",
+    "nothingStaged": "Prepara archivos para hacer commit"
+  },
+  "changes": {
+    "summary": "{count} archivo modificado en {branch} | {count} archivos modificados en {branch}"
+  },
+  "stash": {
+    "wipOn": "WIP en {branch}",
+    "wip": "WIP",
+    "close": "Cerrar los archivos del stash"
+  },
+  "commit": {
+    "summary": "Hacer commit de los cambios en {count} archivo | Hacer commit de los cambios en {count} archivos",
+    "summaryAmend": "Enmendar los cambios en {count} archivo | Enmendar los cambios en {count} archivos",
+    "summaryPlaceholder": "Resumen del commit",
+    "summaryPlaceholderAmend": "Resumen del commit (vacío conserva el mensaje anterior)",
+    "summaryLimit": "Hasta {count} caracteres",
+    "descriptionPlaceholder": "Descripción",
+    "noCommitsToAmend": "Aún no hay commits que enmendar",
+    "amend": "Enmendar el commit anterior",
+    "commitAndPush": "Hacer commit y push",
+    "amendAndPush": "Enmendar y hacer push",
+    "commitAndForcePush": "Hacer commit y push forzado (con lease)",
+    "amendAndForcePush": "Enmendar y hacer push forzado (con lease)",
+    "pushOptions": "Opciones de commit y push",
+    "shaCopied": "SHA copiado en el portapapeles",
+    "mergeCommit": "Commit de fusión",
+    "parents": "Padres:"
+  },
+  "compare": {
+    "title": "Comparando commits",
+    "filesChanged": "{count} archivo modificado | {count} archivos modificados",
+    "hint": "Mayús+clic en otro commit para comparar",
+    "exit": "Salir del modo de comparación"
+  },
+  "fileHistory": {
+    "title": "Historial del archivo"
+  },
+  "fileMenu": {
+    "viewHistory": "Ver el historial del archivo",
+    "revealInFinder": "Mostrar en el Finder",
+    "copyPath": "Copiar ruta",
+    "pathCopied": "Ruta copiada en el portapapeles",
+    "viewDiff": "Ver las diferencias",
+    "restoreVersion": "Restaurar el archivo desde esta versión",
+    "useOurs": "Usar el nuestro",
+    "useTheirs": "Usar el suyo",
+    "markResolved": "Marcar como resuelto",
+    "resolveConflict": "Resolver conflicto",
+    "stage": "Preparar cambios",
+    "unstage": "Quitar cambios de la preparación",
+    "discard": "Descartar cambios",
+    "stageFile": "Preparar archivo",
+    "unstageFile": "Quitar archivo de la preparación"
+  },
+  "view": {
+    "aria": "Vista de lista de archivos",
+    "path": "Ruta",
+    "tree": "Árbol"
+  },
+  "status": {
+    "modified": "Modificado",
+    "added": "Añadido",
+    "deleted": "Eliminado",
+    "renamed": "Renombrado",
+    "conflicted": "En conflicto",
+    "copied": "Copiado",
+    "ignored": "Ignorado"
+  }
+}

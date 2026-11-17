@@ -1,0 +1,134 @@
+{
+  "columns": {
+    "refs": "Rama / etiqueta",
+    "graph": "Grafo",
+    "sha": "SHA",
+    "when": "Cuándo"
+  },
+  "showColumns": "Mostrar columnas",
+  "columnMenu": {
+    "sha": "SHA",
+    "when": "Cuándo",
+    "timeIndicators": "Indicadores de tiempo",
+    "mergeIndicators": "Indicadores de fusión"
+  },
+  "empty": {
+    "title": "Aún no hay commits",
+    "body": "Haz tu primer commit para ver el historial aquí."
+  },
+  "loadingMore": "Cargando más commits…",
+  "commitRow": {
+    "hiddenRefs": "+{count} más",
+    "mergeCommit": "Commit de fusión"
+  },
+  "branchInput": {
+    "placeholder": "Introduce el nombre de la rama"
+  },
+  "commitMenu": {
+    "checkout": "Hacer checkout del commit",
+    "createBranch": "Crear rama aquí",
+    "tag": "Etiquetar commit",
+    "cherryPick": "Cherry-pick",
+    "revert": "Revertir commit",
+    "mergeIntoCurrent": "Fusionar en la actual",
+    "merge": "Fusión",
+    "squashMerge": "Fusión squash",
+    "rebaseFromHere": "Hacer rebase desde aquí",
+    "interactiveRebase": "Rebase interactivo desde aquí",
+    "resetToHere": "Restablecer la rama actual aquí",
+    "resetSoft": "Suave",
+    "resetMixed": "Mixto",
+    "resetHard": "Duro",
+    "copySha": "Copiar SHA",
+    "openOnGithub": "Abrir en GitHub"
+  },
+  "branchMenu": {
+    "checkout": "Checkout",
+    "checkoutLocal": "Hacer checkout de la rama local",
+    "createBranch": "Crear rama aquí",
+    "createWorktree": "Crear worktree desde la rama",
+    "mergeIntoCurrent": "Fusionar en la actual",
+    "rebaseCurrentOntoThis": "Hacer rebase de la actual sobre esta",
+    "interactiveRebaseOntoThis": "Rebase interactivo sobre esta…",
+    "cherryPickTip": "Hacer cherry-pick del commit de punta",
+    "copyBranchName": "Copiar nombre de la rama",
+    "copyTipSha": "Copiar el SHA del commit de punta",
+    "copyCommitLink": "Copiar enlace al commit en GitHub",
+    "copyBranchLink": "Copiar enlace a la rama en GitHub",
+    "copy": "Copiar",
+    "compareWithCurrent": "Comparar con la actual",
+    "setUpstream": "Establecer upstream…",
+    "rename": "Renombrar…",
+    "pin": "Fijar en favoritos",
+    "unpin": "Dejar de fijar de favoritos",
+    "createTag": "Crear etiqueta aquí…",
+    "deleteRemote": "Eliminar rama remota",
+    "delete": "Eliminar rama"
+  },
+  "stashMenu": {
+    "apply": "Aplicar stash",
+    "pop": "Pop de stash",
+    "delete": "Eliminar stash",
+    "editMessage": "Editar el mensaje del stash"
+  },
+  "stashRow": {
+    "wipOn": "WIP en {branch}",
+    "wip": "WIP",
+    "unknownBase": "base desconocida",
+    "hint": "base {sha} · fuera de la vista",
+    "hintWithSubject": "base {sha} · {subject} · fuera de la vista",
+    "title": "Stash creado sobre {base}. Este commit no está en la ventana cargada (carga más commits) o se reescribió con amend/rebase — en ese caso, aplica el stash manualmente en el commit sucesor.",
+    "titleWithSubject": "Stash creado sobre {base}, «{subject}». Este commit no está en la ventana cargada (carga más commits) o se reescribió con amend/rebase — en ese caso, aplica el stash manualmente en el commit sucesor.",
+    "boxTitleNoBase": "Stash (base desconocida)",
+    "boxTitle": "Stash sobre {sha}",
+    "boxTitleOutsideView": "Stash sobre {sha} — fuera de la vista cargada",
+    "boxTitleOutsideViewWithSubject": "Stash sobre {sha} «{subject}» — fuera de la vista cargada"
+  },
+  "pendingRow": {
+    "messagePlaceholder": "Mensaje del commit",
+    "status": {
+      "modified": "Modificado",
+      "added": "Añadido",
+      "deleted": "Eliminado",
+      "renamed": "Renombrado",
+      "copied": "Copiado",
+      "conflicted": "En conflicto",
+      "ignored": "Ignorado"
+    }
+  },
+  "toast": {
+    "copiedSha": "SHA copiado en el portapapeles",
+    "openingOnGithub": "Abriendo el commit en GitHub",
+    "noGithubRemote": "No hay ningún remoto de GitHub configurado para este repositorio",
+    "clipboardUnavailable": "El portapapeles no está disponible",
+    "copyFailed": "No se pudo copiar en el portapapeles",
+    "copied": "Se copió {target}"
+  },
+  "copyTarget": {
+    "branchName": "nombre de la rama",
+    "commitSha": "SHA del commit",
+    "link": "enlace"
+  },
+  "timeMarkers": {
+    "hour1": "Hace 1 hora",
+    "hours2": "Hace 2 horas",
+    "hours6": "Hace 6 horas",
+    "day1": "Hace un día",
+    "days2": "Hace 2 días",
+    "week1": "Hace una semana",
+    "weeks2": "Hace 2 semanas",
+    "month1": "Hace un mes",
+    "months2": "Hace 2 meses",
+    "months3": "Hace 3 meses",
+    "months6": "Hace 6 meses",
+    "year1": "Hace un año",
+    "years2": "Hace 2 años",
+    "years5": "Hace 5 años"
+  },
+  "conflictBanner": {
+    "merge": "Se encontró un conflicto de archivos al intentar fusionar en {target}",
+    "rebase": "Se encontró un conflicto de archivos al hacer rebase",
+    "cherryPick": "Se encontró un conflicto de archivos al intentar hacer cherry-pick sobre {target}",
+    "revert": "Se encontró un conflicto de archivos al intentar revertir cambios en {target}"
+  }
+}
