@@ -85,9 +85,9 @@ jobs:
 
       - run: npm ci --no-audit --no-fund
 
-      # linuxdeploy's AppImage plugin reads this: it embeds the update string in
-      # the AppImage and writes the matching .zsync next to it. `latest` (not the
-      # version tag) keeps update checks pointed at the newest stable release.
+      # linuxdeploy's AppImage plugin reads this and embeds the update string in
+      # the AppImage. `latest` (not the version tag) keeps update checks pointed
+      # at the newest stable release.
       - name: AppImage update information
         if: matrix.platform == 'ubuntu-22.04'
         run: |
@@ -104,6 +104,29 @@ jobs:
           prerelease: false
           args: ${{ matrix.args }}
 
+      # appimagetool only writes the .zsync when it can find zsyncmake itself,
+      # which is not reliable inside Tauri's linuxdeploy sandbox: the v1.2.0
+      # build embedded the update information but produced no .zsync. Generate
+      # it explicitly so the asset the update string points at always exists.
+      - name: Generate AppImage zsync
+        if: matrix.platform == 'ubuntu-22.04'
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+          appimages=(src-tauri/target/release/bundle/appimage/*_amd64.AppImage)
+          if [ "${#appimages[@]}" -ne 1 ]; then
+            echo "expected exactly one amd64 AppImage, found ${#appimages[@]}" >&2
+            exit 1
+          fi
+          # GitHub turns spaces into dots in release asset names, so build the
+          # zsync from a copy named exactly like the published asset. Keeping
+          # the header filename and the download URL in sync matters for
+          # AppImageUpdate.
+          name="$(basename "${appimages[0]}" | tr ' ' '.')"
+          mkdir -p "$RUNNER_TEMP/zsync"
+          cp "${appimages[0]}" "$RUNNER_TEMP/zsync/$name"
+          zsyncmake -u "$name" -o "$RUNNER_TEMP/zsync/$name.zsync" "$RUNNER_TEMP/zsync/$name"
+
       # tauri-action uploads only its own artifact list, which has no .zsync.
       - name: Upload AppImage zsync
         if: matrix.platform == 'ubuntu-22.04'
@@ -111,7 +134,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAG: ${{ github.ref_name }}
         run: |
-          gh release upload "$TAG" src-tauri/target/release/bundle/appimage/*.AppImage.zsync \
+          gh release upload "$TAG" "$RUNNER_TEMP"/zsync/*.AppImage.zsync \
             --repo "$GITHUB_REPOSITORY" --clobber
 
   # Replace the tauri-action placeholder body with a real changelog. The in-app
