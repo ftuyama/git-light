@@ -1,0 +1,59 @@
+{
+  "actions": {
+    "cancel": "キャンセル",
+    "close": "閉じる",
+    "save": "保存",
+    "delete": "削除",
+    "remove": "削除",
+    "rename": "名前を変更",
+    "copy": "コピー",
+    "copied": "コピーしました",
+    "retry": "再試行",
+    "refresh": "更新",
+    "open": "開く",
+    "apply": "適用",
+    "discard": "破棄",
+    "confirm": "確認",
+    "create": "作成",
+    "edit": "編集",
+    "add": "追加",
+    "select": "選択",
+    "search": "検索",
+    "clear": "クリア",
+    "learnMore": "詳細を見る",
+    "showMore": "さらに表示",
+    "showLess": "表示を減らす"
+  },
+  "labels": {
+    "author": "作成者",
+    "date": "日付",
+    "message": "メッセージ",
+    "path": "パス",
+    "branch": "ブランチ",
+    "tag": "タグ",
+    "commit": "コミット",
+    "repository": "リポジトリ",
+    "remote": "リモート",
+    "stash": "スタッシュ",
+    "worktree": "ワークツリー",
+    "changes": "変更",
+    "conflict": "競合",
+    "file": "ファイル",
+    "yes": "はい",
+    "no": "いいえ"
+  },
+  "state": {
+    "loading": "読み込み中…",
+    "empty": "表示する内容がありません",
+    "error": "問題が発生しました",
+    "unknown": "不明",
+    "upToDate": "最新です"
+  },
+  "count": {
+    "commits": "{count}件のコミット",
+    "files": "{count}件のファイル",
+    "changes": "{count}件の変更",
+    "conflicts": "{count}件の競合",
+    "branches": "{count}件のブランチ"
+  }
+}

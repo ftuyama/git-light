@@ -1,0 +1,68 @@
+{
+  "panel": {
+    "closeFile": "ファイルを閉じる",
+    "diffView": "差分ビュー",
+    "blameView": "blame ビュー",
+    "diff": "差分",
+    "blame": "blame",
+    "unified": "ユニファイド差分",
+    "split": "分割差分",
+    "ignoreWhitespace": "行頭・行末の空白を無視",
+    "wordWrap": "折り返し",
+    "loading": "差分を読み込み中…",
+    "tooLarge": "ファイルが大きすぎるため、UI で差分を表示できません。",
+    "binary": "バイナリファイル — テキスト差分はありません。"
+  },
+  "stage": {
+    "stage": "ステージ",
+    "unstage": "ステージ解除",
+    "stageHunk": "ハンクをステージ",
+    "unstageHunk": "ハンクのステージを解除",
+    "stageLine": "行をステージ",
+    "unstageLine": "行のステージを解除"
+  },
+  "discard": {
+    "discardHunk": "ハンクを破棄",
+    "discardLine": "行を破棄"
+  },
+  "blame": {
+    "loading": "blame を読み込み中…",
+    "empty": "このファイルの blame 情報はありません。",
+    "wordWrap": "折り返し",
+    "wordWrapAria": "blame ビューの折り返し"
+  },
+  "history": {
+    "title": "ファイル履歴",
+    "loading": "履歴を読み込み中…",
+    "empty": "このファイルのコミットは見つかりませんでした。"
+  },
+  "image": {
+    "loading": "画像プレビューを読み込み中…",
+    "failed": "画像プレビューを読み込めませんでした。",
+    "tooLarge": "画像が大きすぎるため、UI でプレビューできません。",
+    "unavailable": "この変更では画像プレビューを利用できません。",
+    "added": "追加",
+    "before": "変更前",
+    "after": "変更後",
+    "deleted": "削除",
+    "beforeAlt": "変更前: {path}",
+    "afterAlt": "変更後: {path}",
+    "noPrevious": "以前のバージョンはありません（ファイルが追加されました）。",
+    "noCurrent": "現在のバージョンはありません（ファイルが削除されました）。",
+    "zoomIn": "拡大",
+    "zoomOut": "縮小",
+    "resetZoom": "ズームをリセット",
+    "collapse": "折りたたむ",
+    "backToSideBySide": "並べて表示に戻る",
+    "expand": "クリックして拡大",
+    "hint": "スクロールでズーム · ドラッグで移動 · ダブルクリックで切り替え · Esc で折りたたむ"
+  },
+  "toast": {
+    "commitFilesFailed": "コミットのファイルを読み込めませんでした: {detail}",
+    "compareFailed": "コミットを比較できませんでした: {detail}",
+    "diffFailed": "差分を読み込めませんでした: {detail}",
+    "blameFailed": "blame を読み込めませんでした: {detail}",
+    "historyFailed": "ファイル履歴を読み込めませんでした: {detail}",
+    "conflictFailed": "競合を読み込めませんでした: {detail}"
+  }
+}

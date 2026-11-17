@@ -1,0 +1,14 @@
+{
+  "MergeConflict": "操作によりマージ競合が発生しました。解決が必要です。",
+  "Authentication": "認証に失敗しました。SSH キーまたは資格情報マネージャーを確認してください。",
+  "RepositoryNotFound": "リポジトリが見つかりませんでした。",
+  "NotARepository": "このフォルダは Git リポジトリではありません。",
+  "BareRepository": "ベアリポジトリはサポートされていません。",
+  "DetachedHead": "HEAD がデタッチされています。",
+  "RemoteRejected": "リモートがプッシュを拒否しました。",
+  "NothingToCommit": "コミットするステージ済みの変更がありません。",
+  "Network": "リモートへの接続中にネットワークエラーが発生しました。",
+  "DirtyWorktree": "上書きされる未コミットの変更があります。",
+  "Cancelled": "操作はキャンセルされました。",
+  "Unknown": "予期しない Git エラーが発生しました。"
+}

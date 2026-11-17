@@ -1,0 +1,263 @@
+{
+  "button": "設定",
+  "dialog": {
+    "title": "環境設定",
+    "close": "環境設定を閉じる"
+  },
+  "categories": {
+    "general": "一般",
+    "appearance": "外観",
+    "interface": "インターフェース",
+    "language": "言語",
+    "views": "表示",
+    "commitGraph": "コミットグラフ",
+    "sidebar": "サイドバー",
+    "repository": "リポジトリ",
+    "changes": "変更",
+    "commits": "コミット",
+    "sync": "同期",
+    "application": "アプリケーション",
+    "privacy": "プライバシー",
+    "shortcuts": "ショートカット",
+    "credits": "クレジット"
+  },
+  "appearance": {
+    "theme": "カラーテーマ",
+    "themeDescription": "アプリケーションのインターフェースに使用するカラーパレットを選択します。",
+    "typography": "タイポグラフィ"
+  },
+  "interfaceMode": {
+    "title": "インターフェースモード",
+    "description": "ベーシックではスタッシュ、リベース、ターミナルなどの詳細操作が非表示になります。アドバンスではすべてが表示されます。",
+    "basic": "ベーシック",
+    "basicDescription": "必須の Git 操作のみ。スタッシュ、リベース、チェリーピック、タグなどは非表示になります。",
+    "advanced": "アドバンス",
+    "advancedDescription": "ツールバー、サイドバーのセクション、コミット操作をすべて表示します。"
+  },
+  "fontSize": {
+    "title": "フォントサイズ",
+    "description": "アプリ全体のテキストとインターフェース要素のサイズを調整します。"
+  },
+  "language": {
+    "title": "言語",
+    "description": "アプリケーションのインターフェース言語。",
+    "system": "システム",
+    "systemDescription": "オペレーティングシステムの言語に従います。現在は{language}です。"
+  },
+  "avatars": {
+    "title": "アバター",
+    "authorAvatars": "作成者のアバター",
+    "authorAvatarsDescription": "コミット作成者の GitHub および Gravatar 画像を読み込みます。オフにするとイニシャルのみを表示し、アバターリクエストを送信しません。",
+    "clearCache": "アバターキャッシュを消去",
+    "clearCacheDescription": "キャッシュされた GitHub ログインと失敗した照会を破棄し、アバターを再度解決します。",
+    "clear": "消去",
+    "cleared": "消去しました"
+  },
+  "privacy": {
+    "description": "リモート画像と、コミット作成者についてキャッシュされるデータを管理します。"
+  },
+  "layout": {
+    "panels": "パネル",
+    "showLeftSidebar": "左サイドバーを表示",
+    "showLeftSidebarDescription": "左側にブランチサイドバーを表示します。",
+    "showRightPanel": "右パネルを表示",
+    "showRightPanelDescription": "右側に作業ツリーと差分パネルを表示します。",
+    "reset": "リセット",
+    "resetDescription": "パネルのサイズを既定に戻し、両側のパネルを展開します。",
+    "resetAction": "パネルレイアウトをリセット"
+  },
+  "changes": {
+    "description": "作業ツリーとコミットパネルでの変更ファイルの表示方法を管理します。",
+    "fileList": "ファイルリスト",
+    "treeView": "ツリービュー",
+    "treeViewDescription": "変更されたファイルを折りたたみ可能なフォルダ階層でグループ化します。"
+  },
+  "commits": {
+    "description": "新しいコミットに適用される既定のオプションです。",
+    "options": "コミットオプション",
+    "signOff": "コミットにサインオフを付ける",
+    "signOffDescription": "コミットメッセージに Signed-off-by トレーラーを追加します（--signoff）。",
+    "sign": "コミットに署名（GPG/SSH）",
+    "signDescription": "GPG/SSH キーで署名します（-S）。git config に user.signingkey が必要です。"
+  },
+  "commitGraph": {
+    "description": "グラフに表示するコミットと、表示する列を管理します。",
+    "history": "履歴",
+    "showAllBranches": "すべてのブランチを表示",
+    "showAllBranchesDescription": "チェックアウト中のブランチだけでなく、すべてのブランチのコミットを表示します。",
+    "recentCommits": "読み込む最近のコミット数",
+    "recentCommitsSummary": "グラフのために取得するコミットの最大数。",
+    "recentCommitsDescription": "グラフのために取得するコミットの最大数。最小{min}、{recommended}を推奨します。",
+    "columns": "列",
+    "columnsDescription": "グラフの各行に表示する任意の列を選択します。",
+    "indicators": "インジケーター",
+    "timeIndicators": "時間インジケーター",
+    "timeIndicatorsDescription": "グラフ内のコミットの間に「1週間前」などの区切りを表示します。",
+    "mergeIndicators": "マージインジケーター",
+    "mergeIndicatorsDescription": "コミットメッセージ列でマージコミットにマージアイコンを付けます。",
+    "columnWidths": "列幅",
+    "resetWidths": "幅をリセット",
+    "columnWidthsDescription": "ピクセル単位の正確な幅、またはグラフのヘッダーで列の端をドラッグします。"
+  },
+  "columnDescriptions": {
+    "author": "各行にコミット作成者のアバターと名前を表示します。",
+    "sha": "各行にコミットハッシュの省略形を表示します。",
+    "when": "各コミットがどれくらい前に作成されたかを表示します。"
+  },
+  "sidebar": {
+    "description": "ブランチサイドバーの各セクションの表示方法（展開、ヘッダーへの折りたたみ、完全な非表示）を選択します。",
+    "sections": "セクション"
+  },
+  "sectionDescriptions": {
+    "favorites": "サイドバー上部に表示されるピン留めしたブランチ。",
+    "localBranches": "ローカルブランチの一覧とブランチグループ。",
+    "remoteBranches": "リモートごとにグループ化されたリモート追跡ブランチ。",
+    "tags": "リポジトリ内の注釈付きタグと軽量タグ。",
+    "stashes": "メッセージとブランチのコンテキスト付きの保存済みスタッシュ。",
+    "worktrees": "リンクされたワークツリーとそのチェックアウトパス。"
+  },
+  "sync": {
+    "description": "アプリを離れずにリモート追跡ブランチを最新に保ちます。",
+    "backgroundFetch": "バックグラウンドフェッチ",
+    "autoFetchInterval": "自動フェッチの間隔",
+    "autoFetchIntervalDescription": "すべてのリモートを定期的にバックグラウンドでフェッチします。バナーも通知も表示されず、グラフだけが更新されます。"
+  },
+  "intervals": {
+    "disabled": "無効",
+    "everyMinute": "1分ごと",
+    "every5Minutes": "5分ごと",
+    "every10Minutes": "10分ごと",
+    "every30Minutes": "30分ごと",
+    "everyHour": "1時間ごと",
+    "every2Hours": "2時間ごと"
+  },
+  "credits": {
+    "version": "バージョン {version}",
+    "description": "無料のオープンソースデスクトップ Git クライアント（Tauri 2、Vue 3、TypeScript、Rust）— コミットグラフ、ブランチ、ステージング、実際のローカル Git 操作を備えた、グラフ重視の GitKraken 代替です。",
+    "builtBy": "制作",
+    "license": "{license} ライセンス",
+    "website": "ウェブサイト",
+    "sourceCode": "ソースコード",
+    "sponsor": "Ko-fi で支援",
+    "links": "リンク",
+    "openSource": "オープンソース",
+    "openSourceDescription": "Git Light はこれらのプロジェクトとその貢献者によって実現しています。"
+  },
+  "columns": {
+    "author": "作成者",
+    "sha": "SHA",
+    "when": "日時"
+  },
+  "columnWidths": {
+    "refs": "ブランチ / タグ",
+    "graph": "グラフ",
+    "commit": "コミット",
+    "author": "作成者",
+    "sha": "SHA",
+    "when": "日時",
+    "ariaLabel": "{name}列の幅",
+    "hidden": "{range} · 非表示"
+  },
+  "sections": {
+    "favorites": "お気に入り",
+    "localBranches": "ローカルブランチ",
+    "remoteBranches": "リモートブランチ",
+    "tags": "タグ",
+    "stashes": "スタッシュ",
+    "worktrees": "ワークツリー"
+  },
+  "sectionStates": {
+    "expanded": "展開",
+    "collapsed": "折りたたみ",
+    "hidden": "非表示"
+  },
+  "themes": {
+    "default": {
+      "label": "デフォルト",
+      "description": "青をアクセントにしたダークパレット。"
+    },
+    "dracula": {
+      "label": "Dracula",
+      "description": "紫とピンクをアクセントにしたクラシックな Dracula テーマ。"
+    },
+    "light": {
+      "label": "ライト",
+      "description": "GitHub と VS Code に着想を得たクリーンなライトパレット。"
+    },
+    "claude": {
+      "label": "Claude",
+      "description": "claude.ai に着想を得た温かみのあるダークチャコールパレット。"
+    },
+    "tokyo-night": {
+      "label": "Tokyo Night",
+      "description": "鮮やかな青と紫をアクセントにしたダークブルーの Tokyo Night パレット。"
+    },
+    "nord": {
+      "label": "Nord",
+      "description": "フロストのアクセントを効かせた冷たい北極系のブルーグレーパレット。"
+    },
+    "gruvbox": {
+      "label": "Gruvbox",
+      "description": "大胆な黄色とアースカラーを効かせた温かみのあるレトロパレット。"
+    },
+    "rose-pine": {
+      "label": "Rosé Pine",
+      "description": "柔らかなローズとアイリスのアクセントを効かせた落ち着いたミッドナイトパレット。"
+    },
+    "one-dark": {
+      "label": "One Dark",
+      "description": "見慣れた Atom One Dark パレットに青のアクセント。"
+    },
+    "solarized-light": {
+      "label": "Solarized Light",
+      "description": "Solarized の低コントラストで温かみのあるライトパレット。"
+    },
+    "custom": {
+      "label": "カスタム",
+      "description": "ベースカラーを自由に選ぶと、残りの色は自動で導出されます。"
+    },
+    "system": {
+      "label": "システム",
+      "description": "オペレーティングシステムの外観に合わせます。"
+    }
+  },
+  "customTheme": {
+    "title": "カスタムカラー",
+    "description": "ベースカラーを選択します。枠線、ホバー状態、控えめなテキスト、構文ハイライトはそこから導出されます。",
+    "reset": "色をリセット",
+    "app": "背景",
+    "panel": "サーフェス",
+    "fg": "テキスト",
+    "accent": "アクセント",
+    "success": "成功",
+    "warning": "警告",
+    "danger": "危険"
+  },
+  "shortcuts": {
+    "disable": "{name}のショートカットを無効化",
+    "reset": "{name}のショートカットをリセット",
+    "conflictsWith": "競合: {names}",
+    "description": "ショートカットをクリックして新しいキーを記録します。Esc でキャンセルします。競合は強調表示されます。",
+    "restoreDefaults": "既定に戻す",
+    "disableTooltip": "無効化（ショートカットを解除）",
+    "resetTooltip": "既定に戻す",
+    "recordHint": "クリックして新しいショートカットを記録",
+    "recordingHint": "ショートカットのキーを押してください。Esc でキャンセルします",
+    "recording": "キーを押してください…"
+  },
+  "search": {
+    "title": "設定を検索",
+    "open": "設定を検索",
+    "openTooltip": "設定を検索（/）",
+    "placeholder": "設定を検索…",
+    "resultOne": "{count}件の結果",
+    "resultMany": "{count}件の結果",
+    "empty": "「{query}」に一致する設定はありません。",
+    "columnAuthor": "作成者列",
+    "columnSha": "SHA 列",
+    "columnWhen": "日時列",
+    "credits": "クレジットとバージョン",
+    "creditsDescription": "アプリのバージョン、作成者へのリンク、サードパーティのクレジット。",
+    "shortcutDescription": "ショートカット · {category}"
+  }
+}

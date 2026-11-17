@@ -1,0 +1,29 @@
+{
+  "dialog": {
+    "title": "インタラクティブリベース",
+    "ariaLabel": "インタラクティブリベース",
+    "onto": "リベース先",
+    "basePlaceholder": "HEAD~5、main、またはコミット SHA",
+    "load": "読み込む",
+    "commitsAfter": "{sha} 以降の{count}件のコミット",
+    "warning": "コミット履歴が書き換えられます。ドラッグでコミットを並べ替え、各行のアクションを選択してからリベースを開始してください。",
+    "loading": "コミットを読み込み中…",
+    "empty": "ベースの参照を入力してコミットを読み込むと、リベース計画を作成できます。",
+    "start": "リベースを開始"
+  },
+  "actions": {
+    "pick": "ピック",
+    "reword": "メッセージ変更",
+    "edit": "編集",
+    "squash": "スカッシュ",
+    "fixup": "フィックスアップ",
+    "drop": "ドロップ"
+  },
+  "row": {
+    "dragToReorder": "ドラッグして並べ替え",
+    "messagePlaceholder": "新しいコミットメッセージ"
+  },
+  "toast": {
+    "baseRequired": "ベースの参照（例: HEAD~5 またはブランチ）を入力してください"
+  }
+}

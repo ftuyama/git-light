@@ -1,0 +1,71 @@
+{
+  "sidebar": {
+    "hide": "左サイドバーを非表示",
+    "searchPlaceholder": "ブランチを検索",
+    "noMatches": "「{query}」に一致するブランチはありません",
+    "allHidden": "すべてのパネルが非表示です — 右クリックでパネルを表示"
+  },
+  "row": {
+    "dragHint": "別のブランチにドラッグしてマージまたはリベースします",
+    "pin": "ブランチをピン留め",
+    "unpin": "ブランチのピン留めを解除"
+  },
+  "menu": {
+    "checkout": "チェックアウト",
+    "checkoutLocal": "ローカルブランチをチェックアウト",
+    "deleteRemote": "リモートブランチを削除",
+    "createHere": "ここにブランチを作成",
+    "setUpstream": "上流を設定",
+    "compareWithCurrent": "現在のブランチと比較",
+    "pin": "お気に入りにピン留め",
+    "unpin": "ピン留めを解除",
+    "deleteInFolder": "フォルダ「{folder}」内の{count}件のブランチを削除",
+    "noneToDelete": "削除するブランチがありません"
+  },
+  "tags": {
+    "checkout": "タグをチェックアウト",
+    "deleteTag": "タグを削除",
+    "create": "タグを作成"
+  },
+  "stashes": {
+    "pop": "ポップ",
+    "drop": "ドロップ",
+    "summary": "{branch} · {count}件のファイル"
+  },
+  "worktrees": {
+    "reveal": "Finder に表示",
+    "remove": "ワークツリーを削除",
+    "add": "ワークツリーを追加"
+  },
+  "favorites": {
+    "empty": "ブランチをピン留めするとここに表示されます"
+  },
+  "integrate": {
+    "title": "ブランチを統合",
+    "description": "{source}と{target}を統合する方法を選択してください。",
+    "mergeTitle": "ターゲットにマージ",
+    "mergeDescription": "{source}を{target}にマージ",
+    "mergeStrategy": "マージ戦略",
+    "merge": "選択した戦略でマージ",
+    "rebaseTitle": "ターゲットにリベース",
+    "rebaseDescription": "{source}を{target}にリベース"
+  },
+  "mergeModes": {
+    "default": {
+      "label": "デフォルト",
+      "description": "可能な場合はファストフォワードし、それ以外はマージコミットを作成します"
+    },
+    "ffOnly": {
+      "label": "ファストフォワードのみ",
+      "description": "ファストフォワードが可能な場合のみマージします"
+    },
+    "noFf": {
+      "label": "ファストフォワードなし",
+      "description": "常にマージコミットを作成します"
+    },
+    "squash": {
+      "label": "スカッシュ",
+      "description": "ソースブランチのすべてのコミットを1つのコミットにスカッシュします"
+    }
+  }
+}

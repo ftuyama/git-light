@@ -1,0 +1,134 @@
+{
+  "columns": {
+    "refs": "ブランチ / タグ",
+    "graph": "グラフ",
+    "sha": "SHA",
+    "when": "日時"
+  },
+  "showColumns": "列を表示",
+  "columnMenu": {
+    "sha": "SHA",
+    "when": "日時",
+    "timeIndicators": "時間マーカー",
+    "mergeIndicators": "マージマーカー"
+  },
+  "empty": {
+    "title": "まだコミットがありません",
+    "body": "最初のコミットを作成すると、ここに履歴が表示されます。"
+  },
+  "loadingMore": "追加のコミットを読み込み中…",
+  "commitRow": {
+    "hiddenRefs": "+{count}件",
+    "mergeCommit": "マージコミット"
+  },
+  "branchInput": {
+    "placeholder": "ブランチ名を入力"
+  },
+  "commitMenu": {
+    "checkout": "コミットをチェックアウト",
+    "createBranch": "ここにブランチを作成",
+    "tag": "このコミットにタグを付ける",
+    "cherryPick": "チェリーピック",
+    "revert": "コミットを打ち消す",
+    "mergeIntoCurrent": "現在のブランチにマージ",
+    "merge": "マージ",
+    "squashMerge": "スカッシュマージ",
+    "rebaseFromHere": "ここからリベース",
+    "interactiveRebase": "ここからインタラクティブリベース",
+    "resetToHere": "現在のブランチをここにリセット",
+    "resetSoft": "ソフト",
+    "resetMixed": "ミックス",
+    "resetHard": "ハード",
+    "copySha": "SHA をコピー",
+    "openOnGithub": "GitHub で開く"
+  },
+  "branchMenu": {
+    "checkout": "チェックアウト",
+    "checkoutLocal": "ローカルブランチをチェックアウト",
+    "createBranch": "ここにブランチを作成",
+    "createWorktree": "ブランチからワークツリーを作成",
+    "mergeIntoCurrent": "現在のブランチにマージ",
+    "rebaseCurrentOntoThis": "現在のブランチをここにリベース",
+    "interactiveRebaseOntoThis": "これを基準にインタラクティブリベース…",
+    "cherryPickTip": "末端のコミットをチェリーピック",
+    "copyBranchName": "ブランチ名をコピー",
+    "copyTipSha": "末端コミットの SHA をコピー",
+    "copyCommitLink": "GitHub のコミットへのリンクをコピー",
+    "copyBranchLink": "GitHub のブランチへのリンクをコピー",
+    "copy": "コピー",
+    "compareWithCurrent": "現在のブランチと比較",
+    "setUpstream": "上流を設定…",
+    "rename": "名前を変更…",
+    "pin": "お気に入りにピン留め",
+    "unpin": "お気に入りから外す",
+    "createTag": "ここにタグを作成…",
+    "deleteRemote": "リモートブランチを削除",
+    "delete": "ブランチを削除"
+  },
+  "stashMenu": {
+    "apply": "スタッシュを適用",
+    "pop": "スタッシュをポップ",
+    "delete": "スタッシュを削除",
+    "editMessage": "スタッシュのメッセージを編集"
+  },
+  "stashRow": {
+    "wipOn": "{branch} の WIP",
+    "wip": "WIP",
+    "unknownBase": "不明なベース",
+    "hint": "ベース {sha} · 読み込み範囲外",
+    "hintWithSubject": "ベース {sha} · {subject} · 読み込み範囲外",
+    "title": "{base} をベースに作成されたスタッシュです。このコミットは読み込み済みの範囲にない（コミットをさらに読み込む）か、amend/rebase によって書き換えられています。後者の場合は、後続のコミットでスタッシュを手動で適用してください。",
+    "titleWithSubject": "{base} をベースに作成されたスタッシュです（{subject}）。このコミットは読み込み済みの範囲にない（コミットをさらに読み込む）か、amend/rebase によって書き換えられています。後者の場合は、後続のコミットでスタッシュを手動で適用してください。",
+    "boxTitleNoBase": "スタッシュ（不明なベース）",
+    "boxTitle": "{sha} をベースにしたスタッシュ",
+    "boxTitleOutsideView": "{sha} をベースにしたスタッシュ — 読み込み範囲外",
+    "boxTitleOutsideViewWithSubject": "{sha} をベースにしたスタッシュ「{subject}」— 読み込み範囲外"
+  },
+  "pendingRow": {
+    "messagePlaceholder": "コミットメッセージ",
+    "status": {
+      "modified": "変更",
+      "added": "追加",
+      "deleted": "削除",
+      "renamed": "名前変更",
+      "copied": "コピー",
+      "conflicted": "競合",
+      "ignored": "無視"
+    }
+  },
+  "toast": {
+    "copiedSha": "SHA をクリップボードにコピーしました",
+    "openingOnGithub": "GitHub でコミットを開いています",
+    "noGithubRemote": "このリポジトリには GitHub リモートが設定されていません",
+    "clipboardUnavailable": "クリップボードを利用できません",
+    "copyFailed": "クリップボードにコピーできませんでした",
+    "copied": "{target}をコピーしました"
+  },
+  "copyTarget": {
+    "branchName": "ブランチ名",
+    "commitSha": "コミット SHA",
+    "link": "リンク"
+  },
+  "timeMarkers": {
+    "hour1": "1時間前",
+    "hours2": "2時間前",
+    "hours6": "6時間前",
+    "day1": "1日前",
+    "days2": "2日前",
+    "week1": "1週間前",
+    "weeks2": "2週間前",
+    "month1": "1か月前",
+    "months2": "2か月前",
+    "months3": "3か月前",
+    "months6": "6か月前",
+    "year1": "1年前",
+    "years2": "2年前",
+    "years5": "5年前"
+  },
+  "conflictBanner": {
+    "merge": "{target}へのマージ中にファイル競合が見つかりました",
+    "rebase": "リベース中にファイル競合が見つかりました",
+    "cherryPick": "{target}へのチェリーピック中にファイル競合が見つかりました",
+    "revert": "{target}の変更を打ち消す際にファイル競合が見つかりました"
+  }
+}

@@ -1,0 +1,87 @@
+{
+  "headers": {
+    "changedFiles": "変更されたファイル",
+    "files": "ファイル",
+    "changes": "変更（{count}）",
+    "staged": "ステージ済み（{count}）",
+    "conflicts": "競合（{count}）"
+  },
+  "actions": {
+    "discardAll": "すべての変更を破棄",
+    "stageAll": "すべてステージ",
+    "unstageAll": "すべてステージ解除"
+  },
+  "state": {
+    "loadingFiles": "ファイルを読み込み中…",
+    "noFilesInCommit": "このコミットで変更されたファイルはありません",
+    "noChangesBetweenCommits": "これらのコミット間にファイルの変更はありません",
+    "noUnstaged": "未ステージの変更はありません",
+    "nothingStaged": "ファイルをステージするとコミットできます"
+  },
+  "changes": {
+    "summary": "{branch}で{count}件のファイルが変更されました"
+  },
+  "stash": {
+    "wipOn": "{branch} の WIP",
+    "wip": "WIP",
+    "close": "スタッシュのファイルを閉じる"
+  },
+  "commit": {
+    "summary": "{count}件のファイルへの変更をコミット",
+    "summaryAmend": "{count}件のファイルへの変更を修正",
+    "summaryPlaceholder": "コミットの概要",
+    "summaryPlaceholderAmend": "コミットの概要（空欄の場合は前回のメッセージを保持）",
+    "summaryLimit": "最大{count}文字",
+    "descriptionPlaceholder": "説明",
+    "noCommitsToAmend": "修正できるコミットがまだありません",
+    "amend": "前回のコミットを修正",
+    "commitAndPush": "コミットしてプッシュ",
+    "amendAndPush": "修正してプッシュ",
+    "commitAndForcePush": "コミットして強制プッシュ（lease 付き）",
+    "amendAndForcePush": "修正して強制プッシュ（lease 付き）",
+    "pushOptions": "コミットとプッシュのオプション",
+    "shaCopied": "SHA をクリップボードにコピーしました",
+    "mergeCommit": "マージコミット",
+    "parents": "親:"
+  },
+  "compare": {
+    "title": "コミットを比較中",
+    "filesChanged": "{count}件のファイルが変更されました",
+    "hint": "Shift キーを押しながら別のコミットをクリックすると比較できます",
+    "exit": "比較モードを終了"
+  },
+  "fileHistory": {
+    "title": "ファイル履歴"
+  },
+  "fileMenu": {
+    "viewHistory": "ファイル履歴を表示",
+    "revealInFinder": "Finder に表示",
+    "copyPath": "パスをコピー",
+    "pathCopied": "パスをクリップボードにコピーしました",
+    "viewDiff": "差分を表示",
+    "restoreVersion": "このバージョンからファイルを復元",
+    "useOurs": "ours を使用",
+    "useTheirs": "theirs を使用",
+    "markResolved": "解決済みにする",
+    "resolveConflict": "競合を解決",
+    "stage": "変更をステージ",
+    "unstage": "変更のステージを解除",
+    "discard": "変更を破棄",
+    "stageFile": "ファイルをステージ",
+    "unstageFile": "ファイルのステージを解除"
+  },
+  "view": {
+    "aria": "ファイルリストの表示",
+    "path": "パス",
+    "tree": "ツリー"
+  },
+  "status": {
+    "modified": "変更",
+    "added": "追加",
+    "deleted": "削除",
+    "renamed": "名前変更",
+    "conflicted": "競合",
+    "copied": "コピー",
+    "ignored": "無視"
+  }
+}
