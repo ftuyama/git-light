@@ -2,7 +2,7 @@
 
 > Git Light is a free, MIT-licensed desktop Git client for macOS, Windows, and Linux with a graph-first interface — commit graph, branch sidebar, working tree, multi-repo tabs, and real local Git operations via the native Git CLI. No account or subscription required.
 
-Version: 1.2.0 · License: MIT · Author: ftuyama · Stack: Tauri 2, Vue 3, TypeScript, Rust, Pinia, Tailwind CSS 4
+Version: 1.3.0 · License: MIT · Author: ftuyama · Stack: Tauri 2, Vue 3, TypeScript, Rust, Pinia, Tailwind CSS 4
 
 Website: https://ftuyama.github.io/git-light/ (also in Brazilian Portuguese: https://ftuyama.github.io/git-light/pt-BR/, Spanish: https://ftuyama.github.io/git-light/es/, French: https://ftuyama.github.io/git-light/fr/, German: https://ftuyama.github.io/git-light/de/, Simplified Chinese: https://ftuyama.github.io/git-light/zh-CN/ and Japanese: https://ftuyama.github.io/git-light/ja/)
 Repository: https://github.com/ftuyama/git-light
