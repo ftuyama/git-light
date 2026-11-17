@@ -6,21 +6,32 @@ description: Bump version, verify, commit, and tag a release
 
 Bump the semver in `package.json`, verify the tree, commit all pending changes, and create an annotated git tag.
 
-## Phase 1 — Refresh screenshot (mandatory)
+## Phase 1 — Refresh screenshots (mandatory)
 
-`docs/screenshot.png` is shared by `README.md` and `docs/index.html` and must be regenerated on **every** release:
+`docs/screenshot.png` is the hero image shared by `README.md` and `docs/index.html`; `README.md` also embeds the gallery in `docs/screenshots/`. Regenerate **every** asset on each release:
 
-1. Run the app with the AwesomeShop mock repo so the screenshot is reproducible:
+1. Run the mock UI with the AwesomeShop repo so every capture is reproducible:
 
    ```bash
-   VITE_USE_MOCK=true npm run dev
+   VITE_USE_MOCK=true npx vite --port 1421 --strictPort
    ```
 
-2. Capture the main repository view (graph + sidebar + working tree visible) at **1440×900**.
-3. Overwrite `docs/screenshot.png` with the new capture. Do not add a second file or change the path.
-4. If the visible UI changed, sync copy in `docs/index.html` (`.screenshot-title`, `<img alt="…">`) and confirm the `README.md` hero caption still matches.
+2. Open <http://localhost:1421> at **1440×900** and expand the left sidebar (`Expand left panel`).
+3. Capture the five views and overwrite these exact paths:
 
-Run `/update-docs` first if other documentation is not yet synced with the codebase — the screenshot itself is not optional.
+   | File | View / actions |
+   |------|----------------|
+   | `docs/screenshot.png` | Main repository view — sidebar, commit graph, working tree, commit box |
+   | `docs/screenshots/diff-viewer.png` | Click `docs/elliptical.ts` in the working tree — diff with hunks and stage actions |
+   | `docs/screenshots/search.png` | Search (`Cmd/Ctrl+Shift+F`), type `payment`, press Enter, wait for file results |
+   | `docs/screenshots/command-palette.png` | Command palette (`Cmd/Ctrl+K`) over the main view |
+   | `docs/screenshots/settings.png` | Settings → Appearance, showing the palette grid |
+
+   Do not add, rename or remove gallery files — `README.md` links these paths. Do not screenshot browser-only placeholders such as the terminal panel, which says it is available only in the desktop app.
+
+4. If the visible UI changed, sync the `README.md` hero caption and gallery captions, plus `docs/index.html` `.screenshot-title` and `<img alt="…">`.
+
+Run `/update-docs` first if other documentation is not yet synced with the codebase — the screenshots themselves are not optional.
 
 ## Input
 
@@ -114,7 +125,7 @@ git tag -a vX.Y.Z -m "Release vX.Y.Z"
 
 ## Response checklist
 
-- [ ] `docs/screenshot.png` refreshed at 1440×900 (+ landing page alt/titlebar copy synced if UI changed)
+- [ ] `docs/screenshot.png` and all four gallery assets in `docs/screenshots/` refreshed at 1440×900 (+ README captions and landing page alt/titlebar copy synced if UI changed)
 - [ ] Version bumped in `package.json`
 - [ ] `npm run sync-version` run (`package-lock.json`, `docs/index.html`, `docs/llms.txt`, `src-tauri/Cargo.toml`, `src-tauri/tauri.conf.json` match)
 - [ ] `npm run typecheck`, `npm run test`, `cargo clippy`, `cargo fmt --check` pass

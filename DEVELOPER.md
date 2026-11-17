@@ -118,11 +118,23 @@ Before bumping the version:
    - [ARCHITECTURE.md](ARCHITECTURE.md) — stack versions, file layout
    - [docs/index.html](docs/index.html) — landing page copy and install section
    - [docs/llms.txt](docs/llms.txt) — AI-readable site summary (version synced automatically)
-2. **Refresh the screenshot** if the UI changed. Run mock mode, capture the main view at 1440×900, and overwrite [docs/screenshot.png](docs/screenshot.png):
+2. **Refresh the screenshots** if the UI changed. The README gallery and the landing page hero all use the AwesomeShop mock repo, so every capture is reproducible:
 
    ```bash
-   VITE_USE_MOCK=true npm run dev
+   VITE_USE_MOCK=true npx vite --port 1421 --strictPort
    ```
+
+   Open <http://localhost:1421> at **1440×900**, expand the left sidebar, then capture:
+
+   | File | View |
+   |------|------|
+   | [docs/screenshot.png](docs/screenshot.png) | Main repository view: sidebar, commit graph, working tree and commit box (README + landing page hero) |
+   | [docs/screenshots/diff-viewer.png](docs/screenshots/diff-viewer.png) | Open `docs/elliptical.ts` from the working tree; diff with hunks and stage actions |
+   | [docs/screenshots/search.png](docs/screenshots/search.png) | Search (`Cmd/Ctrl+Shift+F`), query `payment`, press Enter for file results |
+   | [docs/screenshots/command-palette.png](docs/screenshots/command-palette.png) | Command palette (`Cmd/Ctrl+K`) over the main view |
+   | [docs/screenshots/settings.png](docs/screenshots/settings.png) | Settings → Appearance (palette grid) |
+
+   Mock mode serves deterministic diffs from `src/data/mockDiff.ts`. Skip browser-only placeholders such as the terminal panel, which says it is available only in the desktop app. If the visible UI changed, update the README captions and the `docs/index.html` `.screenshot-title` / `<img alt>` copy too.
 
 3. **Verify** the tree is healthy:
 

@@ -61,10 +61,10 @@ Native `git` CLI in the Rust backend via typed Tauri commands — mock mode avai
 Settings credits panel with project links and open-source licenses. Native About dialog on all platforms.
 
 ### System terminal
-Open the OS terminal at the repo root with ⌘T.
+Open an embedded terminal docked under the commit graph at the repo root with ⌘J. Use the panel's external-link button for the OS terminal.
 
 ### Themes & UI mode
-Default, Dracula, Light, Claude, or System appearance. Basic mode hides advanced actions for a simpler toolbar.
+Default, Dracula, Light, Claude, Tokyo Night, Nord, Gruvbox, Rosé Pine, One Dark, Solarized Light, Custom, or System appearance. Custom lets you pick the base background, surface, text, accent, success, warning, and danger colors; the remaining tokens are derived. Basic mode hides advanced actions for a simpler toolbar.
 
 ### Polished layout
 Collapsible sidebars with expand rails, resizable panes, and commit graph zoom for dense history views.
@@ -85,8 +85,8 @@ Collapsible sidebars with expand rails, resizable panes, and commit graph zoom f
 | Undo / redo (reflog-backed) · stash · search | Supported |
 | Git output log — per-tab executed commands with stdout/stderr | Supported |
 | Command palette (⌘K) · customizable keyboard shortcuts (remappable, conflict detection) | Supported |
-| Open system terminal at the repo root (⌘T toolbar action) | Supported |
-| Themes — Default, Dracula, Light, Claude, System (settings) | Supported |
+| Embedded terminal at the repo root (⌘J) + open in system terminal | Supported |
+| Themes — Default, Dracula, Light, Claude, Tokyo Night, Nord, Gruvbox, Rosé Pine, One Dark, Solarized Light, Custom, System (settings) | Supported |
 | Collapsible sidebars with expand rails · commit graph zoom | Supported |
 | UI mode — Basic (essential actions) or Advanced (full toolbar and sidebar) | Supported |
 | Open on GitHub · app preferences (appearance, layout, graph, sidebar, sync/auto-fetch, shortcuts, credits) | Supported |

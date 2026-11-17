@@ -25,10 +25,22 @@ Git Light is a lightweight app for browsing history, managing branches, staging 
 - Fetch / pull / push / sync + auto-fetch
 - Multi-repo tabs with aliases, close others/reopen, command palette (⌘K), custom shortcuts
 - Git output log for every command
-- Clone / init / folder discovery, terminal at repo root (⌘T)
-- Themes, adjustable font size, Basic/Advanced UI mode, resizable layout + auto-refresh
+- Clone / init / folder discovery, embedded terminal panel at the repo root (⌘J)
+- Themes (built-in palettes plus a custom palette with user-picked colors), adjustable font size, Basic/Advanced UI mode, resizable layout + auto-refresh
 - Interface in English, Portuguese (Brazil) and Simplified Chinese — follows your OS language, switchable in Settings
 - LFS support, auto-update check, Open on GitHub
+
+## Screenshots
+
+| Diff viewer | Search |
+|:---:|:---:|
+| ![Diff viewer with syntax highlighting and per-hunk staging](docs/screenshots/diff-viewer.png) | ![Search overlay listing matching files](docs/screenshots/search.png) |
+| Unified or split diffs with syntax highlighting, blame and per-hunk stage/discard. | Search commits, files and branches from one overlay. |
+
+| Command palette | Appearance and themes |
+|:---:|:---:|
+| ![Command palette listing Git commands](docs/screenshots/command-palette.png) | ![Appearance preferences with a grid of color palettes](docs/screenshots/settings.png) |
+| Run fetch, pull, push, stash, merge, rebase and more from ⌘K. | Built-in light and dark palettes, plus a custom palette with your own colors. |
 
 ## Why Git Light?
 

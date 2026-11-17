@@ -31,26 +31,36 @@ Update every doc file so it reflects the codebase **right now**. Do not invent f
 | [ARCHITECTURE.md](ARCHITECTURE.md) | Stack versions, process diagram accuracy, file tables (`src-tauri/src/`, `src/lib/git/`, `src/lib/tauri/`, `shared/git/`), UI layout tree, test file list, extension points |
 | [docs/index.html](docs/index.html) | Hero copy, feature cards, stack tags, install section, screenshot `alt` / titlebar label — GitHub Pages landing page |
 | [docs/llms.txt](docs/llms.txt) | AI-readable site summary — features, links, install; version line synced by `npm run sync-version` |
-| [docs/screenshot.png](docs/screenshot.png) | Fresh app screenshot (see below) — shared by README and the landing page |
+| [docs/screenshot.png](docs/screenshot.png) + [docs/screenshots/](docs/screenshots/) | Fresh app screenshots (see below) — hero shared by README and the landing page; feature gallery embedded in README |
 
 ### Refresh screenshots
 
-Both [README.md](README.md) and [docs/index.html](docs/index.html) embed the same asset: `docs/screenshot.png`. Regenerate it whenever the main repository view has changed visually since the last release.
+[README.md](README.md) embeds the hero `docs/screenshot.png` plus four gallery images in `docs/screenshots/`; [docs/index.html](docs/index.html) reuses the hero. Regenerate the full set whenever the UI has changed visually since the last release.
 
-1. **Run the app** with the AwesomeShop mock repo so the screenshot is reproducible:
+1. **Run the mock UI** with the AwesomeShop repo so every capture is reproducible:
 
    ```bash
-   VITE_USE_MOCK=true npm run dev
+   VITE_USE_MOCK=true npx vite --port 1421 --strictPort
    ```
 
-2. **Capture** the main repository view (graph + sidebar + working tree visible). Target **1440×900** to match the landing page `<img>` dimensions.
-3. **Overwrite** `docs/screenshot.png` with the new capture. Do not add a second file or change the path — README and `docs/index.html` both reference this single asset.
+2. **Open** <http://localhost:1421> at **1440×900** and expand the left sidebar (`Expand left panel`).
+3. **Capture** these exact views:
+
+   | File | View / actions |
+   |------|----------------|
+   | `docs/screenshot.png` | Main repository view — sidebar, commit graph, working tree, commit box |
+   | `docs/screenshots/diff-viewer.png` | Click `docs/elliptical.ts` in the working tree — diff with hunks and stage actions |
+   | `docs/screenshots/search.png` | Search (`Cmd/Ctrl+Shift+F`), type `payment`, press Enter, wait for file results |
+   | `docs/screenshots/command-palette.png` | Command palette (`Cmd/Ctrl+K`) over the main view |
+   | `docs/screenshots/settings.png` | Settings → Appearance, showing the palette grid |
+
+   Mock mode serves deterministic diffs from `src/data/mockDiff.ts`. Skip browser-only placeholders such as the terminal panel, which says it is available only in the desktop app. Do not add, rename or remove gallery files — `README.md` links these paths.
 4. **Sync copy** in `docs/index.html` if the visible UI changed:
    - `.screenshot-title` (window title in the faux titlebar)
    - `<img alt="…">` (describe what is on screen)
-5. **README** — no image path change needed unless the asset location moves; confirm the hero `![…](docs/screenshot.png)` caption still matches what the screenshot shows.
+5. **README** — confirm the hero caption and the gallery image paths/captions still match what each screenshot shows.
 
-Prefer a window screenshot over cropping browser chrome. If automated capture is unavailable, take a manual screenshot and save it to `docs/screenshot.png`.
+Prefer a window screenshot over cropping browser chrome. If automated capture is unavailable, take manual screenshots and save them to the same paths.
 
 ### Documentation rules
 
@@ -71,5 +81,5 @@ Prefer a window screenshot over cropping browser chrome. If automated capture is
 
 - [ ] Codebase scanned; docs reflect current features and stack
 - [ ] README.md, ARCHITECTURE.md, docs/index.html, and docs/llms.txt updated
-- [ ] `docs/screenshot.png` refreshed; landing page alt/titlebar copy matches the capture
+- [ ] `docs/screenshot.png` and all four `docs/screenshots/*.png` gallery assets refreshed; README captions and landing page alt/titlebar copy match
 - [ ] Summary returned: files changed (including `docs/screenshot.png` if updated), reminder to run `/release` when ready to bump version and tag

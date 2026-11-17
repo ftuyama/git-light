@@ -34,10 +34,10 @@ Use this file as a curated index. For complete landing-page content in one fetch
 - Command palette — fuzzy launcher for actions and branches (⌘K) · customizable keyboard shortcuts (remappable, conflict detection)
 - Bisect — start, mark good/bad, skip, reset with progress banner
 - Git LFS — track/untrack patterns, prune local objects
-- Open system terminal at the repo root (⌘T)
+- Embedded terminal panel docked under the commit graph, opened at the repo root (⌘J)
 - Open on GitHub · app preferences (appearance, layout, graph, sidebar, sync/auto-fetch, shortcuts, credits)
 - UI modes: Basic (essential actions) or Advanced (full toolbar and sidebar)
-- Themes: Default, Dracula, Light, Claude, System
+- Themes: Default, Dracula, Light, Claude, Tokyo Night, Nord, Gruvbox, Rosé Pine, One Dark, Solarized Light, Custom (user-picked colors), System
 - Resizable three-pane layout · file watcher auto-refresh
 - Auto-update checks against GitHub Releases
 
