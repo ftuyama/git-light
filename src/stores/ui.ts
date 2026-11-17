@@ -32,6 +32,7 @@ import {
   type UiMode,
   type UserPreferences,
 } from '@/lib/preferences'
+import { DEFAULT_CUSTOM_THEME, type CustomTheme } from '@/lib/customTheme'
 import type { ThemePreference } from '@/lib/themes'
 
 const LEGACY_STORE_KEY = 'git-light:ui'
@@ -75,6 +76,7 @@ function snapshot(state: {
   openRepoTabs: RepoTabPref[]
   diffViewMode: DiffViewMode
   theme: ThemePreference
+  customTheme: CustomTheme
   fontScale: number
   uiMode: UiMode
   locale: AppLocale | null
@@ -106,6 +108,7 @@ function snapshot(state: {
     openRepoTabs: state.openRepoTabs,
     diffViewMode: state.diffViewMode,
     theme: state.theme,
+    customTheme: state.customTheme,
     fontScale: state.fontScale,
     uiMode: state.uiMode,
     locale: state.locale,
@@ -140,6 +143,7 @@ export const useUiStore = defineStore('ui', {
     openRepoTabs: [] as RepoTabPref[],
     diffViewMode: 'unified' as DiffViewMode,
     theme: defaultPreferences().theme,
+    customTheme: defaultPreferences().customTheme,
     fontScale: defaultPreferences().fontScale,
     uiMode: defaultPreferences().uiMode,
     locale: null as AppLocale | null,
@@ -196,6 +200,7 @@ export const useUiStore = defineStore('ui', {
       this.openRepoTabs = saved.openRepoTabs.map((tab) => ({ ...tab }))
       this.diffViewMode = saved.diffViewMode
       this.theme = saved.theme
+      this.customTheme = { ...saved.customTheme }
       this.fontScale = saved.fontScale
       this.uiMode = saved.uiMode
       this.locale = saved.locale
@@ -208,7 +213,7 @@ export const useUiStore = defineStore('ui', {
       setRemoteAvatarsEnabled(saved.remoteAvatars)
       this.autoFetchIntervalSec = saved.autoFetchIntervalSec
       this.keybindings = saved.keybindings ? sanitizeKeymap(saved.keybindings) : defaultKeymap()
-      syncThemePreference(this.theme)
+      syncThemePreference(this.theme, this.customTheme)
       void applyFontScale(this.fontScale)
       if (persistenceBound) return
       persistenceBound = true
@@ -241,6 +246,7 @@ export const useUiStore = defineStore('ui', {
           openRepoTabs: this.openRepoTabs,
           diffViewMode: this.diffViewMode,
           theme: this.theme,
+          customTheme: this.customTheme,
           fontScale: this.fontScale,
           uiMode: this.uiMode,
           locale: this.locale,
@@ -434,7 +440,16 @@ export const useUiStore = defineStore('ui', {
     },
     setTheme(theme: ThemePreference): void {
       this.theme = theme
-      syncThemePreference(theme)
+      syncThemePreference(theme, this.customTheme)
+    },
+    /** Updates one custom-theme color; live-applies when the custom theme is active. */
+    setCustomThemeColor(key: keyof CustomTheme, value: string): void {
+      this.customTheme = { ...this.customTheme, [key]: value }
+      if (this.theme === 'custom') syncThemePreference(this.theme, this.customTheme)
+    },
+    resetCustomTheme(): void {
+      this.customTheme = { ...DEFAULT_CUSTOM_THEME }
+      if (this.theme === 'custom') syncThemePreference(this.theme, this.customTheme)
     },
     setFontScale(scale: number): void {
       this.fontScale = clampFontScale(scale)

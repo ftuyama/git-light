@@ -7,8 +7,9 @@
   "categories": {
     "general": "General",
     "appearance": "Appearance",
-    "layout": "Layout",
-    "ui": "UI",
+    "interface": "Interface",
+    "language": "Language",
+    "views": "Views",
     "commitGraph": "Commit Graph",
     "sidebar": "Sidebar",
     "repository": "Repository",
@@ -16,14 +17,18 @@
     "commits": "Commits",
     "sync": "Sync",
     "application": "Application",
+    "privacy": "Privacy",
     "shortcuts": "Shortcuts",
     "credits": "Credits"
   },
   "appearance": {
-    "interface": "Interface",
-    "interfaceDescription": "Basic hides advanced actions like stash, rebase, and terminal. Advanced shows everything.",
     "theme": "Color theme",
     "themeDescription": "Choose a color palette for the application interface.",
+    "typography": "Typography"
+  },
+  "interfaceMode": {
+    "title": "Interface mode",
+    "description": "Basic hides advanced actions like stash, rebase, and terminal. Advanced shows everything.",
     "basic": "Basic",
     "basicDescription": "Essential Git actions only. Hides stash, rebase, cherry-pick, tags, and more.",
     "advanced": "Advanced",
@@ -48,8 +53,10 @@
     "clear": "Clear",
     "cleared": "Cleared"
   },
+  "privacy": {
+    "description": "Control remote images and the data cached for commit authors."
+  },
   "layout": {
-    "description": "Control panel visibility and restore the default three-pane layout.",
     "panels": "Panels",
     "showLeftSidebar": "Show left sidebar",
     "showLeftSidebarDescription": "Display the branch sidebar on the left.",
@@ -185,10 +192,46 @@
       "label": "Tokyo Night",
       "description": "Dark blue Tokyo Night palette with vivid blue and purple accents."
     },
+    "nord": {
+      "label": "Nord",
+      "description": "Cool arctic blue-gray palette with frost accents."
+    },
+    "gruvbox": {
+      "label": "Gruvbox",
+      "description": "Warm retro palette with bold yellow and earthy tones."
+    },
+    "rose-pine": {
+      "label": "Rosé Pine",
+      "description": "Muted midnight palette with soft rose and iris accents."
+    },
+    "one-dark": {
+      "label": "One Dark",
+      "description": "The familiar Atom One Dark palette with a blue accent."
+    },
+    "solarized-light": {
+      "label": "Solarized Light",
+      "description": "Low-contrast warm light palette from Solarized."
+    },
+    "custom": {
+      "label": "Custom",
+      "description": "Pick your own base colors and the rest is derived automatically."
+    },
     "system": {
       "label": "System",
       "description": "Matches your operating system appearance."
     }
+  },
+  "customTheme": {
+    "title": "Custom colors",
+    "description": "Choose the base colors. Borders, hover states, muted text, and syntax highlighting are derived from them.",
+    "reset": "Reset colors",
+    "app": "Background",
+    "panel": "Surface",
+    "fg": "Text",
+    "accent": "Accent",
+    "success": "Success",
+    "warning": "Warning",
+    "danger": "Danger"
   },
   "shortcuts": {
     "disable": "Disable {name} shortcut",

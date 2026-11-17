@@ -1,3 +1,8 @@
+import {
+  DEFAULT_CUSTOM_THEME,
+  sanitizeCustomTheme,
+  type CustomTheme,
+} from './customTheme'
 import { isThemePreference, type ThemePreference } from './themes'
 import { sanitizeKeymap, type Keymap } from './keybindings'
 import { isAppLocale, type AppLocale } from './locales'
@@ -188,6 +193,8 @@ export interface UserPreferences {
   openRepoTabs: RepoTabPref[]
   diffViewMode: DiffViewMode
   theme: ThemePreference
+  /** Base colors used when `theme` is `custom`; other tokens are derived in CSS. */
+  customTheme: CustomTheme
   /** Global text/interface scale; `1` = 100%. See `FONT_SCALE_OPTIONS`. */
   fontScale: number
   uiMode: UiMode
@@ -283,7 +290,10 @@ export function defaultPreferences(): UserPreferences {
     lastRepositoryPath: null,
     openRepoTabs: [],
     diffViewMode: 'unified',
-    theme: 'default',
+    // Follow the OS light/dark setting; `resolveTheme` falls back to light when
+    // the platform reports no preference. An explicit theme still overrides it.
+    theme: 'system',
+    customTheme: { ...DEFAULT_CUSTOM_THEME },
     fontScale: DEFAULT_FONT_SCALE,
     uiMode: 'advanced',
     locale: null,
@@ -336,6 +346,7 @@ export function mergePreferences(saved: Partial<UserPreferences> | null): UserPr
       : defaults.openRepoTabs,
     diffViewMode: saved.diffViewMode === 'split' ? 'split' : 'unified',
     theme: isThemePreference(saved.theme) ? saved.theme : defaults.theme,
+    customTheme: sanitizeCustomTheme(saved.customTheme),
     fontScale: clampFontScale(saved.fontScale ?? defaults.fontScale),
     uiMode: isUiMode(saved.uiMode) ? saved.uiMode : defaults.uiMode,
     locale: isAppLocale(saved.locale) ? saved.locale : defaults.locale,

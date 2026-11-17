@@ -83,7 +83,7 @@ async function bootstrap(): Promise<void> {
     console.error('[git-light] locale detection failed:', err)
   }
   try {
-    syncThemePreference(ui.theme)
+    syncThemePreference(ui.theme, ui.customTheme)
   } catch (err) {
     console.error('[git-light] theme sync failed:', err)
   }

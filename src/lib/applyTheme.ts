@@ -1,10 +1,29 @@
+import {
+  customThemeCssVars,
+  DEFAULT_CUSTOM_THEME,
+  type CustomTheme,
+} from '@/lib/customTheme'
 import { resolveTheme, themeAppColor, type ThemePreference } from '@/lib/themes'
 import { setWindowBackground } from '@/lib/tauri/appBridge'
 
 let systemThemeUnwatch: (() => void) | null = null
 
-function applyTheme(preference: ThemePreference): void {
+function applyCustomTheme(theme: CustomTheme | undefined): void {
+  const root = document.documentElement
+  if (!theme) {
+    for (const name of Object.keys(customThemeCssVars(DEFAULT_CUSTOM_THEME))) {
+      root.style.removeProperty(name)
+    }
+    return
+  }
+  for (const [name, value] of Object.entries(customThemeCssVars(theme))) {
+    root.style.setProperty(name, value)
+  }
+}
+
+function applyTheme(preference: ThemePreference, custom?: CustomTheme): void {
   const resolved = resolveTheme(preference)
+  applyCustomTheme(resolved === 'custom' ? (custom ?? DEFAULT_CUSTOM_THEME) : undefined)
   document.documentElement.dataset.theme = resolved
 }
 
@@ -14,18 +33,21 @@ function watchSystemTheme(onChange: () => void): () => void {
   return () => mq.removeEventListener('change', onChange)
 }
 
-export function syncThemePreference(preference: ThemePreference): void {
+export function syncThemePreference(
+  preference: ThemePreference,
+  custom?: CustomTheme,
+): void {
   systemThemeUnwatch?.()
   systemThemeUnwatch = null
 
-  applyTheme(preference)
+  applyTheme(preference, custom)
 
-  void setWindowBackground(themeAppColor(preference))
+  void setWindowBackground(themeAppColor(preference, custom))
 
   if (preference === 'system') {
     systemThemeUnwatch = watchSystemTheme(() => {
-      applyTheme('system')
-      void setWindowBackground(themeAppColor('system'))
+      applyTheme('system', custom)
+      void setWindowBackground(themeAppColor('system', custom))
     })
   }
 }

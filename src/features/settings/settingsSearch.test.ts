@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
   buildSettingsSearchEntries,
+  highlightSettingsMatches,
   normalizeSettingsQuery,
   searchSettings,
   settingsCategoryLabel,
@@ -65,6 +66,20 @@ describe('searchSettings', () => {
     expect(groups[0]?.entries[0]?.id).toBe('auto-fetch')
   })
 
+  it('keeps appearance limited to visual settings', () => {
+    const ids = entries
+      .filter((entry) => entry.category === 'appearance')
+      .map((entry) => entry.id)
+      .sort()
+    expect(ids).toEqual(['custom-theme', 'font-size', 'theme'])
+  })
+
+  it('groups relocated settings under their own categories', () => {
+    expect(searchSettings(entries, 'interface mode')[0]?.category).toBe('interface')
+    expect(searchSettings(entries, 'gravatar')[0]?.category).toBe('privacy')
+    expect(searchSettings(entries, 'language')[0]?.category).toBe('language')
+  })
+
   it('finds shortcuts by title and category', () => {
     const byTitle = searchSettings(entries, 'pull')
     expect(byTitle[0]?.category).toBe('shortcuts')
@@ -77,5 +92,46 @@ describe('searchSettings', () => {
   it('is case and accent insensitive', () => {
     expect(normalizeSettingsQuery('ÁVATAR')).toBe('avatar')
     expect(searchSettings(entries, 'ÁVATAR').length).toBeGreaterThan(0)
+  })
+})
+
+describe('highlightSettingsMatches', () => {
+  it('returns a single plain segment without a query', () => {
+    expect(highlightSettingsMatches('Theme', '')).toEqual([{ text: 'Theme', match: false }])
+  })
+
+  it('splits matches out of the text', () => {
+    expect(highlightSettingsMatches('Show commit graph', 'graph')).toEqual([
+      { text: 'Show commit ', match: false },
+      { text: 'graph', match: true },
+    ])
+  })
+
+  it('highlights every term and every occurrence', () => {
+    expect(highlightSettingsMatches('Graph width graph', 'graph width')).toEqual([
+      { text: 'Graph', match: true },
+      { text: ' ', match: false },
+      { text: 'width', match: true },
+      { text: ' ', match: false },
+      { text: 'graph', match: true },
+    ])
+  })
+
+  it('merges overlapping ranges', () => {
+    expect(highlightSettingsMatches('fetching', 'etch fet')).toEqual([
+      { text: 'fetch', match: true },
+      { text: 'ing', match: false },
+    ])
+  })
+
+  it('is case and accent insensitive but keeps the original text', () => {
+    expect(highlightSettingsMatches('Área de trabalho', 'area')).toEqual([
+      { text: 'Área', match: true },
+      { text: ' de trabalho', match: false },
+    ])
+  })
+
+  it('returns the whole text plain when nothing matches', () => {
+    expect(highlightSettingsMatches('Theme', 'zzz')).toEqual([{ text: 'Theme', match: false }])
   })
 })

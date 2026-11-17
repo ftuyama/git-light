@@ -315,6 +315,311 @@
   --hljs-tag: #f7768e;
 }
 
+[data-theme='nord'] {
+  --color-app: #2e3440;
+  --color-panel: #292e39;
+  --color-panel-raised: #3b4252;
+  --color-elevated: #434c5e;
+  --color-hover: #434c5e;
+  --color-active: #4c566a;
+
+  --color-border: rgba(216, 222, 233, 0.08);
+  --color-border-strong: rgba(216, 222, 233, 0.16);
+
+  --color-fg: #eceff4;
+  --color-fg-muted: #b9c2d4;
+  --color-fg-subtle: #7b88a1;
+
+  --color-accent: #88c0d0;
+  --color-accent-strong: #8fbcbb;
+  --color-accent-soft: rgba(136, 192, 208, 0.18);
+
+  --color-success: #a3be8c;
+  --color-warning: #ebcb8b;
+  --color-danger: #bf616a;
+  --color-info: #81a1c1;
+
+  --color-lane-0: #b48ead;
+  --color-lane-1: #a3be8c;
+  --color-lane-2: #88c0d0;
+  --color-lane-3: #ebcb8b;
+  --color-lane-4: #d08770;
+  --color-lane-5: #81a1c1;
+  --color-lane-6: #8fbcbb;
+  --color-lane-7: #bf616a;
+
+  --color-scrollbar-thumb: rgba(216, 222, 233, 0.12);
+  --color-scrollbar-thumb-hover: rgba(216, 222, 233, 0.22);
+
+  --hljs-keyword: #81a1c1;
+  --hljs-string: #a3be8c;
+  --hljs-number: #b48ead;
+  --hljs-comment: #616e88;
+  --hljs-title: #88c0d0;
+  --hljs-type: #8fbcbb;
+  --hljs-variable: #d8dee9;
+  --hljs-meta: #5e81ac;
+  --hljs-regexp: #ebcb8b;
+  --hljs-symbol: #81a1c1;
+  --hljs-section: #88c0d0;
+  --hljs-tag: #81a1c1;
+}
+
+[data-theme='gruvbox'] {
+  --color-app: #282828;
+  --color-panel: #1d2021;
+  --color-panel-raised: #3c3836;
+  --color-elevated: #3c3836;
+  --color-hover: #504945;
+  --color-active: #665c54;
+
+  --color-border: rgba(235, 219, 178, 0.08);
+  --color-border-strong: rgba(235, 219, 178, 0.16);
+
+  --color-fg: #ebdbb2;
+  --color-fg-muted: #bdae93;
+  --color-fg-subtle: #928374;
+
+  --color-accent: #fabd2f;
+  --color-accent-strong: #d79921;
+  --color-accent-soft: rgba(250, 189, 47, 0.18);
+
+  --color-success: #b8bb26;
+  --color-warning: #fe8019;
+  --color-danger: #fb4934;
+  --color-info: #83a598;
+
+  --color-lane-0: #d3869b;
+  --color-lane-1: #b8bb26;
+  --color-lane-2: #83a598;
+  --color-lane-3: #fe8019;
+  --color-lane-4: #fabd2f;
+  --color-lane-5: #8ec07c;
+  --color-lane-6: #fb4934;
+  --color-lane-7: #d3869b;
+
+  --color-scrollbar-thumb: rgba(235, 219, 178, 0.12);
+  --color-scrollbar-thumb-hover: rgba(235, 219, 178, 0.22);
+
+  --hljs-keyword: #fb4934;
+  --hljs-string: #b8bb26;
+  --hljs-number: #d3869b;
+  --hljs-comment: #928374;
+  --hljs-title: #fabd2f;
+  --hljs-type: #83a598;
+  --hljs-variable: #fe8019;
+  --hljs-meta: #83a598;
+  --hljs-regexp: #b8bb26;
+  --hljs-symbol: #83a598;
+  --hljs-section: #fabd2f;
+  --hljs-tag: #8ec07c;
+}
+
+[data-theme='rose-pine'] {
+  --color-app: #191724;
+  --color-panel: #1f1d2e;
+  --color-panel-raised: #26233a;
+  --color-elevated: #26233a;
+  --color-hover: #2a273f;
+  --color-active: #403d52;
+
+  --color-border: rgba(224, 222, 244, 0.08);
+  --color-border-strong: rgba(224, 222, 244, 0.16);
+
+  --color-fg: #e0def4;
+  --color-fg-muted: #908caa;
+  --color-fg-subtle: #6e6a86;
+
+  --color-accent: #c4a7e7;
+  --color-accent-strong: #b18fd6;
+  --color-accent-soft: rgba(196, 167, 231, 0.18);
+
+  --color-success: #9ccfd8;
+  --color-warning: #f6c177;
+  --color-danger: #eb6f92;
+  --color-info: #31748f;
+
+  --color-lane-0: #c4a7e7;
+  --color-lane-1: #9ccfd8;
+  --color-lane-2: #ebbcba;
+  --color-lane-3: #f6c177;
+  --color-lane-4: #eb6f92;
+  --color-lane-5: #31748f;
+  --color-lane-6: #908caa;
+  --color-lane-7: #ebbcba;
+
+  --color-scrollbar-thumb: rgba(224, 222, 244, 0.12);
+  --color-scrollbar-thumb-hover: rgba(224, 222, 244, 0.22);
+
+  --hljs-keyword: #eb6f92;
+  --hljs-string: #f6c177;
+  --hljs-number: #ebbcba;
+  --hljs-comment: #6e6a86;
+  --hljs-title: #9ccfd8;
+  --hljs-type: #c4a7e7;
+  --hljs-variable: #ebbcba;
+  --hljs-meta: #31748f;
+  --hljs-regexp: #f6c177;
+  --hljs-symbol: #9ccfd8;
+  --hljs-section: #c4a7e7;
+  --hljs-tag: #eb6f92;
+}
+
+[data-theme='one-dark'] {
+  --color-app: #282c34;
+  --color-panel: #21252b;
+  --color-panel-raised: #2c313a;
+  --color-elevated: #333842;
+  --color-hover: #3a404b;
+  --color-active: #444b57;
+
+  --color-border: rgba(171, 178, 191, 0.1);
+  --color-border-strong: rgba(171, 178, 191, 0.18);
+
+  --color-fg: #abb2bf;
+  --color-fg-muted: #8b94a3;
+  --color-fg-subtle: #5c6370;
+
+  --color-accent: #61afef;
+  --color-accent-strong: #4d9fe0;
+  --color-accent-soft: rgba(97, 175, 239, 0.18);
+
+  --color-success: #98c379;
+  --color-warning: #e5c07b;
+  --color-danger: #e06c75;
+  --color-info: #56b6c2;
+
+  --color-lane-0: #c678dd;
+  --color-lane-1: #98c379;
+  --color-lane-2: #61afef;
+  --color-lane-3: #e5c07b;
+  --color-lane-4: #e06c75;
+  --color-lane-5: #56b6c2;
+  --color-lane-6: #d19a66;
+  --color-lane-7: #be5046;
+
+  --color-scrollbar-thumb: rgba(171, 178, 191, 0.12);
+  --color-scrollbar-thumb-hover: rgba(171, 178, 191, 0.22);
+
+  --hljs-keyword: #c678dd;
+  --hljs-string: #98c379;
+  --hljs-number: #d19a66;
+  --hljs-comment: #5c6370;
+  --hljs-title: #61afef;
+  --hljs-type: #e5c07b;
+  --hljs-variable: #e06c75;
+  --hljs-meta: #56b6c2;
+  --hljs-regexp: #98c379;
+  --hljs-symbol: #61afef;
+  --hljs-section: #e06c75;
+  --hljs-tag: #e06c75;
+}
+
+[data-theme='solarized-light'] {
+  --color-app: #fdf6e3;
+  --color-panel: #eee8d5;
+  --color-panel-raised: #fdf6e3;
+  --color-elevated: #e6dfca;
+  --color-hover: #e6dfca;
+  --color-active: #d9d2bd;
+
+  --color-border: rgba(101, 123, 131, 0.18);
+  --color-border-strong: rgba(101, 123, 131, 0.3);
+
+  --color-fg: #586e75;
+  --color-fg-muted: #657b83;
+  --color-fg-subtle: #93a1a1;
+
+  --color-accent: #268bd2;
+  --color-accent-strong: #1f74b0;
+  --color-accent-soft: rgba(38, 139, 210, 0.14);
+
+  --color-success: #859900;
+  --color-warning: #cb4b16;
+  --color-danger: #dc322f;
+  --color-info: #2aa198;
+
+  --color-lane-0: #6c71c4;
+  --color-lane-1: #859900;
+  --color-lane-2: #268bd2;
+  --color-lane-3: #cb4b16;
+  --color-lane-4: #d33682;
+  --color-lane-5: #b58900;
+  --color-lane-6: #2aa198;
+  --color-lane-7: #dc322f;
+
+  --color-scrollbar-thumb: rgba(88, 110, 117, 0.2);
+  --color-scrollbar-thumb-hover: rgba(88, 110, 117, 0.34);
+
+  --hljs-keyword: #859900;
+  --hljs-string: #2aa198;
+  --hljs-number: #d33682;
+  --hljs-comment: #93a1a1;
+  --hljs-title: #268bd2;
+  --hljs-type: #b58900;
+  --hljs-variable: #cb4b16;
+  --hljs-meta: #268bd2;
+  --hljs-regexp: #2aa198;
+  --hljs-symbol: #268bd2;
+  --hljs-section: #6c71c4;
+  --hljs-tag: #268bd2;
+}
+
+/*
+  Custom palette: only the base colors are user-picked (`--custom-*`, set
+  inline by applyTheme.ts). Everything else is derived so any combination of
+  colors still yields a consistent hierarchy.
+*/
+[data-theme='custom'] {
+  --color-app: var(--custom-app, #12151a);
+  --color-panel: var(--custom-panel, #1b2028);
+  --color-panel-raised: color-mix(in srgb, var(--color-panel) 88%, var(--color-fg));
+  --color-elevated: color-mix(in srgb, var(--color-panel) 78%, var(--color-fg));
+  --color-hover: color-mix(in srgb, var(--color-panel) 70%, var(--color-fg));
+  --color-active: color-mix(in srgb, var(--color-panel) 62%, var(--color-fg));
+
+  --color-border: color-mix(in srgb, var(--color-fg) 9%, transparent);
+  --color-border-strong: color-mix(in srgb, var(--color-fg) 18%, transparent);
+
+  --color-fg: var(--custom-fg, #e6edf3);
+  --color-fg-muted: color-mix(in srgb, var(--color-fg) 62%, var(--color-app));
+  --color-fg-subtle: color-mix(in srgb, var(--color-fg) 44%, var(--color-app));
+
+  --color-accent: var(--custom-accent, #6e9fff);
+  --color-accent-strong: color-mix(in srgb, var(--color-accent) 82%, var(--color-app));
+  --color-accent-soft: color-mix(in srgb, var(--color-accent) 16%, transparent);
+
+  --color-success: var(--custom-success, #3fb950);
+  --color-warning: var(--custom-warning, #f0883e);
+  --color-danger: var(--custom-danger, #f85149);
+  --color-info: var(--color-accent);
+
+  --color-lane-0: var(--color-accent);
+  --color-lane-1: var(--color-success);
+  --color-lane-2: color-mix(in srgb, var(--color-accent) 55%, var(--color-fg));
+  --color-lane-3: var(--color-warning);
+  --color-lane-4: color-mix(in srgb, var(--color-danger) 55%, var(--color-fg));
+  --color-lane-5: color-mix(in srgb, var(--color-warning) 55%, var(--color-fg));
+  --color-lane-6: color-mix(in srgb, var(--color-accent) 45%, var(--color-success));
+  --color-lane-7: var(--color-danger);
+
+  --color-scrollbar-thumb: color-mix(in srgb, var(--color-fg) 12%, transparent);
+  --color-scrollbar-thumb-hover: color-mix(in srgb, var(--color-fg) 22%, transparent);
+
+  --hljs-keyword: var(--color-danger);
+  --hljs-string: var(--color-success);
+  --hljs-number: color-mix(in srgb, var(--color-accent) 70%, var(--color-fg));
+  --hljs-comment: var(--color-fg-muted);
+  --hljs-title: var(--color-accent);
+  --hljs-type: var(--color-warning);
+  --hljs-variable: var(--color-warning);
+  --hljs-meta: var(--color-accent);
+  --hljs-regexp: var(--color-success);
+  --hljs-symbol: var(--color-accent);
+  --hljs-section: var(--color-accent);
+  --hljs-tag: var(--color-success);
+}
+
 @layer base {
   * {
     border-color: var(--color-border);

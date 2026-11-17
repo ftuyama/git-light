@@ -7,8 +7,9 @@
   "categories": {
     "general": "Geral",
     "appearance": "Aparência",
-    "layout": "Layout",
-    "ui": "Interface",
+    "interface": "Interface",
+    "language": "Idioma",
+    "views": "Visualizações",
     "commitGraph": "Grafo de commits",
     "sidebar": "Barra lateral",
     "repository": "Repositório",
@@ -16,14 +17,18 @@
     "commits": "Commits",
     "sync": "Sincronização",
     "application": "Aplicativo",
+    "privacy": "Privacidade",
     "shortcuts": "Atalhos",
     "credits": "Créditos"
   },
   "appearance": {
-    "interface": "Interface",
-    "interfaceDescription": "O modo Básico oculta ações avançadas como stash, rebase e terminal. O modo Avançado mostra tudo.",
     "theme": "Tema de cores",
     "themeDescription": "Escolha uma paleta de cores para a interface do aplicativo.",
+    "typography": "Tipografia"
+  },
+  "interfaceMode": {
+    "title": "Modo da interface",
+    "description": "O modo Básico oculta ações avançadas como stash, rebase e terminal. O modo Avançado mostra tudo.",
     "basic": "Básico",
     "basicDescription": "Apenas as ações essenciais do Git. Oculta stash, rebase, cherry-pick, tags e mais.",
     "advanced": "Avançado",
@@ -48,8 +53,10 @@
     "clear": "Limpar",
     "cleared": "Limpo"
   },
+  "privacy": {
+    "description": "Controle imagens remotas e os dados em cache dos autores dos commits."
+  },
   "layout": {
-    "description": "Controle a visibilidade dos painéis e restaure o layout padrão de três painéis.",
     "panels": "Painéis",
     "showLeftSidebar": "Mostrar barra lateral esquerda",
     "showLeftSidebarDescription": "Exibe a barra lateral de branches à esquerda.",
@@ -185,10 +192,46 @@
       "label": "Tokyo Night",
       "description": "Paleta Tokyo Night em azul-escuro com detalhes em azul e roxo."
     },
+    "nord": {
+      "label": "Nord",
+      "description": "Paleta fria em cinza-azulado com detalhes glaciais."
+    },
+    "gruvbox": {
+      "label": "Gruvbox",
+      "description": "Paleta retrô quente com amarelo marcante e tons terrosos."
+    },
+    "rose-pine": {
+      "label": "Rosé Pine",
+      "description": "Paleta noturna suave com detalhes em rosa e íris."
+    },
+    "one-dark": {
+      "label": "One Dark",
+      "description": "A clássica paleta Atom One Dark com destaque em azul."
+    },
+    "solarized-light": {
+      "label": "Solarized Light",
+      "description": "Paleta clara e quente de baixo contraste do Solarized."
+    },
+    "custom": {
+      "label": "Personalizado",
+      "description": "Escolha suas cores base e o restante é derivado automaticamente."
+    },
     "system": {
       "label": "Sistema",
       "description": "Acompanha a aparência do sistema operacional."
     }
+  },
+  "customTheme": {
+    "title": "Cores personalizadas",
+    "description": "Escolha as cores base. Bordas, estados de hover, texto secundário e destaque de sintaxe são derivados delas.",
+    "reset": "Redefinir cores",
+    "app": "Fundo",
+    "panel": "Superfície",
+    "fg": "Texto",
+    "accent": "Destaque",
+    "success": "Sucesso",
+    "warning": "Aviso",
+    "danger": "Perigo"
   },
   "shortcuts": {
     "disable": "Desativar o atalho de {name}",

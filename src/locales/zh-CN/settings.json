@@ -7,8 +7,9 @@
   "categories": {
     "general": "通用",
     "appearance": "外观",
-    "layout": "布局",
-    "ui": "界面",
+    "interface": "界面",
+    "language": "语言",
+    "views": "视图",
     "commitGraph": "提交图",
     "sidebar": "侧边栏",
     "repository": "仓库",
@@ -16,14 +17,18 @@
     "commits": "提交",
     "sync": "同步",
     "application": "应用",
+    "privacy": "隐私",
     "shortcuts": "快捷键",
     "credits": "致谢"
   },
   "appearance": {
-    "interface": "界面",
-    "interfaceDescription": "基础模式会隐藏贮藏、变基和终端等高级操作，高级模式则显示全部功能。",
     "theme": "配色主题",
     "themeDescription": "选择应用界面的配色方案。",
+    "typography": "排版"
+  },
+  "interfaceMode": {
+    "title": "界面模式",
+    "description": "基础模式会隐藏贮藏、变基和终端等高级操作，高级模式则显示全部功能。",
     "basic": "基础",
     "basicDescription": "仅保留核心 Git 操作，隐藏贮藏、变基、拣选、标签等。",
     "advanced": "高级",
@@ -48,8 +53,10 @@
     "clear": "清除",
     "cleared": "已清除"
   },
+  "privacy": {
+    "description": "管理远程图片和提交作者的缓存数据。"
+  },
   "layout": {
-    "description": "控制面板的显示与隐藏，并恢复默认的三栏布局。",
     "panels": "面板",
     "showLeftSidebar": "显示左侧边栏",
     "showLeftSidebarDescription": "在左侧显示分支侧边栏。",
@@ -185,10 +192,46 @@
       "label": "Tokyo Night",
       "description": "Tokyo Night 深蓝配色，蓝色与紫色点缀更为鲜明。"
     },
+    "nord": {
+      "label": "Nord",
+      "description": "冷峻的极地蓝灰配色，带冰霜蓝点缀。"
+    },
+    "gruvbox": {
+      "label": "Gruvbox",
+      "description": "温暖的复古配色，醒目的黄色与大地色调。"
+    },
+    "rose-pine": {
+      "label": "Rosé Pine",
+      "description": "柔和的午夜配色，玫瑰与鸢尾紫点缀。"
+    },
+    "one-dark": {
+      "label": "One Dark",
+      "description": "经典的 Atom One Dark 配色，配蓝色点缀。"
+    },
+    "solarized-light": {
+      "label": "Solarized Light",
+      "description": "Solarized 低对比度暖色浅色配色。"
+    },
+    "custom": {
+      "label": "自定义",
+      "description": "自选基础颜色，其余色彩会自动推导。"
+    },
     "system": {
       "label": "跟随系统",
       "description": "与操作系统的外观保持一致。"
     }
+  },
+  "customTheme": {
+    "title": "自定义颜色",
+    "description": "选择基础颜色。边框、悬停状态、次要文字与语法高亮都会据此自动推导。",
+    "reset": "重置颜色",
+    "app": "背景",
+    "panel": "面板",
+    "fg": "文字",
+    "accent": "强调色",
+    "success": "成功",
+    "warning": "警告",
+    "danger": "危险"
   },
   "shortcuts": {
     "disable": "禁用 {name} 快捷键",

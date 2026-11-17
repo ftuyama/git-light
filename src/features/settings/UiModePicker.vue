@@ -20,14 +20,14 @@ const options: {
 }[] = [
   {
     id: 'basic',
-    labelKey: 'settings.appearance.basic',
-    descriptionKey: 'settings.appearance.basicDescription',
+    labelKey: 'settings.interfaceMode.basic',
+    descriptionKey: 'settings.interfaceMode.basicDescription',
     icon: Zap,
   },
   {
     id: 'advanced',
-    labelKey: 'settings.appearance.advanced',
-    descriptionKey: 'settings.appearance.advancedDescription',
+    labelKey: 'settings.interfaceMode.advanced',
+    descriptionKey: 'settings.interfaceMode.advancedDescription',
     icon: Sparkles,
   },
 ]

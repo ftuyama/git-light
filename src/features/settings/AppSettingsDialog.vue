@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, nextTick, onUnmounted, ref, watch } from 'vue'
-import { Check, ChevronRight, GitCommitHorizontal, Heart, Keyboard, LayoutPanelLeft, Palette, PanelLeft, PenLine, RefreshCw, Rows3, Search, X } from '@lucide/vue'
+import { Check, ChevronRight, GitCommitHorizontal, Heart, Keyboard, Languages, Palette, PanelLeft, PenLine, RefreshCw, Rows3, Search, ShieldCheck, SlidersHorizontal, X } from '@lucide/vue'
 import { storeToRefs } from 'pinia'
 import { useI18n } from 'vue-i18n'
 import Button from '@/components/ui/Button.vue'
@@ -15,6 +15,7 @@ import { APP_LOCALES, LOCALE_LABELS, type AppLocale } from '@/lib/locales'
 import {
   SETTINGS_CATEGORY_KEYS,
   buildSettingsSearchEntries,
+  highlightSettingsMatches,
   searchSettings,
   type SettingsCategory,
   type SettingsSearchEntry,
@@ -84,7 +85,7 @@ const sidebarSectionKeys = computed(() =>
 
 interface SettingsCategoryItem {
   id: SettingsCategory
-  icon: typeof LayoutPanelLeft
+  icon: typeof Palette
 }
 
 interface SettingsGroup {
@@ -97,11 +98,12 @@ const preferenceGroups: SettingsGroup[] = [
     label: 'settings.categories.general',
     items: [
       { id: 'appearance', icon: Palette },
-      { id: 'layout', icon: LayoutPanelLeft },
+      { id: 'interface', icon: SlidersHorizontal },
+      { id: 'language', icon: Languages },
     ],
   },
   {
-    label: 'settings.categories.ui',
+    label: 'settings.categories.views',
     items: [
       { id: 'commit-graph', icon: GitCommitHorizontal },
       { id: 'sidebar', icon: PanelLeft },
@@ -118,6 +120,7 @@ const preferenceGroups: SettingsGroup[] = [
   {
     label: 'settings.categories.application',
     items: [
+      { id: 'privacy', icon: ShieldCheck },
       { id: 'shortcuts', icon: Keyboard },
       { id: 'credits', icon: Heart },
     ],
@@ -137,6 +140,20 @@ const searchEntries = computed(() => {
 const searchGroups = computed(() => searchSettings(searchEntries.value, searchQuery.value))
 const searchResultCount = computed(() =>
   searchGroups.value.reduce((total, group) => total + group.entries.length, 0),
+)
+/** Search groups with the matched query parts split out for highlighting. */
+const highlightedSearchGroups = computed(() =>
+  searchGroups.value.map((group) => ({
+    category: group.category,
+    label: group.label,
+    entries: group.entries.map((entry) => ({
+      entry,
+      labelSegments: highlightSettingsMatches(entry.label, searchQuery.value),
+      descriptionSegments: entry.description
+        ? highlightSettingsMatches(entry.description, searchQuery.value)
+        : [],
+    })),
+  })),
 )
 
 const headerTitle = computed(() =>
@@ -495,27 +512,44 @@ onUnmounted(() => clearTimeout(avatarCacheClearedTimer))
               <div class="mx-auto w-full max-w-4xl">
                 <!-- Search results -->
                 <div v-if="isSearching">
-                  <section v-for="group in searchGroups" :key="group.category" class="mb-4 last:mb-0">
+                  <section
+                    v-for="group in highlightedSearchGroups"
+                    :key="group.category"
+                    class="mb-4 last:mb-0"
+                  >
                     <h3
                       class="px-3 pb-1 text-[11px] font-semibold tracking-wide text-[var(--color-fg-subtle)] uppercase"
                     >
                       {{ group.label }}
                     </h3>
                     <button
-                      v-for="entry in group.entries"
-                      :key="entry.id"
+                      v-for="result in group.entries"
+                      :key="result.entry.id"
                       class="focus-ring flex w-full items-start justify-between gap-4 rounded-lg px-3 py-2 text-left transition-colors hover:bg-[var(--color-hover)]"
-                      @click="goToSetting(entry)"
+                      @click="goToSetting(result.entry)"
                     >
                       <span class="min-w-0">
                         <span class="block text-[13px] font-medium text-[var(--color-fg)]">
-                          {{ entry.label }}
+                          <template v-for="(segment, index) in result.labelSegments" :key="index">
+                            <mark v-if="segment.match" class="settings-search-match">{{
+                              segment.text
+                            }}</mark>
+                            <template v-else>{{ segment.text }}</template>
+                          </template>
                         </span>
                         <span
-                          v-if="entry.description"
+                          v-if="result.entry.description"
                           class="mt-0.5 block text-[12px] leading-snug text-[var(--color-fg-muted)]"
                         >
-                          {{ entry.description }}
+                          <template
+                            v-for="(segment, index) in result.descriptionSegments"
+                            :key="index"
+                          >
+                            <mark v-if="segment.match" class="settings-search-match">{{
+                              segment.text
+                            }}</mark>
+                            <template v-else>{{ segment.text }}</template>
+                          </template>
                         </span>
                       </span>
                       <ChevronRight :size="14" class="mt-1 shrink-0 text-[var(--color-fg-subtle)]" />
@@ -532,24 +566,23 @@ onUnmounted(() => clearTimeout(avatarCacheClearedTimer))
                 <template v-else>
                   <!-- Appearance -->
                   <template v-if="activeCategory === 'appearance'">
-                    <section id="settings-interface-mode" class="mb-6 px-3">
+                    <section id="settings-theme" class="px-3">
                       <h3
                         class="pb-1 text-[11px] font-semibold tracking-wide text-[var(--color-fg-subtle)] uppercase"
                       >
-                        {{ $t('settings.appearance.interface') }}
+                        {{ $t('settings.appearance.theme') }}
                       </h3>
                       <p class="mb-3 text-[12px] text-[var(--color-fg-muted)]">
-                        {{ $t('settings.appearance.interfaceDescription') }}
+                        {{ $t('settings.appearance.themeDescription') }}
                       </p>
-                      <UiModePicker :model-value="uiMode" />
-                    </section>
-                    <p class="mb-3 px-3 text-[12px] text-[var(--color-fg-muted)]">
-                      {{ $t('settings.appearance.themeDescription') }}
-                    </p>
-                    <section id="settings-theme" class="px-3">
                       <ThemePicker :model-value="theme" />
                     </section>
-                    <section class="mt-4 px-3">
+                    <section class="mt-6">
+                      <h3
+                        class="px-3 pb-1 text-[11px] font-semibold tracking-wide text-[var(--color-fg-subtle)] uppercase"
+                      >
+                        {{ $t('settings.appearance.typography') }}
+                      </h3>
                       <SettingsSegmentedRow
                         anchor="settings-font-size"
                         :label="$t('settings.fontSize.title')"
@@ -559,12 +592,62 @@ onUnmounted(() => clearTimeout(avatarCacheClearedTimer))
                         @update:model-value="ui.setFontScale(Number($event))"
                       />
                     </section>
-                    <section id="settings-language" class="mt-6 px-3">
+                  </template>
+
+                  <!-- Interface -->
+                  <template v-else-if="activeCategory === 'interface'">
+                    <section id="settings-interface-mode" class="px-3">
                       <h3
                         class="pb-1 text-[11px] font-semibold tracking-wide text-[var(--color-fg-subtle)] uppercase"
                       >
-                        {{ $t('settings.language.title') }}
+                        {{ $t('settings.interfaceMode.title') }}
                       </h3>
+                      <p class="mb-3 text-[12px] text-[var(--color-fg-muted)]">
+                        {{ $t('settings.interfaceMode.description') }}
+                      </p>
+                      <UiModePicker :model-value="uiMode" />
+                    </section>
+                    <section class="mt-6">
+                      <h3
+                        class="px-3 pb-1 text-[11px] font-semibold tracking-wide text-[var(--color-fg-subtle)] uppercase"
+                      >
+                        {{ $t('settings.layout.panels') }}
+                      </h3>
+                      <SettingsRow
+                        anchor="settings-left-sidebar"
+                        :label="$t('settings.layout.showLeftSidebar')"
+                        :description="$t('settings.layout.showLeftSidebarDescription')"
+                        :model-value="!leftCollapsed"
+                        @update:model-value="ui.setLeftVisible($event)"
+                      />
+                      <SettingsRow
+                        anchor="settings-right-panel"
+                        :label="$t('settings.layout.showRightPanel')"
+                        :description="$t('settings.layout.showRightPanelDescription')"
+                        :model-value="!rightCollapsed"
+                        @update:model-value="ui.setRightVisible($event)"
+                      />
+                    </section>
+                    <section class="mt-6 space-y-2 px-3">
+                      <h3
+                        class="pb-1 text-[11px] font-semibold tracking-wide text-[var(--color-fg-subtle)] uppercase"
+                      >
+                        {{ $t('settings.layout.reset') }}
+                      </h3>
+                      <p class="text-[12px] text-[var(--color-fg-muted)]">
+                        {{ $t('settings.layout.resetDescription') }}
+                      </p>
+                      <div id="settings-reset-layout">
+                        <Button variant="secondary" size="sm" @click="ui.resetLayout()">
+                          {{ $t('settings.layout.resetAction') }}
+                        </Button>
+                      </div>
+                    </section>
+                  </template>
+
+                  <!-- Language -->
+                  <template v-else-if="activeCategory === 'language'">
+                    <section id="settings-language" class="px-3">
                       <p class="mb-3 text-[12px] text-[var(--color-fg-muted)]">
                         {{ $t('settings.language.description') }}
                       </p>
@@ -601,83 +684,6 @@ onUnmounted(() => clearTimeout(avatarCacheClearedTimer))
                             </p>
                           </div>
                         </button>
-                      </div>
-                    </section>
-                    <section class="mt-6 px-3">
-                      <h3
-                        class="pb-1 text-[11px] font-semibold tracking-wide text-[var(--color-fg-subtle)] uppercase"
-                      >
-                        {{ $t('settings.avatars.title') }}
-                      </h3>
-                      <SettingsRow
-                        anchor="settings-remote-avatars"
-                        :label="$t('settings.avatars.authorAvatars')"
-                        :description="$t('settings.avatars.authorAvatarsDescription')"
-                        :model-value="remoteAvatars"
-                        @update:model-value="ui.setRemoteAvatars($event)"
-                      />
-                      <div
-                        id="settings-avatar-cache"
-                        class="flex items-start justify-between gap-4 rounded-lg px-3 py-2.5"
-                      >
-                        <div class="min-w-0 pt-0.5">
-                          <div class="text-[13px] font-medium text-[var(--color-fg)]">
-                            {{ $t('settings.avatars.clearCache') }}
-                          </div>
-                          <p class="mt-0.5 text-[12px] leading-snug text-[var(--color-fg-muted)]">
-                            {{ $t('settings.avatars.clearCacheDescription') }}
-                          </p>
-                        </div>
-                        <Button variant="secondary" size="sm" @click="clearAvatarLookups">
-                          {{
-                            avatarCacheCleared
-                              ? $t('settings.avatars.cleared')
-                              : $t('settings.avatars.clear')
-                          }}
-                        </Button>
-                      </div>
-                    </section>
-                  </template>
-
-                  <!-- Layout -->
-                  <template v-else-if="activeCategory === 'layout'">
-                    <p class="mb-3 px-3 text-[12px] text-[var(--color-fg-muted)]">
-                      {{ $t('settings.layout.description') }}
-                    </p>
-                    <section class="space-y-0.5">
-                      <h3
-                        class="px-3 pb-1 text-[11px] font-semibold tracking-wide text-[var(--color-fg-subtle)] uppercase"
-                      >
-                        {{ $t('settings.layout.panels') }}
-                      </h3>
-                      <SettingsRow
-                        anchor="settings-left-sidebar"
-                        :label="$t('settings.layout.showLeftSidebar')"
-                        :description="$t('settings.layout.showLeftSidebarDescription')"
-                        :model-value="!leftCollapsed"
-                        @update:model-value="ui.setLeftVisible($event)"
-                      />
-                      <SettingsRow
-                        anchor="settings-right-panel"
-                        :label="$t('settings.layout.showRightPanel')"
-                        :description="$t('settings.layout.showRightPanelDescription')"
-                        :model-value="!rightCollapsed"
-                        @update:model-value="ui.setRightVisible($event)"
-                      />
-                    </section>
-                    <section class="mt-5 space-y-2 px-3">
-                      <h3
-                        class="pb-1 text-[11px] font-semibold tracking-wide text-[var(--color-fg-subtle)] uppercase"
-                      >
-                        {{ $t('settings.layout.reset') }}
-                      </h3>
-                      <p class="text-[12px] text-[var(--color-fg-muted)]">
-                        {{ $t('settings.layout.resetDescription') }}
-                      </p>
-                      <div id="settings-reset-layout">
-                        <Button variant="secondary" size="sm" @click="ui.resetLayout()">
-                          {{ $t('settings.layout.resetAction') }}
-                        </Button>
                       </div>
                     </section>
                   </template>
@@ -930,6 +936,47 @@ onUnmounted(() => clearTimeout(avatarCacheClearedTimer))
                     </section>
                   </template>
 
+                  <!-- Privacy -->
+                  <template v-else-if="activeCategory === 'privacy'">
+                    <p class="mb-3 px-3 text-[12px] text-[var(--color-fg-muted)]">
+                      {{ $t('settings.privacy.description') }}
+                    </p>
+                    <section class="space-y-0.5">
+                      <h3
+                        class="px-3 pb-1 text-[11px] font-semibold tracking-wide text-[var(--color-fg-subtle)] uppercase"
+                      >
+                        {{ $t('settings.avatars.title') }}
+                      </h3>
+                      <SettingsRow
+                        anchor="settings-remote-avatars"
+                        :label="$t('settings.avatars.authorAvatars')"
+                        :description="$t('settings.avatars.authorAvatarsDescription')"
+                        :model-value="remoteAvatars"
+                        @update:model-value="ui.setRemoteAvatars($event)"
+                      />
+                      <div
+                        id="settings-avatar-cache"
+                        class="flex items-start justify-between gap-4 rounded-lg px-3 py-2.5"
+                      >
+                        <div class="min-w-0 pt-0.5">
+                          <div class="text-[13px] font-medium text-[var(--color-fg)]">
+                            {{ $t('settings.avatars.clearCache') }}
+                          </div>
+                          <p class="mt-0.5 text-[12px] leading-snug text-[var(--color-fg-muted)]">
+                            {{ $t('settings.avatars.clearCacheDescription') }}
+                          </p>
+                        </div>
+                        <Button variant="secondary" size="sm" @click="clearAvatarLookups">
+                          {{
+                            avatarCacheCleared
+                              ? $t('settings.avatars.cleared')
+                              : $t('settings.avatars.clear')
+                          }}
+                        </Button>
+                      </div>
+                    </section>
+                  </template>
+
                   <template v-else-if="activeCategory === 'shortcuts'">
                     <div class="mb-3 flex items-start justify-between gap-3 px-3">
                       <p class="text-[12px] text-[var(--color-fg-muted)]">
@@ -1004,6 +1051,13 @@ onUnmounted(() => clearTimeout(avatarCacheClearedTimer))
 </template>
 
 <style scoped>
+.settings-search-match {
+  border-radius: 2px;
+  background-color: var(--color-accent-soft);
+  color: var(--color-accent);
+  padding: 0 1px;
+}
+
 .settings-anchor-highlight {
   animation: settings-anchor-highlight 1.6s ease-out;
 }
