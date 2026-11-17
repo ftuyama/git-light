@@ -1,0 +1,14 @@
+{
+  "MergeConflict": "Der Vorgang hat Merge-Konflikte erzeugt, die gelöst werden müssen.",
+  "Authentication": "Authentifizierung fehlgeschlagen. Prüfen Sie Ihre SSH-Schlüssel oder den Anmeldeinformations-Manager.",
+  "RepositoryNotFound": "Das Repository wurde nicht gefunden.",
+  "NotARepository": "Dieser Ordner ist kein Git-Repository.",
+  "BareRepository": "Bare-Repositories werden nicht unterstützt.",
+  "DetachedHead": "HEAD ist detached.",
+  "RemoteRejected": "Das Remote hat den Push abgelehnt.",
+  "NothingToCommit": "Es gibt keine gestagten Änderungen zum Committen.",
+  "Network": "Beim Kontakt mit dem Remote ist ein Netzwerkfehler aufgetreten.",
+  "DirtyWorktree": "Sie haben nicht committete Änderungen, die überschrieben würden.",
+  "Cancelled": "Der Vorgang wurde abgebrochen.",
+  "Unknown": "Ein unerwarteter Git-Fehler ist aufgetreten."
+}

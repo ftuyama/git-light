@@ -1,0 +1,68 @@
+{
+  "panel": {
+    "closeFile": "Datei schließen",
+    "diffView": "Diff-Ansicht",
+    "blameView": "Blame-Ansicht",
+    "diff": "Diff",
+    "blame": "Blame",
+    "unified": "Vereinheitlichter Diff",
+    "split": "Geteilter Diff",
+    "ignoreWhitespace": "Führenden und nachfolgenden Leerraum ignorieren",
+    "wordWrap": "Zeilenumbruch",
+    "loading": "Diff wird geladen…",
+    "tooLarge": "Die Datei ist zu groß für einen Diff in der UI.",
+    "binary": "Binärdatei — kein Text-Diff verfügbar."
+  },
+  "stage": {
+    "stage": "Stagen",
+    "unstage": "Unstagen",
+    "stageHunk": "Hunk stagen",
+    "unstageHunk": "Hunk unstagen",
+    "stageLine": "Zeile stagen",
+    "unstageLine": "Zeile unstagen"
+  },
+  "discard": {
+    "discardHunk": "Hunk verwerfen",
+    "discardLine": "Zeile verwerfen"
+  },
+  "blame": {
+    "loading": "Blame wird geladen…",
+    "empty": "Für diese Datei sind keine Blame-Informationen verfügbar.",
+    "wordWrap": "Zeilenumbruch",
+    "wordWrapAria": "Zeilenumbruch in der Blame-Ansicht"
+  },
+  "history": {
+    "title": "Dateiverlauf",
+    "loading": "Verlauf wird geladen…",
+    "empty": "Für diese Datei wurden keine Commits gefunden."
+  },
+  "image": {
+    "loading": "Bildvorschau wird geladen…",
+    "failed": "Bildvorschau konnte nicht geladen werden.",
+    "tooLarge": "Das Bild ist zu groß für die Vorschau in der UI.",
+    "unavailable": "Für diese Änderung ist keine Bildvorschau verfügbar.",
+    "added": "Hinzugefügt",
+    "before": "Vorher",
+    "after": "Nachher",
+    "deleted": "Gelöscht",
+    "beforeAlt": "Vorher: {path}",
+    "afterAlt": "Nachher: {path}",
+    "noPrevious": "Keine vorherige Version (Datei hinzugefügt).",
+    "noCurrent": "Keine aktuelle Version (Datei gelöscht).",
+    "zoomIn": "Vergrößern",
+    "zoomOut": "Verkleinern",
+    "resetZoom": "Zoom zurücksetzen",
+    "collapse": "Einklappen",
+    "backToSideBySide": "Zurück zu Nebeneinander",
+    "expand": "Zum Erweitern klicken",
+    "hint": "Scrollen zum Zoomen · Ziehen zum Verschieben · Doppelklick zum Umschalten · Esc zum Einklappen"
+  },
+  "toast": {
+    "commitFilesFailed": "Commit-Dateien konnten nicht geladen werden: {detail}",
+    "compareFailed": "Commits konnten nicht verglichen werden: {detail}",
+    "diffFailed": "Diff konnte nicht geladen werden: {detail}",
+    "blameFailed": "Blame konnte nicht geladen werden: {detail}",
+    "historyFailed": "Dateiverlauf konnte nicht geladen werden: {detail}",
+    "conflictFailed": "Konflikt konnte nicht geladen werden: {detail}"
+  }
+}

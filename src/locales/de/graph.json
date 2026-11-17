@@ -1,0 +1,134 @@
+{
+  "columns": {
+    "refs": "Branch / Tag",
+    "graph": "Graph",
+    "sha": "SHA",
+    "when": "Wann"
+  },
+  "showColumns": "Spalten anzeigen",
+  "columnMenu": {
+    "sha": "SHA",
+    "when": "Wann",
+    "timeIndicators": "Zeitindikatoren",
+    "mergeIndicators": "Merge-Indikatoren"
+  },
+  "empty": {
+    "title": "Noch keine Commits",
+    "body": "Erstellen Sie Ihren ersten Commit, damit der Verlauf hier erscheint."
+  },
+  "loadingMore": "Weitere Commits werden geladen…",
+  "commitRow": {
+    "hiddenRefs": "+{count} weitere",
+    "mergeCommit": "Merge-Commit"
+  },
+  "branchInput": {
+    "placeholder": "Branch-Namen eingeben"
+  },
+  "commitMenu": {
+    "checkout": "Commit auschecken",
+    "createBranch": "Branch hier erstellen",
+    "tag": "Commit taggen",
+    "cherryPick": "Cherry-Pick",
+    "revert": "Commit rückgängig machen",
+    "mergeIntoCurrent": "In aktuellen Branch mergen",
+    "merge": "Merge",
+    "squashMerge": "Squash-Merge",
+    "rebaseFromHere": "Von hier rebasen",
+    "interactiveRebase": "Interaktiver Rebase von hier",
+    "resetToHere": "Aktuellen Branch hierher zurücksetzen",
+    "resetSoft": "Soft",
+    "resetMixed": "Mixed",
+    "resetHard": "Hard",
+    "copySha": "SHA kopieren",
+    "openOnGithub": "Auf GitHub öffnen"
+  },
+  "branchMenu": {
+    "checkout": "Checkout",
+    "checkoutLocal": "Lokalen Branch auschecken",
+    "createBranch": "Branch hier erstellen",
+    "createWorktree": "Worktree aus Branch erstellen",
+    "mergeIntoCurrent": "In aktuellen Branch mergen",
+    "rebaseCurrentOntoThis": "Aktuellen Branch auf diesen rebasen",
+    "interactiveRebaseOntoThis": "Interaktiver Rebase auf diesen…",
+    "cherryPickTip": "Tip-Commit cherry-picken",
+    "copyBranchName": "Branch-Namen kopieren",
+    "copyTipSha": "SHA des Tip-Commits kopieren",
+    "copyCommitLink": "Link zum Commit auf GitHub kopieren",
+    "copyBranchLink": "Link zum Branch auf GitHub kopieren",
+    "copy": "Kopieren",
+    "compareWithCurrent": "Mit aktuellem Branch vergleichen",
+    "setUpstream": "Upstream festlegen…",
+    "rename": "Umbenennen…",
+    "pin": "Zu Favoriten hinzufügen",
+    "unpin": "Aus Favoriten entfernen",
+    "createTag": "Tag hier erstellen…",
+    "deleteRemote": "Remote-Branch löschen",
+    "delete": "Branch löschen"
+  },
+  "stashMenu": {
+    "apply": "Stash anwenden",
+    "pop": "Stash poppen",
+    "delete": "Stash löschen",
+    "editMessage": "Stash-Nachricht bearbeiten"
+  },
+  "stashRow": {
+    "wipOn": "WIP auf {branch}",
+    "wip": "WIP",
+    "unknownBase": "unbekannte Basis",
+    "hint": "Basis {sha} · außerhalb der Ansicht",
+    "hintWithSubject": "Basis {sha} · {subject} · außerhalb der Ansicht",
+    "title": "Stash wurde über {base} erstellt. Dieser Commit liegt nicht im geladenen Fenster (weitere Commits laden) oder wurde durch Amend/Rebase umgeschrieben — in diesem Fall wenden Sie den Stash manuell auf den Nachfolge-Commit an.",
+    "titleWithSubject": "Stash wurde über {base}, „{subject}“, erstellt. Dieser Commit liegt nicht im geladenen Fenster (weitere Commits laden) oder wurde durch Amend/Rebase umgeschrieben — in diesem Fall wenden Sie den Stash manuell auf den Nachfolge-Commit an.",
+    "boxTitleNoBase": "Stash (unbekannte Basis)",
+    "boxTitle": "Stash über {sha}",
+    "boxTitleOutsideView": "Stash über {sha} — außerhalb der geladenen Ansicht",
+    "boxTitleOutsideViewWithSubject": "Stash über {sha} „{subject}“ — außerhalb der geladenen Ansicht"
+  },
+  "pendingRow": {
+    "messagePlaceholder": "Commit-Nachricht",
+    "status": {
+      "modified": "Geändert",
+      "added": "Hinzugefügt",
+      "deleted": "Gelöscht",
+      "renamed": "Umbenannt",
+      "copied": "Kopiert",
+      "conflicted": "Im Konflikt",
+      "ignored": "Ignoriert"
+    }
+  },
+  "toast": {
+    "copiedSha": "SHA in die Zwischenablage kopiert",
+    "openingOnGithub": "Commit wird auf GitHub geöffnet",
+    "noGithubRemote": "Für dieses Repository ist kein GitHub-Remote konfiguriert",
+    "clipboardUnavailable": "Zwischenablage ist nicht verfügbar",
+    "copyFailed": "Kopieren in die Zwischenablage fehlgeschlagen",
+    "copied": "{target} kopiert"
+  },
+  "copyTarget": {
+    "branchName": "Branch-Name",
+    "commitSha": "Commit-SHA",
+    "link": "Link"
+  },
+  "timeMarkers": {
+    "hour1": "vor 1 Stunde",
+    "hours2": "vor 2 Stunden",
+    "hours6": "vor 6 Stunden",
+    "day1": "vor einem Tag",
+    "days2": "vor 2 Tagen",
+    "week1": "vor einer Woche",
+    "weeks2": "vor 2 Wochen",
+    "month1": "vor einem Monat",
+    "months2": "vor 2 Monaten",
+    "months3": "vor 3 Monaten",
+    "months6": "vor 6 Monaten",
+    "year1": "vor einem Jahr",
+    "years2": "vor 2 Jahren",
+    "years5": "vor 5 Jahren"
+  },
+  "conflictBanner": {
+    "merge": "Beim Versuch, in {target} zu mergen, wurde ein Dateikonflikt gefunden",
+    "rebase": "Beim Rebase wurde ein Dateikonflikt gefunden",
+    "cherryPick": "Beim Versuch, auf {target} zu cherry-picken, wurde ein Dateikonflikt gefunden",
+    "revert": "Beim Versuch, Änderungen auf {target} rückgängig zu machen, wurde ein Dateikonflikt gefunden"
+  }
+}

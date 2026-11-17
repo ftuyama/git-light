@@ -1,0 +1,71 @@
+{
+  "sidebar": {
+    "hide": "Linke Seitenleiste ausblenden",
+    "searchPlaceholder": "Branches durchsuchen",
+    "noMatches": "Keine Branches entsprechen „{query}“",
+    "allHidden": "Alle Bereiche ausgeblendet — Rechtsklick zum Einblenden"
+  },
+  "row": {
+    "dragHint": "Auf einen anderen Branch ziehen, um zu mergen oder zu rebasen",
+    "pin": "Branch anheften",
+    "unpin": "Branch lösen"
+  },
+  "menu": {
+    "checkout": "Checkout",
+    "checkoutLocal": "Lokalen Branch auschecken",
+    "deleteRemote": "Remote-Branch löschen",
+    "createHere": "Branch hier erstellen",
+    "setUpstream": "Upstream festlegen",
+    "compareWithCurrent": "Mit aktuellem Branch vergleichen",
+    "pin": "Zu Favoriten hinzufügen",
+    "unpin": "Aus Favoriten entfernen",
+    "deleteInFolder": "{count} Branch im Ordner \"{folder}\" löschen | {count} Branches im Ordner \"{folder}\" löschen",
+    "noneToDelete": "Keine Branches zum Löschen"
+  },
+  "tags": {
+    "checkout": "Tag auschecken",
+    "deleteTag": "Tag löschen",
+    "create": "Tag erstellen"
+  },
+  "stashes": {
+    "pop": "Pop",
+    "drop": "Drop",
+    "summary": "auf {branch} · {count} Datei | auf {branch} · {count} Dateien"
+  },
+  "worktrees": {
+    "reveal": "Im Finder zeigen",
+    "remove": "Worktree entfernen",
+    "add": "Worktree hinzufügen"
+  },
+  "favorites": {
+    "empty": "Branches anheften, um sie hier zu sehen"
+  },
+  "integrate": {
+    "title": "Branches integrieren",
+    "description": "Wählen Sie, wie {source} mit {target} integriert werden soll.",
+    "mergeTitle": "In Ziel mergen",
+    "mergeDescription": "{source} in {target} mergen",
+    "mergeStrategy": "Merge-Strategie",
+    "merge": "Mit ausgewählter Strategie mergen",
+    "rebaseTitle": "Auf Ziel rebasen",
+    "rebaseDescription": "{source} auf {target} rebasen"
+  },
+  "mergeModes": {
+    "default": {
+      "label": "Standard",
+      "description": "Fast-Forward wenn möglich, sonst einen Merge-Commit erstellen"
+    },
+    "ffOnly": {
+      "label": "Nur Fast-Forward",
+      "description": "Merge ablehnen, wenn kein Fast-Forward möglich ist"
+    },
+    "noFf": {
+      "label": "Kein Fast-Forward",
+      "description": "Immer einen Merge-Commit erstellen"
+    },
+    "squash": {
+      "label": "Squash",
+      "description": "Alle Commits des Quell-Branch zu einem Commit zusammenfassen"
+    }
+  }
+}

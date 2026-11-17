@@ -1,0 +1,263 @@
+{
+  "button": "Einstellungen",
+  "dialog": {
+    "title": "Einstellungen",
+    "close": "Einstellungen schließen"
+  },
+  "categories": {
+    "general": "Allgemein",
+    "appearance": "Darstellung",
+    "interface": "Oberfläche",
+    "language": "Sprache",
+    "views": "Ansichten",
+    "commitGraph": "Commit-Graph",
+    "sidebar": "Seitenleiste",
+    "repository": "Repository",
+    "changes": "Änderungen",
+    "commits": "Commits",
+    "sync": "Synchronisierung",
+    "application": "Anwendung",
+    "privacy": "Datenschutz",
+    "shortcuts": "Tastenkürzel",
+    "credits": "Danksagungen"
+  },
+  "appearance": {
+    "theme": "Farbschema",
+    "themeDescription": "Wählen Sie eine Farbpalette für die Benutzeroberfläche der Anwendung.",
+    "typography": "Typografie"
+  },
+  "interfaceMode": {
+    "title": "Oberflächenmodus",
+    "description": "Einfach blendet erweiterte Aktionen wie Stash, Rebase und Terminal aus. Erweitert zeigt alles.",
+    "basic": "Einfach",
+    "basicDescription": "Nur wesentliche Git-Aktionen. Blendet Stash, Rebase, Cherry-Pick, Tags und mehr aus.",
+    "advanced": "Erweitert",
+    "advancedDescription": "Vollständige Symbolleiste, Seitenleisten-Bereiche und Commit-Aktionen."
+  },
+  "fontSize": {
+    "title": "Schriftgröße",
+    "description": "Text und Oberflächenelemente in der gesamten App vergrößern oder verkleinern."
+  },
+  "language": {
+    "title": "Sprache",
+    "description": "Sprache der App-Oberfläche.",
+    "system": "System",
+    "systemDescription": "Der Sprache des Betriebssystems folgen. Aktuell {language}."
+  },
+  "avatars": {
+    "title": "Avatare",
+    "authorAvatars": "Autoren-Avatare",
+    "authorAvatarsDescription": "GitHub- und Gravatar-Bilder für Commit-Autoren laden. Deaktivieren, um nur Initialen anzuzeigen und keine Avatar-Anfragen zu senden.",
+    "clearCache": "Avatar-Cache leeren",
+    "clearCacheDescription": "Zwischengespeicherte GitHub-Logins und fehlgeschlagene Abfragen vergessen und Avatare neu auflösen.",
+    "clear": "Leeren",
+    "cleared": "Geleert"
+  },
+  "privacy": {
+    "description": "Remote-Bilder und die für Commit-Autoren zwischengespeicherten Daten steuern."
+  },
+  "layout": {
+    "panels": "Bereiche",
+    "showLeftSidebar": "Linke Seitenleiste anzeigen",
+    "showLeftSidebarDescription": "Die Branch-Seitenleiste links anzeigen.",
+    "showRightPanel": "Rechten Bereich anzeigen",
+    "showRightPanelDescription": "Arbeitsbaum und Diff-Bereich rechts anzeigen.",
+    "reset": "Zurücksetzen",
+    "resetDescription": "Standardgrößen der Bereiche wiederherstellen und beide Seitenbereiche ausklappen.",
+    "resetAction": "Bereichslayout zurücksetzen"
+  },
+  "changes": {
+    "description": "Steuern, wie geänderte Dateien im Arbeitsbaum und in Commit-Bereichen aufgelistet werden.",
+    "fileList": "Dateiliste",
+    "treeView": "Baumansicht",
+    "treeViewDescription": "Geänderte Dateien in einer ausklappbaren Ordnerhierarchie gruppieren."
+  },
+  "commits": {
+    "description": "Standardeinstellungen für neue Commits.",
+    "options": "Commit-Optionen",
+    "signOff": "Commit mit Sign-off versehen",
+    "signOffDescription": "Commit-Nachrichten einen Signed-off-by-Trailer hinzufügen (--signoff).",
+    "sign": "Commit signieren (GPG/SSH)",
+    "signDescription": "Mit GPG/SSH-Schlüssel signieren (-S). Erfordert user.signingkey in der Git-Konfiguration."
+  },
+  "commitGraph": {
+    "description": "Steuern, welche Commits im Graphen erscheinen und welche Spalten angezeigt werden.",
+    "history": "Verlauf",
+    "showAllBranches": "Alle Branches anzeigen",
+    "showAllBranchesDescription": "Commits aller Branches anzeigen, nicht nur die des ausgecheckten Branch.",
+    "recentCommits": "Zu ladende aktuelle Commits",
+    "recentCommitsSummary": "Maximale Anzahl der für den Graphen geladenen Commits.",
+    "recentCommitsDescription": "Maximale Anzahl der für den Graphen geladenen Commits. Minimum {min}; {recommended} empfohlen.",
+    "columns": "Spalten",
+    "columnsDescription": "Wählen Sie, welche optionalen Spalten in den Graph-Zeilen angezeigt werden.",
+    "indicators": "Indikatoren",
+    "timeIndicators": "Zeitindikatoren",
+    "timeIndicatorsDescription": "Trenner wie „vor einer Woche“ zwischen Commits im Graphen anzeigen.",
+    "mergeIndicators": "Merge-Indikatoren",
+    "mergeIndicatorsDescription": "Merge-Commits mit einem Merge-Symbol in der Commit-Nachrichtenspalte markieren.",
+    "columnWidths": "Spaltenbreiten",
+    "resetWidths": "Breiten zurücksetzen",
+    "columnWidthsDescription": "Exakte Pixelbreiten oder ziehen Sie die Spaltenränder in der Graph-Kopfzeile."
+  },
+  "columnDescriptions": {
+    "author": "Avatar und Namen des Commit-Autors in jeder Zeile anzeigen.",
+    "sha": "Den abgekürzten Commit-Hash in jeder Zeile anzeigen.",
+    "when": "Anzeigen, wie lange jeder Commit zurückliegt."
+  },
+  "sidebar": {
+    "description": "Wählen Sie, wie jeder Bereich der Branch-Seitenleiste angezeigt wird: ausgeklappt, auf die Kopfzeile reduziert oder ganz ausgeblendet.",
+    "sections": "Bereiche"
+  },
+  "sectionDescriptions": {
+    "favorites": "Angeheftete Branches oben in der Seitenleiste.",
+    "localBranches": "Liste lokaler Branches und Branch-Gruppen.",
+    "remoteBranches": "Remote-Tracking-Branches, nach Remote gruppiert.",
+    "tags": "Annotierte und leichte Tags im Repository.",
+    "stashes": "Gespeicherte Stashes mit Nachricht und Branch-Kontext.",
+    "worktrees": "Verknüpfte Worktrees und ihre Checkout-Pfade."
+  },
+  "sync": {
+    "description": "Remote-Tracking-Branches aktuell halten, ohne die App zu verlassen.",
+    "backgroundFetch": "Fetch im Hintergrund",
+    "autoFetchInterval": "Auto-Fetch-Intervall",
+    "autoFetchIntervalDescription": "Alle Remotes regelmäßig im Hintergrund fetchen. Kein Banner, keine Benachrichtigung — der Graph aktualisiert sich einfach."
+  },
+  "intervals": {
+    "disabled": "Deaktiviert",
+    "everyMinute": "Jede Minute",
+    "every5Minutes": "Alle 5 Minuten",
+    "every10Minutes": "Alle 10 Minuten",
+    "every30Minutes": "Alle 30 Minuten",
+    "everyHour": "Jede Stunde",
+    "every2Hours": "Alle 2 Stunden"
+  },
+  "credits": {
+    "version": "Version {version}",
+    "description": "Kostenloser Open-Source-Git-Client für den Desktop (Tauri 2, Vue 3, TypeScript, Rust) — Graph-first-Alternative zu GitKraken mit Commit-Graph, Branches, Staging und echten lokalen Git-Operationen.",
+    "builtBy": "Erstellt von",
+    "license": "{license}-Lizenz",
+    "website": "Website",
+    "sourceCode": "Quellcode",
+    "sponsor": "Auf Ko-fi unterstützen",
+    "links": "Links",
+    "openSource": "Open Source",
+    "openSourceDescription": "Git Light wird durch diese Projekte und ihre Mitwirkenden ermöglicht."
+  },
+  "columns": {
+    "author": "Autor",
+    "sha": "SHA",
+    "when": "Wann"
+  },
+  "columnWidths": {
+    "refs": "Branch / Tag",
+    "graph": "Graph",
+    "commit": "Commit",
+    "author": "Autor",
+    "sha": "SHA",
+    "when": "Wann",
+    "ariaLabel": "Spaltenbreite {name}",
+    "hidden": "{range} · ausgeblendet"
+  },
+  "sections": {
+    "favorites": "Favoriten",
+    "localBranches": "Lokale Branches",
+    "remoteBranches": "Remote-Branches",
+    "tags": "Tags",
+    "stashes": "Stashes",
+    "worktrees": "Worktrees"
+  },
+  "sectionStates": {
+    "expanded": "Ausgeklappt",
+    "collapsed": "Reduziert",
+    "hidden": "Ausgeblendet"
+  },
+  "themes": {
+    "default": {
+      "label": "Standard",
+      "description": "Dunkle Palette mit blauen Akzenten."
+    },
+    "dracula": {
+      "label": "Dracula",
+      "description": "Klassisches Dracula-Theme mit violetten und pinken Akzenten."
+    },
+    "light": {
+      "label": "Hell",
+      "description": "Klare helle Palette, inspiriert von GitHub und VS Code."
+    },
+    "claude": {
+      "label": "Claude",
+      "description": "Dunkle, warme Anthrazit-Palette, inspiriert von claude.ai."
+    },
+    "tokyo-night": {
+      "label": "Tokyo Night",
+      "description": "Dunkelblaue Tokyo-Night-Palette mit leuchtenden blauen und violetten Akzenten."
+    },
+    "nord": {
+      "label": "Nord",
+      "description": "Kühle arktisch-blau-graue Palette mit Frost-Akzenten."
+    },
+    "gruvbox": {
+      "label": "Gruvbox",
+      "description": "Warme Retro-Palette mit kräftigem Gelb und Erdtönen."
+    },
+    "rose-pine": {
+      "label": "Rosé Pine",
+      "description": "Gedämpfte Mitternachtspalette mit sanften Rosen- und Iris-Akzenten."
+    },
+    "one-dark": {
+      "label": "One Dark",
+      "description": "Die vertraute Atom-One-Dark-Palette mit blauem Akzent."
+    },
+    "solarized-light": {
+      "label": "Solarized Light",
+      "description": "Kontrastarme warme helle Palette aus Solarized."
+    },
+    "custom": {
+      "label": "Benutzerdefiniert",
+      "description": "Wählen Sie eigene Grundfarben, der Rest wird automatisch abgeleitet."
+    },
+    "system": {
+      "label": "System",
+      "description": "Passt zur Darstellung Ihres Betriebssystems."
+    }
+  },
+  "customTheme": {
+    "title": "Eigene Farben",
+    "description": "Wählen Sie die Grundfarben. Rahmen, Hover-Zustände, gedämpfter Text und Syntaxhervorhebung werden daraus abgeleitet.",
+    "reset": "Farben zurücksetzen",
+    "app": "Hintergrund",
+    "panel": "Oberfläche",
+    "fg": "Text",
+    "accent": "Akzent",
+    "success": "Erfolg",
+    "warning": "Warnung",
+    "danger": "Gefahr"
+  },
+  "shortcuts": {
+    "disable": "{name}-Tastenkürzel deaktivieren",
+    "reset": "{name}-Tastenkürzel zurücksetzen",
+    "conflictsWith": "Konflikte mit: {names}",
+    "description": "Klicken Sie auf ein Tastenkürzel, um ein neues aufzunehmen. Esc bricht ab. Konflikte werden hervorgehoben.",
+    "restoreDefaults": "Standard wiederherstellen",
+    "disableTooltip": "Deaktivieren (Tastenkürzel löschen)",
+    "resetTooltip": "Auf Standard zurücksetzen",
+    "recordHint": "Klicken, um ein neues Tastenkürzel aufzunehmen",
+    "recordingHint": "Tasten für das Tastenkürzel drücken, Esc zum Abbrechen",
+    "recording": "Tasten drücken…"
+  },
+  "search": {
+    "title": "Einstellungen durchsuchen",
+    "open": "Einstellungen durchsuchen",
+    "openTooltip": "Einstellungen durchsuchen (/)",
+    "placeholder": "Einstellungen durchsuchen…",
+    "resultOne": "{count} Ergebnis",
+    "resultMany": "{count} Ergebnisse",
+    "empty": "Keine Einstellungen entsprechen „{query}“.",
+    "columnAuthor": "Spalte Autor",
+    "columnSha": "Spalte SHA",
+    "columnWhen": "Spalte Wann",
+    "credits": "Danksagungen und Version",
+    "creditsDescription": "App-Version, Autorenlinks und Danksagungen Dritter.",
+    "shortcutDescription": "Tastenkürzel · {category}"
+  }
+}

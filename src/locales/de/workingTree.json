@@ -1,0 +1,87 @@
+{
+  "headers": {
+    "changedFiles": "Geänderte Dateien",
+    "files": "Dateien",
+    "changes": "Änderungen ({count})",
+    "staged": "Gestagt ({count})",
+    "conflicts": "Konflikte ({count})"
+  },
+  "actions": {
+    "discardAll": "Alle Änderungen verwerfen",
+    "stageAll": "Alle stagen",
+    "unstageAll": "Alle unstagen"
+  },
+  "state": {
+    "loadingFiles": "Dateien werden geladen…",
+    "noFilesInCommit": "In diesem Commit wurden keine Dateien geändert",
+    "noChangesBetweenCommits": "Keine Dateiänderungen zwischen diesen Commits",
+    "noUnstaged": "Keine nicht gestagten Änderungen",
+    "nothingStaged": "Stagen Sie Dateien, um sie zu committen"
+  },
+  "changes": {
+    "summary": "{count} Datei auf {branch} geändert | {count} Dateien auf {branch} geändert"
+  },
+  "stash": {
+    "wipOn": "WIP auf {branch}",
+    "wip": "WIP",
+    "close": "Stash-Dateien schließen"
+  },
+  "commit": {
+    "summary": "Änderungen in {count} Datei committen | Änderungen in {count} Dateien committen",
+    "summaryAmend": "Änderungen in {count} Datei amenden | Änderungen in {count} Dateien amenden",
+    "summaryPlaceholder": "Commit-Zusammenfassung",
+    "summaryPlaceholderAmend": "Commit-Zusammenfassung (leer behält die vorherige Nachricht)",
+    "summaryLimit": "Bis zu {count} Zeichen",
+    "descriptionPlaceholder": "Beschreibung",
+    "noCommitsToAmend": "Noch keine Commits zum Amenden",
+    "amend": "Vorherigen Commit amenden",
+    "commitAndPush": "Committen & Pushen",
+    "amendAndPush": "Amenden & Pushen",
+    "commitAndForcePush": "Committen & Force-Push (mit Lease)",
+    "amendAndForcePush": "Amenden & Force-Push (mit Lease)",
+    "pushOptions": "Optionen für Commit und Push",
+    "shaCopied": "SHA in die Zwischenablage kopiert",
+    "mergeCommit": "Merge-Commit",
+    "parents": "Eltern:"
+  },
+  "compare": {
+    "title": "Commits werden verglichen",
+    "filesChanged": "{count} Datei geändert | {count} Dateien geändert",
+    "hint": "Shift+Klick auf einen anderen Commit, um zu vergleichen",
+    "exit": "Vergleichsmodus beenden"
+  },
+  "fileHistory": {
+    "title": "Dateiverlauf"
+  },
+  "fileMenu": {
+    "viewHistory": "Dateiverlauf anzeigen",
+    "revealInFinder": "Im Finder zeigen",
+    "copyPath": "Pfad kopieren",
+    "pathCopied": "Pfad in die Zwischenablage kopiert",
+    "viewDiff": "Diff anzeigen",
+    "restoreVersion": "Datei aus dieser Version wiederherstellen",
+    "useOurs": "Ours verwenden",
+    "useTheirs": "Theirs verwenden",
+    "markResolved": "Als gelöst markieren",
+    "resolveConflict": "Konflikt lösen",
+    "stage": "Änderungen stagen",
+    "unstage": "Änderungen unstagen",
+    "discard": "Änderungen verwerfen",
+    "stageFile": "Datei stagen",
+    "unstageFile": "Datei unstagen"
+  },
+  "view": {
+    "aria": "Dateilistenansicht",
+    "path": "Pfad",
+    "tree": "Baum"
+  },
+  "status": {
+    "modified": "Geändert",
+    "added": "Hinzugefügt",
+    "deleted": "Gelöscht",
+    "renamed": "Umbenannt",
+    "conflicted": "Im Konflikt",
+    "copied": "Kopiert",
+    "ignored": "Ignoriert"
+  }
+}
