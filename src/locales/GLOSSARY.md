@@ -11,6 +11,10 @@ matters more than a "nicer" individual translation.
 | `en` | English | Source of truth. Every other locale mirrors its key set. |
 | `pt-BR` | Português (Brasil) | Also used for `pt`/`pt-PT` at detection time. |
 | `zh-CN` | 简体中文 (Simplified Chinese) | `zh-TW`/`zh-Hant` are **not** covered yet. |
+| `es` | Español | Also used for `es-*` (es-419, es-MX, …) at detection time. |
+| `fr` | Français | Also used for `fr-*` (fr-CA, …) at detection time. |
+| `de` | Deutsch | Also used for `de-*` (de-AT, de-CH, …) at detection time. |
+| `ja` | 日本語 (Japanese) | No plural forms: count messages use a **single** form. |
 
 Adding a locale: create `src/locales/<code>/` with the same 13 domain files,
 add the code to `APP_LOCALES` in `src/lib/locales.ts`, add the native label to
@@ -68,57 +72,57 @@ file, never in `common.json` as a one-off.
 
 ## Terminology
 
-| English | pt-BR | zh-CN |
-| --- | --- | --- |
-| repository | repositório | 仓库 |
-| branch | branch | 分支 |
-| remote | remoto | 远程 |
-| remote-tracking branch | branch de rastreamento remoto | 远程跟踪分支 |
-| tag | tag | 标签 |
-| commit | commit | 提交 |
-| commit message | mensagem do commit | 提交信息 |
-| author | autor | 作者 |
-| committer | autor do commit | 提交者 |
-| stash | stash | 贮藏 |
-| worktree | worktree | 工作树 |
-| working tree | árvore de trabalho | 工作区 |
-| staging area / index | área de staging | 暂存区 |
-| staged changes | alterações preparadas | 已暂存的更改 |
-| unstaged changes | alterações não preparadas | 未暂存的更改 |
-| discard changes | descartar alterações | 丢弃更改 |
-| hunk | trecho | 代码块 |
-| diff | diff | 差异 |
-| blame | blame | 追溯 |
-| file history | histórico do arquivo | 文件历史 |
-| merge | merge | 合并 |
-| merge conflict | conflito de merge | 合并冲突 |
-| resolve conflict | resolver conflito | 解决冲突 |
-| rebase | rebase | 变基 |
-| cherry-pick | cherry-pick | 拣选 |
-| fast-forward | fast-forward | 快进 |
-| pull | pull | 拉取 |
-| push | push | 推送 |
-| fetch | fetch | 获取 |
-| upstream | upstream | 上游 |
-| detached HEAD | HEAD destacado | 分离的 HEAD |
-| checkout | checkout | 检出 |
-| revert | reverter | 还原 |
-| reset | reset | 重置 |
-| amend | emendar | 修补 |
-| squash | squash | 压缩 |
-| sign-off | sign-off | 署名 |
-| commit signing | assinatura de commit | 提交签名 |
-| submodule | submódulo | 子模块 |
-| reflog | reflog | 引用日志 |
-| bare repository | repositório bare | 裸仓库 |
-| ignore whitespace | ignorar espaços em branco | 忽略空白 |
-| word wrap | quebra de linha automática | 自动换行 |
-| sidebar | barra lateral | 侧边栏 |
-| tab | aba | 标签页 |
-| toast | notificação | 通知 |
-| shortcut / keybinding | atalho | 快捷键 |
-| command palette | paleta de comandos | 命令面板 |
-| undo / redo | desfazer / refazer | 撤销 / 重做 |
+| English | pt-BR | zh-CN | es | fr | de | ja |
+| --- | --- | --- | --- | --- | --- | --- |
+| repository | repositório | 仓库 | repositorio | dépôt | Repository | リポジトリ |
+| branch | branch | 分支 | rama | branche | Branch | ブランチ |
+| remote | remoto | 远程 | remoto | distant | Remote | リモート |
+| remote-tracking branch | branch de rastreamento remoto | 远程跟踪分支 | rama de seguimiento remoto | branche de suivi distant | Remote-Tracking-Branch | リモート追跡ブランチ |
+| tag | tag | 标签 | etiqueta | étiquette | Tag | タグ |
+| commit | commit | 提交 | commit | commit | Commit | コミット |
+| commit message | mensagem do commit | 提交信息 | mensaje del commit | message de commit | Commit-Nachricht | コミットメッセージ |
+| author | autor | 作者 | autor | auteur | Autor | 作成者 |
+| committer | autor do commit | 提交者 | autor del commit | auteur du commit | Committer | コミッター |
+| stash | stash | 贮藏 | stash | remisage | Stash | スタッシュ |
+| worktree | worktree | 工作树 | worktree | worktree | Worktree | ワークツリー |
+| working tree | árvore de trabalho | 工作区 | árbol de trabajo | arbre de travail | Arbeitsbaum | 作業ツリー |
+| staging area / index | área de staging | 暂存区 | área de preparación | zone d'index | Index | ステージングエリア |
+| staged changes | alterações preparadas | 已暂存的更改 | cambios preparados | modifications indexées | gestagte Änderungen | ステージ済みの変更 |
+| unstaged changes | alterações não preparadas | 未暂存的更改 | cambios sin preparar | modifications non indexées | nicht gestagte Änderungen | 未ステージの変更 |
+| discard changes | descartar alterações | 丢弃更改 | descartar cambios | annuler les modifications | Änderungen verwerfen | 変更を破棄 |
+| hunk | trecho | 代码块 | fragmento | bloc | Hunk | ハンク |
+| diff | diff | 差异 | diferencias | différences | Diff | 差分 |
+| blame | blame | 追溯 | blame | blame | Blame | blame |
+| file history | histórico do arquivo | 文件历史 | historial del archivo | historique du fichier | Dateiverlauf | ファイル履歴 |
+| merge | merge | 合并 | fusión | fusion | Merge | マージ |
+| merge conflict | conflito de merge | 合并冲突 | conflicto de fusión | conflit de fusion | Merge-Konflikt | マージ競合 |
+| resolve conflict | resolver conflito | 解决冲突 | resolver conflicto | résoudre le conflit | Konflikt lösen | 競合を解決 |
+| rebase | rebase | 变基 | rebase | rebasage | Rebase | リベース |
+| cherry-pick | cherry-pick | 拣选 | cherry-pick | cherry-pick | Cherry-Pick | チェリーピック |
+| fast-forward | fast-forward | 快进 | avance rápido | avance rapide | Fast-Forward | ファストフォワード |
+| pull | pull | 拉取 | pull | pull | Pull | プル |
+| push | push | 推送 | push | push | Push | プッシュ |
+| fetch | fetch | 获取 | fetch | fetch | Fetch | フェッチ |
+| upstream | upstream | 上游 | upstream | upstream | Upstream | 上流 |
+| detached HEAD | HEAD destacado | 分离的 HEAD | HEAD separado | HEAD détaché | Detached HEAD | デタッチド HEAD |
+| checkout | checkout | 检出 | checkout | checkout | Checkout | チェックアウト |
+| revert | reverter | 还原 | revertir | annuler | Revert | 打ち消し |
+| reset | reset | 重置 | reset | reset | Reset | リセット |
+| amend | emendar | 修补 | enmendar | amender | Amend | 修正 |
+| squash | squash | 压缩 | squash | squash | Squash | スカッシュ |
+| sign-off | sign-off | 署名 | sign-off | sign-off | Sign-off | サインオフ |
+| commit signing | assinatura de commit | 提交签名 | firma de commits | signature des commits | Commit-Signierung | コミット署名 |
+| submodule | submódulo | 子模块 | submódulo | sous-module | Submodul | サブモジュール |
+| reflog | reflog | 引用日志 | reflog | reflog | Reflog | reflog |
+| bare repository | repositório bare | 裸仓库 | repositorio bare | dépôt nu | Bare-Repository | ベアリポジトリ |
+| ignore whitespace | ignorar espaços em branco | 忽略空白 | ignorar espacios en blanco | ignorer les espaces blancs | Leerraum ignorieren | 空白を無視 |
+| word wrap | quebra de linha automática | 自动换行 | ajuste de línea | retour à la ligne automatique | Zeilenumbruch | 折り返し |
+| sidebar | barra lateral | 侧边栏 | barra lateral | barre latérale | Seitenleiste | サイドバー |
+| tab | aba | 标签页 | pestaña | onglet | Tab | タブ |
+| toast | notificação | 通知 | notificación | notification | Benachrichtigung | 通知 |
+| shortcut / keybinding | atalho | 快捷键 | atajo | raccourci | Tastenkürzel | ショートカット |
+| command palette | paleta de comandos | 命令面板 | paleta de comandos | palette de commandes | Befehlspalette | コマンドパレット |
+| undo / redo | desfazer / refazer | 撤销 / 重做 | deshacer / rehacer | annuler / rétablir | Rückgängig / Wiederholen | 元に戻す / やり直す |
 
 ## Migration guard
 

@@ -50,6 +50,62 @@ import zhCNShell from './zh-CN/shell.json'
 import zhCNShortcuts from './zh-CN/shortcuts.json'
 import zhCNWorkingTree from './zh-CN/workingTree.json'
 
+import deBranches from './de/branches.json'
+import deCommon from './de/common.json'
+import deConflicts from './de/conflicts.json'
+import deDiff from './de/diff.json'
+import deErrors from './de/errors.json'
+import deGraph from './de/graph.json'
+import deMenu from './de/menu.json'
+import dePalette from './de/palette.json'
+import deRebase from './de/rebase.json'
+import deSettings from './de/settings.json'
+import deShell from './de/shell.json'
+import deShortcuts from './de/shortcuts.json'
+import deWorkingTree from './de/workingTree.json'
+
+import esBranches from './es/branches.json'
+import esCommon from './es/common.json'
+import esConflicts from './es/conflicts.json'
+import esDiff from './es/diff.json'
+import esErrors from './es/errors.json'
+import esGraph from './es/graph.json'
+import esMenu from './es/menu.json'
+import esPalette from './es/palette.json'
+import esRebase from './es/rebase.json'
+import esSettings from './es/settings.json'
+import esShell from './es/shell.json'
+import esShortcuts from './es/shortcuts.json'
+import esWorkingTree from './es/workingTree.json'
+
+import frBranches from './fr/branches.json'
+import frCommon from './fr/common.json'
+import frConflicts from './fr/conflicts.json'
+import frDiff from './fr/diff.json'
+import frErrors from './fr/errors.json'
+import frGraph from './fr/graph.json'
+import frMenu from './fr/menu.json'
+import frPalette from './fr/palette.json'
+import frRebase from './fr/rebase.json'
+import frSettings from './fr/settings.json'
+import frShell from './fr/shell.json'
+import frShortcuts from './fr/shortcuts.json'
+import frWorkingTree from './fr/workingTree.json'
+
+import jaBranches from './ja/branches.json'
+import jaCommon from './ja/common.json'
+import jaConflicts from './ja/conflicts.json'
+import jaDiff from './ja/diff.json'
+import jaErrors from './ja/errors.json'
+import jaGraph from './ja/graph.json'
+import jaMenu from './ja/menu.json'
+import jaPalette from './ja/palette.json'
+import jaRebase from './ja/rebase.json'
+import jaSettings from './ja/settings.json'
+import jaShell from './ja/shell.json'
+import jaShortcuts from './ja/shortcuts.json'
+import jaWorkingTree from './ja/workingTree.json'
+
 /**
  * Catalogs are split by feature domain so a change to the commit graph never
  * touches the settings file (and so parallel work stays conflict-free).
@@ -101,6 +157,66 @@ const messages = {
     menu: zhCNMenu,
     shortcuts: zhCNShortcuts,
     errors: zhCNErrors,
+  },
+  de: {
+    common: deCommon,
+    shell: deShell,
+    graph: deGraph,
+    branches: deBranches,
+    workingTree: deWorkingTree,
+    diff: deDiff,
+    conflicts: deConflicts,
+    rebase: deRebase,
+    palette: dePalette,
+    settings: deSettings,
+    menu: deMenu,
+    shortcuts: deShortcuts,
+    errors: deErrors,
+  },
+  es: {
+    common: esCommon,
+    shell: esShell,
+    graph: esGraph,
+    branches: esBranches,
+    workingTree: esWorkingTree,
+    diff: esDiff,
+    conflicts: esConflicts,
+    rebase: esRebase,
+    palette: esPalette,
+    settings: esSettings,
+    menu: esMenu,
+    shortcuts: esShortcuts,
+    errors: esErrors,
+  },
+  fr: {
+    common: frCommon,
+    shell: frShell,
+    graph: frGraph,
+    branches: frBranches,
+    workingTree: frWorkingTree,
+    diff: frDiff,
+    conflicts: frConflicts,
+    rebase: frRebase,
+    palette: frPalette,
+    settings: frSettings,
+    menu: frMenu,
+    shortcuts: frShortcuts,
+    errors: frErrors,
+  },
+  ja: {
+    common: jaCommon,
+    shell: jaShell,
+    graph: jaGraph,
+    branches: jaBranches,
+    workingTree: jaWorkingTree,
+    diff: jaDiff,
+    conflicts: jaConflicts,
+    rebase: jaRebase,
+    palette: jaPalette,
+    settings: jaSettings,
+    menu: jaMenu,
+    shortcuts: jaShortcuts,
+    errors: jaErrors,
   },
 }
 

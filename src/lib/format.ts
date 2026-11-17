@@ -1,11 +1,15 @@
 import { format, formatDistanceToNowStrict } from 'date-fns'
-import { enUS, ptBR, zhCN, type Locale } from 'date-fns/locale'
+import { de as deLocale, enUS, es, fr, ja, ptBR, zhCN, type Locale } from 'date-fns/locale'
 import { getAppLocale, type AppLocale } from './locales'
 
 const DATE_FNS_LOCALES: Record<AppLocale, Locale> = {
   en: enUS,
   'pt-BR': ptBR,
   'zh-CN': zhCN,
+  es,
+  fr,
+  de: deLocale,
+  ja,
 }
 
 /** date-fns locale for an app locale, defaulting to the active one. */

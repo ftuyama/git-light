@@ -9,6 +9,10 @@ describe('dateFnsLocale', () => {
     expect(dateFnsLocale('en').code).toBe('en-US')
     expect(dateFnsLocale('pt-BR').code).toBe('pt-BR')
     expect(dateFnsLocale('zh-CN').code).toBe('zh-CN')
+    expect(dateFnsLocale('es').code).toBe('es')
+    expect(dateFnsLocale('fr').code).toBe('fr')
+    expect(dateFnsLocale('de').code).toBe('de')
+    expect(dateFnsLocale('ja').code).toBe('ja')
   })
 })
 
@@ -17,6 +21,10 @@ describe('fullTimestamp', () => {
     expect(fullTimestamp(NOW, 'en')).toMatch(/2026/)
     expect(fullTimestamp(NOW, 'pt-BR')).toMatch(/2026/)
     expect(fullTimestamp(NOW, 'zh-CN')).toContain('2026')
+    expect(fullTimestamp(NOW, 'es')).toMatch(/2026/)
+    expect(fullTimestamp(NOW, 'fr')).toMatch(/2026/)
+    expect(fullTimestamp(NOW, 'de')).toMatch(/2026/)
+    expect(fullTimestamp(NOW, 'ja')).toMatch(/2026\/11\/12/)
   })
 })
 
@@ -26,6 +34,10 @@ describe('relativeTime', () => {
     expect(relativeTime(earlier, 'en')).toMatch(/ago/)
     expect(relativeTime(earlier, 'pt-BR')).toMatch(/há/)
     expect(relativeTime(earlier, 'zh-CN')).toContain('前')
+    expect(relativeTime(earlier, 'es')).toMatch(/hace/)
+    expect(relativeTime(earlier, 'fr')).toMatch(/il y a/)
+    expect(relativeTime(earlier, 'de')).toMatch(/vor/)
+    expect(relativeTime(earlier, 'ja')).toContain('前')
   })
 
   it('accepts a numeric timestamp like the old date-fns calls did', () => {

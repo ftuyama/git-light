@@ -27,7 +27,7 @@ Git Light is a lightweight app for browsing history, managing branches, staging 
 - Git output log for every command
 - Clone / init / folder discovery, embedded terminal panel at the repo root (⌘J)
 - Themes (built-in palettes plus a custom palette with user-picked colors), adjustable font size, Basic/Advanced UI mode, resizable layout + auto-refresh
-- Interface in English, Portuguese (Brazil) and Simplified Chinese — follows your OS language, switchable in Settings
+- Interface in English, Portuguese (Brazil), Simplified Chinese, Spanish, French, German and Japanese — follows your OS language, switchable in Settings
 - LFS support, auto-update check, Open on GitHub
 
 ## Screenshots
@@ -121,7 +121,7 @@ Apple Silicon (arm64) is fully supported. Intel Macs are not supported by the cu
 That is Gatekeeper reacting to an ad-hoc signature, not a broken download — see [macOS Gatekeeper note](#macos-gatekeeper-note).
 
 **Which languages are supported?**
-English, Portuguese (Brazil) and Simplified Chinese. The UI follows your OS language and can be switched in Settings.
+English, Portuguese (Brazil), Simplified Chinese, Spanish, French, German and Japanese. The UI follows your OS language and can be switched in Settings.
 
 ## For developers
 

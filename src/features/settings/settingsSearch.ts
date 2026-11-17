@@ -121,7 +121,17 @@ const BASE_ENTRIES: SearchEntrySource[] = [
     labelKey: 'settings.language.title',
     descriptionKey: 'settings.language.description',
     anchor: 'settings-language',
-    keywords: ['locale', 'translation', 'english', 'portuguese', 'chinese'],
+    keywords: [
+      'locale',
+      'translation',
+      'english',
+      'portuguese',
+      'chinese',
+      'spanish',
+      'french',
+      'german',
+      'japanese',
+    ],
   },
   {
     id: 'left-sidebar',

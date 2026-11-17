@@ -7,7 +7,7 @@
  * as `format.ts` needs it synchronously; `src/locales/index.ts` registers the
  * applier that actually swaps the vue-i18n messages and `<html lang>`.
  */
-export const APP_LOCALES = ['en', 'pt-BR', 'zh-CN'] as const
+export const APP_LOCALES = ['en', 'pt-BR', 'zh-CN', 'es', 'fr', 'de', 'ja'] as const
 
 export type AppLocale = (typeof APP_LOCALES)[number]
 
@@ -18,6 +18,10 @@ export const LOCALE_LABELS: Record<AppLocale, string> = {
   en: 'English',
   'pt-BR': 'Português (Brasil)',
   'zh-CN': '简体中文',
+  es: 'Español',
+  fr: 'Français',
+  de: 'Deutsch',
+  ja: '日本語',
 }
 
 export function isAppLocale(value: unknown): value is AppLocale {
@@ -38,6 +42,13 @@ export function normalizeLocale(raw: string | null | undefined): AppLocale | nul
   // Simplified Chinese: zh, zh-CN, zh-Hans, zh-SG. Traditional (zh-TW/HK/Hant)
   // is a different catalog we do not ship yet, so it falls through.
   if (tag === 'zh' || tag === 'zh-cn' || tag === 'zh-hans' || tag === 'zh-sg') return 'zh-CN'
+  // Spanish reads the same across regional variants (es-419, es-MX, …).
+  if (tag === 'es' || tag.startsWith('es-')) return 'es'
+  // French: fr, fr-FR, fr-CA, … all read fine in the single catalog.
+  if (tag === 'fr' || tag.startsWith('fr-')) return 'fr'
+  // German: de, de-DE, de-AT, de-CH, …
+  if (tag === 'de' || tag.startsWith('de-')) return 'de'
+  if (tag === 'ja' || tag.startsWith('ja-')) return 'ja'
   return null
 }
 

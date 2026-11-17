@@ -20,7 +20,7 @@ describe('isAppLocale', () => {
   })
 
   it('rejects unknown or non-string values', () => {
-    expect(isAppLocale('fr')).toBe(false)
+    expect(isAppLocale('it')).toBe(false)
     expect(isAppLocale('en-US')).toBe(false)
     expect(isAppLocale(null)).toBe(false)
     expect(isAppLocale(undefined)).toBe(false)
@@ -51,8 +51,32 @@ describe('normalizeLocale', () => {
     expect(normalizeLocale('zh-Hant')).toBeNull()
   })
 
+  it('maps Spanish variants', () => {
+    expect(normalizeLocale('es')).toBe('es')
+    expect(normalizeLocale('es-ES')).toBe('es')
+    expect(normalizeLocale('es-419')).toBe('es')
+  })
+
+  it('maps French variants', () => {
+    expect(normalizeLocale('fr')).toBe('fr')
+    expect(normalizeLocale('fr-FR')).toBe('fr')
+    expect(normalizeLocale('fr-CA')).toBe('fr')
+  })
+
+  it('maps German variants', () => {
+    expect(normalizeLocale('de')).toBe('de')
+    expect(normalizeLocale('de-DE')).toBe('de')
+    expect(normalizeLocale('de-AT')).toBe('de')
+    expect(normalizeLocale('de-CH')).toBe('de')
+  })
+
+  it('maps Japanese variants', () => {
+    expect(normalizeLocale('ja')).toBe('ja')
+    expect(normalizeLocale('ja-JP')).toBe('ja')
+  })
+
   it('returns null for unsupported or empty input', () => {
-    expect(normalizeLocale('fr-FR')).toBeNull()
+    expect(normalizeLocale('it-IT')).toBeNull()
     expect(normalizeLocale('')).toBeNull()
     expect(normalizeLocale(null)).toBeNull()
     expect(normalizeLocale(undefined)).toBeNull()

@@ -66,10 +66,11 @@ Notes:
 
 ## Translations (i18n)
 
-The UI ships in English (`en`), Brazilian Portuguese (`pt-BR`) and Simplified
-Chinese (`zh-CN`) through `vue-i18n` in Composition API mode. The language is a
-normal preference; when unset the app follows the OS locale (`plugin-os`), then
-the browser locale, then English.
+The UI ships in English (`en`), Brazilian Portuguese (`pt-BR`), Simplified
+Chinese (`zh-CN`), Spanish (`es`), French (`fr`), German (`de`) and Japanese
+(`ja`) through `vue-i18n` in Composition API mode. The language is a normal
+preference; when unset the app follows the OS locale (`plugin-os`), then the
+browser locale, then English.
 
 - Messages live in `src/locales/<locale>/<domain>.json`, one file per feature
   domain, so a feature can be translated without touching the others.
@@ -88,7 +89,11 @@ the browser locale, then English.
 
 Adding a language: copy `src/locales/en/` to `src/locales/<code>/`, add the code
 to `APP_LOCALES` in `src/lib/locales.ts`, add its native label to
-`LOCALE_LABELS`, and map its `date-fns` locale in `src/lib/format.ts`.
+`LOCALE_LABELS`, add its BCP-47 prefixes to `normalizeLocale()` in the same file,
+add its `date-fns` locale to `DATE_FNS_LOCALES` in `src/lib/format.ts`, and add
+the language names to the `language` keywords in
+`src/features/settings/settingsSearch.ts`. Languages without plurals (ja,
+zh-CN) use a single form instead of `singular | plural`.
 
 ## Architecture
 
