@@ -14,7 +14,7 @@
     "node": ">=20"
   },
   "resolutions": {
-    "vite": "^7.3.6"
+    "vite": "^8.3.8"
   },
   "scripts": {
     "dev": "tauri dev",
@@ -25,8 +25,8 @@
     "dist:tauri": "tauri build",
     "rust:check": "cargo check --manifest-path src-tauri/Cargo.toml",
     "rust:clippy": "cargo clippy --manifest-path src-tauri/Cargo.toml -- -D warnings",
-    "rust:fmt": "cargo fmt",
-    "rust:fmt:check": "cargo fmt --check",
+    "rust:fmt": "cargo fmt --manifest-path src-tauri/Cargo.toml",
+    "rust:fmt:check": "cargo fmt --manifest-path src-tauri/Cargo.toml --check",
     "rust:test": "cargo test --manifest-path src-tauri/Cargo.toml",
     "check": "npm run typecheck && npm run test && npm run sync-version -- --check && npm run rust:clippy && npm run rust:fmt:check",
     "build": "vite build",
@@ -44,33 +44,35 @@
   },
   "devDependencies": {
     "@faker-js/faker": "^10.6.0",
-    "@lucide/vue": "^1.58.0",
-    "@tailwindcss/vite": "^4.3.3",
-    "@tanstack/vue-virtual": "^3.13.47",
-    "@tauri-apps/cli": "^2.12.3",
-    "@types/node": "^26.6.5",
-    "@vitejs/plugin-vue": "^6.0.10",
+    "@lucide/vue": "^1.74.0",
+    "@tailwindcss/vite": "^4.3.5",
+    "@tanstack/vue-virtual": "^3.13.52",
+    "@tauri-apps/cli": "^2.12.5",
+    "@types/node": "^26.6.6",
+    "@vitejs/plugin-vue": "^6.0.11",
     "clsx": "^2.1.1",
     "date-fns": "^4.4.0",
     "highlight.js": "^11.12.0",
-    "motion-v": "^2.8.0",
-    "pinia": "^3.0.4",
+    "motion-v": "^2.12.0",
+    "pinia": "^4.1.0",
     "reka-ui": "^2.11.0",
     "splitpanes": "^4.1.2",
     "tailwind-merge": "^3.7.0",
-    "tailwindcss": "^4.3.3",
+    "tailwindcss": "^4.3.5",
     "typescript": "^6.0.3",
-    "vite": "^7.3.7",
-    "vitest": "^4.1.9",
-    "vue": "^3.5.44",
-    "vue-tsc": "^3.3.13"
+    "vite": "^8.3.8",
+    "vitest": "^5.1.0",
+    "vue": "^3.5.45",
+    "vue-tsc": "^3.3.14"
   },
   "dependencies": {
-    "@tauri-apps/api": "^2.12.4",
-    "@tauri-apps/plugin-dialog": "^2.8.3",
-    "@tauri-apps/plugin-opener": "^2.7.2",
+    "@tauri-apps/api": "^2.12.5",
+    "@tauri-apps/plugin-dialog": "^2.8.4",
+    "@tauri-apps/plugin-opener": "^2.7.3",
     "@tauri-apps/plugin-os": "^2.4.0",
+    "@xterm/addon-fit": "^0.11.0",
+    "@xterm/xterm": "^6.0.0",
     "file-icons-js": "^1.1.0",
-    "vue-i18n": "^11.4.19"
+    "vue-i18n": "^11.4.21"
   }
 }

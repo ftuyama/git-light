@@ -7,8 +7,8 @@ import tailwindcss from '@tailwindcss/vite'
 export default defineConfig({
   resolve: {
     alias: {
-      '@': resolve(__dirname, 'src'),
-      '@shared': resolve(__dirname, 'shared'),
+      '@': resolve(import.meta.dirname, 'src'),
+      '@shared': resolve(import.meta.dirname, 'shared'),
     },
   },
   plugins: [vue(), tailwindcss()],
