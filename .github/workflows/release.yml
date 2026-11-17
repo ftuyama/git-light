@@ -67,7 +67,7 @@ jobs:
         if: matrix.platform == 'ubuntu-22.04'
         run: |
           sudo apt-get update
-          sudo apt-get install -y --no-install-recommends libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf xdg-utils
+          sudo apt-get install -y --no-install-recommends libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf xdg-utils zsync
 
       - uses: actions/setup-node@v4
         with:
@@ -85,6 +85,14 @@ jobs:
 
       - run: npm ci --no-audit --no-fund
 
+      # linuxdeploy's AppImage plugin reads this: it embeds the update string in
+      # the AppImage and writes the matching .zsync next to it. `latest` (not the
+      # version tag) keeps update checks pointed at the newest stable release.
+      - name: AppImage update information
+        if: matrix.platform == 'ubuntu-22.04'
+        run: |
+          echo "LDAI_UPDATE_INFORMATION=gh-releases-zsync|${GITHUB_REPOSITORY_OWNER}|${GITHUB_REPOSITORY#*/}|latest|Git.Light_*_amd64.AppImage.zsync" >> "$GITHUB_ENV"
+
       - uses: tauri-apps/tauri-action@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -95,6 +103,16 @@ jobs:
           releaseDraft: false
           prerelease: false
           args: ${{ matrix.args }}
+
+      # tauri-action uploads only its own artifact list, which has no .zsync.
+      - name: Upload AppImage zsync
+        if: matrix.platform == 'ubuntu-22.04'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          gh release upload "$TAG" src-tauri/target/release/bundle/appimage/*.AppImage.zsync \
+            --repo "$GITHUB_REPOSITORY" --clobber
 
   # Replace the tauri-action placeholder body with a real changelog. The in-app
   # "What's new" dialog renders this release body, so keep it meaningful.
