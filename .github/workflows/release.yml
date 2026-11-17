@@ -45,8 +45,35 @@ jobs:
       - run: cargo test --manifest-path src-tauri/Cargo.toml
       - run: cargo clippy --manifest-path src-tauri/Cargo.toml -- -D warnings
 
-  build:
+  # Create the release once, before the matrix builds. tauri-action creates the
+  # release itself when it cannot find one, so parallel matrix jobs race: the
+  # loser gets "Validation Failed: already_exists" and its assets are never
+  # uploaded (that is how v1.3.0 lost the macOS DMG). With the release already
+  # in place every job finds it and only uploads assets.
+  prepare-release:
     needs: [verify]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Create the GitHub release if missing
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            echo "release $TAG already exists"
+            exit 0
+          fi
+          gh release create "$TAG" \
+            --repo "$GITHUB_REPOSITORY" \
+            --title "Git Light $TAG" \
+            --notes "See the assets to download this version and install." \
+            --verify-tag
+
+  build:
+    needs: [verify, prepare-release]
     permissions:
       contents: write
     strategy:
