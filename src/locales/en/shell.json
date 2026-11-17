@@ -22,6 +22,15 @@
     "exitCode": "exit {code}",
     "noCommand": "no command captured"
   },
+  "terminal": {
+    "title": "Terminal",
+    "starting": "starting…",
+    "clear": "Clear terminal",
+    "openExternal": "Open in system terminal",
+    "close": "Close terminal",
+    "desktopOnly": "The embedded terminal is available in the desktop app.",
+    "exited": "[process exited]"
+  },
   "skeleton": {
     "opening": "Opening {name}…",
     "fallbackName": "repository"
@@ -127,7 +136,7 @@
     "more": "More actions",
     "commandPalette": "Command palette",
     "search": "Search",
-    "openTerminal": "Open Terminal",
+    "openTerminal": "Toggle Terminal",
     "refresh": "Refresh",
     "captionCommand": "Cmd",
     "captionTerminal": "Term",

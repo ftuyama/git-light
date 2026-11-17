@@ -14,7 +14,7 @@
   "push": "推送",
   "undo": "撤销上一步操作",
   "redo": "重做操作",
-  "openTerminal": "打开系统终端",
+  "openTerminal": "切换终端",
   "toggleLeftSidebar": "切换左侧边栏",
   "graphZoomIn": "放大提交图",
   "graphZoomOut": "缩小提交图",

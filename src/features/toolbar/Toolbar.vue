@@ -34,6 +34,7 @@ import type { MenuItem } from '@/components/ui/menu'
 import { useRepositoryStore } from '@/stores/repository'
 import { useInteractiveRebaseStore } from '@/stores/interactiveRebase'
 import { useSelectionStore } from '@/stores/selection'
+import { useTerminalStore } from '@/stores/terminal'
 import { useUiStore } from '@/stores/ui'
 import type { GitActionKind } from '@/types/git'
 import { formatBindings } from '@/lib/keybindings'
@@ -42,6 +43,7 @@ const repo = useRepositoryStore()
 const { repoMenu } = useRepoMenu()
 const selection = useSelectionStore()
 const interactiveRebase = useInteractiveRebaseStore()
+const terminalStore = useTerminalStore()
 const ui = useUiStore()
 const { t } = useI18n()
 
@@ -224,7 +226,7 @@ const moreMenu = computed<MenuItem[]>(() => {
         :icon="Terminal"
         :label="$t('shell.toolbar.openTerminal')"
         :shortcut="terminalShortcut"
-        @click="run('open-terminal')"
+        @click="terminalStore.toggle()"
       />
       <IconButton :caption="$t('shell.toolbar.refresh')" :icon="RotateCw" :label="$t('shell.toolbar.refresh')" :shortcut="refreshShortcut" :busy="isBusy('refresh')" @click="run('refresh')" />
     </div>

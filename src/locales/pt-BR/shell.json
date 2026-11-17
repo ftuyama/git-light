@@ -22,6 +22,15 @@
     "exitCode": "código de saída {code}",
     "noCommand": "nenhum comando capturado"
   },
+  "terminal": {
+    "title": "Terminal",
+    "starting": "iniciando…",
+    "clear": "Limpar terminal",
+    "openExternal": "Abrir no terminal do sistema",
+    "close": "Fechar terminal",
+    "desktopOnly": "O terminal integrado está disponível no aplicativo de desktop.",
+    "exited": "[processo encerrado]"
+  },
   "skeleton": {
     "opening": "Abrindo {name}…",
     "fallbackName": "repositório"
@@ -127,7 +136,7 @@
     "more": "Mais ações",
     "commandPalette": "Paleta de comandos",
     "search": "Buscar",
-    "openTerminal": "Abrir terminal",
+    "openTerminal": "Alternar terminal",
     "refresh": "Atualizar",
     "captionCommand": "Cmd",
     "captionTerminal": "Term",

@@ -7,6 +7,7 @@ mod image;
 mod log;
 mod refs;
 mod repos;
+mod terminal;
 mod watcher;
 
 use serde::Serialize;
@@ -1212,6 +1213,7 @@ async fn git_get_rebase_commits(
 fn main() {
     tauri::Builder::default()
         .manage(AppState::default())
+        .manage(terminal::TerminalState::default())
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_os::init())
@@ -1234,6 +1236,10 @@ fn main() {
             git_remove_recent,
             git_reveal_path,
             git_open_terminal_external,
+            terminal::terminal_open,
+            terminal::terminal_write,
+            terminal::terminal_resize,
+            terminal::terminal_close,
             git_get_diff,
             git_get_image_preview,
             git_get_blame,

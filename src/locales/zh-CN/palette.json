@@ -26,7 +26,8 @@
     "lfsPrune": "清理 Git LFS 对象",
     "stageAll": "暂存所有更改",
     "search": "搜索提交和文件…",
-    "terminal": "打开系统终端",
+    "terminal": "切换终端",
+    "terminalExternal": "打开系统终端",
     "sidebarLeft": "切换左侧边栏",
     "sidebarRight": "切换右侧边栏",
     "settings": "打开设置…"

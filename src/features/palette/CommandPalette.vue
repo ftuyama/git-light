@@ -6,10 +6,12 @@ import SearchInput from '@/components/ui/SearchInput.vue'
 import { filterCommands, type PaletteCommand } from '@/lib/commands'
 import { useInteractiveRebaseStore } from '@/stores/interactiveRebase'
 import { useRepositoryStore } from '@/stores/repository'
+import { useTerminalStore } from '@/stores/terminal'
 import { useUiStore } from '@/stores/ui'
 
 const { t } = useI18n()
 const repo = useRepositoryStore()
+const terminalStore = useTerminalStore()
 const ui = useUiStore()
 const interactiveRebase = useInteractiveRebaseStore()
 
@@ -43,7 +45,8 @@ const allCommands = computed<PaletteCommand[]>(() => {
     { id: 'lfs-prune', title: t('palette.commands.lfsPrune'), keywords: 'large files binary clean', run: () => repo.lfsPrune() },
     { id: 'stage-all', title: t('palette.commands.stageAll'), keywords: 'add index', run: () => repo.runAction({ kind: 'stage-all' }) },
     { id: 'search', title: t('palette.commands.search'), keywords: 'find grep', run: () => repo.openSearch() },
-    { id: 'terminal', title: t('palette.commands.terminal'), keywords: 'shell cli console', run: () => repo.runAction({ kind: 'open-terminal' }) },
+    { id: 'terminal', title: t('palette.commands.terminal'), keywords: 'shell cli console dock panel', run: () => terminalStore.toggle() },
+    { id: 'terminal-external', title: t('palette.commands.terminalExternal'), keywords: 'shell cli console system', run: () => repo.runAction({ kind: 'open-terminal' }) },
     { id: 'sidebar-left', title: t('palette.commands.sidebarLeft'), keywords: 'branches panel view', run: () => ui.toggleLeft() },
     { id: 'sidebar-right', title: t('palette.commands.sidebarRight'), keywords: 'working tree panel view', run: () => ui.toggleRight() },
     { id: 'settings', title: t('palette.commands.settings'), keywords: 'preferences appearance theme', run: () => ui.openSettings() },

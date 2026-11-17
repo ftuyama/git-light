@@ -14,7 +14,7 @@
   "push": "Push",
   "undo": "Desfazer última operação",
   "redo": "Refazer operação",
-  "openTerminal": "Abrir terminal do sistema",
+  "openTerminal": "Alternar terminal",
   "toggleLeftSidebar": "Alternar barra lateral esquerda",
   "graphZoomIn": "Aumentar zoom do grafo",
   "graphZoomOut": "Diminuir zoom do grafo",

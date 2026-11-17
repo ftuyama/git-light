@@ -35,6 +35,7 @@ import { useSelectionStore } from '@/stores/selection'
 import { useRepositoryStore } from '@/stores/repository'
 import { useRepoDiffStore } from '@/stores/repoDiff'
 import { useRepoTabsStore } from '@/stores/repoTabs'
+import { useTerminalStore } from '@/stores/terminal'
 import {
   closeActiveRepositoryTab as closeActiveTab,
   reopenClosedRepositoryTab as reopenTab,
@@ -54,6 +55,7 @@ const repo = useRepositoryStore()
 const selection = useSelectionStore()
 const diffStore = useRepoDiffStore()
 const tabsStore = useRepoTabsStore()
+const terminalStore = useTerminalStore()
 const graphZoom = useCommitGraphZoom()
 const { leftSize, rightSize, leftCollapsed, rightCollapsed, leftCollapseHint, rightCollapseHint, suppressPaneAnimation } =
   storeToRefs(ui)
@@ -201,7 +203,7 @@ const dynamicShortcuts = computed<ShortcutHandler[]>(() => {
   push('focusSidebarSearch', () => branchSidebar.value?.focusSearch())
   push('globalSearch', () => repo.openSearch())
   push('commandPalette', () => ui.toggleCommandPalette())
-  push('openTerminal', () => void repo.runAction({ kind: 'open-terminal' }))
+  push('openTerminal', () => terminalStore.toggle())
   push('refresh', () => void repo.runAction({ kind: 'refresh' }))
   push('pull', () => void repo.runAction({ kind: 'pull' }))
   push('push', () => void repo.runAction({ kind: 'push' }))

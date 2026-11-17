@@ -26,7 +26,8 @@
     "lfsPrune": "Limpar objetos do Git LFS",
     "stageAll": "Preparar todas as alterações",
     "search": "Buscar commits e arquivos…",
-    "terminal": "Abrir terminal do sistema",
+    "terminal": "Alternar terminal",
+    "terminalExternal": "Abrir terminal do sistema",
     "sidebarLeft": "Alternar barra lateral esquerda",
     "sidebarRight": "Alternar barra lateral direita",
     "settings": "Abrir configurações…"

@@ -26,7 +26,8 @@
     "lfsPrune": "Prune Git LFS Objects",
     "stageAll": "Stage All Changes",
     "search": "Search Commits and Files…",
-    "terminal": "Open System Terminal",
+    "terminal": "Toggle Terminal",
+    "terminalExternal": "Open System Terminal",
     "sidebarLeft": "Toggle Left Sidebar",
     "sidebarRight": "Toggle Right Sidebar",
     "settings": "Open Settings…"

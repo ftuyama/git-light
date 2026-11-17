@@ -22,6 +22,15 @@
     "exitCode": "退出码 {code}",
     "noCommand": "未捕获命令"
   },
+  "terminal": {
+    "title": "终端",
+    "starting": "启动中…",
+    "clear": "清空终端",
+    "openExternal": "在系统终端中打开",
+    "close": "关闭终端",
+    "desktopOnly": "内置终端仅在桌面应用中可用。",
+    "exited": "[进程已退出]"
+  },
   "skeleton": {
     "opening": "正在打开 {name}…",
     "fallbackName": "仓库"
@@ -127,7 +136,7 @@
     "more": "更多操作",
     "commandPalette": "命令面板",
     "search": "搜索",
-    "openTerminal": "打开终端",
+    "openTerminal": "切换终端",
     "refresh": "刷新",
     "captionCommand": "Cmd",
     "captionTerminal": "终端",

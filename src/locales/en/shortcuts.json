@@ -14,7 +14,7 @@
   "push": "Push",
   "undo": "Undo last operation",
   "redo": "Redo operation",
-  "openTerminal": "Open system terminal",
+  "openTerminal": "Toggle terminal",
   "toggleLeftSidebar": "Toggle left sidebar",
   "graphZoomIn": "Zoom in commit graph",
   "graphZoomOut": "Zoom out commit graph",

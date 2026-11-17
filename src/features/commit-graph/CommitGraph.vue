@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
+import { computed, defineAsyncComponent, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { Pane, Splitpanes, type SplitpanesResizedPayload } from 'splitpanes'
 import { GitCommitHorizontal, Inbox, Settings } from '@lucide/vue'
 import CommitRow from './CommitRow.vue'
 import PendingChangesRow from './PendingChangesRow.vue'
@@ -9,9 +10,17 @@ import CommitGraphHeaderCell from './CommitGraphHeaderCell.vue'
 import Avatar from '@/components/ui/Avatar.vue'
 import DropdownMenu from '@/components/ui/DropdownMenu.vue'
 import { useRepoDiffStore } from '@/stores/repoDiff'
+import {
+  TERMINAL_MAX_HEIGHT,
+  TERMINAL_MIN_HEIGHT,
+  useTerminalStore,
+} from '@/stores/terminal'
 import ConflictPanel from '@/features/conflicts/ConflictPanel.vue'
 import ConflictWarningBar from './ConflictWarningBar.vue'
 import DiffPanel from '@/features/diff/DiffPanel.vue'
+
+// xterm is only pulled in when the terminal dock is first opened.
+const TerminalPanel = defineAsyncComponent(() => import('@/features/terminal/TerminalPanel.vue'))
 import {
   ROW_LEFT_PADDING,
   useCommitGraphColumns,
@@ -31,7 +40,17 @@ import { buildTimeMarkers } from '@/lib/graph/timeMarkers'
 
 const { t } = useI18n()
 const diffStore = useRepoDiffStore()
+const terminalStore = useTerminalStore()
 const ui = useUiStore()
+
+/** Share the center column between the graph and the terminal dock. */
+const graphPaneSize = computed(() => (terminalStore.open ? 100 - terminalStore.height : 100))
+
+function onTerminalResized(payload: SplitpanesResizedPayload): void {
+  if (!terminalStore.open) return
+  const size = payload.panes[1]?.size
+  if (size != null) terminalStore.setHeight(size)
+}
 /** Width of the body's vertical scrollbar, reserved on the header side too. */
 const scrollbarWidth = ref(0)
 const { repo, showLoading, hasPendingRow, headIndex, pendingRowSelected } = useCommitGraphState()
@@ -198,8 +217,12 @@ function checkoutCommitAt(commitIndex: number, event?: Event): void {
 
 <template>
   <div class="flex h-full min-w-0 flex-col bg-[var(--color-app)]">
-    <div class="graph-terminal-split min-h-0 flex-1">
-      <div class="h-full">
+    <Splitpanes
+      horizontal
+      class="graph-terminal-split min-h-0 flex-1"
+      @resized="onTerminalResized"
+    >
+      <Pane :size="graphPaneSize" :min-size="30">
         <div class="flex h-full min-w-0 flex-col bg-[var(--color-app)]">
           <div v-show="!diffStore.selectedFilePath" class="flex min-h-0 flex-1 flex-col">
     <!-- Column header -->
@@ -528,7 +551,15 @@ function checkoutCommitAt(commitIndex: number, event?: Event): void {
           <ConflictPanel v-if="diffStore.selectedFileIsConflicted" />
           <DiffPanel v-else-if="diffStore.panelMode === 'diff'" />
         </div>
-      </div>
-    </div>
+      </Pane>
+      <Pane
+        v-if="terminalStore.open"
+        :size="terminalStore.height"
+        :min-size="TERMINAL_MIN_HEIGHT"
+        :max-size="TERMINAL_MAX_HEIGHT"
+      >
+        <TerminalPanel />
+      </Pane>
+    </Splitpanes>
   </div>
 </template>
