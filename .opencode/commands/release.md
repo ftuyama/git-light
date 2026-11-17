@@ -6,9 +6,11 @@ description: Bump version, verify, commit, and tag a release
 
 Bump the semver in `package.json`, verify the tree, commit all pending changes, and create an annotated git tag.
 
-## Phase 1 — Refresh screenshots (mandatory)
+## Phase 1 — Refresh screenshots (only if the UI changed)
 
-`docs/screenshot.png` is the hero image shared by `README.md` and the landing page; both also embed the gallery in `docs/screenshots/`. Regenerate **every** asset on each release:
+`docs/screenshot.png` is the hero image shared by `README.md` and the landing page; both also embed the gallery in `docs/screenshots/`. Refresh them **only when the application changed visually since the last release** (layout, styling, panels, copy shown in the views below). For release-only changes such as version bumps, translations of strings not in these views, docs, CI or dependency updates, keep the existing assets untouched.
+
+If a refresh is needed, regenerate **every** asset so the set stays consistent:
 
 1. Run the mock UI with the AwesomeShop repo so every capture is reproducible:
 
@@ -31,7 +33,7 @@ Bump the semver in `package.json`, verify the tree, commit all pending changes, 
 
 4. If the visible UI changed, sync the `README.md` hero caption and gallery captions, plus the `hero.screenshotTitle`, `hero.screenshotAlt` and `gallery.*` keys in every `site/locales/*.json`, then run `npm run site:build`.
 
-Run `/update-docs` first if other documentation is not yet synced with the codebase — the screenshots themselves are not optional.
+Run `/update-docs` first if other documentation is not yet synced with the codebase. Screenshots are only part of the release when the visible UI changed.
 
 ## Input
 
@@ -125,7 +127,7 @@ git tag -a vX.Y.Z -m "Release vX.Y.Z"
 
 ## Response checklist
 
-- [ ] `docs/screenshot.png` and all four gallery assets in `docs/screenshots/` refreshed at 1440×900 (+ README captions and landing page alt/titlebar/gallery copy synced if UI changed)
+- [ ] Screenshots at 1440×900 refreshed **only if the UI changed visually** (`docs/screenshot.png` + all four gallery assets; README captions and landing page alt/titlebar/gallery copy synced alongside); otherwise the existing assets are kept
 - [ ] Version bumped in `package.json`
 - [ ] `npm run sync-version` run (`package-lock.json`, `docs/llms.txt`, `src-tauri/Cargo.toml`, `src-tauri/tauri.conf.json` match; `docs/` site regenerated)
 - [ ] `npm run typecheck`, `npm run test`, `cargo clippy`, `cargo fmt --check` pass
