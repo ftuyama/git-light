@@ -1,0 +1,68 @@
+{
+  "panel": {
+    "closeFile": "Fermer le fichier",
+    "diffView": "Vue des différences",
+    "blameView": "Vue blame",
+    "diff": "Différences",
+    "blame": "Blame",
+    "unified": "Différences unifiées",
+    "split": "Différences côte à côte",
+    "ignoreWhitespace": "Ignorer les espaces en début et fin de ligne",
+    "wordWrap": "Retour à la ligne automatique",
+    "loading": "Chargement des différences…",
+    "tooLarge": "Le fichier est trop volumineux pour afficher les différences dans l’interface.",
+    "binary": "Fichier binaire — aucune différence textuelle disponible."
+  },
+  "stage": {
+    "stage": "Indexer",
+    "unstage": "Désindexer",
+    "stageHunk": "Indexer le bloc",
+    "unstageHunk": "Désindexer le bloc",
+    "stageLine": "Indexer la ligne",
+    "unstageLine": "Désindexer la ligne"
+  },
+  "discard": {
+    "discardHunk": "Annuler le bloc",
+    "discardLine": "Annuler la ligne"
+  },
+  "blame": {
+    "loading": "Chargement du blame…",
+    "empty": "Aucune information de blame disponible pour ce fichier.",
+    "wordWrap": "Retour à la ligne automatique",
+    "wordWrapAria": "Retour à la ligne automatique dans la vue blame"
+  },
+  "history": {
+    "title": "Historique du fichier",
+    "loading": "Chargement de l’historique…",
+    "empty": "Aucun commit trouvé pour ce fichier."
+  },
+  "image": {
+    "loading": "Chargement de l’aperçu de l’image…",
+    "failed": "Impossible de charger l’aperçu de l’image.",
+    "tooLarge": "L’image est trop volumineuse pour être prévisualisée dans l’interface.",
+    "unavailable": "L’aperçu de l’image n’est pas disponible pour cette modification.",
+    "added": "Ajoutée",
+    "before": "Avant",
+    "after": "Après",
+    "deleted": "Supprimée",
+    "beforeAlt": "Avant : {path}",
+    "afterAlt": "Après : {path}",
+    "noPrevious": "Aucune version précédente (fichier ajouté).",
+    "noCurrent": "Aucune version actuelle (fichier supprimé).",
+    "zoomIn": "Zoom avant",
+    "zoomOut": "Zoom arrière",
+    "resetZoom": "Réinitialiser le zoom",
+    "collapse": "Réduire",
+    "backToSideBySide": "Revenir à la vue côte à côte",
+    "expand": "Cliquer pour agrandir",
+    "hint": "Faites défiler pour zoomer · faites glisser pour déplacer · double-cliquez pour basculer · Échap pour réduire"
+  },
+  "toast": {
+    "commitFilesFailed": "Impossible de charger les fichiers du commit : {detail}",
+    "compareFailed": "Impossible de comparer les commits : {detail}",
+    "diffFailed": "Impossible de charger les différences : {detail}",
+    "blameFailed": "Impossible de charger le blame : {detail}",
+    "historyFailed": "Impossible de charger l’historique du fichier : {detail}",
+    "conflictFailed": "Impossible de charger le conflit : {detail}"
+  }
+}

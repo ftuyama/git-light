@@ -1,0 +1,59 @@
+{
+  "actions": {
+    "cancel": "Annuler",
+    "close": "Fermer",
+    "save": "Enregistrer",
+    "delete": "Supprimer",
+    "remove": "Retirer",
+    "rename": "Renommer",
+    "copy": "Copier",
+    "copied": "Copié",
+    "retry": "Réessayer",
+    "refresh": "Actualiser",
+    "open": "Ouvrir",
+    "apply": "Appliquer",
+    "discard": "Abandonner",
+    "confirm": "Confirmer",
+    "create": "Créer",
+    "edit": "Modifier",
+    "add": "Ajouter",
+    "select": "Sélectionner",
+    "search": "Rechercher",
+    "clear": "Effacer",
+    "learnMore": "En savoir plus",
+    "showMore": "Afficher plus",
+    "showLess": "Afficher moins"
+  },
+  "labels": {
+    "author": "Auteur",
+    "date": "Date",
+    "message": "Message",
+    "path": "Chemin",
+    "branch": "Branche",
+    "tag": "Étiquette",
+    "commit": "Commit",
+    "repository": "Dépôt",
+    "remote": "Distant",
+    "stash": "Stash",
+    "worktree": "Worktree",
+    "changes": "Modifications",
+    "conflict": "Conflit",
+    "file": "Fichier",
+    "yes": "Oui",
+    "no": "Non"
+  },
+  "state": {
+    "loading": "Chargement…",
+    "empty": "Rien à afficher ici",
+    "error": "Une erreur est survenue",
+    "unknown": "Inconnu",
+    "upToDate": "À jour"
+  },
+  "count": {
+    "commits": "{count} commit | {count} commits",
+    "files": "{count} fichier | {count} fichiers",
+    "changes": "{count} modification | {count} modifications",
+    "conflicts": "{count} conflit | {count} conflits",
+    "branches": "{count} branche | {count} branches"
+  }
+}

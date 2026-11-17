@@ -1,0 +1,71 @@
+{
+  "sidebar": {
+    "hide": "Masquer la barre latérale gauche",
+    "searchPlaceholder": "Rechercher des branches",
+    "noMatches": "Aucune branche ne correspond à « {query} »",
+    "allHidden": "Tous les panneaux sont masqués — faites un clic droit pour afficher les panneaux"
+  },
+  "row": {
+    "dragHint": "Faites glisser sur une autre branche pour fusionner ou rebaser",
+    "pin": "Épingler la branche",
+    "unpin": "Désépingler la branche"
+  },
+  "menu": {
+    "checkout": "Checkout",
+    "checkoutLocal": "Checkout de la branche locale",
+    "deleteRemote": "Supprimer la branche distante",
+    "createHere": "Créer une branche ici",
+    "setUpstream": "Définir l’upstream",
+    "compareWithCurrent": "Comparer avec la branche actuelle",
+    "pin": "Épingler aux favoris",
+    "unpin": "Désépingler",
+    "deleteInFolder": "Supprimer {count} branche dans le dossier « {folder} » | Supprimer {count} branches dans le dossier « {folder} »",
+    "noneToDelete": "Aucune branche à supprimer"
+  },
+  "tags": {
+    "checkout": "Checkout de l’étiquette",
+    "deleteTag": "Supprimer l’étiquette",
+    "create": "Créer une étiquette"
+  },
+  "stashes": {
+    "pop": "Pop",
+    "drop": "Drop",
+    "summary": "sur {branch} · {count} fichier | sur {branch} · {count} fichiers"
+  },
+  "worktrees": {
+    "reveal": "Afficher dans le Finder",
+    "remove": "Supprimer le worktree",
+    "add": "Ajouter un worktree"
+  },
+  "favorites": {
+    "empty": "Épinglez des branches pour les voir ici"
+  },
+  "integrate": {
+    "title": "Intégrer des branches",
+    "description": "Choisissez comment intégrer {source} à {target}.",
+    "mergeTitle": "Fusionner dans la cible",
+    "mergeDescription": "Fusionner {source} dans {target}",
+    "mergeStrategy": "Stratégie de fusion",
+    "merge": "Fusionner avec la stratégie sélectionnée",
+    "rebaseTitle": "Rebaser sur la cible",
+    "rebaseDescription": "Rebaser {source} sur {target}"
+  },
+  "mergeModes": {
+    "default": {
+      "label": "Par défaut",
+      "description": "Avance rapide si possible, sinon crée un commit de fusion"
+    },
+    "ffOnly": {
+      "label": "Avance rapide uniquement",
+      "description": "Refuser la fusion sauf si une avance rapide est possible"
+    },
+    "noFf": {
+      "label": "Sans avance rapide",
+      "description": "Toujours créer un commit de fusion"
+    },
+    "squash": {
+      "label": "Squash",
+      "description": "Regrouper tous les commits de la branche source en un seul commit"
+    }
+  }
+}

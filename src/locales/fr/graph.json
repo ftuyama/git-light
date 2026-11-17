@@ -1,0 +1,134 @@
+{
+  "columns": {
+    "refs": "Branche / étiquette",
+    "graph": "Graphe",
+    "sha": "SHA",
+    "when": "Quand"
+  },
+  "showColumns": "Afficher les colonnes",
+  "columnMenu": {
+    "sha": "SHA",
+    "when": "Quand",
+    "timeIndicators": "Indicateurs temporels",
+    "mergeIndicators": "Indicateurs de fusion"
+  },
+  "empty": {
+    "title": "Aucun commit pour l’instant",
+    "body": "Faites votre premier commit pour voir l’historique apparaître ici."
+  },
+  "loadingMore": "Chargement de plus de commits…",
+  "commitRow": {
+    "hiddenRefs": "+{count} de plus",
+    "mergeCommit": "Commit de fusion"
+  },
+  "branchInput": {
+    "placeholder": "Saisissez le nom de la branche"
+  },
+  "commitMenu": {
+    "checkout": "Checkout du commit",
+    "createBranch": "Créer une branche ici",
+    "tag": "Étiqueter le commit",
+    "cherryPick": "Cherry-pick",
+    "revert": "Annuler le commit",
+    "mergeIntoCurrent": "Fusionner dans la branche actuelle",
+    "merge": "Fusionner",
+    "squashMerge": "Fusion squash",
+    "rebaseFromHere": "Rebaser à partir d’ici",
+    "interactiveRebase": "Rebase interactif à partir d’ici",
+    "resetToHere": "Réinitialiser la branche actuelle ici",
+    "resetSoft": "Doux",
+    "resetMixed": "Mixte",
+    "resetHard": "Dur",
+    "copySha": "Copier le SHA",
+    "openOnGithub": "Ouvrir sur GitHub"
+  },
+  "branchMenu": {
+    "checkout": "Checkout",
+    "checkoutLocal": "Checkout de la branche locale",
+    "createBranch": "Créer une branche ici",
+    "createWorktree": "Créer un worktree à partir de la branche",
+    "mergeIntoCurrent": "Fusionner dans la branche actuelle",
+    "rebaseCurrentOntoThis": "Rebaser la branche actuelle sur celle-ci",
+    "interactiveRebaseOntoThis": "Rebase interactif sur celle-ci…",
+    "cherryPickTip": "Cherry-pick du commit de tête",
+    "copyBranchName": "Copier le nom de la branche",
+    "copyTipSha": "Copier le SHA du commit de tête",
+    "copyCommitLink": "Copier le lien du commit sur GitHub",
+    "copyBranchLink": "Copier le lien de la branche sur GitHub",
+    "copy": "Copier",
+    "compareWithCurrent": "Comparer avec la branche actuelle",
+    "setUpstream": "Définir l’upstream…",
+    "rename": "Renommer…",
+    "pin": "Épingler aux favoris",
+    "unpin": "Désépingler des favoris",
+    "createTag": "Créer une étiquette ici…",
+    "deleteRemote": "Supprimer la branche distante",
+    "delete": "Supprimer la branche"
+  },
+  "stashMenu": {
+    "apply": "Appliquer le stash",
+    "pop": "Pop du stash",
+    "delete": "Supprimer le stash",
+    "editMessage": "Modifier le message du stash"
+  },
+  "stashRow": {
+    "wipOn": "WIP sur {branch}",
+    "wip": "WIP",
+    "unknownBase": "base inconnue",
+    "hint": "base {sha} · hors de la vue",
+    "hintWithSubject": "base {sha} · {subject} · hors de la vue",
+    "title": "Stash créé au-dessus de {base}. Ce commit n’est pas dans la fenêtre chargée (chargez plus de commits) ou a été réécrit par amend/rebase — dans ce cas, appliquez le stash manuellement sur le commit successeur.",
+    "titleWithSubject": "Stash créé au-dessus de {base}, « {subject} ». Ce commit n’est pas dans la fenêtre chargée (chargez plus de commits) ou a été réécrit par amend/rebase — dans ce cas, appliquez le stash manuellement sur le commit successeur.",
+    "boxTitleNoBase": "Stash (base inconnue)",
+    "boxTitle": "Stash au-dessus de {sha}",
+    "boxTitleOutsideView": "Stash au-dessus de {sha} — hors de la vue chargée",
+    "boxTitleOutsideViewWithSubject": "Stash au-dessus de {sha} « {subject} » — hors de la vue chargée"
+  },
+  "pendingRow": {
+    "messagePlaceholder": "Message de commit",
+    "status": {
+      "modified": "Modifié",
+      "added": "Ajouté",
+      "deleted": "Supprimé",
+      "renamed": "Renommé",
+      "copied": "Copié",
+      "conflicted": "En conflit",
+      "ignored": "Ignoré"
+    }
+  },
+  "toast": {
+    "copiedSha": "SHA copié dans le presse-papiers",
+    "openingOnGithub": "Ouverture du commit sur GitHub",
+    "noGithubRemote": "Aucun distant GitHub configuré pour ce dépôt",
+    "clipboardUnavailable": "Le presse-papiers n’est pas disponible",
+    "copyFailed": "Impossible de copier dans le presse-papiers",
+    "copied": "{target} copié"
+  },
+  "copyTarget": {
+    "branchName": "nom de branche",
+    "commitSha": "SHA de commit",
+    "link": "lien"
+  },
+  "timeMarkers": {
+    "hour1": "il y a 1 heure",
+    "hours2": "il y a 2 heures",
+    "hours6": "il y a 6 heures",
+    "day1": "il y a un jour",
+    "days2": "il y a 2 jours",
+    "week1": "il y a une semaine",
+    "weeks2": "il y a 2 semaines",
+    "month1": "il y a un mois",
+    "months2": "il y a 2 mois",
+    "months3": "il y a 3 mois",
+    "months6": "il y a 6 mois",
+    "year1": "il y a un an",
+    "years2": "il y a 2 ans",
+    "years5": "il y a 5 ans"
+  },
+  "conflictBanner": {
+    "merge": "Un conflit de fichier a été détecté lors de la tentative de fusion dans {target}",
+    "rebase": "Un conflit de fichier a été détecté pendant le rebase",
+    "cherryPick": "Un conflit de fichier a été détecté lors de la tentative de cherry-pick sur {target}",
+    "revert": "Un conflit de fichier a été détecté lors de la tentative d’annulation des modifications sur {target}"
+  }
+}

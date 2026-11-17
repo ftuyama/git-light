@@ -1,0 +1,14 @@
+{
+  "MergeConflict": "L’opération a produit des conflits de fusion qui doivent être résolus.",
+  "Authentication": "L’authentification a échoué. Vérifiez vos clés SSH ou votre gestionnaire d’identifiants.",
+  "RepositoryNotFound": "Le dépôt est introuvable.",
+  "NotARepository": "Ce dossier n’est pas un dépôt Git.",
+  "BareRepository": "Les dépôts nus ne sont pas pris en charge.",
+  "DetachedHead": "HEAD est détaché.",
+  "RemoteRejected": "Le distant a refusé le push.",
+  "NothingToCommit": "Aucune modification indexée à committer.",
+  "Network": "Une erreur réseau s’est produite lors du contact avec le distant.",
+  "DirtyWorktree": "Vous avez des modifications non commitées qui seraient écrasées.",
+  "Cancelled": "L’opération a été annulée.",
+  "Unknown": "Une erreur Git inattendue s’est produite."
+}

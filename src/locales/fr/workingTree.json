@@ -1,0 +1,87 @@
+{
+  "headers": {
+    "changedFiles": "Fichiers modifiés",
+    "files": "Fichiers",
+    "changes": "Modifications ({count})",
+    "staged": "Indexées ({count})",
+    "conflicts": "Conflits ({count})"
+  },
+  "actions": {
+    "discardAll": "Annuler toutes les modifications",
+    "stageAll": "Tout indexer",
+    "unstageAll": "Tout désindexer"
+  },
+  "state": {
+    "loadingFiles": "Chargement des fichiers…",
+    "noFilesInCommit": "Aucun fichier modifié dans ce commit",
+    "noChangesBetweenCommits": "Aucune modification de fichier entre ces commits",
+    "noUnstaged": "Aucune modification non indexée",
+    "nothingStaged": "Indexez des fichiers pour les committer"
+  },
+  "changes": {
+    "summary": "{count} fichier modifié sur {branch} | {count} fichiers modifiés sur {branch}"
+  },
+  "stash": {
+    "wipOn": "WIP sur {branch}",
+    "wip": "WIP",
+    "close": "Fermer les fichiers du stash"
+  },
+  "commit": {
+    "summary": "Committer les modifications de {count} fichier | Committer les modifications de {count} fichiers",
+    "summaryAmend": "Amender les modifications de {count} fichier | Amender les modifications de {count} fichiers",
+    "summaryPlaceholder": "Résumé du commit",
+    "summaryPlaceholderAmend": "Résumé du commit (vide conserve le message précédent)",
+    "summaryLimit": "Jusqu’à {count} caractères",
+    "descriptionPlaceholder": "Description",
+    "noCommitsToAmend": "Aucun commit à amender pour l’instant",
+    "amend": "Amender le commit précédent",
+    "commitAndPush": "Committer et pousser",
+    "amendAndPush": "Amender et pousser",
+    "commitAndForcePush": "Committer et force-push (avec lease)",
+    "amendAndForcePush": "Amender et force-push (avec lease)",
+    "pushOptions": "Options de commit et de push",
+    "shaCopied": "SHA copié dans le presse-papiers",
+    "mergeCommit": "Commit de fusion",
+    "parents": "Parents :"
+  },
+  "compare": {
+    "title": "Comparaison de commits",
+    "filesChanged": "{count} fichier modifié | {count} fichiers modifiés",
+    "hint": "Maj+clic sur un autre commit pour comparer",
+    "exit": "Quitter le mode comparaison"
+  },
+  "fileHistory": {
+    "title": "Historique du fichier"
+  },
+  "fileMenu": {
+    "viewHistory": "Voir l’historique du fichier",
+    "revealInFinder": "Afficher dans le Finder",
+    "copyPath": "Copier le chemin",
+    "pathCopied": "Chemin copié dans le presse-papiers",
+    "viewDiff": "Voir les différences",
+    "restoreVersion": "Restaurer le fichier depuis cette version",
+    "useOurs": "Utiliser notre version",
+    "useTheirs": "Utiliser leur version",
+    "markResolved": "Marquer comme résolu",
+    "resolveConflict": "Résoudre le conflit",
+    "stage": "Indexer les modifications",
+    "unstage": "Désindexer les modifications",
+    "discard": "Annuler les modifications",
+    "stageFile": "Indexer le fichier",
+    "unstageFile": "Désindexer le fichier"
+  },
+  "view": {
+    "aria": "Vue de la liste des fichiers",
+    "path": "Chemin",
+    "tree": "Arborescence"
+  },
+  "status": {
+    "modified": "Modifié",
+    "added": "Ajouté",
+    "deleted": "Supprimé",
+    "renamed": "Renommé",
+    "conflicted": "En conflit",
+    "copied": "Copié",
+    "ignored": "Ignoré"
+  }
+}

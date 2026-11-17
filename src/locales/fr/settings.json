@@ -1,0 +1,263 @@
+{
+  "button": "Réglages",
+  "dialog": {
+    "title": "Préférences",
+    "close": "Fermer les préférences"
+  },
+  "categories": {
+    "general": "Général",
+    "appearance": "Apparence",
+    "interface": "Interface",
+    "language": "Langue",
+    "views": "Vues",
+    "commitGraph": "Graphe des commits",
+    "sidebar": "Barre latérale",
+    "repository": "Dépôt",
+    "changes": "Modifications",
+    "commits": "Commits",
+    "sync": "Synchronisation",
+    "application": "Application",
+    "privacy": "Confidentialité",
+    "shortcuts": "Raccourcis",
+    "credits": "Crédits"
+  },
+  "appearance": {
+    "theme": "Thème de couleurs",
+    "themeDescription": "Choisissez une palette de couleurs pour l’interface de l’application.",
+    "typography": "Typographie"
+  },
+  "interfaceMode": {
+    "title": "Mode d’interface",
+    "description": "Le mode Basique masque les actions avancées comme le stash, le rebase et le terminal. Le mode Avancé affiche tout.",
+    "basic": "Basique",
+    "basicDescription": "Uniquement les actions Git essentielles. Masque le stash, le rebase, le cherry-pick, les étiquettes, etc.",
+    "advanced": "Avancé",
+    "advancedDescription": "Barre d’outils complète, sections de la barre latérale et actions de commit."
+  },
+  "fontSize": {
+    "title": "Taille de police",
+    "description": "Augmentez ou diminuez le texte et les éléments d’interface dans toute l’application."
+  },
+  "language": {
+    "title": "Langue",
+    "description": "Langue de l’interface de l’application.",
+    "system": "Système",
+    "systemDescription": "Suivre la langue du système d’exploitation. Actuellement {language}."
+  },
+  "avatars": {
+    "title": "Avatars",
+    "authorAvatars": "Avatars des auteurs",
+    "authorAvatarsDescription": "Charge les images GitHub et Gravatar des auteurs de commit. Désactivez pour afficher uniquement les initiales et n’envoyer aucune requête d’avatar.",
+    "clearCache": "Vider le cache des avatars",
+    "clearCacheDescription": "Oublier les identifiants GitHub en cache et les recherches échouées, puis résoudre à nouveau les avatars.",
+    "clear": "Vider",
+    "cleared": "Vidé"
+  },
+  "privacy": {
+    "description": "Contrôlez les images distantes et les données mises en cache pour les auteurs de commit."
+  },
+  "layout": {
+    "panels": "Panneaux",
+    "showLeftSidebar": "Afficher la barre latérale gauche",
+    "showLeftSidebarDescription": "Afficher la barre latérale des branches à gauche.",
+    "showRightPanel": "Afficher le panneau de droite",
+    "showRightPanelDescription": "Afficher l’arbre de travail et le panneau des différences à droite.",
+    "reset": "Réinitialiser",
+    "resetDescription": "Rétablir les tailles de panneaux par défaut et déployer les deux panneaux latéraux.",
+    "resetAction": "Réinitialiser la disposition des panneaux"
+  },
+  "changes": {
+    "description": "Contrôlez la façon dont les fichiers modifiés sont listés dans l’arbre de travail et les panneaux de commit.",
+    "fileList": "Liste de fichiers",
+    "treeView": "Vue arborescente",
+    "treeViewDescription": "Regrouper les fichiers modifiés dans une hiérarchie de dossiers repliable."
+  },
+  "commits": {
+    "description": "Options par défaut appliquées aux nouveaux commits.",
+    "options": "Options de commit",
+    "signOff": "Ajouter un sign-off au commit",
+    "signOffDescription": "Ajouter une ligne Signed-off-by aux messages de commit (--signoff).",
+    "sign": "Signer le commit (GPG/SSH)",
+    "signDescription": "Signer avec une clé GPG/SSH (-S). Nécessite user.signingkey dans la configuration git."
+  },
+  "commitGraph": {
+    "description": "Contrôlez les commits affichés dans le graphe et les colonnes visibles.",
+    "history": "Historique",
+    "showAllBranches": "Afficher toutes les branches",
+    "showAllBranchesDescription": "Afficher les commits de toutes les branches, pas seulement de la branche extraite.",
+    "recentCommits": "Commits récents à charger",
+    "recentCommitsSummary": "Nombre maximal de commits récupérés pour le graphe.",
+    "recentCommitsDescription": "Nombre maximal de commits récupérés pour le graphe. Minimum {min} ; {recommended} recommandé.",
+    "columns": "Colonnes",
+    "columnsDescription": "Choisissez les colonnes facultatives affichées dans les lignes du graphe.",
+    "indicators": "Indicateurs",
+    "timeIndicators": "Indicateurs temporels",
+    "timeIndicatorsDescription": "Afficher des séparateurs comme « il y a une semaine » entre les commits du graphe.",
+    "mergeIndicators": "Indicateurs de fusion",
+    "mergeIndicatorsDescription": "Marquer les commits de fusion avec une icône de fusion dans la colonne du message de commit.",
+    "columnWidths": "Largeurs des colonnes",
+    "resetWidths": "Réinitialiser les largeurs",
+    "columnWidthsDescription": "Largeurs exactes en pixels, ou faites glisser les bords des colonnes dans l’en-tête du graphe."
+  },
+  "columnDescriptions": {
+    "author": "Afficher l’avatar et le nom de l’auteur du commit dans chaque ligne.",
+    "sha": "Afficher le hachage abrégé du commit dans chaque ligne.",
+    "when": "Afficher l’ancienneté de chaque commit."
+  },
+  "sidebar": {
+    "description": "Choisissez comment chaque section de la barre latérale des branches est affichée : déployée, réduite à son en-tête ou entièrement masquée.",
+    "sections": "Sections"
+  },
+  "sectionDescriptions": {
+    "favorites": "Branches épinglées affichées en haut de la barre latérale.",
+    "localBranches": "Liste des branches locales et groupes de branches.",
+    "remoteBranches": "Branches de suivi distant regroupées par distant.",
+    "tags": "Étiquettes annotées et légères du dépôt.",
+    "stashes": "Stashes enregistrés avec leur message et le contexte de leur branche.",
+    "worktrees": "Worktrees liés et leurs chemins de checkout."
+  },
+  "sync": {
+    "description": "Gardez les branches de suivi distant à jour sans quitter l’application.",
+    "backgroundFetch": "Fetch en arrière-plan",
+    "autoFetchInterval": "Intervalle de fetch automatique",
+    "autoFetchIntervalDescription": "Récupère silencieusement tous les distants selon un calendrier. Aucune bannière, aucune notification — le graphe se met simplement à jour."
+  },
+  "intervals": {
+    "disabled": "Désactivé",
+    "everyMinute": "Toutes les minutes",
+    "every5Minutes": "Toutes les 5 minutes",
+    "every10Minutes": "Toutes les 10 minutes",
+    "every30Minutes": "Toutes les 30 minutes",
+    "everyHour": "Toutes les heures",
+    "every2Hours": "Toutes les 2 heures"
+  },
+  "credits": {
+    "version": "Version {version}",
+    "description": "Client Git de bureau libre et open source (Tauri 2, Vue 3, TypeScript, Rust) — alternative à GitKraken centrée sur le graphe, avec graphe des commits, branches, indexation et de vraies opérations Git locales.",
+    "builtBy": "Créé par",
+    "license": "Licence {license}",
+    "website": "Site web",
+    "sourceCode": "Code source",
+    "sponsor": "Sponsoriser sur Ko-fi",
+    "links": "Liens",
+    "openSource": "Open source",
+    "openSourceDescription": "Git Light est rendu possible par ces projets et leurs contributeurs."
+  },
+  "columns": {
+    "author": "Auteur",
+    "sha": "SHA",
+    "when": "Quand"
+  },
+  "columnWidths": {
+    "refs": "Branche / étiquette",
+    "graph": "Graphe",
+    "commit": "Commit",
+    "author": "Auteur",
+    "sha": "SHA",
+    "when": "Quand",
+    "ariaLabel": "Largeur de la colonne {name}",
+    "hidden": "{range} · masqué"
+  },
+  "sections": {
+    "favorites": "Favoris",
+    "localBranches": "Branches locales",
+    "remoteBranches": "Branches distantes",
+    "tags": "Étiquettes",
+    "stashes": "Stashes",
+    "worktrees": "Worktrees"
+  },
+  "sectionStates": {
+    "expanded": "Déployée",
+    "collapsed": "Réduite",
+    "hidden": "Masquée"
+  },
+  "themes": {
+    "default": {
+      "label": "Par défaut",
+      "description": "Palette sombre avec des accents bleus."
+    },
+    "dracula": {
+      "label": "Dracula",
+      "description": "Thème Dracula classique avec des accents violets et roses."
+    },
+    "light": {
+      "label": "Clair",
+      "description": "Palette claire et épurée inspirée de GitHub et VS Code."
+    },
+    "claude": {
+      "label": "Claude",
+      "description": "Palette sombre charbon chaleureuse inspirée de claude.ai."
+    },
+    "tokyo-night": {
+      "label": "Tokyo Night",
+      "description": "Palette Tokyo Night bleu sombre avec des accents bleu vif et violet."
+    },
+    "nord": {
+      "label": "Nord",
+      "description": "Palette bleu-gris arctique froide avec des accents givrés."
+    },
+    "gruvbox": {
+      "label": "Gruvbox",
+      "description": "Palette rétro chaleureuse avec un jaune franc et des tons terreux."
+    },
+    "rose-pine": {
+      "label": "Rosé Pine",
+      "description": "Palette nocturne feutrée avec des accents rose doux et iris."
+    },
+    "one-dark": {
+      "label": "One Dark",
+      "description": "La palette familière Atom One Dark avec un accent bleu."
+    },
+    "solarized-light": {
+      "label": "Solarized Light",
+      "description": "Palette claire et chaude à faible contraste issue de Solarized."
+    },
+    "custom": {
+      "label": "Personnalisé",
+      "description": "Choisissez vos propres couleurs de base, le reste est dérivé automatiquement."
+    },
+    "system": {
+      "label": "Système",
+      "description": "Correspond à l’apparence de votre système d’exploitation."
+    }
+  },
+  "customTheme": {
+    "title": "Couleurs personnalisées",
+    "description": "Choisissez les couleurs de base. Les bordures, états de survol, textes atténués et la coloration syntaxique en sont dérivés.",
+    "reset": "Réinitialiser les couleurs",
+    "app": "Arrière-plan",
+    "panel": "Surface",
+    "fg": "Texte",
+    "accent": "Accent",
+    "success": "Succès",
+    "warning": "Avertissement",
+    "danger": "Danger"
+  },
+  "shortcuts": {
+    "disable": "Désactiver le raccourci {name}",
+    "reset": "Réinitialiser le raccourci {name}",
+    "conflictsWith": "Conflit avec : {names}",
+    "description": "Cliquez sur un raccourci pour en enregistrer un nouveau. Échap annule. Les conflits sont mis en évidence.",
+    "restoreDefaults": "Rétablir les valeurs par défaut",
+    "disableTooltip": "Désactiver (effacer le raccourci)",
+    "resetTooltip": "Réinitialiser par défaut",
+    "recordHint": "Cliquer pour enregistrer un nouveau raccourci",
+    "recordingHint": "Appuyez sur les touches du raccourci, Échap pour annuler",
+    "recording": "Appuyez sur les touches…"
+  },
+  "search": {
+    "title": "Rechercher dans les réglages",
+    "open": "Rechercher dans les réglages",
+    "openTooltip": "Rechercher dans les réglages (/)",
+    "placeholder": "Rechercher dans les réglages…",
+    "resultOne": "{count} résultat",
+    "resultMany": "{count} résultats",
+    "empty": "Aucun réglage ne correspond à « {query} ».",
+    "columnAuthor": "Colonne Auteur",
+    "columnSha": "Colonne SHA",
+    "columnWhen": "Colonne Quand",
+    "credits": "Crédits et version",
+    "creditsDescription": "Version de l’application, liens de l’auteur et crédits tiers.",
+    "shortcutDescription": "Raccourci · {category}"
+  }
+}
