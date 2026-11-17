@@ -1,0 +1,2034 @@
+<!doctype html>
+<html lang="de" dir="ltr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Git Light ist ein kostenloser Open-Source-Git-Client für den Desktop für macOS, Windows und Linux, mit Commit-Graph, Branch-Sidebar, Working Tree, interaktivem Rebase und echten lokalen Git-Operationen. Leichte Alternative zu GitKraken und Sourcetree." />
+    <meta name="keywords" content="Git-Client, Git-GUI für den Desktop, Commit-Graph, Git-Verlaufsanzeige, Tauri-Git-App, Open-Source-Git-Client, Git-Client für macOS, GitKraken-Alternative, Sourcetree-Alternative, interaktives Rebase, Branch-Verwaltung" />
+    <meta name="author" content="ftuyama" />
+    <meta name="application-name" content="Git Light" />
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
+    <meta name="googlebot" content="index, follow, max-image-preview:large" />
+    <meta name="theme-color" content="#0d0f14" />
+    <link rel="canonical" href="https://ftuyama.github.io/git-light/de/" />
+        <link rel="alternate" hreflang="en" href="https://ftuyama.github.io/git-light/" />
+    <link rel="alternate" hreflang="pt-BR" href="https://ftuyama.github.io/git-light/pt-BR/" />
+    <link rel="alternate" hreflang="es" href="https://ftuyama.github.io/git-light/es/" />
+    <link rel="alternate" hreflang="fr" href="https://ftuyama.github.io/git-light/fr/" />
+    <link rel="alternate" hreflang="de" href="https://ftuyama.github.io/git-light/de/" />
+    <link rel="alternate" hreflang="zh-CN" href="https://ftuyama.github.io/git-light/zh-CN/" />
+    <link rel="alternate" hreflang="ja" href="https://ftuyama.github.io/git-light/ja/" />
+    <link rel="alternate" hreflang="x-default" href="https://ftuyama.github.io/git-light/" />
+    <title>Git Light — kostenloser Open-Source-Git-Client für den Desktop mit Commit-Graph</title>
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Git Light" />
+    <meta property="og:title" content="Git Light — kostenloser Open-Source-Git-Client für den Desktop" />
+    <meta property="og:description" content="Ein leichterer Weg, deinen Git-Verlauf zu sehen. Commit-Graph, Branch-Sidebar, Working Tree und echte lokale Git-Operationen — gebaut mit Tauri 2, Vue 3, TypeScript und Rust." />
+    <meta property="og:url" content="https://ftuyama.github.io/git-light/de/" />
+    <meta property="og:image" content="https://ftuyama.github.io/git-light/screenshot.png" />
+    <meta property="og:image:width" content="1440" />
+    <meta property="og:image:height" content="900" />
+    <meta property="og:image:alt" content="Git Light mit dem AwesomeShop-Repository, Repo-Tabs, Commit-Graph, Branch-Sidebar und Working Tree" />
+    <meta property="og:locale" content="de_DE" />
+        <meta property="og:locale:alternate" content="en_US" />
+    <meta property="og:locale:alternate" content="pt_BR" />
+    <meta property="og:locale:alternate" content="es_ES" />
+    <meta property="og:locale:alternate" content="fr_FR" />
+    <meta property="og:locale:alternate" content="zh_CN" />
+    <meta property="og:locale:alternate" content="ja_JP" />
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Git Light — kostenloser Open-Source-Git-Client für den Desktop" />
+    <meta name="twitter:description" content="Commit-Graph, Branch-Sidebar, Working Tree und echte lokale Git-Operationen. Open Source und kostenlos." />
+    <meta name="twitter:image" content="https://ftuyama.github.io/git-light/screenshot.png" />
+    <meta name="twitter:image:alt" content="Git Light mit dem AwesomeShop-Repository, Repo-Tabs, Commit-Graph, Branch-Sidebar und Working Tree" />
+
+    <link rel="icon" href="../icon.png" type="image/png" />
+    <link rel="apple-touch-icon" href="../icon.png" />
+    <link rel="sitemap" type="application/xml" title="Sitemap" href="https://ftuyama.github.io/git-light/sitemap.xml" />
+    <link rel="alternate" type="text/plain" href="https://ftuyama.github.io/git-light/llms.txt" title="LLM-readable site index" />
+    <link rel="alternate" type="text/plain" href="https://ftuyama.github.io/git-light/llms-full.txt" title="LLM-readable full site content" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --app: #0d0f14;
+        --panel: #161b22;
+        --panel-raised: #1c2128;
+        --elevated: #21262d;
+        --border: rgba(255, 255, 255, 0.06);
+        --border-strong: rgba(255, 255, 255, 0.12);
+        --fg: #e6edf3;
+        --fg-muted: #9198a1;
+        --fg-subtle: #6b7280;
+        --accent: #6e9fff;
+        --accent-strong: #4a82ff;
+        --accent-soft: rgba(110, 159, 255, 0.16);
+        --success: #3fb950;
+        --lane-0: #a371f7;
+        --lane-1: #3fb950;
+        --lane-2: #58a6ff;
+        --lane-3: #f0883e;
+        --radius: 0.5rem;
+        --font-sans: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+        --font-mono: 'JetBrains Mono', 'SF Mono', ui-monospace, monospace;
+      }
+
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
+      }
+
+      html {
+        scroll-behavior: smooth;
+      }
+
+      body {
+        margin: 0;
+        font-family: var(--font-sans);
+        background:
+          radial-gradient(1200px 500px at 50% -8rem, rgba(110, 159, 255, 0.09), transparent 60%),
+          var(--app);
+        color: var(--fg);
+        line-height: 1.6;
+        -webkit-font-smoothing: antialiased;
+      }
+
+      ::selection {
+        background: rgba(110, 159, 255, 0.35);
+        color: #fff;
+      }
+
+      :focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: 2px;
+      }
+
+      ::-webkit-scrollbar {
+        width: 10px;
+      }
+
+      ::-webkit-scrollbar-track {
+        background: var(--app);
+      }
+
+      ::-webkit-scrollbar-thumb {
+        background: var(--elevated);
+        border-radius: 8px;
+        border: 2px solid var(--app);
+      }
+
+      ::-webkit-scrollbar-thumb:hover {
+        background: var(--border-strong);
+      }
+
+      a {
+        color: var(--accent);
+        text-decoration: none;
+      }
+
+      a:hover {
+        color: var(--accent-strong);
+        text-decoration: underline;
+      }
+
+      .wrap {
+        max-width: 1080px;
+        margin: 0 auto;
+        padding: 0 1.5rem;
+      }
+
+      /* Header */
+      header {
+        border-bottom: 1px solid var(--border);
+        background: rgba(13, 15, 20, 0.85);
+        backdrop-filter: blur(12px);
+        position: sticky;
+        top: 0;
+        z-index: 10;
+      }
+
+      .header-inner {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        height: 3.5rem;
+      }
+
+      .logo {
+        display: flex;
+        align-items: center;
+        gap: 0.625rem;
+        font-weight: 600;
+        font-size: 1rem;
+        color: var(--fg);
+        text-decoration: none;
+      }
+
+      .logo:hover {
+        text-decoration: none;
+        color: var(--fg);
+      }
+
+      .logo-mark {
+        width: 1.75rem;
+        height: 1.75rem;
+        object-fit: cover;
+        flex-shrink: 0;
+      }
+
+      nav {
+        display: flex;
+        align-items: center;
+        gap: 1.25rem;
+      }
+
+      nav a {
+        color: var(--fg-muted);
+        font-size: 0.875rem;
+        font-weight: 500;
+        text-decoration: none;
+      }
+
+      nav a:hover {
+        color: var(--fg);
+        text-decoration: none;
+      }
+
+      .lang-switch {
+        appearance: none;
+        background: var(--panel-raised);
+        color: var(--fg-muted);
+        border: 1px solid var(--border-strong);
+        border-radius: 0.5rem;
+        padding: 0.3rem 1.5rem 0.3rem 0.6rem;
+        font: inherit;
+        font-size: 0.8125rem;
+        font-weight: 500;
+        cursor: pointer;
+        background-image: linear-gradient(45deg, transparent 50%, var(--fg-muted) 50%),
+          linear-gradient(135deg, var(--fg-muted) 50%, transparent 50%);
+        background-position: calc(100% - 0.85rem) 55%, calc(100% - 0.55rem) 55%;
+        background-size: 0.3rem 0.3rem, 0.3rem 0.3rem;
+        background-repeat: no-repeat;
+      }
+
+      .lang-switch:hover,
+      .lang-switch:focus-visible {
+        color: var(--fg);
+        border-color: rgba(110, 159, 255, 0.5);
+      }
+
+      /* Language hint */
+      .lang-hint {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 0.5rem 0.75rem;
+        padding: 0.55rem 1rem;
+        background: var(--accent-soft);
+        border-bottom: 1px solid rgba(110, 159, 255, 0.3);
+        font-size: 0.8125rem;
+        color: var(--fg);
+      }
+
+      .lang-hint[hidden] {
+        display: none;
+      }
+
+      .lang-hint a {
+        font-weight: 600;
+      }
+
+      .lang-hint-close {
+        background: transparent;
+        border: 0;
+        color: var(--fg-muted);
+        font-size: 1.1rem;
+        line-height: 1;
+        padding: 0.25rem;
+        cursor: pointer;
+      }
+
+      .lang-hint-close:hover {
+        color: var(--fg);
+      }
+
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.625rem 1.25rem;
+        border-radius: 0.625rem;
+        font-size: 0.875rem;
+        font-weight: 600;
+        font-family: inherit;
+        cursor: pointer;
+        border: 1px solid transparent;
+        text-decoration: none;
+        transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+      }
+
+      .btn:hover {
+        text-decoration: none;
+      }
+
+      .btn-primary {
+        background: linear-gradient(180deg, #82adff, var(--accent) 60%, var(--accent-strong));
+        color: #0d0f14;
+        box-shadow: 0 8px 24px rgba(110, 159, 255, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+      }
+
+      .btn-primary:hover {
+        background: linear-gradient(180deg, #93b8ff, var(--accent) 60%, var(--accent-strong));
+        color: #0d0f14;
+        transform: translateY(-1px);
+        box-shadow: 0 12px 32px rgba(110, 159, 255, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+      }
+
+      .btn:active {
+        transform: translateY(0);
+      }
+
+      .btn-ghost {
+        background: transparent;
+        color: var(--fg-muted);
+        border-color: var(--border-strong);
+      }
+
+      .btn-ghost:hover {
+        background: var(--elevated);
+        color: var(--fg);
+        transform: translateY(-1px);
+      }
+
+      .btn svg {
+        flex-shrink: 0;
+      }
+
+      /* Hero */
+      .hero {
+        position: relative;
+        overflow: hidden;
+        padding: 6rem 0 4.5rem;
+        text-align: center;
+      }
+
+      .hero::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background:
+          radial-gradient(560px 280px at 18% 4%, rgba(163, 113, 247, 0.14), transparent 60%),
+          radial-gradient(680px 300px at 82% 8%, rgba(110, 159, 255, 0.16), transparent 60%),
+          radial-gradient(420px 220px at 50% 42%, rgba(63, 185, 80, 0.06), transparent 65%);
+        pointer-events: none;
+      }
+
+      .hero .wrap {
+        position: relative;
+      }
+
+      h1 {
+        font-size: clamp(2.5rem, 6vw, 4rem);
+        font-weight: 700;
+        line-height: 1.1;
+        letter-spacing: -0.035em;
+        margin: 0 0 1rem;
+        text-wrap: balance;
+      }
+
+      .badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.375rem;
+        padding: 0.25rem 0.75rem;
+        border-radius: 999px;
+        background: var(--accent-soft);
+        border: 1px solid rgba(110, 159, 255, 0.3);
+        box-shadow: 0 0 24px rgba(110, 159, 255, 0.15);
+        color: var(--accent);
+        font-size: 0.75rem;
+        font-weight: 600;
+        letter-spacing: 0.02em;
+        margin-bottom: 1.5rem;
+      }
+
+      .badge-dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: var(--success);
+      }
+
+      h1 span {
+        background: linear-gradient(135deg, #9dbcff 0%, var(--accent) 35%, var(--lane-0) 70%, var(--lane-2) 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        filter: drop-shadow(0 0 24px rgba(110, 159, 255, 0.35));
+      }
+
+      .hero p {
+        font-size: 1.125rem;
+        color: var(--fg-muted);
+        max-width: 36rem;
+        margin: 0 auto 2rem;
+      }
+
+      .hero-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+        justify-content: center;
+      }
+
+      /* App screenshot */
+      .screenshot-frame {
+        margin: 3.5rem auto 0;
+        max-width: 1100px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 1rem;
+        overflow: hidden;
+        background: var(--panel);
+        box-shadow:
+          0 0 0 1px rgba(0, 0, 0, 0.3),
+          0 32px 64px rgba(0, 0, 0, 0.5),
+          0 0 90px rgba(110, 159, 255, 0.12);
+      }
+
+      .screenshot-titlebar {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.625rem 1rem;
+        background: var(--panel-raised);
+        border-bottom: 1px solid var(--border);
+      }
+
+      .traffic {
+        display: flex;
+        gap: 0.375rem;
+      }
+
+      .traffic span {
+        width: 0.625rem;
+        height: 0.625rem;
+        border-radius: 50%;
+      }
+
+      .traffic .red { background: #ff5f57; }
+      .traffic .yellow { background: #febc2e; }
+      .traffic .green { background: #28c840; }
+
+      .screenshot-title {
+        flex: 1;
+        text-align: center;
+        font-size: 0.75rem;
+        color: var(--fg-subtle);
+      }
+
+      .screenshot {
+        display: block;
+        width: 100%;
+        height: auto;
+      }
+
+      /* Screenshot gallery */
+      .gallery {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 1rem;
+      }
+
+      .gallery-item {
+        position: relative;
+        margin: 0;
+        border: 1px solid var(--border);
+        border-radius: 0.75rem;
+        overflow: hidden;
+        background: var(--panel);
+        transition: border-color 0.15s ease, transform 0.15s ease;
+      }
+
+      .gallery-item:hover {
+        border-color: rgba(110, 159, 255, 0.4);
+        transform: translateY(-2px);
+      }
+
+      .gallery-item img {
+        display: block;
+        width: 100%;
+        height: auto;
+        border-bottom: 1px solid var(--border);
+        transition: transform 0.2s ease;
+      }
+
+      .gallery-item:hover img {
+        transform: scale(1.015);
+      }
+
+      .gallery-trigger {
+        position: absolute;
+        inset: 0;
+        z-index: 1;
+        border-radius: inherit;
+        cursor: zoom-in;
+      }
+
+      .gallery-trigger:focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: -2px;
+      }
+
+      .gallery-item figcaption {
+        padding: 0.875rem 1rem 1rem;
+        font-size: 0.8125rem;
+        line-height: 1.5;
+        color: var(--fg-muted);
+      }
+
+      .gallery-item figcaption strong {
+        display: block;
+        margin-bottom: 0.25rem;
+        color: var(--fg);
+        font-size: 0.875rem;
+      }
+
+      @media (max-width: 860px) {
+        .gallery {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      /* Screenshot lightbox */
+      body.lightbox-open {
+        overflow: hidden;
+      }
+
+      .lightbox {
+        position: fixed;
+        inset: 0;
+        z-index: 100;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: clamp(1rem, 4vw, 3rem);
+        background: rgba(5, 7, 10, 0.9);
+        backdrop-filter: blur(6px);
+        opacity: 0;
+        transition: opacity 0.18s ease;
+      }
+
+      .lightbox[hidden] {
+        display: none;
+      }
+
+      .lightbox.is-open {
+        opacity: 1;
+      }
+
+      .lightbox-figure {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+        margin: 0;
+        max-width: min(1600px, 100%);
+        max-height: 100%;
+      }
+
+      .lightbox-figure img {
+        display: block;
+        width: auto;
+        height: auto;
+        max-width: 100%;
+        max-height: calc(100vh - 8rem);
+        margin: 0 auto;
+        border: 1px solid var(--border-strong);
+        border-radius: 0.5rem;
+        background: var(--panel);
+        box-shadow: 0 32px 64px rgba(0, 0, 0, 0.55);
+      }
+
+      .lightbox-figure figcaption {
+        text-align: center;
+        font-size: 0.875rem;
+        line-height: 1.5;
+        color: var(--fg-muted);
+      }
+
+      .lightbox-close {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 2.5rem;
+        height: 2.5rem;
+        padding: 0;
+        border: 1px solid var(--border-strong);
+        border-radius: 50%;
+        background: var(--panel-raised);
+        color: var(--fg);
+        font-size: 1.5rem;
+        line-height: 1;
+        cursor: pointer;
+        transition: background 0.15s ease, border-color 0.15s ease;
+      }
+
+      .lightbox-close:hover {
+        background: var(--elevated);
+        border-color: var(--accent);
+      }
+
+      /* Features */
+      section {
+        padding: 4rem 0;
+      }
+
+      section[id] {
+        scroll-margin-top: 4.5rem;
+      }
+
+      .eyebrow {
+        display: block;
+        text-align: center;
+        font-size: 0.75rem;
+        font-weight: 700;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: var(--accent);
+        margin-bottom: 0.5rem;
+      }
+
+      section h2 {
+        font-size: 1.75rem;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+        margin: 0 0 0.5rem;
+        text-align: center;
+      }
+
+      .section-sub {
+        text-align: center;
+        color: var(--fg-muted);
+        margin: 0 0 2.5rem;
+        font-size: 1rem;
+      }
+
+      .features {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+        gap: 1rem;
+      }
+
+      .feature-card {
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.02), transparent 40%), var(--panel);
+        border: 1px solid var(--border);
+        border-radius: 0.75rem;
+        padding: 1.25rem;
+        transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+      }
+
+      .feature-card:hover {
+        transform: translateY(-3px);
+        border-color: var(--border-strong);
+        box-shadow: 0 12px 32px rgba(0, 0, 0, 0.35);
+      }
+
+      .feature-icon {
+        width: 2rem;
+        height: 2rem;
+        border-radius: 0.5rem;
+        display: grid;
+        place-items: center;
+        font-size: 1rem;
+        margin-bottom: 0.75rem;
+        box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+      }
+
+      .feature-card h3 {
+        margin: 0 0 0.375rem;
+        font-size: 0.9375rem;
+        font-weight: 600;
+      }
+
+      .feature-card p {
+        margin: 0;
+        font-size: 0.8125rem;
+        color: var(--fg-muted);
+        line-height: 1.5;
+      }
+
+      /* Comparison table */
+      .compare-scroll {
+        overflow-x: auto;
+        border: 1px solid var(--border-strong);
+        border-radius: 0.75rem;
+        background: var(--panel);
+        box-shadow: 0 24px 48px rgba(0, 0, 0, 0.35);
+      }
+
+      .compare-table {
+        width: 100%;
+        min-width: 640px;
+        border-collapse: collapse;
+        font-size: 0.875rem;
+      }
+
+      .compare-table th,
+      .compare-table td {
+        padding: 0.75rem 1rem;
+        text-align: left;
+        border-bottom: 1px solid var(--border);
+        white-space: nowrap;
+      }
+
+      .compare-table tbody tr:last-child th,
+      .compare-table tbody tr:last-child td {
+        border-bottom: none;
+      }
+
+      .compare-table thead th {
+        font-size: 0.8125rem;
+        font-weight: 600;
+        color: var(--fg);
+        background: var(--panel-raised);
+      }
+
+      .compare-table thead th:first-child,
+      .compare-table tbody th {
+        color: var(--fg-muted);
+        font-weight: 500;
+        white-space: normal;
+        min-width: 220px;
+      }
+
+      .compare-table td {
+        color: var(--fg-muted);
+      }
+
+      .compare-table td.yes {
+        color: var(--success);
+        font-weight: 600;
+      }
+
+      .compare-note {
+        margin: 1rem 0 0;
+        font-size: 0.8125rem;
+        color: var(--fg-subtle);
+        text-align: center;
+      }
+
+      /* Tech stack */
+      .stack-carousel {
+        overflow: hidden;
+        -webkit-mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
+        mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
+      }
+
+      .stack-track {
+        display: flex;
+        width: max-content;
+        animation: stack-scroll 38s linear infinite;
+      }
+
+      .stack-carousel:hover .stack-track,
+      .stack-carousel:focus-within .stack-track {
+        animation-play-state: paused;
+      }
+
+      .stack-group {
+        display: flex;
+        gap: 0.75rem;
+        padding-right: 0.75rem;
+      }
+
+      @keyframes stack-scroll {
+        to {
+          transform: translateX(-50%);
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        html {
+          scroll-behavior: auto;
+        }
+
+        .reveal {
+          opacity: 1;
+          transform: none;
+          transition: none;
+        }
+
+        .stack-track {
+          animation: none;
+          flex-wrap: wrap;
+          width: auto;
+          justify-content: center;
+        }
+      }
+
+      .stack-tag {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.375rem;
+        padding: 0.375rem 0.75rem;
+        border-radius: 999px;
+        background: rgba(28, 33, 40, 0.9);
+        border: 1px solid var(--border);
+        font-size: 0.8125rem;
+        color: var(--fg-muted);
+        font-family: var(--font-mono);
+        transition: border-color 0.2s ease, color 0.2s ease;
+      }
+
+      .stack-tag:hover {
+        border-color: var(--border-strong);
+        color: var(--fg);
+      }
+
+      .stack-tag img,
+      .stack-tag svg {
+        width: 1rem;
+        height: 1rem;
+        flex-shrink: 0;
+      }
+
+      .download-panel {
+        background:
+          radial-gradient(500px 200px at 50% 0%, rgba(110, 159, 255, 0.1), transparent 70%),
+          var(--panel);
+        border: 1px solid var(--border-strong);
+        border-radius: 1rem;
+        padding: 2.5rem 2rem 2rem;
+        box-shadow: 0 24px 48px rgba(0, 0, 0, 0.35);
+      }
+
+      .download-panel .section-sub {
+        margin-bottom: 2rem;
+      }
+
+      /* Quick install (macOS one-liner) */
+      .quick-install {
+        max-width: 640px;
+        margin: 0 auto 2rem;
+        text-align: left;
+      }
+
+      .quick-install-code {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        background: var(--panel-raised);
+        border: 1px solid var(--border-strong);
+        border-radius: 0.75rem;
+        padding: 0.75rem 1rem;
+      }
+
+      .quick-install-code code {
+        flex: 1;
+        min-width: 0;
+        overflow-x: auto;
+        font-family: var(--font-mono);
+        font-size: 0.8125rem;
+        line-height: 1.6;
+        color: var(--fg);
+        white-space: nowrap;
+        scrollbar-width: none;
+      }
+
+      .quick-install-code code::-webkit-scrollbar { display: none; }
+
+      .quick-install-code .command {
+        color: var(--accent);
+        font-weight: 600;
+      }
+
+      #quick-install-copy svg {
+        width: 14px;
+        height: 14px;
+        flex-shrink: 0;
+      }
+
+      .quick-install-note {
+        display: block;
+        margin-top: 0.5rem;
+        font-size: 0.75rem;
+        color: var(--fg-subtle);
+      }
+
+      /* Install */
+      .install-box {
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: 0.75rem;
+        overflow: hidden;
+        max-width: 640px;
+        margin: 0 auto;
+      }
+
+      .install-header {
+        padding: 0.625rem 1rem;
+        background: var(--panel-raised);
+        border-bottom: 1px solid var(--border);
+        font-size: 0.75rem;
+        color: var(--fg-subtle);
+        font-family: var(--font-mono);
+      }
+
+      pre {
+        margin: 0;
+        padding: 1.25rem;
+        overflow-x: auto;
+        font-family: var(--font-mono);
+        font-size: 0.8125rem;
+        line-height: 1.7;
+        color: var(--fg-muted);
+      }
+
+      pre .cmd { color: var(--fg); }
+      pre .comment { color: var(--fg-subtle); }
+
+      /* Footer */
+      footer {
+        border-top: 1px solid var(--border);
+        background: linear-gradient(180deg, transparent, rgba(110, 159, 255, 0.04));
+        padding: 2.5rem 0;
+        text-align: center;
+        color: var(--fg-subtle);
+        font-size: 0.8125rem;
+      }
+
+      footer a {
+        color: var(--fg-muted);
+      }
+
+      @media (max-width: 640px) {
+        nav a:not(.btn) {
+          display: none;
+        }
+      }
+
+      /* FAQ */
+      .faq-list {
+        max-width: 720px;
+        margin: 0 auto;
+        display: grid;
+        gap: 0.75rem;
+      }
+
+      .faq-item {
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: 0.75rem;
+        padding: 1rem 1.25rem;
+      }
+
+      .faq-item h3 {
+        margin: 0 0 0.5rem;
+        font-size: 0.9375rem;
+        font-weight: 600;
+      }
+
+      .faq-item p {
+        margin: 0;
+        font-size: 0.875rem;
+        color: var(--fg-muted);
+        line-height: 1.55;
+      }
+
+      .download-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+        justify-content: center;
+        margin-bottom: 2rem;
+      }
+
+      .os-downloads {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+        justify-content: center;
+        margin-bottom: 1rem;
+      }
+
+      .os-btn {
+        min-width: 200px;
+        padding: 0.75rem 1.25rem;
+        text-align: left;
+      }
+
+      .os-btn img,
+      .os-btn svg {
+        width: 1.25rem;
+        height: 1.25rem;
+        flex-shrink: 0;
+      }
+
+      .os-btn .os-text {
+        display: flex;
+        flex-direction: column;
+        line-height: 1.3;
+      }
+
+      .os-btn .os-label {
+        font-weight: 600;
+      }
+
+      .os-btn .os-sub {
+        font-size: 0.75rem;
+        font-weight: 400;
+        opacity: 0.7;
+      }
+
+      .install-guide {
+        max-width: 680px;
+        margin: 1.5rem auto 0;
+        text-align: left;
+      }
+
+      .guide {
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: 0.75rem;
+        overflow: hidden;
+      }
+
+      .guide summary {
+        display: flex;
+        align-items: center;
+        gap: 0.625rem;
+        padding: 0.9rem 1.25rem;
+        cursor: pointer;
+        font-weight: 600;
+        font-size: 0.9rem;
+        list-style: none;
+      }
+
+      .guide summary::-webkit-details-marker {
+        display: none;
+      }
+
+      .guide summary:hover {
+        background: rgba(255, 255, 255, 0.02);
+      }
+
+      .guide summary::after {
+        content: "+";
+        margin-left: auto;
+        color: var(--fg-subtle);
+        font-size: 1.15rem;
+        line-height: 1;
+        transition: transform 0.2s ease;
+      }
+
+      .guide[open] summary::after {
+        transform: rotate(45deg);
+      }
+
+      .guide-body {
+        padding: 0.25rem 1.25rem 1.25rem;
+        display: grid;
+        gap: 1.25rem;
+      }
+
+      .guide-os h4 {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        margin: 0 0 0.5rem;
+        font-size: 0.875rem;
+      }
+
+      .guide-os h4 img,
+      .guide-os h4 svg {
+        width: 1rem;
+        height: 1rem;
+      }
+
+      .guide-os ol {
+        margin: 0;
+        padding-left: 1.25rem;
+        color: var(--fg-muted);
+        font-size: 0.875rem;
+        display: grid;
+        gap: 0.375rem;
+      }
+
+      .guide-os strong {
+        color: var(--fg);
+      }
+
+      .guide-os code {
+        font-family: var(--font-mono);
+        font-size: 0.78rem;
+        background: var(--elevated);
+        padding: 0.1rem 0.35rem;
+        border-radius: 0.3rem;
+        color: var(--fg);
+      }
+
+      /* Scroll reveal */
+      .reveal {
+        opacity: 0;
+        transform: translateY(16px);
+        transition: opacity 0.6s ease, transform 0.6s ease;
+      }
+
+      .reveal.visible {
+        opacity: 1;
+        transform: none;
+      }
+    </style>
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@graph": [
+          {
+            "@type": "Organization",
+            "@id": "https://ftuyama.github.io/git-light/#organization",
+            "name": "Git Light",
+            "url": "https://ftuyama.github.io/git-light/",
+            "logo": "https://ftuyama.github.io/git-light/icon.png",
+            "sameAs": [
+              "https://github.com/ftuyama/git-light",
+              "https://github.com/ftuyama"
+            ]
+          },
+          {
+            "@type": "WebSite",
+            "@id": "https://ftuyama.github.io/git-light/#website",
+            "url": "https://ftuyama.github.io/git-light/",
+            "name": "Git Light",
+            "description": "Git Light ist ein kostenloser Open-Source-Git-Client für den Desktop für macOS, Windows und Linux, mit Commit-Graph, Branch-Sidebar, Working Tree, interaktivem Rebase und echten lokalen Git-Operationen. Leichte Alternative zu GitKraken und Sourcetree.",
+            "inLanguage": "de",
+            "publisher": { "@id": "https://ftuyama.github.io/git-light/#organization" }
+          },
+          {
+            "@type": "WebPage",
+            "@id": "https://ftuyama.github.io/git-light/#webpage",
+            "url": "https://ftuyama.github.io/git-light/de/",
+            "name": "Git Light — kostenloser Open-Source-Git-Client für den Desktop mit Commit-Graph",
+            "description": "Kostenloser Git-Client für den Desktop für macOS, Windows und Linux, mit Commit-Graph, Branch-Sidebar, Working Tree und echten lokalen Git-Operationen.",
+            "isPartOf": { "@id": "https://ftuyama.github.io/git-light/#website" },
+            "about": { "@id": "https://ftuyama.github.io/git-light/#software" },
+            "inLanguage": "de"
+          },
+          {
+            "@type": "SoftwareApplication",
+            "@id": "https://ftuyama.github.io/git-light/#software",
+            "name": "Git Light",
+            "alternateName": "git-light",
+            "url": "https://ftuyama.github.io/git-light/",
+            "applicationCategory": "DeveloperApplication",
+            "applicationSubCategory": "Version Control",
+            "operatingSystem": "macOS, Windows, Linux",
+            "softwareVersion": "1.2.0",
+            "description": "Git-Client für den Desktop mit Commit-Graph, Branch-Sidebar, Working Tree, interaktivem Rebase und echten lokalen Git-Operationen über die native Git-CLI.",
+            "downloadUrl": "https://github.com/ftuyama/git-light/releases",
+            "screenshot": "https://ftuyama.github.io/git-light/screenshot.png",
+            "image": "https://ftuyama.github.io/git-light/icon.png",
+            "license": "https://opensource.org/licenses/MIT",
+            "isAccessibleForFree": true,
+            "offers": {
+              "@type": "Offer",
+              "price": "0",
+              "priceCurrency": "USD"
+            },
+            "author": {
+              "@type": "Person",
+              "name": "ftuyama",
+              "url": "https://github.com/ftuyama"
+            },
+            "publisher": { "@id": "https://ftuyama.github.io/git-light/#organization" },
+            "mainEntityOfPage": { "@id": "https://ftuyama.github.io/git-light/#webpage" },
+            "codeRepository": "https://github.com/ftuyama/git-light",
+            "programmingLanguage": ["TypeScript", "JavaScript"],
+            "featureList": ["Commit-Graph mit virtualisierten SVG-Lanes","Klonen per URL, Repositories anlegen und Ordner erkennen","Multi-Repository-Tabs mit Aliasen, Wiederöffnen und Tastaturnavigation","Branch-Sidebar mit gruppierten Ordnern, Massenlöschung und Merge/Rebase per Drag-and-drop","Working Tree mit Staging pro Hunk","Text-Diffs und Bildvorschauen mit Zoom und Lightbox","Git-Ausgabelog mit ausgeführten Befehlen","Anpassbare Tastaturkürzel","Automatischer Fetch in konfigurierbarem Intervall","Blame-Overlay mit Datei-Historie","Interaktives Rebase","Fetch, Pull, Push und Sync","Eingebettetes Terminal im Repository-Stamm (⌘J)","Grund- und Erweitert-Modus der Oberfläche","Oberfläche auf Englisch, Portugiesisch (Brasilien), vereinfachtem Chinesisch, Spanisch, Französisch, Deutsch und Japanisch"]
+          },
+          {
+            "@type": "FAQPage",
+            "@id": "https://ftuyama.github.io/git-light/#faq",
+            "inLanguage": "de",
+            "mainEntity": [
+  {
+    "@type": "Question",
+    "name": "Ist Git Light wirklich kostenlos?",
+    "acceptedAnswer": {
+      "@type": "Answer",
+      "text": "Ja. MIT-Lizenz, kein kostenpflichtiges Angebot, keine Testphase, keine Werbung und keine gesperrten Funktionen. Alle auf dieser Seite genannten Funktionen sind in der kostenlosen Version verfügbar."
+    }
+  },
+  {
+    "@type": "Question",
+    "name": "Brauche ich ein GitHub-, GitLab- oder Bitbucket-Konto?",
+    "acceptedAnswer": {
+      "@type": "Answer",
+      "text": "Nein. Es gibt keine Anmeldung, keinen Lizenzschlüssel und keine Telemetrie. Git Light funktioniert mit jedem Repository auf der Festplatte und mit jedem Remote, das dein Git bereits konfiguriert hat — über HTTPS oder SSH."
+    }
+  },
+  {
+    "@type": "Question",
+    "name": "Funktioniert es offline?",
+    "acceptedAnswer": {
+      "@type": "Answer",
+      "text": "Ja. Verlauf durchsuchen, Commit-Graph, Staging, Diffs, Commits, Branches, Merges, Rebase und Stashes sind lokale Vorgänge. Nur Fetch, Pull, Push und Clone brauchen Netzwerk."
+    }
+  },
+  {
+    "@type": "Question",
+    "name": "Bringt es eine eigene Git-Installation mit?",
+    "acceptedAnswer": {
+      "@type": "Answer",
+      "text": "Nein — es nutzt deine System-git-Binärdatei, daher gelten deine Konfiguration, Aliase, Credential Helper, SSH-Schlüssel, Hooks und das Verhalten von .gitignore unverändert."
+    }
+  },
+  {
+    "@type": "Question",
+    "name": "Kann ich meine bestehenden Repositories verwenden?",
+    "acceptedAnswer": {
+      "@type": "Answer",
+      "text": "Ja. Öffne jeden Ordner mit einem .git-Verzeichnis (oder klone/initialisiere ein neues). Git Light fügt keinen proprietären Index hinzu und schreibt keine zusätzlichen Dateien in dein Repository."
+    }
+  },
+  {
+    "@type": "Question",
+    "name": "Läuft es auf Apple-Silicon- und Intel-Macs?",
+    "acceptedAnswer": {
+      "@type": "Answer",
+      "text": "Apple Silicon (arm64) wird vollständig unterstützt. Intel-Macs werden von den aktuellen Builds nicht unterstützt — die Release-Pipeline erzeugt nur ein aarch64-.dmg. Windows-x64- und Linux-x86_64-Builds sind ebenfalls verfügbar."
+    }
+  },
+  {
+    "@type": "Question",
+    "name": "macOS meldet, die App sei beschädigt, oder verschiebt sie in den Papierkorb.",
+    "acceptedAnswer": {
+      "@type": "Answer",
+      "text": "Das ist Gatekeeper, der auf eine Ad-hoc-Signatur reagiert — kein defekter Download. Siehe den macOS-Installationshinweis."
+    }
+  },
+  {
+    "@type": "Question",
+    "name": "Welche Sprachen werden unterstützt?",
+    "acceptedAnswer": {
+      "@type": "Answer",
+      "text": "Englisch, Portugiesisch (Brasilien), vereinfachtes Chinesisch, Spanisch, Französisch, Deutsch und Japanisch. Die Oberfläche folgt der Systemsprache und lässt sich in den Einstellungen ändern. Diese Website ist in denselben sieben Sprachen verfügbar."
+    }
+  }
+]
+          }
+        ]
+      }
+    </script>
+  </head>
+  <body>
+    <header>
+      
+      <div class="wrap header-inner">
+        <a class="logo" href="../">
+          <img class="logo-mark" src="../icon.png" alt="Git-Light-App-Symbol" width="28" height="28" />
+          Git Light
+        </a>
+        <nav>
+          <a href="#screenshots">Screenshots</a>
+          <a href="#features">Vergleich</a>
+          <a href="#install">Download</a>
+          <a href="#faq">FAQ</a>
+          <select id="lang-switch" class="lang-switch" aria-label="Sprache">
+                        <option value="../">English</option>
+            <option value="../pt-BR/">Português (Brasil)</option>
+            <option value="../es/">Español</option>
+            <option value="../fr/">Français</option>
+            <option value="../de/" selected>Deutsch</option>
+            <option value="../zh-CN/">简体中文</option>
+            <option value="../ja/">日本語</option>
+          </select>
+          <a
+            class="btn btn-ghost"
+            href="https://github.com/ftuyama/git-light"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+              <path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.997.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.525.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.292-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.385 0-6.627-5.373-12-12-12.703"/>
+            </svg>
+            GitHub
+          </a>
+        </nav>
+      </div>
+    </header>
+
+    <main>
+      <section class="hero">
+        <div class="wrap">
+          <div class="badge">
+            <span class="badge-dot"></span>
+            v1.2.0 · Open Source · Tauri-Desktop-App
+          </div>
+          <h1>Git Light — ein leichterer Weg, <span>deinen Git-Verlauf zu sehen</span></h1>
+          <p>Kostenloser Open-Source-Git-Client für den Desktop für macOS, Windows und Linux. Durchstöbere den Verlauf in einem schnellen Graphen, verwalte Branches, stage Änderungen und führe echte Git-Befehle in lokalen Repositories aus — ohne Konto.</p>
+          <div class="hero-actions">
+            <a
+              class="btn btn-primary"
+              href="#install"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <path d="M12 2.25a.75.75 0 0 1 .75.75v11.69l3.22-3.22a.75.75 0 1 1 1.06 1.06l-4.5 4.5a.75.75 0 0 1-1.06 0l-4.5-4.5a.75.75 0 1 1 1.06-1.06l3.22 3.22V3a.75.75 0 0 1 .75-.75zm-9 13.5a.75.75 0 0 1 .75.75v2.25a1.5 1.5 0 0 0 1.5 1.5h13.5a1.5 1.5 0 0 0 1.5-1.5V16.5a.75.75 0 0 1 1.5 0v2.25a3 3 0 0 1-3 3H5.25a3 3 0 0 1-3-3V16.5a.75.75 0 0 1 .75-.75z"/>
+              </svg>
+              Download
+            </a>
+            <a
+              class="btn btn-ghost"
+              href="https://github.com/ftuyama/git-light"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.997.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.525.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.292-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.385 0-6.627-5.373-12-12-12.703"/>
+              </svg>
+              Auf GitHub ansehen
+            </a>
+            <a class="btn btn-ghost" href="#install">Loslegen</a>
+          </div>
+
+          <figure class="screenshot-frame">
+            <div class="screenshot-titlebar">
+              <div class="traffic">
+                <span class="red"></span>
+                <span class="yellow"></span>
+                <span class="green"></span>
+              </div>
+              <span class="screenshot-title">Git Light — AwesomeShop</span>
+            </div>
+            <img
+              src="../screenshot.png"
+              alt="Git Light mit dem AwesomeShop-Repository, Repo-Tabs, Commit-Graph, Branch-Sidebar, Working Tree und einem anpassbaren Drei-Bereiche-Layout"
+              class="screenshot"
+              width="1440"
+              height="900"
+              loading="eager"
+            />
+          </figure>
+        </div>
+      </section>
+
+      <section id="screenshots">
+        <div class="wrap">
+          <span class="eyebrow">Screenshots</span>
+          <h2>Alle Oberflächen auf einen Blick</h2>
+          <p class="section-sub">Diff-Viewer, Suche, Befehlspalette und Erscheinungsbild — dieselben Aufnahmen wie im README.</p>
+          <div class="gallery">
+            <figure class="gallery-item">
+              <a
+                class="gallery-trigger"
+                href="../screenshots/diff-viewer.png"
+                data-lightbox
+                aria-label="Screenshot vergrößern — Diff-Viewer mit Syntaxhervorhebung und Staging pro Hunk"
+              ></a>
+              <img
+                src="../screenshots/diff-viewer.png"
+                alt="Diff-Viewer mit Syntaxhervorhebung und Staging pro Hunk"
+                width="1440"
+                height="900"
+                loading="lazy"
+              />
+              <figcaption>
+                <strong>Diff-Viewer</strong>
+                Unified- oder Split-Diffs mit Syntaxhervorhebung, Blame und Staging/Verwerfen pro Hunk.
+              </figcaption>
+            </figure>
+            <figure class="gallery-item">
+              <a
+                class="gallery-trigger"
+                href="../screenshots/search.png"
+                data-lightbox
+                aria-label="Screenshot vergrößern — Such-Overlay mit passenden Dateien"
+              ></a>
+              <img
+                src="../screenshots/search.png"
+                alt="Such-Overlay mit passenden Dateien"
+                width="1440"
+                height="900"
+                loading="lazy"
+              />
+              <figcaption>
+                <strong>Suche</strong>
+                Commits, Dateien und Branches in einem Overlay durchsuchen.
+              </figcaption>
+            </figure>
+            <figure class="gallery-item">
+              <a
+                class="gallery-trigger"
+                href="../screenshots/command-palette.png"
+                data-lightbox
+                aria-label="Screenshot vergrößern — Befehlspalette mit Git-Befehlen"
+              ></a>
+              <img
+                src="../screenshots/command-palette.png"
+                alt="Befehlspalette mit Git-Befehlen"
+                width="1440"
+                height="900"
+                loading="lazy"
+              />
+              <figcaption>
+                <strong>Befehlspalette</strong>
+                Fetch, Pull, Push, Stash, Merge, Rebase und mehr mit ⌘K ausführen.
+              </figcaption>
+            </figure>
+            <figure class="gallery-item">
+              <a
+                class="gallery-trigger"
+                href="../screenshots/settings.png"
+                data-lightbox
+                aria-label="Screenshot vergrößern — Erscheinungsbild-Einstellungen mit einem Raster von Farbpaletten"
+              ></a>
+              <img
+                src="../screenshots/settings.png"
+                alt="Erscheinungsbild-Einstellungen mit einem Raster von Farbpaletten"
+                width="1440"
+                height="900"
+                loading="lazy"
+              />
+              <figcaption>
+                <strong>Erscheinungsbild und Themes</strong>
+                Integrierte helle und dunkle Paletten sowie eine eigene Palette mit deinen Farben.
+              </figcaption>
+            </figure>
+          </div>
+        </div>
+      </section>
+
+      <section id="features">
+        <div class="wrap">
+          <span class="eyebrow">Warum Git Light?</span>
+          <h2>Derselbe Workflow, ohne Ballast</h2>
+          <p class="section-sub">Kern-Git-Funktionen auf Augenhöhe — kostenlos, Open Source und leicht.</p>
+          <div class="compare-scroll">
+            <table class="compare-table">
+              <thead>
+                <tr>
+                  <th scope="col"></th>
+                  <th scope="col">Git Light</th>
+                  <th scope="col">GitKraken</th>
+                  <th scope="col">GitHub Desktop</th>
+                  <th scope="col">Sourcetree</th>
+                </tr>
+              </thead>
+              <tbody>
+                                <tr>
+                  <th scope="row">Kostenlos + Open Source (MIT)</th>
+                  <td class="yes">✅</td>
+                  <td>❌</td>
+                  <td>✅*</td>
+                  <td>✅ kostenlos, ❌ geschlossen</td>
+                </tr>
+                <tr>
+                  <th scope="row">Kein Konto nötig</th>
+                  <td class="yes">✅</td>
+                  <td>❌</td>
+                  <td>✅</td>
+                  <td>❌</td>
+                </tr>
+                <tr>
+                  <th scope="row">Commit-Graph + Branches + Staging</th>
+                  <td class="yes">✅</td>
+                  <td>✅</td>
+                  <td>✅</td>
+                  <td>✅</td>
+                </tr>
+                <tr>
+                  <th scope="row">Merge / Rebase / Cherry-Pick</th>
+                  <td class="yes">✅</td>
+                  <td>✅</td>
+                  <td>teilweise</td>
+                  <td>✅</td>
+                </tr>
+                <tr>
+                  <th scope="row">Hunk-Staging + Konflikt-Editor</th>
+                  <td class="yes">✅</td>
+                  <td>✅</td>
+                  <td>teilweise</td>
+                  <td>✅</td>
+                </tr>
+                <tr>
+                  <th scope="row">Interaktives Rebase</th>
+                  <td class="yes">✅</td>
+                  <td>✅</td>
+                  <td>❌</td>
+                  <td>✅</td>
+                </tr>
+                <tr>
+                  <th scope="row">Rückgängig / Wiederholen + Stash</th>
+                  <td class="yes">✅</td>
+                  <td>✅</td>
+                  <td>teilweise</td>
+                  <td>teilweise</td>
+                </tr>
+                <tr>
+                  <th scope="row">Bild-Diffs + Blame + Datei-Historie</th>
+                  <td class="yes">✅</td>
+                  <td>✅</td>
+                  <td>teilweise</td>
+                  <td>teilweise</td>
+                </tr>
+                <tr>
+                  <th scope="row">Multi-Repo-Tabs</th>
+                  <td class="yes">✅</td>
+                  <td>✅</td>
+                  <td>❌</td>
+                  <td>✅</td>
+                </tr>
+                <tr>
+                  <th scope="row">Befehlspalette + eigene Shortcuts</th>
+                  <td class="yes">✅</td>
+                  <td>teilweise</td>
+                  <td>❌</td>
+                  <td>❌</td>
+                </tr>
+                <tr>
+                  <th scope="row">macOS / Windows / Linux</th>
+                  <td class="yes">✅</td>
+                  <td>✅</td>
+                  <td>✅ / ✅ / ❌**</td>
+                  <td>✅ / ✅ / ❌</td>
+                </tr>
+                <tr>
+                  <th scope="row">Leichtgewichtig, offline zuerst</th>
+                  <td class="yes">✅</td>
+                  <td>❌ schwer</td>
+                  <td>✅</td>
+                  <td>❌ schwer</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <p class="compare-note">* GitHub Desktop ist Open Source, aber GitHub-zentriert. ** Kein offizieller Linux-Build.</p>
+        </div>
+      </section>
+
+      <section>
+        <div class="wrap">
+          <span class="eyebrow">Unter der Haube</span>
+          <h2>Mit modernen Werkzeugen gebaut</h2>
+          <p class="section-sub">Tauri-2-Desktop-Shell, Vue-3-Renderer und eine typisierte Git-Befehlsschicht.</p>
+          <div class="stack-carousel">
+            <div class="stack-track">
+              <div class="stack-group">
+                <span class="stack-tag"><img src="https://cdn.simpleicons.org/tauri" alt="Tauri logo" width="16" height="16" loading="lazy" />Tauri 2</span>
+                <span class="stack-tag"><img src="https://cdn.simpleicons.org/rust" alt="Rust logo" width="16" height="16" loading="lazy" />Rust</span>
+                <span class="stack-tag"><img src="https://cdn.simpleicons.org/vuedotjs" alt="Vue.js logo" width="16" height="16" loading="lazy" />Vue 3</span>
+                <span class="stack-tag"><img src="https://cdn.simpleicons.org/typescript" alt="TypeScript logo" width="16" height="16" loading="lazy" />TypeScript</span>
+                <span class="stack-tag"><img src="https://cdn.simpleicons.org/pinia" alt="Pinia logo" width="16" height="16" loading="lazy" />Pinia</span>
+                <span class="stack-tag"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="4" /><circle cx="9" cy="9" r="1.5" fill="currentColor" stroke="none" /><path d="M13.5 9H18M13.5 13.5H18M13.5 18H16M6 15.5h3M6 18h2" /></svg>reka-ui</span>
+                <span class="stack-tag"><img src="https://cdn.simpleicons.org/tailwindcss" alt="Tailwind CSS logo" width="16" height="16" loading="lazy" />Tailwind CSS 4</span>
+                <span class="stack-tag"><img src="https://cdn.simpleicons.org/vitest" alt="Vitest logo" width="16" height="16" loading="lazy" />Vitest</span>
+                <span class="stack-tag"><img src="https://cdn.simpleicons.org/vite" alt="Vite logo" width="16" height="16" loading="lazy" />Vite</span>
+              </div>
+              <div class="stack-group" aria-hidden="true">
+                <span class="stack-tag"><img src="https://cdn.simpleicons.org/tauri" alt="" width="16" height="16" loading="lazy" />Tauri 2</span>
+                <span class="stack-tag"><img src="https://cdn.simpleicons.org/rust" alt="" width="16" height="16" loading="lazy" />Rust</span>
+                <span class="stack-tag"><img src="https://cdn.simpleicons.org/vuedotjs" alt="" width="16" height="16" loading="lazy" />Vue 3</span>
+                <span class="stack-tag"><img src="https://cdn.simpleicons.org/typescript" alt="" width="16" height="16" loading="lazy" />TypeScript</span>
+                <span class="stack-tag"><img src="https://cdn.simpleicons.org/pinia" alt="" width="16" height="16" loading="lazy" />Pinia</span>
+                <span class="stack-tag"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="4" /><circle cx="9" cy="9" r="1.5" fill="currentColor" stroke="none" /><path d="M13.5 9H18M13.5 13.5H18M13.5 18H16M6 15.5h3M6 18h2" /></svg>reka-ui</span>
+                <span class="stack-tag"><img src="https://cdn.simpleicons.org/tailwindcss" alt="" width="16" height="16" loading="lazy" />Tailwind CSS 4</span>
+                <span class="stack-tag"><img src="https://cdn.simpleicons.org/vitest" alt="" width="16" height="16" loading="lazy" />Vitest</span>
+                <span class="stack-tag"><img src="https://cdn.simpleicons.org/vite" alt="" width="16" height="16" loading="lazy" />Vite</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="install">
+        <div class="wrap">
+          <div class="download-panel">
+          <span class="eyebrow">App holen</span>
+          <h2>Git Light herunterladen</h2>
+          <p class="section-sub">Kostenlose Desktop-App für macOS, Windows und Linux — Open Source, kein Konto nötig.</p>
+          <div class="quick-install">
+            <div class="quick-install-code">
+              <code id="quick-install-cmd"><span class="command">curl -fsSL</span> https://raw.githubusercontent.com/ftuyama/git-light/main/scripts/install.sh <span class="command">| sh</span></code>
+              <button
+                id="quick-install-copy"
+                class="btn btn-primary"
+                type="button"
+                aria-label="Installationsbefehl kopieren"
+                data-copy-label="Kopieren"
+                data-copied-label="Kopiert!"
+              >
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2" /><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" /></svg>
+                <span id="quick-install-copy-label">Kopieren</span>
+              </button>
+            </div>
+            <small class="quick-install-note">Einfache Installation mit einem Befehl — keine Gatekeeper-Hinweise.</small>
+          </div>
+          <div class="os-downloads">
+            <a
+              id="dl-mac"
+              class="btn btn-ghost os-btn"
+              href="https://github.com/ftuyama/git-light/releases/latest"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <img src="https://cdn.simpleicons.org/apple/white" alt="" width="20" height="20" loading="lazy" />
+              <span class="os-text">
+                <span class="os-label">Für macOS herunterladen</span>
+                <span class="os-sub">.dmg · Apple Silicon</span>
+              </span>
+            </a>
+            <a
+              id="dl-win"
+              class="btn btn-ghost os-btn"
+              href="https://github.com/ftuyama/git-light/releases/latest"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" aria-hidden="true"><path d="M3 5.5 10.5 4.4v7.1H3zM12 4.2 21 3v8.5h-9zM3 12.5h7.5v7.1L3 18.5zM12 12.5h9V21l-9-1.2z" /></svg>
+              <span class="os-text">
+                <span class="os-label">Für Windows herunterladen</span>
+                <span class="os-sub">.exe-Installationsprogramm</span>
+              </span>
+            </a>
+            <a
+              id="dl-linux"
+              class="btn btn-ghost os-btn"
+              href="https://github.com/ftuyama/git-light/releases/latest"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <img src="https://cdn.simpleicons.org/linux/white" alt="" width="20" height="20" loading="lazy" />
+              <span class="os-text">
+                <span class="os-label">Für Linux herunterladen</span>
+                <span class="os-sub">.AppImage · .deb</span>
+              </span>
+            </a>
+          </div>
+          <div class="install-guide">
+            <details class="guide" name="install-guide">
+              <summary>Installationsanleitung</summary>
+              <div class="guide-body">
+                <div class="guide-os">
+                  <h4>
+                    <img src="https://cdn.simpleicons.org/apple/white" alt="" width="16" height="16" loading="lazy" />
+                    macOS
+                  </h4>
+                  <ol>
+                    <li><strong>Empfohlen:</strong> führe den Ein-Zeilen-Befehl oben im Terminal aus — installiert in Programme ohne Gatekeeper-Hinweise. Erneut ausführen, um zu aktualisieren.</li>
+                    <li>Oder lade die <strong>.dmg</strong> oben herunter (Apple Silicon), öffne sie und ziehe <strong>Git Light</strong> in <strong>Programme</strong>.</li>
+                    <li>Starte die App — und nutze <strong>Git Light → Nach Updates suchen…</strong>, um aktuell zu bleiben.</li>
+                  </ol>
+                  <details id="gatekeeper">
+                    <summary>macOS meldet „In den Papierkorb verschieben“ oder öffnet die App nicht?</summary>
+                    <div class="guide-body">
+                      <p>Browser versehen heruntergeladene Dateien mit einem Quarantäne-Flag, das macOS für Apps ohne Apple Developer ID blockiert. Mit deinem Download ist alles in Ordnung:</p>
+                      <p><strong>Einfachste Lösung:</strong> nutze stattdessen den Ein-Zeilen-Installationsbefehl — dessen Downloads überspringen die Quarantäne. Wenn du bereits über die <code>.dmg</code> installiert hast, führe einmal im Terminal aus:</p>
+                      <pre><code>codesign --force --deep --sign - "/Applications/Git Light.app"
+xattr -dr com.apple.quarantine "/Applications/Git Light.app"</code></pre>
+                    </div>
+                  </details>
+                </div>
+                <div class="guide-os">
+                  <h4>
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true"><path d="M3 5.5 10.5 4.4v7.1H3zM12 4.2 21 3v8.5h-9zM3 12.5h7.5v7.1L3 18.5zM12 12.5h9V21l-9-1.2z" /></svg>
+                    Windows
+                  </h4>
+                  <ol>
+                    <li>Lade das <strong>.exe-Installationsprogramm</strong> oben herunter.</li>
+                    <li>Führe es aus und folge dem Setup-Assistenten.</li>
+                    <li>Starte sie über das Startmenü — und nutze <strong>Git Light → Nach Updates suchen…</strong>, um aktuell zu bleiben.</li>
+                  </ol>
+                </div>
+                <div class="guide-os">
+                  <h4>
+                    <img src="https://cdn.simpleicons.org/linux/white" alt="" width="16" height="16" loading="lazy" />
+                    Linux
+                  </h4>
+                  <ol>
+                    <li>Lade die <strong>.AppImage</strong> oder <strong>.deb</strong> oben herunter.</li>
+                    <li>AppImage: mit <code>chmod +x *.AppImage</code> ausführbar machen und starten. Deb: mit <code>sudo apt install ./git-light_*.deb</code> installieren.</li>
+                    <li>Starte die App — und nutze <strong>Git Light → Nach Updates suchen…</strong>, um aktuell zu bleiben.</li>
+                  </ol>
+                </div>
+              </div>
+            </details>
+            <details class="guide" name="install-guide">
+              <summary>Alle Versionen</summary>
+              <div class="guide-body">
+                <p>Frühere Versionen, Prüfsummen und plattformspezifische Installer (.dmg, .exe, .msi, .AppImage, .deb, .rpm) findest du auf der <a href="https://github.com/ftuyama/git-light/releases" target="_blank" rel="noopener noreferrer"><strong>GitHub-Releases-Seite</strong></a>.</p>
+              </div>
+            </details>
+          <details class="guide" name="install-guide">
+            <summary>Aus dem Quellcode bauen</summary>
+            <div class="guide-body">
+              <pre><span class="comment"># Klonen und starten</span>
+<span class="cmd">git clone</span> https://github.com/ftuyama/git-light.git
+<span class="cmd">cd</span> git-light
+<span class="cmd">npm install</span>
+<span class="cmd">npm run dev</span></pre>
+            </div>
+          </details>
+          </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="faq">
+        <div class="wrap">
+          <span class="eyebrow">FAQ</span>
+          <h2>Häufige Fragen</h2>
+          <p class="section-sub">Kurze Antworten zu Git Light.</p>
+          <div class="faq-list">
+                        <article class="faq-item">
+              <h3>Ist Git Light wirklich kostenlos?</h3>
+              <p>Ja. MIT-Lizenz, kein kostenpflichtiges Angebot, keine Testphase, keine Werbung und keine gesperrten Funktionen. Alle auf dieser Seite genannten Funktionen sind in der kostenlosen Version verfügbar.</p>
+            </article>
+            <article class="faq-item">
+              <h3>Brauche ich ein GitHub-, GitLab- oder Bitbucket-Konto?</h3>
+              <p>Nein. Es gibt keine Anmeldung, keinen Lizenzschlüssel und keine Telemetrie. Git Light funktioniert mit jedem Repository auf der Festplatte und mit jedem Remote, das dein Git bereits konfiguriert hat — über HTTPS oder SSH.</p>
+            </article>
+            <article class="faq-item">
+              <h3>Funktioniert es offline?</h3>
+              <p>Ja. Verlauf durchsuchen, Commit-Graph, Staging, Diffs, Commits, Branches, Merges, Rebase und Stashes sind lokale Vorgänge. Nur Fetch, Pull, Push und Clone brauchen Netzwerk.</p>
+            </article>
+            <article class="faq-item">
+              <h3>Bringt es eine eigene Git-Installation mit?</h3>
+              <p>Nein — es nutzt deine System-<code>git</code>-Binärdatei, daher gelten deine Konfiguration, Aliase, Credential Helper, SSH-Schlüssel, Hooks und das Verhalten von <code>.gitignore</code> unverändert.</p>
+            </article>
+            <article class="faq-item">
+              <h3>Kann ich meine bestehenden Repositories verwenden?</h3>
+              <p>Ja. Öffne jeden Ordner mit einem <code>.git</code>-Verzeichnis (oder klone/initialisiere ein neues). Git Light fügt keinen proprietären Index hinzu und schreibt keine zusätzlichen Dateien in dein Repository.</p>
+            </article>
+            <article class="faq-item">
+              <h3>Läuft es auf Apple-Silicon- und Intel-Macs?</h3>
+              <p>Apple Silicon (arm64) wird vollständig unterstützt. Intel-Macs werden von den aktuellen Builds nicht unterstützt — die Release-Pipeline erzeugt nur ein <code>aarch64</code>-<code>.dmg</code>. Windows-x64- und Linux-x86_64-Builds sind ebenfalls verfügbar.</p>
+            </article>
+            <article class="faq-item">
+              <h3>macOS meldet, die App sei beschädigt, oder verschiebt sie in den Papierkorb.</h3>
+              <p>Das ist Gatekeeper, der auf eine Ad-hoc-Signatur reagiert — kein defekter Download. Siehe den <a href="#install">macOS-Installationshinweis</a>.</p>
+            </article>
+            <article class="faq-item">
+              <h3>Welche Sprachen werden unterstützt?</h3>
+              <p>Englisch, Portugiesisch (Brasilien), vereinfachtes Chinesisch, Spanisch, Französisch, Deutsch und Japanisch. Die Oberfläche folgt der Systemsprache und lässt sich in den Einstellungen ändern. Diese Website ist in denselben sieben Sprachen verfügbar.</p>
+            </article>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <div class="wrap">
+        <p>
+          <a href="https://github.com/ftuyama/git-light">Git Light</a>
+          v1.2.0
+          · MIT-Lizenz · Erstellt von
+          <a href="https://github.com/ftuyama">ftuyama</a>
+          · <a href="https://ko-fi.com/lelouchiee" target="_blank" rel="noopener noreferrer">Auf Ko-fi unterstützen</a>
+          · <a href="https://ftuyama.github.io/git-light/llms.txt">llms.txt</a>
+          · <a href="https://ftuyama.github.io/git-light/llms-full.txt">llms-full.txt</a>
+        </p>
+      </div>
+    </footer>
+
+    <div
+      class="lightbox"
+      id="lightbox"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Screenshot-Vorschau"
+      hidden
+    >
+      <button
+        class="lightbox-close"
+        id="lightbox-close"
+        type="button"
+        aria-label="Screenshot schließen"
+      >
+        <span aria-hidden="true">&times;</span>
+      </button>
+      <figure class="lightbox-figure">
+        <img id="lightbox-image" src="" alt="" />
+        <figcaption id="lightbox-caption"></figcaption>
+      </figure>
+    </div>
+        <script>window.SITE_I18N = {
+  "defaultLocale": "en",
+  "locales": {
+    "pt-BR": {
+      "label": "Português (Brasil)",
+      "htmlLang": "pt-BR",
+      "href": "https://ftuyama.github.io/git-light/pt-BR/",
+      "hint": "Esta página também está disponível em {language}.",
+      "view": "Ver em {language}"
+    },
+    "es": {
+      "label": "Español",
+      "htmlLang": "es",
+      "href": "https://ftuyama.github.io/git-light/es/",
+      "hint": "Esta página también está disponible en {language}.",
+      "view": "Ver en {language}"
+    },
+    "fr": {
+      "label": "Français",
+      "htmlLang": "fr",
+      "href": "https://ftuyama.github.io/git-light/fr/",
+      "hint": "Cette page est aussi disponible en {language}.",
+      "view": "Voir en {language}"
+    },
+    "de": {
+      "label": "Deutsch",
+      "htmlLang": "de",
+      "href": "https://ftuyama.github.io/git-light/de/",
+      "hint": "Diese Seite ist auch auf {language} verfügbar.",
+      "view": "Auf {language} ansehen"
+    },
+    "zh-CN": {
+      "label": "简体中文",
+      "htmlLang": "zh-CN",
+      "href": "https://ftuyama.github.io/git-light/zh-CN/",
+      "hint": "本页面同时提供{language}版本。",
+      "view": "查看{language}版本"
+    },
+    "ja": {
+      "label": "日本語",
+      "htmlLang": "ja",
+      "href": "https://ftuyama.github.io/git-light/ja/",
+      "hint": "このページは{language}でも閲覧できます。",
+      "view": "{language}で表示"
+    }
+  }
+};</script>
+    <script>
+      (function () {
+        function pick(assets, patterns) {
+          for (var i = 0; i < patterns.length; i++) {
+            for (var j = 0; j < assets.length; j++) {
+              if (patterns[i].test(assets[j].name)) return assets[j];
+            }
+          }
+          return null;
+        }
+        function wire(id, asset) {
+          if (!asset) return;
+          var el = document.getElementById(id);
+          if (el) el.href = asset.browser_download_url;
+        }
+        fetch('https://api.github.com/repos/ftuyama/git-light/releases/latest')
+          .then(function (res) {
+            if (!res.ok) throw new Error('release lookup failed');
+            return res.json();
+          })
+          .then(function (release) {
+            var assets = release.assets || [];
+            wire('dl-mac', pick(assets, [/\.dmg$/i, /\.tar\.gz$/i]));
+            wire('dl-win', pick(assets, [/-setup\.exe$/i, /\.exe$/i, /\.msi$/i]));
+            wire('dl-linux', pick(assets, [/\.AppImage$/i, /\.deb$/i, /\.rpm$/i]));
+          })
+          .catch(function () {
+            /* Fallback hrefs (releases/latest) remain in place. */
+          });
+
+        /* Copy quick-install command */
+        var copyBtn = document.getElementById('quick-install-copy');
+        if (copyBtn) {
+          var copyLabel = document.getElementById('quick-install-copy-label');
+          var copyText = copyBtn.getAttribute('data-copy-label') || '';
+          var copiedText = copyBtn.getAttribute('data-copied-label') || copyText;
+          copyBtn.addEventListener('click', function () {
+            var cmd = document.getElementById('quick-install-cmd');
+            if (!cmd) return;
+            var done = function () {
+              if (!copyLabel) return;
+              copyLabel.textContent = copiedText;
+              setTimeout(function () { copyLabel.textContent = copyText; }, 2000);
+            };
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+              navigator.clipboard.writeText(cmd.textContent.trim()).then(done, function () {});
+            } else {
+              var ta = document.createElement('textarea');
+              ta.value = cmd.textContent.trim();
+              document.body.appendChild(ta);
+              ta.select();
+              document.execCommand('copy');
+              document.body.removeChild(ta);
+              done();
+            }
+          });
+        }
+
+        /* Language switcher */
+        var langSwitch = document.getElementById('lang-switch');
+        if (langSwitch) {
+          langSwitch.addEventListener('change', function () {
+            if (langSwitch.value) window.location.href = langSwitch.value;
+          });
+        }
+
+        /* Language hint (default-locale page only) */
+        var hint = document.getElementById('lang-hint');
+        var siteI18n = window.SITE_I18N;
+        if (hint && siteI18n && siteI18n.locales) {
+          var DEFAULT_LANG = siteI18n.defaultLocale;
+          function normalizeTag(raw) {
+            var tag = String(raw || '').toLowerCase().replace(/_/g, '-');
+            if (tag === 'en' || tag.indexOf('en-') === 0) return 'en';
+            if (tag === 'pt' || tag.indexOf('pt-') === 0) return 'pt-BR';
+            if (tag === 'zh' || tag === 'zh-cn' || tag === 'zh-hans' || tag === 'zh-sg') return 'zh-CN';
+            if (tag === 'es' || tag.indexOf('es-') === 0) return 'es';
+            if (tag === 'fr' || tag.indexOf('fr-') === 0) return 'fr';
+            if (tag === 'de' || tag.indexOf('de-') === 0) return 'de';
+            if (tag === 'ja' || tag.indexOf('ja-') === 0) return 'ja';
+            return null;
+          }
+          var candidates = (navigator.languages || []).concat(navigator.language || []);
+          var match = null;
+          for (var i = 0; i < candidates.length; i++) {
+            var resolved = normalizeTag(candidates[i]);
+            if (resolved) { match = resolved; break; }
+          }
+          var dismissed = false;
+          try { dismissed = localStorage.getItem('git-light-lang-hint') === 'dismissed'; } catch (e) {}
+          var entry = match && match !== DEFAULT_LANG ? siteI18n.locales[match] : null;
+          if (entry && !dismissed) {
+            var hintText = document.getElementById('lang-hint-text');
+            var hintLink = document.getElementById('lang-hint-link');
+            if (hintText) hintText.textContent = entry.hint.replace('{language}', entry.label);
+            if (hintLink) {
+              hintLink.href = entry.href;
+              hintLink.textContent = entry.view.replace('{language}', entry.label);
+              hintLink.lang = entry.htmlLang;
+            }
+            hint.hidden = false;
+          }
+          var hintClose = document.getElementById('lang-hint-close');
+          if (hintClose) {
+            hintClose.addEventListener('click', function () {
+              hint.hidden = true;
+              try { localStorage.setItem('git-light-lang-hint', 'dismissed'); } catch (e) {}
+            });
+          }
+        }
+
+        /* Screenshot lightbox */
+        var lightbox = document.getElementById('lightbox');
+        var lightboxImage = document.getElementById('lightbox-image');
+        var lightboxCaption = document.getElementById('lightbox-caption');
+        var lightboxClose = document.getElementById('lightbox-close');
+        if (lightbox && lightboxImage && lightboxCaption && lightboxClose) {
+          var lastTrigger = null;
+          var hideTimer = null;
+
+          var hideLightbox = function () {
+            lightbox.classList.remove('is-open');
+            document.body.classList.remove('lightbox-open');
+            lightbox.hidden = true;
+            if (lastTrigger && typeof lastTrigger.focus === 'function') lastTrigger.focus();
+            lastTrigger = null;
+          };
+
+          var closeLightbox = function () {
+            if (lightbox.hidden) return;
+            if ('transition' in lightbox.style) {
+              hideTimer = setTimeout(hideLightbox, 180);
+            } else {
+              hideLightbox();
+            }
+          };
+
+          var expandTrigger = document.querySelectorAll('.gallery-trigger[data-lightbox]');
+          expandTrigger.forEach(function (trigger) {
+            trigger.addEventListener('click', function (event) {
+              event.preventDefault();
+              if (hideTimer) {
+                clearTimeout(hideTimer);
+                hideTimer = null;
+              }
+
+              var card = trigger.closest('.gallery-item');
+              var image = card ? card.querySelector('img') : null;
+              var source = trigger.getAttribute('href') || (image && image.src) || '';
+
+              lastTrigger = trigger;
+              lightboxImage.src = source;
+              lightboxImage.alt = image ? image.alt : '';
+              lightboxCaption.textContent = lightboxImage.alt;
+              lightbox.hidden = false;
+              document.body.classList.add('lightbox-open');
+              requestAnimationFrame(function () {
+                lightbox.classList.add('is-open');
+              });
+              lightboxClose.focus();
+            });
+          });
+
+          lightboxClose.addEventListener('click', closeLightbox);
+
+          lightbox.addEventListener('click', function (event) {
+            if (event.target === lightbox) closeLightbox();
+          });
+
+          lightbox.addEventListener('keydown', function (event) {
+            if (event.key !== 'Tab') return;
+            var focusable = lightbox.querySelectorAll(
+              'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+            );
+            if (!focusable.length) {
+              event.preventDefault();
+              return;
+            }
+            var first = focusable[0];
+            var last = focusable[focusable.length - 1];
+            if (event.shiftKey && document.activeElement === first) {
+              event.preventDefault();
+              last.focus();
+            } else if (!event.shiftKey && document.activeElement === last) {
+              event.preventDefault();
+              first.focus();
+            }
+          });
+
+          document.addEventListener('keydown', function (event) {
+            if (event.key === 'Escape' && !lightbox.hidden) {
+              event.preventDefault();
+              closeLightbox();
+            }
+          });
+        }
+
+        /* Scroll reveal */
+        var revealEls = document.querySelectorAll(
+          '.compare-scroll, .faq-item, .screenshot-frame, .gallery-item, .download-panel, .stack-carousel, .install-box'
+        );
+        if ('IntersectionObserver' in window) {
+          var observer = new IntersectionObserver(
+            function (entries) {
+              entries.forEach(function (entry) {
+                if (entry.isIntersecting) {
+                  entry.target.classList.add('visible');
+                  observer.unobserve(entry.target);
+                }
+              });
+            },
+            { threshold: 0.1 }
+          );
+          revealEls.forEach(function (el) {
+            el.classList.add('reveal');
+            observer.observe(el);
+          });
+        }
+      })();
+    </script>
+  </body>
+</html>

@@ -23,6 +23,7 @@ jobs:
       - run: npm run typecheck
       - run: npm run test
       - run: npm run i18n:audit
+      - run: npm run site:check
       - run: npm run sync-version -- --check
 
       - name: Install Rust stable

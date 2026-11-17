@@ -10,7 +10,8 @@ Frontend (Node 20+):
 - `npm run dev:tauri` — Vite in Tauri mode only (no native window)
 - `npm run typecheck` — `vue-tsc --noEmit`
 - `npm run test` — `vitest run`
-- `npm run sync-version` — syncs version to `package-lock.json`, `docs/`, `src-tauri/Cargo.toml`, `src-tauri/tauri.conf.json`
+- `npm run sync-version` — syncs version to `package-lock.json`, `docs/`, `src-tauri/Cargo.toml`, `src-tauri/tauri.conf.json`, then rebuilds the localized site
+- `npm run site:build` / `npm run site:check` — render / verify the localized landing page from `site/`
 - `npm run sync-version -- --check` — check only, writes nothing
 - `npm run icons` — regenerate `src-tauri/icons/` from `docs/icon.svg` (source of truth) + `src-tauri/app-icon.json` manifest; never edit icon binaries by hand
 

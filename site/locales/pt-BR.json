@@ -1,0 +1,261 @@
+{
+  "brand": {
+    "logoAlt": "Ícone do aplicativo Git Light"
+  },
+  "nav": {
+    "screenshots": "Capturas de tela",
+    "compare": "Comparar",
+    "download": "Baixar",
+    "faq": "FAQ",
+    "github": "GitHub",
+    "language": "Idioma"
+  },
+  "hint": {
+    "message": "Esta página também está disponível em {language}.",
+    "view": "Ver em {language}",
+    "close": "Dispensar sugestão de idioma"
+  },
+  "seo": {
+    "title": "Git Light — cliente Git de desktop gratuito e de código aberto com grafo de commits",
+    "description": "Git Light é um cliente Git de desktop gratuito e de código aberto para macOS, Windows e Linux, com grafo de commits, barra lateral de branches, árvore de trabalho, rebase interativo e operações Git locais de verdade. Alternativa leve ao GitKraken e ao Sourcetree.",
+    "keywords": "cliente Git, interface Git para desktop, grafo de commits, visualizador de histórico Git, app Git em Tauri, cliente Git de código aberto, cliente Git para macOS, alternativa ao GitKraken, alternativa ao Sourcetree, rebase interativo, gerenciador de branches",
+    "ogTitle": "Git Light — cliente Git de desktop gratuito e de código aberto",
+    "ogDescription": "Uma forma mais leve de ver seu histórico Git. Grafo de commits, barra lateral de branches, árvore de trabalho e operações Git locais de verdade — feito com Tauri 2, Vue 3, TypeScript e Rust.",
+    "twitterDescription": "Grafo de commits, barra lateral de branches, árvore de trabalho e operações Git locais de verdade. Código aberto e gratuito.",
+    "imageAlt": "Git Light mostrando o repositório AwesomeShop com abas de repositórios, grafo de commits, barra lateral de branches e árvore de trabalho",
+    "pageDescription": "Cliente Git de desktop gratuito para macOS, Windows e Linux, com grafo de commits, barra lateral de branches, árvore de trabalho e operações Git locais de verdade.",
+    "softwareDescription": "Cliente Git de desktop com grafo de commits, barra lateral de branches, árvore de trabalho, rebase interativo e operações Git locais de verdade via CLI nativa do Git.",
+    "featureList": [
+      "Grafo de commits com lanes SVG virtualizadas",
+      "Clone por URL, criação de repositórios e descoberta de pastas",
+      "Abas de múltiplos repositórios com apelidos, reabrir fechadas e navegação por teclado",
+      "Barra lateral de branches com pastas agrupadas, exclusão em massa e merge/rebase por arrastar e soltar",
+      "Árvore de trabalho com staging por trecho",
+      "Diffs de texto e pré-visualizações de imagem com zoom e lightbox",
+      "Log de saída do Git com os comandos executados",
+      "Atalhos de teclado personalizáveis",
+      "Fetch automático em intervalo configurável",
+      "Sobreposição de blame com histórico de arquivo",
+      "Rebase interativo",
+      "Fetch, pull, push e sincronização",
+      "Terminal integrado na raiz do repositório (⌘J)",
+      "Modos de interface Básico e Avançado",
+      "Interface em inglês, português (Brasil), chinês simplificado, espanhol, francês, alemão e japonês"
+    ],
+    "faq": [
+      {
+        "q": "O Git Light é realmente gratuito?",
+        "a": "Sim. Licença MIT, sem plano pago, sem período de teste, sem anúncios e sem recursos bloqueados. Todos os recursos listados nesta página estão disponíveis na versão gratuita."
+      },
+      {
+        "q": "Preciso de uma conta no GitHub, GitLab ou Bitbucket?",
+        "a": "Não. Não há login, chave de licença nem telemetria. O Git Light funciona com qualquer repositório no disco e com qualquer remoto que o seu próprio Git já esteja configurado para usar, via HTTPS ou SSH."
+      },
+      {
+        "q": "Funciona offline?",
+        "a": "Sim. Navegar pelo histórico, o grafo de commits, o staging, os diffs, os commits, os branches, os merges, os rebases e os stashes são operações locais. Apenas fetch, pull, push e clone precisam de rede."
+      },
+      {
+        "q": "Ele vem com o seu próprio Git?",
+        "a": "Não — ele executa o binário <code>git</code> do sistema, então sua configuração, apelidos, credential helper, chaves SSH, hooks e o comportamento do <code>.gitignore</code> continuam valendo sem alterações."
+      },
+      {
+        "q": "Posso usar meus repositórios existentes?",
+        "a": "Sim. Abra qualquer pasta que contenha um diretório <code>.git</code> (ou clone/inicie um novo). O Git Light não adiciona nenhum índice proprietário e não grava arquivos extras no seu repositório."
+      },
+      {
+        "q": "Funciona em Macs Apple Silicon e Intel?",
+        "a": "Apple Silicon (arm64) é totalmente suportado. Macs Intel não são suportados pelas builds atuais — o pipeline de release só gera um <code>.dmg</code> <code>aarch64</code>. Também há builds para Windows x64 e Linux x86_64."
+      },
+      {
+        "q": "O macOS diz que o app está danificado ou o move para o Lixo.",
+        "a": "Isso é o Gatekeeper reagindo a uma assinatura ad-hoc, não um download corrompido — veja a <a href=\"#install\">nota de instalação para macOS</a>."
+      },
+      {
+        "q": "Quais idiomas são suportados?",
+        "a": "Inglês, português (Brasil), chinês simplificado, espanhol, francês, alemão e japonês. A interface segue o idioma do sistema e pode ser alterada nas Configurações. Este site está disponível nos mesmos sete idiomas."
+      }
+    ]
+  },
+  "hero": {
+    "badge": "v{{version}} · Código aberto · App desktop em Tauri",
+    "title": "Git Light — um jeito mais leve de <span>ver seu histórico Git</span>",
+    "subtitle": "Cliente Git de desktop gratuito e de código aberto para macOS, Windows e Linux. Navegue pelo histórico em um grafo rápido, gerencie branches, prepare alterações e execute comandos Git de verdade em repositórios locais — sem conta.",
+    "download": "Baixar",
+    "viewGithub": "Ver no GitHub",
+    "getStarted": "Começar",
+    "screenshotTitle": "Git Light — AwesomeShop",
+    "screenshotAlt": "Git Light mostrando o repositório AwesomeShop com abas de repositórios, grafo de commits, barra lateral de branches, árvore de trabalho e layout de três painéis redimensionáveis"
+  },
+  "screenshots": {
+    "eyebrow": "Capturas de tela",
+    "title": "Todas as telas em um só lugar",
+    "subtitle": "Visualizador de diff, busca, paleta de comandos e aparência — as mesmas capturas do README."
+  },
+  "gallery": {
+    "diff": {
+      "title": "Visualizador de diff",
+      "body": "Diffs unificados ou lado a lado com destaque de sintaxe, blame e stage/descarte por trecho.",
+      "alt": "Visualizador de diff com destaque de sintaxe e staging por trecho"
+    },
+    "search": {
+      "title": "Busca",
+      "body": "Busque commits, arquivos e branches em uma única sobreposição.",
+      "alt": "Sobreposição de busca listando arquivos correspondentes"
+    },
+    "palette": {
+      "title": "Paleta de comandos",
+      "body": "Execute fetch, pull, push, stash, merge, rebase e mais com ⌘K.",
+      "alt": "Paleta de comandos listando comandos Git"
+    },
+    "settings": {
+      "title": "Aparência e temas",
+      "body": "Paletas claras e escuras integradas, além de uma paleta personalizada com suas próprias cores.",
+      "alt": "Preferências de aparência com uma grade de paletas de cores"
+    },
+    "lightbox": {
+      "open": "Ampliar captura de tela",
+      "close": "Fechar captura de tela",
+      "label": "Pré-visualização da captura de tela"
+    }
+  },
+  "compare": {
+    "eyebrow": "Por que Git Light?",
+    "title": "O mesmo fluxo, sem o peso",
+    "subtitle": "Recursos essenciais do Git em paridade — gratuito, de código aberto e leve.",
+    "note": "* O GitHub Desktop é de código aberto, mas centrado no GitHub. ** Não há build oficial para Linux.",
+    "rows": [
+      {
+        "label": "Gratuito + código aberto (MIT)",
+        "gitkraken": "❌",
+        "githubDesktop": "✅*",
+        "sourcetree": "✅ grátis, ❌ fechado"
+      },
+      {
+        "label": "Sem conta",
+        "gitkraken": "❌",
+        "githubDesktop": "✅",
+        "sourcetree": "❌"
+      },
+      {
+        "label": "Grafo de commits + branches + staging",
+        "gitkraken": "✅",
+        "githubDesktop": "✅",
+        "sourcetree": "✅"
+      },
+      {
+        "label": "Merge / rebase / cherry-pick",
+        "gitkraken": "✅",
+        "githubDesktop": "parcial",
+        "sourcetree": "✅"
+      },
+      {
+        "label": "Staging por trecho + editor de conflitos",
+        "gitkraken": "✅",
+        "githubDesktop": "parcial",
+        "sourcetree": "✅"
+      },
+      {
+        "label": "Rebase interativo",
+        "gitkraken": "✅",
+        "githubDesktop": "❌",
+        "sourcetree": "✅"
+      },
+      {
+        "label": "Desfazer / refazer + stash",
+        "gitkraken": "✅",
+        "githubDesktop": "parcial",
+        "sourcetree": "parcial"
+      },
+      {
+        "label": "Diffs de imagem + blame + histórico de arquivo",
+        "gitkraken": "✅",
+        "githubDesktop": "parcial",
+        "sourcetree": "parcial"
+      },
+      {
+        "label": "Abas de múltiplos repositórios",
+        "gitkraken": "✅",
+        "githubDesktop": "❌",
+        "sourcetree": "✅"
+      },
+      {
+        "label": "Paleta de comandos + atalhos personalizados",
+        "gitkraken": "parcial",
+        "githubDesktop": "❌",
+        "sourcetree": "❌"
+      },
+      {
+        "label": "macOS / Windows / Linux",
+        "gitkraken": "✅",
+        "githubDesktop": "✅ / ✅ / ❌**",
+        "sourcetree": "✅ / ✅ / ❌"
+      },
+      {
+        "label": "Leve, focado em uso offline",
+        "gitkraken": "❌ pesado",
+        "githubDesktop": "✅",
+        "sourcetree": "❌ pesado"
+      }
+    ]
+  },
+  "stack": {
+    "eyebrow": "Por dentro",
+    "title": "Feito com ferramentas modernas",
+    "subtitle": "Shell desktop em Tauri 2, renderer em Vue 3 e uma camada tipada de comandos Git."
+  },
+  "install": {
+    "eyebrow": "Baixe o app",
+    "title": "Baixar Git Light",
+    "subtitle": "App de desktop gratuito para macOS, Windows e Linux — código aberto, sem conta.",
+    "copy": "Copiar",
+    "copied": "Copiado!",
+    "copyAria": "Copiar comando de instalação",
+    "note": "Instalação fácil com um único comando — sem avisos do Gatekeeper.",
+    "guideTitle": "Guia de instalação",
+    "mac": {
+      "label": "Baixar para macOS",
+      "sub": ".dmg · Apple Silicon",
+      "step1": "<strong>Recomendado:</strong> execute o comando de uma linha acima no Terminal — instala em Aplicativos sem avisos do Gatekeeper. Execute de novo para atualizar.",
+      "step2": "Ou baixe o <strong>.dmg</strong> acima (Apple Silicon), abra e arraste o <strong>Git Light</strong> para <strong>Aplicativos</strong>.",
+      "step3": "Abra o app — e use <strong>Git Light → Verificar atualizações…</strong> quando quiser para ficar em dia."
+    },
+    "windows": {
+      "label": "Baixar para Windows",
+      "sub": "instalador .exe",
+      "step1": "Baixe o <strong>instalador .exe</strong> acima.",
+      "step2": "Execute e siga o assistente de instalação.",
+      "step3": "Abra pelo menu Iniciar — e use <strong>Git Light → Verificar atualizações…</strong> quando quiser para ficar em dia."
+    },
+    "linux": {
+      "label": "Baixar para Linux",
+      "sub": ".AppImage · .deb",
+      "step1": "Baixe o <strong>.AppImage</strong> ou o <strong>.deb</strong> acima.",
+      "step2": "AppImage: torne executável com <code>chmod +x *.AppImage</code> e execute. Deb: instale com <code>sudo apt install ./git-light_*.deb</code>.",
+      "step3": "Abra o app — e use <strong>Git Light → Verificar atualizações…</strong> quando quiser para ficar em dia."
+    },
+    "gatekeeper": {
+      "summary": "O macOS diz \"mover para o Lixo\" ou se recusa a abrir?",
+      "p1": "Navegadores adicionam uma marca de quarentena aos arquivos baixados, e o macOS bloqueia apps sem um Apple Developer ID. Não há nada errado com o seu download:",
+      "p2": "<strong>Correção mais fácil:</strong> use o comando de instalação de uma linha — os downloads dele pulam a quarentena. Se você já instalou pelo <code>.dmg</code>, execute uma vez no Terminal:"
+    },
+    "allReleases": {
+      "title": "Todas as versões",
+      "body": "Versões anteriores, checksums e instaladores por plataforma (.dmg, .exe, .msi, .AppImage, .deb, .rpm) estão na <a href=\"https://github.com/ftuyama/git-light/releases\" target=\"_blank\" rel=\"noopener noreferrer\"><strong>página de Releases do GitHub</strong></a>."
+    },
+    "source": {
+      "title": "Compilar do código-fonte",
+      "comment": "Clone e execute"
+    }
+  },
+  "faq": {
+    "eyebrow": "FAQ",
+    "title": "Perguntas frequentes",
+    "subtitle": "Respostas rápidas sobre o Git Light."
+  },
+  "footer": {
+    "license": "Licença MIT",
+    "builtBy": "Feito por",
+    "sponsor": "Apoie no Ko-fi"
+  }
+}

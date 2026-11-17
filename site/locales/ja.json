@@ -1,0 +1,261 @@
+{
+  "brand": {
+    "logoAlt": "Git Light アプリのアイコン"
+  },
+  "nav": {
+    "screenshots": "スクリーンショット",
+    "compare": "比較",
+    "download": "ダウンロード",
+    "faq": "FAQ",
+    "github": "GitHub",
+    "language": "言語"
+  },
+  "hint": {
+    "message": "このページは{language}でも閲覧できます。",
+    "view": "{language}で表示",
+    "close": "言語の提案を閉じる"
+  },
+  "seo": {
+    "title": "Git Light — コミットグラフ付きの無料オープンソースデスクトップ Git クライアント",
+    "description": "Git Light は macOS、Windows、Linux 向けの無料オープンソースデスクトップ Git クライアントです。コミットグラフ、ブランチサイドバー、ワークツリー、インタラクティブリベース、実際のローカル Git 操作を備え、GitKraken や Sourcetree の軽量な代替になります。",
+    "keywords": "Git クライアント, デスクトップ Git GUI, コミットグラフ, Git 履歴ビューア, Tauri Git アプリ, オープンソース Git クライアント, macOS Git クライアント, GitKraken 代替, Sourcetree 代替, インタラクティブリベース, ブランチ管理",
+    "ogTitle": "Git Light — 無料オープンソースのデスクトップ Git クライアント",
+    "ogDescription": "Git 履歴をもっと軽やかに見る方法。コミットグラフ、ブランチサイドバー、ワークツリー、実際のローカル Git 操作 —— Tauri 2、Vue 3、TypeScript、Rust で構築。",
+    "twitterDescription": "コミットグラフ、ブランチサイドバー、ワークツリー、実際のローカル Git 操作。オープンソースで無料。",
+    "imageAlt": "Git Light が AwesomeShop リポジトリを表示。リポジトリタブ、コミットグラフ、ブランチサイドバー、ワークツリーを含む",
+    "pageDescription": "macOS、Windows、Linux 向けの無料デスクトップ Git クライアント。コミットグラフ、ブランチサイドバー、ワークツリー、実際のローカル Git 操作を提供。",
+    "softwareDescription": "コミットグラフ、ブランチサイドバー、ワークツリー、インタラクティブリベース、ネイティブ Git CLI による実際のローカル Git 操作を備えたデスクトップ Git クライアント。",
+    "featureList": [
+      "仮想化された SVG レーンによるコミットグラフ",
+      "URL からのクローン、リポジトリの初期化、フォルダーの検出",
+      "エイリアス、閉じたタブの再オープン、キーボードナビゲーションを備えたマルチリポジトリタブ",
+      "フォルダーグループ、一括削除、ドラッグ＆ドロップのマージ/リベースを備えたブランチサイドバー",
+      "コードブロック単位のステージングを備えたワークツリー",
+      "テキスト差分と、ズーム・ライトボックス付きの画像プレビュー",
+      "実行したコマンドを記録する Git 出力ログ",
+      "カスタマイズ可能なキーボードショートカット",
+      "設定可能な間隔での自動 fetch",
+      "ファイル履歴付きの blame オーバーレイ",
+      "インタラクティブリベース",
+      "fetch、pull、push、同期",
+      "リポジトリルートに組み込まれたターミナル（⌘J）",
+      "ベーシックとアドバンスの UI モード",
+      "英語、ポルトガル語（ブラジル）、簡体字中国語、スペイン語、フランス語、ドイツ語、日本語の UI"
+    ],
+    "faq": [
+      {
+        "q": "Git Light は本当に無料ですか？",
+        "a": "はい。MIT ライセンスで、有料プラン、試用期間、広告、機能制限はありません。このページに載っているすべての機能が無料版で利用できます。"
+      },
+      {
+        "q": "GitHub、GitLab、Bitbucket のアカウントは必要ですか？",
+        "a": "いいえ。サインイン、ライセンスキー、テレメトリーはありません。Git Light はディスク上の任意のリポジトリ、およびお使いの Git が設定済みの任意のリモート（HTTPS または SSH）で動作します。"
+      },
+      {
+        "q": "オフラインでも使えますか？",
+        "a": "はい。履歴の閲覧、コミットグラフ、ステージング、差分、コミット、ブランチ、マージ、リベース、スタッシュはすべてローカル操作です。ネットワークが必要なのは fetch、pull、push、clone のみです。"
+      },
+      {
+        "q": "Git は同梱されていますか？",
+        "a": "いいえ —— システムの <code>git</code> バイナリを実行するため、既存の設定、エイリアス、credential helper、SSH キー、フック、<code>.gitignore</code> の動作がそのまま適用されます。"
+      },
+      {
+        "q": "既存のリポジトリを使えますか？",
+        "a": "はい。<code>.git</code> ディレクトリを含むフォルダーを開く（またはクローン/初期化する）だけです。Git Light は独自のインデックスを追加せず、リポジトリに余分なファイルも書き込みません。"
+      },
+      {
+        "q": "Apple Silicon と Intel Mac で動作しますか？",
+        "a": "Apple Silicon（arm64）は完全にサポートされています。Intel Mac は現在のビルドではサポートされていません —— リリースパイプラインは <code>aarch64</code> の <code>.dmg</code> のみを生成します。Windows x64 と Linux x86_64 のビルドも利用できます。"
+      },
+      {
+        "q": "macOS がアプリの破損を報告したり、ゴミ箱に移動したりします。",
+        "a": "これはアドホック署名に対する Gatekeeper の反応であり、ダウンロードの破損ではありません —— <a href=\"#install\">macOS のインストール手順</a>を参照してください。"
+      },
+      {
+        "q": "対応している言語は？",
+        "a": "英語、ポルトガル語（ブラジル）、簡体字中国語、スペイン語、フランス語、ドイツ語、日本語です。UI は OS の言語に従い、設定で切り替えられます。このサイトも同じ 7 言語で利用できます。"
+      }
+    ]
+  },
+  "hero": {
+    "badge": "v{{version}} · オープンソース · Tauri デスクトップアプリ",
+    "title": "Git Light — <span>Git 履歴を</span>もっと軽やかに見る",
+    "subtitle": "macOS、Windows、Linux 向けの無料オープンソースデスクトップ Git クライアント。高速なグラフで履歴を閲覧し、ブランチを管理し、変更をステージングし、ローカルリポジトリに対して実際の Git コマンドを実行できます —— アカウント不要。",
+    "download": "ダウンロード",
+    "viewGithub": "GitHub で見る",
+    "getStarted": "はじめる",
+    "screenshotTitle": "Git Light — AwesomeShop",
+    "screenshotAlt": "Git Light が AwesomeShop リポジトリを表示。リポジトリタブ、コミットグラフ、ブランチサイドバー、ワークツリー、サイズ変更可能な 3 ペイン構成"
+  },
+  "screenshots": {
+    "eyebrow": "スクリーンショット",
+    "title": "すべての画面を一目で",
+    "subtitle": "差分ビューア、検索、コマンドパレット、外観 —— README と同じキャプチャです。"
+  },
+  "gallery": {
+    "diff": {
+      "title": "差分ビューア",
+      "body": "シンタックスハイライト、blame、コードブロック単位のステージ/破棄を備えた unified または分割差分。",
+      "alt": "シンタックスハイライトとコードブロック単位のステージングを備えた差分ビューア"
+    },
+    "search": {
+      "title": "検索",
+      "body": "1 つのオーバーレイからコミット、ファイル、ブランチを検索。",
+      "alt": "一致するファイルを一覧表示する検索オーバーレイ"
+    },
+    "palette": {
+      "title": "コマンドパレット",
+      "body": "⌘K から fetch、pull、push、stash、merge、rebase などを実行。",
+      "alt": "Git コマンドを一覧表示するコマンドパレット"
+    },
+    "settings": {
+      "title": "外観とテーマ",
+      "body": "ライトとダークのパレットを内蔵し、独自の色でカスタムパレットも作成できます。",
+      "alt": "カラーパレットのグリッドを表示する外観設定"
+    },
+    "lightbox": {
+      "open": "スクリーンショットを拡大",
+      "close": "スクリーンショットを閉じる",
+      "label": "スクリーンショットのプレビュー"
+    }
+  },
+  "compare": {
+    "eyebrow": "Git Light を選ぶ理由",
+    "title": "同じワークフローを、余計なものを載せずに",
+    "subtitle": "Git の主要機能を同等に —— 無料、オープンソース、軽量。",
+    "note": "* GitHub Desktop はオープンソースですが GitHub 中心です。** 公式の Linux ビルドはありません。",
+    "rows": [
+      {
+        "label": "無料 + オープンソース（MIT）",
+        "gitkraken": "❌",
+        "githubDesktop": "✅*",
+        "sourcetree": "✅ 無料、❌ クローズド"
+      },
+      {
+        "label": "アカウント不要",
+        "gitkraken": "❌",
+        "githubDesktop": "✅",
+        "sourcetree": "❌"
+      },
+      {
+        "label": "コミットグラフ + ブランチ + ステージング",
+        "gitkraken": "✅",
+        "githubDesktop": "✅",
+        "sourcetree": "✅"
+      },
+      {
+        "label": "マージ / リベース / チェリーピック",
+        "gitkraken": "✅",
+        "githubDesktop": "一部対応",
+        "sourcetree": "✅"
+      },
+      {
+        "label": "コードブロックのステージング + 競合エディター",
+        "gitkraken": "✅",
+        "githubDesktop": "一部対応",
+        "sourcetree": "✅"
+      },
+      {
+        "label": "インタラクティブリベース",
+        "gitkraken": "✅",
+        "githubDesktop": "❌",
+        "sourcetree": "✅"
+      },
+      {
+        "label": "元に戻す / やり直し + スタッシュ",
+        "gitkraken": "✅",
+        "githubDesktop": "一部対応",
+        "sourcetree": "一部対応"
+      },
+      {
+        "label": "画像差分 + blame + ファイル履歴",
+        "gitkraken": "✅",
+        "githubDesktop": "一部対応",
+        "sourcetree": "一部対応"
+      },
+      {
+        "label": "マルチリポジトリタブ",
+        "gitkraken": "✅",
+        "githubDesktop": "❌",
+        "sourcetree": "✅"
+      },
+      {
+        "label": "コマンドパレット + カスタムショートカット",
+        "gitkraken": "一部対応",
+        "githubDesktop": "❌",
+        "sourcetree": "❌"
+      },
+      {
+        "label": "macOS / Windows / Linux",
+        "gitkraken": "✅",
+        "githubDesktop": "✅ / ✅ / ❌**",
+        "sourcetree": "✅ / ✅ / ❌"
+      },
+      {
+        "label": "軽量、オフライン優先",
+        "gitkraken": "❌ 重い",
+        "githubDesktop": "✅",
+        "sourcetree": "❌ 重い"
+      }
+    ]
+  },
+  "stack": {
+    "eyebrow": "内部の技術",
+    "title": "モダンなツールで構築",
+    "subtitle": "Tauri 2 デスクトップシェル、Vue 3 レンダラー、型付き Git コマンドレイヤー。"
+  },
+  "install": {
+    "eyebrow": "アプリを入手",
+    "title": "Git Light をダウンロード",
+    "subtitle": "macOS、Windows、Linux 向けの無料デスクトップアプリ —— オープンソース、アカウント不要。",
+    "copy": "コピー",
+    "copied": "コピーしました！",
+    "copyAria": "インストールコマンドをコピー",
+    "note": "1 つのコマンドで簡単インストール —— Gatekeeper の警告なし。",
+    "guideTitle": "インストールガイド",
+    "mac": {
+      "label": "macOS 版をダウンロード",
+      "sub": ".dmg · Apple Silicon",
+      "step1": "<strong>推奨：</strong>上の 1 行コマンドをターミナルで実行します —— Gatekeeper の警告なしでアプリケーションにインストールされます。再実行すると更新できます。",
+      "step2": "または上の <strong>.dmg</strong>（Apple Silicon）をダウンロードし、開いて <strong>Git Light</strong> を<strong>アプリケーション</strong>にドラッグします。",
+      "step3": "アプリを起動 —— その後は <strong>Git Light → アップデートを確認…</strong> でいつでも最新にできます。"
+    },
+    "windows": {
+      "label": "Windows 版をダウンロード",
+      "sub": ".exe インストーラー",
+      "step1": "上の <strong>.exe インストーラー</strong>をダウンロードします。",
+      "step2": "実行してセットアップウィザードに従います。",
+      "step3": "スタートメニューから起動 —— その後は <strong>Git Light → アップデートを確認…</strong> で最新にできます。"
+    },
+    "linux": {
+      "label": "Linux 版をダウンロード",
+      "sub": ".AppImage · .deb",
+      "step1": "上の <strong>.AppImage</strong> または <strong>.deb</strong> をダウンロードします。",
+      "step2": "AppImage：<code>chmod +x *.AppImage</code> で実行可能にして起動します。Deb：<code>sudo apt install ./git-light_*.deb</code> でインストールします。",
+      "step3": "アプリを起動 —— その後は <strong>Git Light → アップデートを確認…</strong> で最新にできます。"
+    },
+    "gatekeeper": {
+      "summary": "macOS が「ゴミ箱に入れる」と表示したり、開けない場合",
+      "p1": "ブラウザーはダウンロードしたファイルに隔離フラグを付け、macOS は Apple Developer ID のないアプリをブロックします。ダウンロード自体に問題はありません：",
+      "p2": "<strong>最も簡単な解決策：</strong>代わりに 1 行のインストールコマンドを使ってください —— そのダウンロードは隔離フラグを完全に回避します。すでに <code>.dmg</code> からインストールした場合は、ターミナルで一度実行します："
+    },
+    "allReleases": {
+      "title": "すべてのリリース",
+      "body": "過去のバージョン、チェックサム、各プラットフォームのインストーラー（.dmg、.exe、.msi、.AppImage、.deb、.rpm）は <a href=\"https://github.com/ftuyama/git-light/releases\" target=\"_blank\" rel=\"noopener noreferrer\"><strong>GitHub Releases ページ</strong></a> にあります。"
+    },
+    "source": {
+      "title": "ソースからビルド",
+      "comment": "クローンして実行"
+    }
+  },
+  "faq": {
+    "eyebrow": "FAQ",
+    "title": "よくある質問",
+    "subtitle": "Git Light についての簡単な回答。"
+  },
+  "footer": {
+    "license": "MIT ライセンス",
+    "builtBy": "作成：",
+    "sponsor": "Ko-fi で支援"
+  }
+}

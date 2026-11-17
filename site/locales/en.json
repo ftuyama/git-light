@@ -1,0 +1,261 @@
+{
+  "brand": {
+    "logoAlt": "Git Light app icon"
+  },
+  "nav": {
+    "screenshots": "Screenshots",
+    "compare": "Compare",
+    "download": "Download",
+    "faq": "FAQ",
+    "github": "GitHub",
+    "language": "Language"
+  },
+  "hint": {
+    "message": "This page is also available in {language}.",
+    "view": "View in {language}",
+    "close": "Dismiss language suggestion"
+  },
+  "seo": {
+    "title": "Git Light — Free open-source desktop Git client with commit graph",
+    "description": "Git Light is a free, open-source desktop Git client for macOS, Windows, and Linux with a commit graph, branch sidebar, working tree, interactive rebase, and real local Git operations. Lightweight alternative to GitKraken and Sourcetree.",
+    "keywords": "Git client, desktop Git GUI, commit graph, Git history viewer, Tauri Git app, open source Git client, macOS Git client, GitKraken alternative, Sourcetree alternative, interactive rebase, branch manager",
+    "ogTitle": "Git Light — Free open-source desktop Git client",
+    "ogDescription": "A lighter way to see your Git history. Commit graph, branch sidebar, working tree, and real local Git operations — built with Tauri 2, Vue 3, TypeScript, and Rust.",
+    "twitterDescription": "Commit graph, branch sidebar, working tree, and real local Git operations. Open source and free.",
+    "imageAlt": "Git Light showing the AwesomeShop repository with repo tabs, commit graph, branch sidebar, and working tree",
+    "pageDescription": "Free desktop Git client for macOS, Windows, and Linux with commit graph, branch sidebar, working tree, and real local Git operations.",
+    "softwareDescription": "Desktop Git client with a commit graph, branch sidebar, working tree, interactive rebase, and real local Git operations via the native Git CLI.",
+    "featureList": [
+      "Commit graph with virtualized SVG lanes",
+      "Clone from URL, init new repos, and folder discovery",
+      "Multi-repository tabs with aliases, reopen-closed, and keyboard navigation",
+      "Branch sidebar with grouped folders, bulk delete, and merge/rebase drag-and-drop",
+      "Working tree with per-hunk staging",
+      "Text diffs plus image previews with zoom and lightbox",
+      "Git output log with executed commands",
+      "Customizable keyboard shortcuts",
+      "Auto-fetch on a configurable interval",
+      "Blame overlay with file history",
+      "Interactive rebase",
+      "Fetch, pull, push, and sync",
+      "Embedded terminal at the repo root (⌘J)",
+      "Basic and Advanced UI modes",
+      "English, Portuguese (Brazil), Simplified Chinese, Spanish, French, German and Japanese UI"
+    ],
+    "faq": [
+      {
+        "q": "Is Git Light really free?",
+        "a": "Yes. MIT licensed, no paid tier, no trial, no ads, no feature gates. Every feature listed on this page is available in the free build."
+      },
+      {
+        "q": "Do I need a GitHub, GitLab or Bitbucket account?",
+        "a": "No. There is no sign-in, no license key and no telemetry. Git Light works with any repository on disk and with any remote your own Git is already configured for, over HTTPS or SSH."
+      },
+      {
+        "q": "Does it work offline?",
+        "a": "Yes. Browsing history, the commit graph, staging, diffs, commits, branches, merges, rebases and stashes are all local operations. Only fetch, pull, push and clone need network access."
+      },
+      {
+        "q": "Does it come with its own Git install?",
+        "a": "No — it runs your system <code>git</code> binary, so your existing config, aliases, credential helper, SSH keys, hooks and <code>.gitignore</code> behaviour all apply unchanged."
+      },
+      {
+        "q": "Can I use my existing repositories?",
+        "a": "Yes. Open any folder that contains a <code>.git</code> directory (or clone / init a new one). Git Light adds no proprietary index and writes no extra files into your repository."
+      },
+      {
+        "q": "Does it work on Apple Silicon and Intel Macs?",
+        "a": "Apple Silicon (arm64) is fully supported. Intel Macs are not supported by the current builds — the release pipeline only produces an <code>aarch64</code> <code>.dmg</code>. Windows x64 and Linux x86_64 builds are also available."
+      },
+      {
+        "q": "macOS says the app is damaged or moves it to the Trash.",
+        "a": "That is Gatekeeper reacting to an ad-hoc signature, not a broken download — see the <a href=\"#install\">macOS install note</a>."
+      },
+      {
+        "q": "Which languages are supported?",
+        "a": "English, Portuguese (Brazil), Simplified Chinese, Spanish, French, German and Japanese. The UI follows your OS language and can be switched in Settings. This website is available in the same seven languages."
+      }
+    ]
+  },
+  "hero": {
+    "badge": "v{{version}} · Open source · Tauri desktop app",
+    "title": "Git Light — a lighter way to <span>see your Git history</span>",
+    "subtitle": "Free, open-source desktop Git client for macOS, Windows, and Linux. Browse commit history on a fast graph, manage branches, stage changes, and run real Git commands against local repositories — no account required.",
+    "download": "Download",
+    "viewGithub": "View on GitHub",
+    "getStarted": "Get started",
+    "screenshotTitle": "Git Light — AwesomeShop",
+    "screenshotAlt": "Git Light showing the AwesomeShop repository with repo tabs, commit graph, branch sidebar, working tree, and resizable three-pane layout"
+  },
+  "screenshots": {
+    "eyebrow": "Screenshots",
+    "title": "Every surface, at a glance",
+    "subtitle": "Diff viewer, search, command palette and appearance — the same captures as the README."
+  },
+  "gallery": {
+    "diff": {
+      "title": "Diff viewer",
+      "body": "Unified or split diffs with syntax highlighting, blame and per-hunk stage/discard.",
+      "alt": "Diff viewer with syntax highlighting and per-hunk staging"
+    },
+    "search": {
+      "title": "Search",
+      "body": "Search commits, files and branches from one overlay.",
+      "alt": "Search overlay listing matching files"
+    },
+    "palette": {
+      "title": "Command palette",
+      "body": "Run fetch, pull, push, stash, merge, rebase and more from ⌘K.",
+      "alt": "Command palette listing Git commands"
+    },
+    "settings": {
+      "title": "Appearance and themes",
+      "body": "Built-in light and dark palettes, plus a custom palette with your own colors.",
+      "alt": "Appearance preferences with a grid of color palettes"
+    },
+    "lightbox": {
+      "open": "Expand screenshot",
+      "close": "Close screenshot",
+      "label": "Screenshot preview"
+    }
+  },
+  "compare": {
+    "eyebrow": "Why Git Light?",
+    "title": "Same workflow, without the baggage",
+    "subtitle": "Core Git features at parity — free, open-source, and lightweight.",
+    "note": "* GitHub Desktop is open-source but GitHub-centric. ** No official Linux build.",
+    "rows": [
+      {
+        "label": "Free + open-source (MIT)",
+        "gitkraken": "❌",
+        "githubDesktop": "✅*",
+        "sourcetree": "✅ free, ❌ closed"
+      },
+      {
+        "label": "No account required",
+        "gitkraken": "❌",
+        "githubDesktop": "✅",
+        "sourcetree": "❌"
+      },
+      {
+        "label": "Commit graph + branches + staging",
+        "gitkraken": "✅",
+        "githubDesktop": "✅",
+        "sourcetree": "✅"
+      },
+      {
+        "label": "Merge / rebase / cherry-pick",
+        "gitkraken": "✅",
+        "githubDesktop": "partial",
+        "sourcetree": "✅"
+      },
+      {
+        "label": "Hunk staging + conflict editor",
+        "gitkraken": "✅",
+        "githubDesktop": "partial",
+        "sourcetree": "✅"
+      },
+      {
+        "label": "Interactive rebase",
+        "gitkraken": "✅",
+        "githubDesktop": "❌",
+        "sourcetree": "✅"
+      },
+      {
+        "label": "Undo / redo + stash",
+        "gitkraken": "✅",
+        "githubDesktop": "partial",
+        "sourcetree": "partial"
+      },
+      {
+        "label": "Image diffs + blame + file history",
+        "gitkraken": "✅",
+        "githubDesktop": "partial",
+        "sourcetree": "partial"
+      },
+      {
+        "label": "Multi-repo tabs",
+        "gitkraken": "✅",
+        "githubDesktop": "❌",
+        "sourcetree": "✅"
+      },
+      {
+        "label": "Command palette + custom shortcuts",
+        "gitkraken": "partial",
+        "githubDesktop": "❌",
+        "sourcetree": "❌"
+      },
+      {
+        "label": "macOS / Windows / Linux",
+        "gitkraken": "✅",
+        "githubDesktop": "✅ / ✅ / ❌**",
+        "sourcetree": "✅ / ✅ / ❌"
+      },
+      {
+        "label": "Lightweight, offline-first",
+        "gitkraken": "❌ heavy",
+        "githubDesktop": "✅",
+        "sourcetree": "❌ heavy"
+      }
+    ]
+  },
+  "stack": {
+    "eyebrow": "Under the hood",
+    "title": "Built with modern tools",
+    "subtitle": "Tauri 2 desktop shell, Vue 3 renderer, and a typed Git command layer."
+  },
+  "install": {
+    "eyebrow": "Get the app",
+    "title": "Download Git Light",
+    "subtitle": "Free desktop app for macOS, Windows, and Linux — open source, no account required.",
+    "copy": "Copy",
+    "copied": "Copied!",
+    "copyAria": "Copy install command",
+    "note": "Easy install with one command — no Gatekeeper prompts.",
+    "guideTitle": "Installation guide",
+    "mac": {
+      "label": "Download for macOS",
+      "sub": ".dmg · Apple Silicon",
+      "step1": "<strong>Recommended:</strong> run the one-line command above in Terminal — installs to Applications with no Gatekeeper prompts. Re-run it to update.",
+      "step2": "Or download the <strong>.dmg</strong> above (Apple Silicon), open it and drag <strong>Git Light</strong> into <strong>Applications</strong>.",
+      "step3": "Launch the app — then use <strong>Git Light → Check for Updates…</strong> anytime to stay current."
+    },
+    "windows": {
+      "label": "Download for Windows",
+      "sub": ".exe installer",
+      "step1": "Download the <strong>.exe installer</strong> above.",
+      "step2": "Run it and follow the setup wizard.",
+      "step3": "Launch from the Start menu — then use <strong>Git Light → Check for Updates…</strong> anytime to stay current."
+    },
+    "linux": {
+      "label": "Download for Linux",
+      "sub": ".AppImage · .deb",
+      "step1": "Download the <strong>.AppImage</strong> or <strong>.deb</strong> above.",
+      "step2": "AppImage: make it executable with <code>chmod +x *.AppImage</code> and run it. Deb: install with <code>sudo apt install ./git-light_*.deb</code>.",
+      "step3": "Launch the app — then use <strong>Git Light → Check for Updates…</strong> anytime to stay current."
+    },
+    "gatekeeper": {
+      "summary": "macOS says \"move it to the Trash\" or refuses to open?",
+      "p1": "Browsers attach a quarantine flag to downloaded files, which macOS blocks for apps without an Apple Developer ID. Nothing is wrong with your download:",
+      "p2": "<strong>Easiest fix:</strong> run the one-line install command instead — its downloads skip the quarantine flag entirely. If you already installed from the <code>.dmg</code>, run once in Terminal:"
+    },
+    "allReleases": {
+      "title": "All releases",
+      "body": "Past versions, checksums and platform-specific installers (.dmg, .exe, .msi, .AppImage, .deb, .rpm) live on the <a href=\"https://github.com/ftuyama/git-light/releases\" target=\"_blank\" rel=\"noopener noreferrer\"><strong>GitHub Releases page</strong></a>."
+    },
+    "source": {
+      "title": "Build from source",
+      "comment": "Clone and run"
+    }
+  },
+  "faq": {
+    "eyebrow": "FAQ",
+    "title": "Frequently asked questions",
+    "subtitle": "Quick answers about Git Light."
+  },
+  "footer": {
+    "license": "MIT License",
+    "builtBy": "Built by",
+    "sponsor": "Sponsor on Ko-fi"
+  }
+}

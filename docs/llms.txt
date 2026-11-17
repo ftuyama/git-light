@@ -9,6 +9,12 @@ Use this file as a curated index. For complete landing-page content in one fetch
 ## Product
 
 - [Website](https://ftuyama.github.io/git-light/): Landing page with features, FAQ, download links, and screenshots.
+- [Website — Português (Brasil)](https://ftuyama.github.io/git-light/pt-BR/): Landing page in Brazilian Portuguese.
+- [Website — Español](https://ftuyama.github.io/git-light/es/): Landing page in Spanish.
+- [Website — Français](https://ftuyama.github.io/git-light/fr/): Landing page in French.
+- [Website — Deutsch](https://ftuyama.github.io/git-light/de/): Landing page in German.
+- [Website — 简体中文](https://ftuyama.github.io/git-light/zh-CN/): Landing page in Simplified Chinese.
+- [Website — 日本語](https://ftuyama.github.io/git-light/ja/): Landing page in Japanese.
 - [Download latest release](https://github.com/ftuyama/git-light/releases/latest): macOS `.dmg`, Windows `.exe`, Linux `.AppImage` and `.deb` installers.
 - [All releases](https://github.com/ftuyama/git-light/releases): Version history and release notes on GitHub.
 
@@ -49,4 +55,5 @@ Use this file as a curated index. For complete landing-page content in one fetch
 
 - [Sponsor on Ko-fi](https://ko-fi.com/lelouchiee): Optional support for ongoing development.
 - [llms-full.txt](https://ftuyama.github.io/git-light/llms-full.txt): Full landing-page content and project summary in one file.
+- Localized pages: https://ftuyama.github.io/git-light/pt-BR/, https://ftuyama.github.io/git-light/es/, https://ftuyama.github.io/git-light/fr/, https://ftuyama.github.io/git-light/de/, https://ftuyama.github.io/git-light/zh-CN/ and https://ftuyama.github.io/git-light/ja/.
 - [Sitemap](https://ftuyama.github.io/git-light/sitemap.xml): Machine-readable URL list for crawlers.

@@ -34,6 +34,8 @@
     "preview": "vite preview",
     "typecheck": "vue-tsc --noEmit -p tsconfig.json --composite false",
     "i18n:audit": "node scripts/i18n-audit.mjs",
+    "site:build": "node scripts/build-site.mjs",
+    "site:check": "node scripts/build-site.mjs --check",
     "sync-version": "node scripts/sync-version.mjs",
     "test": "vitest run",
     "test:watch": "vitest",

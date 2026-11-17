@@ -4,7 +4,7 @@
 
 Version: 1.2.0 · License: MIT · Author: ftuyama · Stack: Tauri 2, Vue 3, TypeScript, Rust, Pinia, Tailwind CSS 4
 
-Website: https://ftuyama.github.io/git-light/
+Website: https://ftuyama.github.io/git-light/ (also in Brazilian Portuguese: https://ftuyama.github.io/git-light/pt-BR/, Spanish: https://ftuyama.github.io/git-light/es/, French: https://ftuyama.github.io/git-light/fr/, German: https://ftuyama.github.io/git-light/de/, Simplified Chinese: https://ftuyama.github.io/git-light/zh-CN/ and Japanese: https://ftuyama.github.io/git-light/ja/)
 Repository: https://github.com/ftuyama/git-light
 Download: https://github.com/ftuyama/git-light/releases
 
@@ -120,20 +120,29 @@ npm run dev
 
 ## Frequently asked questions
 
-### What is Git Light?
-Git Light is a free, open-source desktop Git client for macOS, Windows, and Linux. It shows a commit graph, branch sidebar, and working tree in a resizable three-pane layout, running real `git` commands against your local repositories.
+### Is Git Light really free?
+Yes. MIT licensed, no paid tier, no trial, no ads, no feature gates. Every listed feature is available in the free build.
 
-### Is Git Light free?
-Yes. Git Light is MIT-licensed and free to download and use. Optional sponsorship is available on Ko-fi.
+### Do I need a GitHub, GitLab or Bitbucket account?
+No. There is no sign-in, no license key and no telemetry. Git Light works with any repository on disk and with any remote your own Git is already configured for, over HTTPS or SSH.
 
-### What platforms does Git Light support?
-Packaged builds are available for macOS (.dmg), Windows (.exe), and Linux (.AppImage, .deb) on GitHub Releases. Developers can run it locally on any OS that supports Tauri with Node.js, npm, and Rust.
+### Does it work offline?
+Yes. Browsing history, the commit graph, staging, diffs, commits, branches, merges, rebases and stashes are all local operations. Only fetch, pull, push and clone need network access.
 
-### Does Git Light require an account?
-No sign-in, cloud sync, or subscription. Open a local folder, clone from a URL, or start a new repo and work with your Git repositories offline.
+### Does it come with its own Git install?
+No. Git Light runs your system `git` binary, so your existing config, aliases, credential helper, SSH keys, hooks and `.gitignore` behaviour all apply unchanged.
 
-### How is Git Light different from GitKraken or Sourcetree?
-Git Light is a lightweight, open-source alternative focused on a fast commit graph and direct Git CLI operations — without vendor accounts or lock-in. Built with Tauri 2, Vue 3, TypeScript, and Rust.
+### Can I use my existing repositories?
+Yes. Open any folder that contains a `.git` directory, or clone or init a new one. Git Light adds no proprietary index and writes no extra files into your repository.
+
+### Does it work on Apple Silicon and Intel Macs?
+Apple Silicon (arm64) is fully supported. Intel Macs are not supported by the current builds, because the release pipeline only produces an `aarch64` `.dmg`. Windows x64 and Linux x86_64 builds are also available.
+
+### macOS says the app is damaged or moves it to the Trash.
+That is Gatekeeper reacting to an ad-hoc signature, not a broken download. Use the curl install script, or re-sign the app once with `codesign` and `xattr` as shown in the macOS install note.
+
+### Which languages are supported?
+English, Portuguese (Brazil) and Simplified Chinese. The UI follows your OS language and can be switched in Settings.
 
 ## Links
 

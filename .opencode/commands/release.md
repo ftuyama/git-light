@@ -8,7 +8,7 @@ Bump the semver in `package.json`, verify the tree, commit all pending changes, 
 
 ## Phase 1 — Refresh screenshots (mandatory)
 
-`docs/screenshot.png` is the hero image shared by `README.md` and `docs/index.html`; `README.md` also embeds the gallery in `docs/screenshots/`. Regenerate **every** asset on each release:
+`docs/screenshot.png` is the hero image shared by `README.md` and the landing page; both also embed the gallery in `docs/screenshots/`. Regenerate **every** asset on each release:
 
 1. Run the mock UI with the AwesomeShop repo so every capture is reproducible:
 
@@ -29,7 +29,7 @@ Bump the semver in `package.json`, verify the tree, commit all pending changes, 
 
    Do not add, rename or remove gallery files — `README.md` links these paths. Do not screenshot browser-only placeholders such as the terminal panel, which says it is available only in the desktop app.
 
-4. If the visible UI changed, sync the `README.md` hero caption and gallery captions, plus `docs/index.html` `.screenshot-title` and `<img alt="…">`.
+4. If the visible UI changed, sync the `README.md` hero caption and gallery captions, plus the `hero.screenshotTitle`, `hero.screenshotAlt` and `gallery.*` keys in every `site/locales/*.json`, then run `npm run site:build`.
 
 Run `/update-docs` first if other documentation is not yet synced with the codebase — the screenshots themselves are not optional.
 
@@ -56,7 +56,7 @@ npm run sync-version
 
 This updates:
 - `package-lock.json` — top-level `"version"` and `"packages".""`
-- `docs/index.html` — `vX.Y.Z` strings (hero badge and footer)
+- `site/index.html` / `site/locales/*.json` — `{{version}}` tokens (hero badge and footer); `sync-version` rebuilds the generated pages
 - `docs/llms.txt` — `**Version:**` line in Key facts
 - `src-tauri/Cargo.toml` — `[package] version`
 - `src-tauri/tauri.conf.json` — top-level `version`
@@ -125,9 +125,9 @@ git tag -a vX.Y.Z -m "Release vX.Y.Z"
 
 ## Response checklist
 
-- [ ] `docs/screenshot.png` and all four gallery assets in `docs/screenshots/` refreshed at 1440×900 (+ README captions and landing page alt/titlebar copy synced if UI changed)
+- [ ] `docs/screenshot.png` and all four gallery assets in `docs/screenshots/` refreshed at 1440×900 (+ README captions and landing page alt/titlebar/gallery copy synced if UI changed)
 - [ ] Version bumped in `package.json`
-- [ ] `npm run sync-version` run (`package-lock.json`, `docs/index.html`, `docs/llms.txt`, `src-tauri/Cargo.toml`, `src-tauri/tauri.conf.json` match)
+- [ ] `npm run sync-version` run (`package-lock.json`, `docs/llms.txt`, `src-tauri/Cargo.toml`, `src-tauri/tauri.conf.json` match; `docs/` site regenerated)
 - [ ] `npm run typecheck`, `npm run test`, `cargo clippy`, `cargo fmt --check` pass
 - [ ] All pending changes staged (`git add -A`) and included in release commit
 - [ ] Commit created with release message

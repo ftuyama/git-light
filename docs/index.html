@@ -1,54 +1,56 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" dir="ltr">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta
-      name="description"
-      content="Git Light is a free, open-source desktop Git client for macOS, Windows, and Linux with a commit graph, branch sidebar, working tree, interactive rebase, and real local Git operations. Lightweight alternative to GitKraken and Sourcetree."
-    />
-    <meta
-      name="keywords"
-      content="Git client, desktop Git GUI, commit graph, Git history viewer, Tauri Git app, open source Git client, macOS Git client, GitKraken alternative, Sourcetree alternative, interactive rebase, branch manager"
-    />
+    <meta name="description" content="Git Light is a free, open-source desktop Git client for macOS, Windows, and Linux with a commit graph, branch sidebar, working tree, interactive rebase, and real local Git operations. Lightweight alternative to GitKraken and Sourcetree." />
+    <meta name="keywords" content="Git client, desktop Git GUI, commit graph, Git history viewer, Tauri Git app, open source Git client, macOS Git client, GitKraken alternative, Sourcetree alternative, interactive rebase, branch manager" />
     <meta name="author" content="ftuyama" />
     <meta name="application-name" content="Git Light" />
     <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
     <meta name="googlebot" content="index, follow, max-image-preview:large" />
     <meta name="theme-color" content="#0d0f14" />
     <link rel="canonical" href="https://ftuyama.github.io/git-light/" />
+        <link rel="alternate" hreflang="en" href="https://ftuyama.github.io/git-light/" />
+    <link rel="alternate" hreflang="pt-BR" href="https://ftuyama.github.io/git-light/pt-BR/" />
+    <link rel="alternate" hreflang="es" href="https://ftuyama.github.io/git-light/es/" />
+    <link rel="alternate" hreflang="fr" href="https://ftuyama.github.io/git-light/fr/" />
+    <link rel="alternate" hreflang="de" href="https://ftuyama.github.io/git-light/de/" />
+    <link rel="alternate" hreflang="zh-CN" href="https://ftuyama.github.io/git-light/zh-CN/" />
+    <link rel="alternate" hreflang="ja" href="https://ftuyama.github.io/git-light/ja/" />
+    <link rel="alternate" hreflang="x-default" href="https://ftuyama.github.io/git-light/" />
     <title>Git Light — Free open-source desktop Git client with commit graph</title>
 
     <!-- Open Graph -->
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="Git Light" />
     <meta property="og:title" content="Git Light — Free open-source desktop Git client" />
-    <meta
-      property="og:description"
-      content="A lighter way to see your Git history. Commit graph, branch sidebar, working tree, and real local Git operations — built with Tauri 2, Vue 3, TypeScript, and Rust."
-    />
+    <meta property="og:description" content="A lighter way to see your Git history. Commit graph, branch sidebar, working tree, and real local Git operations — built with Tauri 2, Vue 3, TypeScript, and Rust." />
     <meta property="og:url" content="https://ftuyama.github.io/git-light/" />
     <meta property="og:image" content="https://ftuyama.github.io/git-light/screenshot.png" />
     <meta property="og:image:width" content="1440" />
     <meta property="og:image:height" content="900" />
     <meta property="og:image:alt" content="Git Light showing the AwesomeShop repository with repo tabs, commit graph, branch sidebar, and working tree" />
     <meta property="og:locale" content="en_US" />
+        <meta property="og:locale:alternate" content="pt_BR" />
+    <meta property="og:locale:alternate" content="es_ES" />
+    <meta property="og:locale:alternate" content="fr_FR" />
+    <meta property="og:locale:alternate" content="de_DE" />
+    <meta property="og:locale:alternate" content="zh_CN" />
+    <meta property="og:locale:alternate" content="ja_JP" />
 
     <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="Git Light — Free open-source desktop Git client" />
-    <meta
-      name="twitter:description"
-      content="Commit graph, branch sidebar, working tree, and real local Git operations. Open source and free."
-    />
+    <meta name="twitter:description" content="Commit graph, branch sidebar, working tree, and real local Git operations. Open source and free." />
     <meta name="twitter:image" content="https://ftuyama.github.io/git-light/screenshot.png" />
     <meta name="twitter:image:alt" content="Git Light showing the AwesomeShop repository with repo tabs, commit graph, branch sidebar, and working tree" />
 
-    <link rel="icon" href="icon.png" type="image/png" />
-    <link rel="apple-touch-icon" href="icon.png" />
-    <link rel="sitemap" type="application/xml" title="Sitemap" href="sitemap.xml" />
-    <link rel="alternate" type="text/plain" href="llms.txt" title="LLM-readable site index" />
-    <link rel="alternate" type="text/plain" href="llms-full.txt" title="LLM-readable full site content" />
+    <link rel="icon" href="./icon.png" type="image/png" />
+    <link rel="apple-touch-icon" href="./icon.png" />
+    <link rel="sitemap" type="application/xml" title="Sitemap" href="https://ftuyama.github.io/git-light/sitemap.xml" />
+    <link rel="alternate" type="text/plain" href="https://ftuyama.github.io/git-light/llms.txt" title="LLM-readable site index" />
+    <link rel="alternate" type="text/plain" href="https://ftuyama.github.io/git-light/llms-full.txt" title="LLM-readable full site content" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -199,6 +201,66 @@
       nav a:hover {
         color: var(--fg);
         text-decoration: none;
+      }
+
+      .lang-switch {
+        appearance: none;
+        background: var(--panel-raised);
+        color: var(--fg-muted);
+        border: 1px solid var(--border-strong);
+        border-radius: 0.5rem;
+        padding: 0.3rem 1.5rem 0.3rem 0.6rem;
+        font: inherit;
+        font-size: 0.8125rem;
+        font-weight: 500;
+        cursor: pointer;
+        background-image: linear-gradient(45deg, transparent 50%, var(--fg-muted) 50%),
+          linear-gradient(135deg, var(--fg-muted) 50%, transparent 50%);
+        background-position: calc(100% - 0.85rem) 55%, calc(100% - 0.55rem) 55%;
+        background-size: 0.3rem 0.3rem, 0.3rem 0.3rem;
+        background-repeat: no-repeat;
+      }
+
+      .lang-switch:hover,
+      .lang-switch:focus-visible {
+        color: var(--fg);
+        border-color: rgba(110, 159, 255, 0.5);
+      }
+
+      /* Language hint */
+      .lang-hint {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 0.5rem 0.75rem;
+        padding: 0.55rem 1rem;
+        background: var(--accent-soft);
+        border-bottom: 1px solid rgba(110, 159, 255, 0.3);
+        font-size: 0.8125rem;
+        color: var(--fg);
+      }
+
+      .lang-hint[hidden] {
+        display: none;
+      }
+
+      .lang-hint a {
+        font-weight: 600;
+      }
+
+      .lang-hint-close {
+        background: transparent;
+        border: 0;
+        color: var(--fg-muted);
+        font-size: 1.1rem;
+        line-height: 1;
+        padding: 0.25rem;
+        cursor: pointer;
+      }
+
+      .lang-hint-close:hover {
+        color: var(--fg);
       }
 
       .btn {
@@ -379,6 +441,154 @@
         display: block;
         width: 100%;
         height: auto;
+      }
+
+      /* Screenshot gallery */
+      .gallery {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 1rem;
+      }
+
+      .gallery-item {
+        position: relative;
+        margin: 0;
+        border: 1px solid var(--border);
+        border-radius: 0.75rem;
+        overflow: hidden;
+        background: var(--panel);
+        transition: border-color 0.15s ease, transform 0.15s ease;
+      }
+
+      .gallery-item:hover {
+        border-color: rgba(110, 159, 255, 0.4);
+        transform: translateY(-2px);
+      }
+
+      .gallery-item img {
+        display: block;
+        width: 100%;
+        height: auto;
+        border-bottom: 1px solid var(--border);
+        transition: transform 0.2s ease;
+      }
+
+      .gallery-item:hover img {
+        transform: scale(1.015);
+      }
+
+      .gallery-trigger {
+        position: absolute;
+        inset: 0;
+        z-index: 1;
+        border-radius: inherit;
+        cursor: zoom-in;
+      }
+
+      .gallery-trigger:focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: -2px;
+      }
+
+      .gallery-item figcaption {
+        padding: 0.875rem 1rem 1rem;
+        font-size: 0.8125rem;
+        line-height: 1.5;
+        color: var(--fg-muted);
+      }
+
+      .gallery-item figcaption strong {
+        display: block;
+        margin-bottom: 0.25rem;
+        color: var(--fg);
+        font-size: 0.875rem;
+      }
+
+      @media (max-width: 860px) {
+        .gallery {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      /* Screenshot lightbox */
+      body.lightbox-open {
+        overflow: hidden;
+      }
+
+      .lightbox {
+        position: fixed;
+        inset: 0;
+        z-index: 100;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: clamp(1rem, 4vw, 3rem);
+        background: rgba(5, 7, 10, 0.9);
+        backdrop-filter: blur(6px);
+        opacity: 0;
+        transition: opacity 0.18s ease;
+      }
+
+      .lightbox[hidden] {
+        display: none;
+      }
+
+      .lightbox.is-open {
+        opacity: 1;
+      }
+
+      .lightbox-figure {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+        margin: 0;
+        max-width: min(1600px, 100%);
+        max-height: 100%;
+      }
+
+      .lightbox-figure img {
+        display: block;
+        width: auto;
+        height: auto;
+        max-width: 100%;
+        max-height: calc(100vh - 8rem);
+        margin: 0 auto;
+        border: 1px solid var(--border-strong);
+        border-radius: 0.5rem;
+        background: var(--panel);
+        box-shadow: 0 32px 64px rgba(0, 0, 0, 0.55);
+      }
+
+      .lightbox-figure figcaption {
+        text-align: center;
+        font-size: 0.875rem;
+        line-height: 1.5;
+        color: var(--fg-muted);
+      }
+
+      .lightbox-close {
+        position: absolute;
+        top: 1rem;
+        right: 1rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 2.5rem;
+        height: 2.5rem;
+        padding: 0;
+        border: 1px solid var(--border-strong);
+        border-radius: 50%;
+        background: var(--panel-raised);
+        color: var(--fg);
+        font-size: 1.5rem;
+        line-height: 1;
+        cursor: pointer;
+        transition: background 0.15s ease, border-color 0.15s ease;
+      }
+
+      .lightbox-close:hover {
+        background: var(--elevated);
+        border-color: var(--accent);
       }
 
       /* Features */
@@ -902,7 +1112,7 @@
             "@id": "https://ftuyama.github.io/git-light/#website",
             "url": "https://ftuyama.github.io/git-light/",
             "name": "Git Light",
-            "description": "Free open-source desktop Git client with commit graph and real local Git operations.",
+            "description": "Git Light is a free, open-source desktop Git client for macOS, Windows, and Linux with a commit graph, branch sidebar, working tree, interactive rebase, and real local Git operations. Lightweight alternative to GitKraken and Sourcetree.",
             "inLanguage": "en",
             "publisher": { "@id": "https://ftuyama.github.io/git-light/#organization" }
           },
@@ -946,69 +1156,78 @@
             "mainEntityOfPage": { "@id": "https://ftuyama.github.io/git-light/#webpage" },
             "codeRepository": "https://github.com/ftuyama/git-light",
             "programmingLanguage": ["TypeScript", "JavaScript"],
-            "featureList": [
-              "Commit graph with virtualized SVG lanes",
-              "Clone from URL, init new repos, and folder discovery",
-              "Multi-repository tabs with aliases, reopen-closed, and keyboard navigation",
-              "Branch sidebar with grouped folders, bulk delete, and merge/rebase drag-and-drop",
-              "Working tree with per-hunk staging",
-              "Text diffs plus image previews with zoom and lightbox",
-              "Git output log with executed commands",
-              "Customizable keyboard shortcuts",
-              "Auto-fetch on a configurable interval",
-              "Blame overlay with file history",
-              "Interactive rebase",
-              "Fetch, pull, push, and sync",
-              "Embedded terminal at the repo root (⌘J)",
-              "Basic and Advanced UI modes",
-              "Multiple themes"
-            ]
+            "featureList": ["Commit graph with virtualized SVG lanes","Clone from URL, init new repos, and folder discovery","Multi-repository tabs with aliases, reopen-closed, and keyboard navigation","Branch sidebar with grouped folders, bulk delete, and merge/rebase drag-and-drop","Working tree with per-hunk staging","Text diffs plus image previews with zoom and lightbox","Git output log with executed commands","Customizable keyboard shortcuts","Auto-fetch on a configurable interval","Blame overlay with file history","Interactive rebase","Fetch, pull, push, and sync","Embedded terminal at the repo root (⌘J)","Basic and Advanced UI modes","English, Portuguese (Brazil), Simplified Chinese, Spanish, French, German and Japanese UI"]
           },
           {
             "@type": "FAQPage",
             "@id": "https://ftuyama.github.io/git-light/#faq",
+            "inLanguage": "en",
             "mainEntity": [
-              {
-                "@type": "Question",
-                "name": "What is Git Light?",
-                "acceptedAnswer": {
-                  "@type": "Answer",
-                  "text": "Git Light is a free, open-source desktop Git client for macOS, Windows, and Linux. It provides a three-pane view with a commit graph, branch sidebar, and working tree, running real Git commands against local repositories."
-                }
-              },
-              {
-                "@type": "Question",
-                "name": "Is Git Light free?",
-                "acceptedAnswer": {
-                  "@type": "Answer",
-                  "text": "Yes. Git Light is open source under the MIT license and free to download and use. Optional sponsorship is available on Ko-fi."
-                }
-              },
-              {
-                "@type": "Question",
-                "name": "What platforms does Git Light support?",
-                "acceptedAnswer": {
-                  "@type": "Answer",
-                  "text": "Git Light ships installers for macOS (.dmg), Windows (.exe), and Linux (.AppImage and .deb) from GitHub Releases. Developers can also build from source on any OS that supports Tauri with Node.js, npm, and Rust."
-                }
-              },
-              {
-                "@type": "Question",
-                "name": "Does Git Light require an account or subscription?",
-                "acceptedAnswer": {
-                  "@type": "Answer",
-                  "text": "No. Git Light works entirely with local repositories and does not require sign-in, cloud sync, or a paid subscription."
-                }
-              },
-              {
-                "@type": "Question",
-                "name": "How is Git Light different from GitKraken or Sourcetree?",
-                "acceptedAnswer": {
-                  "@type": "Answer",
-                  "text": "Git Light is a lightweight, open-source alternative focused on a fast commit graph and real Git CLI operations without accounts or vendor lock-in. It is MIT-licensed and runs Git in the Rust backend via typed Tauri commands."
-                }
-              }
-            ]
+  {
+    "@type": "Question",
+    "name": "Is Git Light really free?",
+    "acceptedAnswer": {
+      "@type": "Answer",
+      "text": "Yes. MIT licensed, no paid tier, no trial, no ads, no feature gates. Every feature listed on this page is available in the free build."
+    }
+  },
+  {
+    "@type": "Question",
+    "name": "Do I need a GitHub, GitLab or Bitbucket account?",
+    "acceptedAnswer": {
+      "@type": "Answer",
+      "text": "No. There is no sign-in, no license key and no telemetry. Git Light works with any repository on disk and with any remote your own Git is already configured for, over HTTPS or SSH."
+    }
+  },
+  {
+    "@type": "Question",
+    "name": "Does it work offline?",
+    "acceptedAnswer": {
+      "@type": "Answer",
+      "text": "Yes. Browsing history, the commit graph, staging, diffs, commits, branches, merges, rebases and stashes are all local operations. Only fetch, pull, push and clone need network access."
+    }
+  },
+  {
+    "@type": "Question",
+    "name": "Does it come with its own Git install?",
+    "acceptedAnswer": {
+      "@type": "Answer",
+      "text": "No — it runs your system git binary, so your existing config, aliases, credential helper, SSH keys, hooks and .gitignore behaviour all apply unchanged."
+    }
+  },
+  {
+    "@type": "Question",
+    "name": "Can I use my existing repositories?",
+    "acceptedAnswer": {
+      "@type": "Answer",
+      "text": "Yes. Open any folder that contains a .git directory (or clone / init a new one). Git Light adds no proprietary index and writes no extra files into your repository."
+    }
+  },
+  {
+    "@type": "Question",
+    "name": "Does it work on Apple Silicon and Intel Macs?",
+    "acceptedAnswer": {
+      "@type": "Answer",
+      "text": "Apple Silicon (arm64) is fully supported. Intel Macs are not supported by the current builds — the release pipeline only produces an aarch64 .dmg. Windows x64 and Linux x86_64 builds are also available."
+    }
+  },
+  {
+    "@type": "Question",
+    "name": "macOS says the app is damaged or moves it to the Trash.",
+    "acceptedAnswer": {
+      "@type": "Answer",
+      "text": "That is Gatekeeper reacting to an ad-hoc signature, not a broken download — see the macOS install note."
+    }
+  },
+  {
+    "@type": "Question",
+    "name": "Which languages are supported?",
+    "acceptedAnswer": {
+      "@type": "Answer",
+      "text": "English, Portuguese (Brazil), Simplified Chinese, Spanish, French, German and Japanese. The UI follows your OS language and can be switched in Settings. This website is available in the same seven languages."
+    }
+  }
+]
           }
         ]
       }
@@ -1016,15 +1235,37 @@
   </head>
   <body>
     <header>
+            <div id="lang-hint" class="lang-hint" hidden>
+        <span id="lang-hint-text"></span>
+        <a id="lang-hint-link" href="#"></a>
+        <button
+          id="lang-hint-close"
+          class="lang-hint-close"
+          type="button"
+          aria-label="Dismiss language suggestion"
+        >
+          ×
+        </button>
+      </div>
       <div class="wrap header-inner">
-        <a class="logo" href="#">
-          <img class="logo-mark" src="icon.png" alt="Git Light app icon" width="28" height="28" />
+        <a class="logo" href="./">
+          <img class="logo-mark" src="./icon.png" alt="Git Light app icon" width="28" height="28" />
           Git Light
         </a>
         <nav>
+          <a href="#screenshots">Screenshots</a>
           <a href="#features">Compare</a>
           <a href="#install">Download</a>
           <a href="#faq">FAQ</a>
+          <select id="lang-switch" class="lang-switch" aria-label="Language">
+                        <option value="./" selected>English</option>
+            <option value="./pt-BR/">Português (Brasil)</option>
+            <option value="./es/">Español</option>
+            <option value="./fr/">Français</option>
+            <option value="./de/">Deutsch</option>
+            <option value="./zh-CN/">简体中文</option>
+            <option value="./ja/">日本語</option>
+          </select>
           <a
             class="btn btn-ghost"
             href="https://github.com/ftuyama/git-light"
@@ -1048,11 +1289,7 @@
             v1.2.0 · Open source · Tauri desktop app
           </div>
           <h1>Git Light — a lighter way to <span>see your Git history</span></h1>
-          <p>
-            Free, open-source desktop Git client for macOS, Windows, and Linux. Browse commit history on a
-            fast graph, manage branches, stage changes, and run real Git commands
-            against local repositories — no account required.
-          </p>
+          <p>Free, open-source desktop Git client for macOS, Windows, and Linux. Browse commit history on a fast graph, manage branches, stage changes, and run real Git commands against local repositories — no account required.</p>
           <div class="hero-actions">
             <a
               class="btn btn-primary"
@@ -1087,7 +1324,7 @@
               <span class="screenshot-title">Git Light — AwesomeShop</span>
             </div>
             <img
-              src="screenshot.png"
+              src="./screenshot.png"
               alt="Git Light showing the AwesomeShop repository with repo tabs, commit graph, branch sidebar, working tree, and resizable three-pane layout"
               class="screenshot"
               width="1440"
@@ -1095,6 +1332,92 @@
               loading="eager"
             />
           </figure>
+        </div>
+      </section>
+
+      <section id="screenshots">
+        <div class="wrap">
+          <span class="eyebrow">Screenshots</span>
+          <h2>Every surface, at a glance</h2>
+          <p class="section-sub">Diff viewer, search, command palette and appearance — the same captures as the README.</p>
+          <div class="gallery">
+            <figure class="gallery-item">
+              <a
+                class="gallery-trigger"
+                href="./screenshots/diff-viewer.png"
+                data-lightbox
+                aria-label="Expand screenshot — Diff viewer with syntax highlighting and per-hunk staging"
+              ></a>
+              <img
+                src="./screenshots/diff-viewer.png"
+                alt="Diff viewer with syntax highlighting and per-hunk staging"
+                width="1440"
+                height="900"
+                loading="lazy"
+              />
+              <figcaption>
+                <strong>Diff viewer</strong>
+                Unified or split diffs with syntax highlighting, blame and per-hunk stage/discard.
+              </figcaption>
+            </figure>
+            <figure class="gallery-item">
+              <a
+                class="gallery-trigger"
+                href="./screenshots/search.png"
+                data-lightbox
+                aria-label="Expand screenshot — Search overlay listing matching files"
+              ></a>
+              <img
+                src="./screenshots/search.png"
+                alt="Search overlay listing matching files"
+                width="1440"
+                height="900"
+                loading="lazy"
+              />
+              <figcaption>
+                <strong>Search</strong>
+                Search commits, files and branches from one overlay.
+              </figcaption>
+            </figure>
+            <figure class="gallery-item">
+              <a
+                class="gallery-trigger"
+                href="./screenshots/command-palette.png"
+                data-lightbox
+                aria-label="Expand screenshot — Command palette listing Git commands"
+              ></a>
+              <img
+                src="./screenshots/command-palette.png"
+                alt="Command palette listing Git commands"
+                width="1440"
+                height="900"
+                loading="lazy"
+              />
+              <figcaption>
+                <strong>Command palette</strong>
+                Run fetch, pull, push, stash, merge, rebase and more from ⌘K.
+              </figcaption>
+            </figure>
+            <figure class="gallery-item">
+              <a
+                class="gallery-trigger"
+                href="./screenshots/settings.png"
+                data-lightbox
+                aria-label="Expand screenshot — Appearance preferences with a grid of color palettes"
+              ></a>
+              <img
+                src="./screenshots/settings.png"
+                alt="Appearance preferences with a grid of color palettes"
+                width="1440"
+                height="900"
+                loading="lazy"
+              />
+              <figcaption>
+                <strong>Appearance and themes</strong>
+                Built-in light and dark palettes, plus a custom palette with your own colors.
+              </figcaption>
+            </figure>
+          </div>
         </div>
       </section>
 
@@ -1115,7 +1438,7 @@
                 </tr>
               </thead>
               <tbody>
-                <tr>
+                                <tr>
                   <th scope="row">Free + open-source (MIT)</th>
                   <td class="yes">✅</td>
                   <td>❌</td>
@@ -1249,9 +1572,16 @@
           <div class="quick-install">
             <div class="quick-install-code">
               <code id="quick-install-cmd"><span class="command">curl -fsSL</span> https://raw.githubusercontent.com/ftuyama/git-light/main/scripts/install.sh <span class="command">| sh</span></code>
-              <button id="quick-install-copy" class="btn btn-primary" type="button" aria-label="Copy install command">
+              <button
+                id="quick-install-copy"
+                class="btn btn-primary"
+                type="button"
+                aria-label="Copy install command"
+                data-copy-label="Copy"
+                data-copied-label="Copied!"
+              >
                 <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="13" height="13" rx="2" /><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" /></svg>
-                Copy
+                <span id="quick-install-copy-label">Copy</span>
               </button>
             </div>
             <small class="quick-install-note">Easy install with one command — no Gatekeeper prompts.</small>
@@ -1311,18 +1641,11 @@
                     <li>Or download the <strong>.dmg</strong> above (Apple Silicon), open it and drag <strong>Git Light</strong> into <strong>Applications</strong>.</li>
                     <li>Launch the app — then use <strong>Git Light → Check for Updates…</strong> anytime to stay current.</li>
                   </ol>
-                  <details>
+                  <details id="gatekeeper">
                     <summary>macOS says "move it to the Trash" or refuses to open?</summary>
                     <div class="guide-body">
-                      <p>
-                        Browsers attach a quarantine flag to downloaded files, which macOS blocks for
-                        apps without an Apple Developer ID. Nothing is wrong with your download:
-                      </p>
-                      <p>
-                        <strong>Easiest fix:</strong> run the one-line install command instead — its
-                        downloads skip the quarantine flag entirely. If you already installed from the
-                        <code>.dmg</code>, run once in Terminal:
-                      </p>
+                      <p>Browsers attach a quarantine flag to downloaded files, which macOS blocks for apps without an Apple Developer ID. Nothing is wrong with your download:</p>
+                      <p><strong>Easiest fix:</strong> run the one-line install command instead — its downloads skip the quarantine flag entirely. If you already installed from the <code>.dmg</code>, run once in Terminal:</p>
                       <pre><code>codesign --force --deep --sign - "/Applications/Git Light.app"
 xattr -dr com.apple.quarantine "/Applications/Git Light.app"</code></pre>
                     </div>
@@ -1369,6 +1692,7 @@ xattr -dr com.apple.quarantine "/Applications/Git Light.app"</code></pre>
             </div>
           </details>
           </div>
+          </div>
         </div>
       </section>
 
@@ -1378,45 +1702,37 @@ xattr -dr com.apple.quarantine "/Applications/Git Light.app"</code></pre>
           <h2>Frequently asked questions</h2>
           <p class="section-sub">Quick answers about Git Light.</p>
           <div class="faq-list">
-            <article class="faq-item">
-              <h3>What is Git Light?</h3>
-              <p>
-                Git Light is a free, open-source desktop Git client for macOS, Windows, and Linux. It shows a
-                commit graph, branch sidebar, and working tree in a resizable three-pane
-                layout, running real <code style="font-family: var(--font-mono); font-size: 0.8125rem;">git</code>
-                commands against your local repositories.
-              </p>
+                        <article class="faq-item">
+              <h3>Is Git Light really free?</h3>
+              <p>Yes. MIT licensed, no paid tier, no trial, no ads, no feature gates. Every feature listed on this page is available in the free build.</p>
             </article>
             <article class="faq-item">
-              <h3>Is Git Light free?</h3>
-              <p>
-                Yes. Git Light is MIT-licensed and free to download and use. You can
-                optionally support development on
-                <a href="https://ko-fi.com/lelouchiee" target="_blank" rel="noopener noreferrer">Ko-fi</a>.
-              </p>
+              <h3>Do I need a GitHub, GitLab or Bitbucket account?</h3>
+              <p>No. There is no sign-in, no license key and no telemetry. Git Light works with any repository on disk and with any remote your own Git is already configured for, over HTTPS or SSH.</p>
             </article>
             <article class="faq-item">
-              <h3>What platforms does Git Light support?</h3>
-              <p>
-                Packaged builds are available for macOS (.dmg), Windows (.exe), and Linux (.AppImage, .deb) on
-                <a href="https://github.com/ftuyama/git-light/releases" target="_blank" rel="noopener noreferrer">GitHub Releases</a>.
-                Developers can run it locally on any OS that supports Tauri with Node.js, npm, and Rust.
-              </p>
+              <h3>Does it work offline?</h3>
+              <p>Yes. Browsing history, the commit graph, staging, diffs, commits, branches, merges, rebases and stashes are all local operations. Only fetch, pull, push and clone need network access.</p>
             </article>
             <article class="faq-item">
-              <h3>Does Git Light require an account?</h3>
-              <p>
-                No sign-in, cloud sync, or subscription. Open a local folder, clone from a URL,
-                or start a new repo — then work with your Git repositories offline.
-              </p>
+              <h3>Does it come with its own Git install?</h3>
+              <p>No — it runs your system <code>git</code> binary, so your existing config, aliases, credential helper, SSH keys, hooks and <code>.gitignore</code> behaviour all apply unchanged.</p>
             </article>
             <article class="faq-item">
-              <h3>How is Git Light different from GitKraken or Sourcetree?</h3>
-              <p>
-                Git Light is a lightweight, open-source alternative focused on a fast commit
-                graph and direct Git CLI operations — without vendor accounts or lock-in.
-                Built with Tauri 2, Vue 3, TypeScript, and Rust.
-              </p>
+              <h3>Can I use my existing repositories?</h3>
+              <p>Yes. Open any folder that contains a <code>.git</code> directory (or clone / init a new one). Git Light adds no proprietary index and writes no extra files into your repository.</p>
+            </article>
+            <article class="faq-item">
+              <h3>Does it work on Apple Silicon and Intel Macs?</h3>
+              <p>Apple Silicon (arm64) is fully supported. Intel Macs are not supported by the current builds — the release pipeline only produces an <code>aarch64</code> <code>.dmg</code>. Windows x64 and Linux x86_64 builds are also available.</p>
+            </article>
+            <article class="faq-item">
+              <h3>macOS says the app is damaged or moves it to the Trash.</h3>
+              <p>That is Gatekeeper reacting to an ad-hoc signature, not a broken download — see the <a href="#install">macOS install note</a>.</p>
+            </article>
+            <article class="faq-item">
+              <h3>Which languages are supported?</h3>
+              <p>English, Portuguese (Brazil), Simplified Chinese, Spanish, French, German and Japanese. The UI follows your OS language and can be switched in Settings. This website is available in the same seven languages.</p>
             </article>
           </div>
         </div>
@@ -1431,11 +1747,80 @@ xattr -dr com.apple.quarantine "/Applications/Git Light.app"</code></pre>
           · MIT License · Built by
           <a href="https://github.com/ftuyama">ftuyama</a>
           · <a href="https://ko-fi.com/lelouchiee" target="_blank" rel="noopener noreferrer">Sponsor on Ko-fi</a>
-          · <a href="llms.txt">llms.txt</a>
-          · <a href="llms-full.txt">llms-full.txt</a>
+          · <a href="https://ftuyama.github.io/git-light/llms.txt">llms.txt</a>
+          · <a href="https://ftuyama.github.io/git-light/llms-full.txt">llms-full.txt</a>
         </p>
       </div>
     </footer>
+
+    <div
+      class="lightbox"
+      id="lightbox"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Screenshot preview"
+      hidden
+    >
+      <button
+        class="lightbox-close"
+        id="lightbox-close"
+        type="button"
+        aria-label="Close screenshot"
+      >
+        <span aria-hidden="true">&times;</span>
+      </button>
+      <figure class="lightbox-figure">
+        <img id="lightbox-image" src="" alt="" />
+        <figcaption id="lightbox-caption"></figcaption>
+      </figure>
+    </div>
+        <script>window.SITE_I18N = {
+  "defaultLocale": "en",
+  "locales": {
+    "pt-BR": {
+      "label": "Português (Brasil)",
+      "htmlLang": "pt-BR",
+      "href": "https://ftuyama.github.io/git-light/pt-BR/",
+      "hint": "Esta página também está disponível em {language}.",
+      "view": "Ver em {language}"
+    },
+    "es": {
+      "label": "Español",
+      "htmlLang": "es",
+      "href": "https://ftuyama.github.io/git-light/es/",
+      "hint": "Esta página también está disponible en {language}.",
+      "view": "Ver en {language}"
+    },
+    "fr": {
+      "label": "Français",
+      "htmlLang": "fr",
+      "href": "https://ftuyama.github.io/git-light/fr/",
+      "hint": "Cette page est aussi disponible en {language}.",
+      "view": "Voir en {language}"
+    },
+    "de": {
+      "label": "Deutsch",
+      "htmlLang": "de",
+      "href": "https://ftuyama.github.io/git-light/de/",
+      "hint": "Diese Seite ist auch auf {language} verfügbar.",
+      "view": "Auf {language} ansehen"
+    },
+    "zh-CN": {
+      "label": "简体中文",
+      "htmlLang": "zh-CN",
+      "href": "https://ftuyama.github.io/git-light/zh-CN/",
+      "hint": "本页面同时提供{language}版本。",
+      "view": "查看{language}版本"
+    },
+    "ja": {
+      "label": "日本語",
+      "htmlLang": "ja",
+      "href": "https://ftuyama.github.io/git-light/ja/",
+      "hint": "このページは{language}でも閲覧できます。",
+      "view": "{language}で表示"
+    }
+  }
+};</script>
     <script>
       (function () {
         function pick(assets, patterns) {
@@ -1469,12 +1854,16 @@ xattr -dr com.apple.quarantine "/Applications/Git Light.app"</code></pre>
         /* Copy quick-install command */
         var copyBtn = document.getElementById('quick-install-copy');
         if (copyBtn) {
+          var copyLabel = document.getElementById('quick-install-copy-label');
+          var copyText = copyBtn.getAttribute('data-copy-label') || '';
+          var copiedText = copyBtn.getAttribute('data-copied-label') || copyText;
           copyBtn.addEventListener('click', function () {
             var cmd = document.getElementById('quick-install-cmd');
             if (!cmd) return;
             var done = function () {
-              copyBtn.textContent = 'Copied!';
-              setTimeout(function () { copyBtn.textContent = 'Copy'; }, 2000);
+              if (!copyLabel) return;
+              copyLabel.textContent = copiedText;
+              setTimeout(function () { copyLabel.textContent = copyText; }, 2000);
             };
             if (navigator.clipboard && navigator.clipboard.writeText) {
               navigator.clipboard.writeText(cmd.textContent.trim()).then(done, function () {});
@@ -1490,9 +1879,148 @@ xattr -dr com.apple.quarantine "/Applications/Git Light.app"</code></pre>
           });
         }
 
+        /* Language switcher */
+        var langSwitch = document.getElementById('lang-switch');
+        if (langSwitch) {
+          langSwitch.addEventListener('change', function () {
+            if (langSwitch.value) window.location.href = langSwitch.value;
+          });
+        }
+
+        /* Language hint (default-locale page only) */
+        var hint = document.getElementById('lang-hint');
+        var siteI18n = window.SITE_I18N;
+        if (hint && siteI18n && siteI18n.locales) {
+          var DEFAULT_LANG = siteI18n.defaultLocale;
+          function normalizeTag(raw) {
+            var tag = String(raw || '').toLowerCase().replace(/_/g, '-');
+            if (tag === 'en' || tag.indexOf('en-') === 0) return 'en';
+            if (tag === 'pt' || tag.indexOf('pt-') === 0) return 'pt-BR';
+            if (tag === 'zh' || tag === 'zh-cn' || tag === 'zh-hans' || tag === 'zh-sg') return 'zh-CN';
+            if (tag === 'es' || tag.indexOf('es-') === 0) return 'es';
+            if (tag === 'fr' || tag.indexOf('fr-') === 0) return 'fr';
+            if (tag === 'de' || tag.indexOf('de-') === 0) return 'de';
+            if (tag === 'ja' || tag.indexOf('ja-') === 0) return 'ja';
+            return null;
+          }
+          var candidates = (navigator.languages || []).concat(navigator.language || []);
+          var match = null;
+          for (var i = 0; i < candidates.length; i++) {
+            var resolved = normalizeTag(candidates[i]);
+            if (resolved) { match = resolved; break; }
+          }
+          var dismissed = false;
+          try { dismissed = localStorage.getItem('git-light-lang-hint') === 'dismissed'; } catch (e) {}
+          var entry = match && match !== DEFAULT_LANG ? siteI18n.locales[match] : null;
+          if (entry && !dismissed) {
+            var hintText = document.getElementById('lang-hint-text');
+            var hintLink = document.getElementById('lang-hint-link');
+            if (hintText) hintText.textContent = entry.hint.replace('{language}', entry.label);
+            if (hintLink) {
+              hintLink.href = entry.href;
+              hintLink.textContent = entry.view.replace('{language}', entry.label);
+              hintLink.lang = entry.htmlLang;
+            }
+            hint.hidden = false;
+          }
+          var hintClose = document.getElementById('lang-hint-close');
+          if (hintClose) {
+            hintClose.addEventListener('click', function () {
+              hint.hidden = true;
+              try { localStorage.setItem('git-light-lang-hint', 'dismissed'); } catch (e) {}
+            });
+          }
+        }
+
+        /* Screenshot lightbox */
+        var lightbox = document.getElementById('lightbox');
+        var lightboxImage = document.getElementById('lightbox-image');
+        var lightboxCaption = document.getElementById('lightbox-caption');
+        var lightboxClose = document.getElementById('lightbox-close');
+        if (lightbox && lightboxImage && lightboxCaption && lightboxClose) {
+          var lastTrigger = null;
+          var hideTimer = null;
+
+          var hideLightbox = function () {
+            lightbox.classList.remove('is-open');
+            document.body.classList.remove('lightbox-open');
+            lightbox.hidden = true;
+            if (lastTrigger && typeof lastTrigger.focus === 'function') lastTrigger.focus();
+            lastTrigger = null;
+          };
+
+          var closeLightbox = function () {
+            if (lightbox.hidden) return;
+            if ('transition' in lightbox.style) {
+              hideTimer = setTimeout(hideLightbox, 180);
+            } else {
+              hideLightbox();
+            }
+          };
+
+          var expandTrigger = document.querySelectorAll('.gallery-trigger[data-lightbox]');
+          expandTrigger.forEach(function (trigger) {
+            trigger.addEventListener('click', function (event) {
+              event.preventDefault();
+              if (hideTimer) {
+                clearTimeout(hideTimer);
+                hideTimer = null;
+              }
+
+              var card = trigger.closest('.gallery-item');
+              var image = card ? card.querySelector('img') : null;
+              var source = trigger.getAttribute('href') || (image && image.src) || '';
+
+              lastTrigger = trigger;
+              lightboxImage.src = source;
+              lightboxImage.alt = image ? image.alt : '';
+              lightboxCaption.textContent = lightboxImage.alt;
+              lightbox.hidden = false;
+              document.body.classList.add('lightbox-open');
+              requestAnimationFrame(function () {
+                lightbox.classList.add('is-open');
+              });
+              lightboxClose.focus();
+            });
+          });
+
+          lightboxClose.addEventListener('click', closeLightbox);
+
+          lightbox.addEventListener('click', function (event) {
+            if (event.target === lightbox) closeLightbox();
+          });
+
+          lightbox.addEventListener('keydown', function (event) {
+            if (event.key !== 'Tab') return;
+            var focusable = lightbox.querySelectorAll(
+              'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+            );
+            if (!focusable.length) {
+              event.preventDefault();
+              return;
+            }
+            var first = focusable[0];
+            var last = focusable[focusable.length - 1];
+            if (event.shiftKey && document.activeElement === first) {
+              event.preventDefault();
+              last.focus();
+            } else if (!event.shiftKey && document.activeElement === last) {
+              event.preventDefault();
+              first.focus();
+            }
+          });
+
+          document.addEventListener('keydown', function (event) {
+            if (event.key === 'Escape' && !lightbox.hidden) {
+              event.preventDefault();
+              closeLightbox();
+            }
+          });
+        }
+
         /* Scroll reveal */
         var revealEls = document.querySelectorAll(
-          '.compare-scroll, .faq-item, .screenshot-frame, .download-panel, .stack-carousel, .install-box'
+          '.compare-scroll, .faq-item, .screenshot-frame, .gallery-item, .download-panel, .stack-carousel, .install-box'
         );
         if ('IntersectionObserver' in window) {
           var observer = new IntersectionObserver(

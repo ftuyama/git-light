@@ -1,0 +1,261 @@
+{
+  "brand": {
+    "logoAlt": "Git Light 应用图标"
+  },
+  "nav": {
+    "screenshots": "界面截图",
+    "compare": "对比",
+    "download": "下载",
+    "faq": "常见问题",
+    "github": "GitHub",
+    "language": "语言"
+  },
+  "hint": {
+    "message": "本页面同时提供{language}版本。",
+    "view": "查看{language}版本",
+    "close": "关闭语言建议"
+  },
+  "seo": {
+    "title": "Git Light — 免费开源的桌面 Git 客户端，支持提交图",
+    "description": "Git Light 是一款免费开源的桌面 Git 客户端，支持 macOS、Windows 和 Linux，提供提交图、分支侧边栏、工作树、交互式变基以及真实的本地 Git 操作，是 GitKraken 和 Sourcetree 的轻量替代品。",
+    "keywords": "Git 客户端, 桌面 Git 图形界面, 提交图, Git 历史查看器, Tauri Git 应用, 开源 Git 客户端, macOS Git 客户端, GitKraken 替代品, Sourcetree 替代品, 交互式变基, 分支管理",
+    "ogTitle": "Git Light — 免费开源的桌面 Git 客户端",
+    "ogDescription": "更轻量的 Git 历史查看方式。提交图、分支侧边栏、工作树和真实的本地 Git 操作 —— 基于 Tauri 2、Vue 3、TypeScript 和 Rust 构建。",
+    "twitterDescription": "提交图、分支侧边栏、工作树和真实的本地 Git 操作。开源且免费。",
+    "imageAlt": "Git Light 展示 AwesomeShop 仓库，包含仓库标签页、提交图、分支侧边栏和工作树",
+    "pageDescription": "适用于 macOS、Windows 和 Linux 的免费桌面 Git 客户端，提供提交图、分支侧边栏、工作树和真实的本地 Git 操作。",
+    "softwareDescription": "桌面 Git 客户端，提供提交图、分支侧边栏、工作树、交互式变基，并通过原生 Git CLI 执行真实的本地 Git 操作。",
+    "featureList": [
+      "使用虚拟化 SVG 车道的提交图",
+      "通过 URL 克隆、创建仓库以及文件夹发现",
+      "多仓库标签页，支持别名、重新打开已关闭的标签和键盘导航",
+      "分支侧边栏，支持文件夹分组、批量删除以及拖放合并/变基",
+      "工作树，支持按代码块暂存",
+      "文本差异以及带缩放和灯箱的图片预览",
+      "Git 输出日志，记录已执行的命令",
+      "可自定义的键盘快捷键",
+      "按可配置间隔自动 fetch",
+      "带文件历史的追溯浮层",
+      "交互式变基",
+      "Fetch、pull、push 和同步",
+      "仓库根目录下的内嵌终端（⌘J）",
+      "基础与高级界面模式",
+      "英语、葡萄牙语（巴西）、简体中文、西班牙语、法语、德语和日语界面"
+    ],
+    "faq": [
+      {
+        "q": "Git Light 真的免费吗？",
+        "a": "是的。采用 MIT 许可证，没有付费版本、没有试用期、没有广告，也没有功能限制。本页列出的所有功能都可在免费版本中使用。"
+      },
+      {
+        "q": "需要 GitHub、GitLab 或 Bitbucket 账号吗？",
+        "a": "不需要。没有登录、没有许可证密钥，也没有遥测。Git Light 可用于磁盘上的任何仓库，以及你自己的 Git 已配置好的任何远程仓库，支持 HTTPS 或 SSH。"
+      },
+      {
+        "q": "可以离线使用吗？",
+        "a": "可以。浏览历史、提交图、暂存、差异、提交、分支、合并、变基和贮藏都是本地操作。只有 fetch、pull、push 和 clone 需要网络。"
+      },
+      {
+        "q": "它自带 Git 吗？",
+        "a": "不 —— 它运行系统中的 <code>git</code> 二进制文件，因此你现有的配置、别名、凭据助手、SSH 密钥、钩子以及 <code>.gitignore</code> 行为都保持不变。"
+      },
+      {
+        "q": "可以使用我现有的仓库吗？",
+        "a": "可以。打开任何包含 <code>.git</code> 目录的文件夹（或克隆/初始化一个新仓库）。Git Light 不会添加专有索引，也不会向你的仓库写入额外文件。"
+      },
+      {
+        "q": "支持 Apple Silicon 和 Intel Mac 吗？",
+        "a": "完全支持 Apple Silicon（arm64）。当前构建不支持 Intel Mac —— 发布流程只生成 <code>aarch64</code> 的 <code>.dmg</code>。同时也提供 Windows x64 和 Linux x86_64 版本。"
+      },
+      {
+        "q": "macOS 提示应用已损坏或将其移到废纸篓。",
+        "a": "这是 Gatekeeper 对临时签名的反应，并非下载损坏 —— 请参阅 <a href=\"#install\">macOS 安装说明</a>。"
+      },
+      {
+        "q": "支持哪些语言？",
+        "a": "英语、葡萄牙语（巴西）、简体中文、西班牙语、法语、德语和日语。界面会跟随操作系统语言，也可在设置中切换。本站同样提供这七种语言。"
+      }
+    ]
+  },
+  "hero": {
+    "badge": "v{{version}} · 开源 · Tauri 桌面应用",
+    "title": "Git Light — 更轻量地<span>查看 Git 历史</span>",
+    "subtitle": "适用于 macOS、Windows 和 Linux 的免费开源桌面 Git 客户端。在快速的提交图上浏览历史、管理分支、暂存更改，并对本地仓库执行真实的 Git 命令 —— 无需账号。",
+    "download": "下载",
+    "viewGithub": "在 GitHub 上查看",
+    "getStarted": "开始使用",
+    "screenshotTitle": "Git Light — AwesomeShop",
+    "screenshotAlt": "Git Light 展示 AwesomeShop 仓库，包含仓库标签页、提交图、分支侧边栏、工作树和可调整大小的三栏布局"
+  },
+  "screenshots": {
+    "eyebrow": "界面截图",
+    "title": "一览所有界面",
+    "subtitle": "差异查看器、搜索、命令面板和外观 —— 与 README 中相同的截图。"
+  },
+  "gallery": {
+    "diff": {
+      "title": "差异查看器",
+      "body": "统一或并排差异，支持语法高亮、追溯以及按代码块暂存/丢弃。",
+      "alt": "差异查看器，支持语法高亮和按代码块暂存"
+    },
+    "search": {
+      "title": "搜索",
+      "body": "在一个浮层中搜索提交、文件和分支。",
+      "alt": "搜索浮层列出匹配的文件"
+    },
+    "palette": {
+      "title": "命令面板",
+      "body": "通过 ⌘K 运行 fetch、pull、push、stash、merge、rebase 等命令。",
+      "alt": "命令面板列出 Git 命令"
+    },
+    "settings": {
+      "title": "外观与主题",
+      "body": "内置浅色和深色配色，也可自定义配色。",
+      "alt": "外观偏好设置，显示配色方案网格"
+    },
+    "lightbox": {
+      "open": "放大截图",
+      "close": "关闭截图",
+      "label": "截图预览"
+    }
+  },
+  "compare": {
+    "eyebrow": "为什么选择 Git Light？",
+    "title": "同样的工作流，没有多余负担",
+    "subtitle": "核心 Git 功能齐平 —— 免费、开源且轻量。",
+    "note": "* GitHub Desktop 是开源的，但以 GitHub 为中心。** 没有官方 Linux 版本。",
+    "rows": [
+      {
+        "label": "免费 + 开源（MIT）",
+        "gitkraken": "❌",
+        "githubDesktop": "✅*",
+        "sourcetree": "✅ 免费，❌ 闭源"
+      },
+      {
+        "label": "无需账号",
+        "gitkraken": "❌",
+        "githubDesktop": "✅",
+        "sourcetree": "❌"
+      },
+      {
+        "label": "提交图 + 分支 + 暂存",
+        "gitkraken": "✅",
+        "githubDesktop": "✅",
+        "sourcetree": "✅"
+      },
+      {
+        "label": "合并 / 变基 / 拣选",
+        "gitkraken": "✅",
+        "githubDesktop": "部分支持",
+        "sourcetree": "✅"
+      },
+      {
+        "label": "代码块暂存 + 冲突编辑器",
+        "gitkraken": "✅",
+        "githubDesktop": "部分支持",
+        "sourcetree": "✅"
+      },
+      {
+        "label": "交互式变基",
+        "gitkraken": "✅",
+        "githubDesktop": "❌",
+        "sourcetree": "✅"
+      },
+      {
+        "label": "撤销 / 重做 + 贮藏",
+        "gitkraken": "✅",
+        "githubDesktop": "部分支持",
+        "sourcetree": "部分支持"
+      },
+      {
+        "label": "图片差异 + 追溯 + 文件历史",
+        "gitkraken": "✅",
+        "githubDesktop": "部分支持",
+        "sourcetree": "部分支持"
+      },
+      {
+        "label": "多仓库标签页",
+        "gitkraken": "✅",
+        "githubDesktop": "❌",
+        "sourcetree": "✅"
+      },
+      {
+        "label": "命令面板 + 自定义快捷键",
+        "gitkraken": "部分支持",
+        "githubDesktop": "❌",
+        "sourcetree": "❌"
+      },
+      {
+        "label": "macOS / Windows / Linux",
+        "gitkraken": "✅",
+        "githubDesktop": "✅ / ✅ / ❌**",
+        "sourcetree": "✅ / ✅ / ❌"
+      },
+      {
+        "label": "轻量、离线优先",
+        "gitkraken": "❌ 笨重",
+        "githubDesktop": "✅",
+        "sourcetree": "❌ 笨重"
+      }
+    ]
+  },
+  "stack": {
+    "eyebrow": "技术栈",
+    "title": "使用现代工具构建",
+    "subtitle": "Tauri 2 桌面外壳、Vue 3 渲染层，以及带类型的 Git 命令层。"
+  },
+  "install": {
+    "eyebrow": "获取应用",
+    "title": "下载 Git Light",
+    "subtitle": "适用于 macOS、Windows 和 Linux 的免费桌面应用 —— 开源，无需账号。",
+    "copy": "复制",
+    "copied": "已复制！",
+    "copyAria": "复制安装命令",
+    "note": "一条命令轻松安装 —— 没有 Gatekeeper 提示。",
+    "guideTitle": "安装指南",
+    "mac": {
+      "label": "下载 macOS 版",
+      "sub": ".dmg · Apple Silicon",
+      "step1": "<strong>推荐：</strong>在终端中运行上方的一行命令 —— 安装到“应用程序”，没有 Gatekeeper 提示。再次运行即可更新。",
+      "step2": "或下载上方的 <strong>.dmg</strong>（Apple Silicon），打开并把 <strong>Git Light</strong> 拖入 <strong>应用程序</strong>。",
+      "step3": "启动应用 —— 之后随时可通过 <strong>Git Light → 检查更新…</strong> 保持最新。"
+    },
+    "windows": {
+      "label": "下载 Windows 版",
+      "sub": ".exe 安装程序",
+      "step1": "下载上方的 <strong>.exe 安装程序</strong>。",
+      "step2": "运行并按照安装向导操作。",
+      "step3": "从开始菜单启动 —— 之后随时可通过 <strong>Git Light → 检查更新…</strong> 保持最新。"
+    },
+    "linux": {
+      "label": "下载 Linux 版",
+      "sub": ".AppImage · .deb",
+      "step1": "下载上方的 <strong>.AppImage</strong> 或 <strong>.deb</strong>。",
+      "step2": "AppImage：用 <code>chmod +x *.AppImage</code> 使其可执行后运行。Deb：使用 <code>sudo apt install ./git-light_*.deb</code> 安装。",
+      "step3": "启动应用 —— 之后随时可通过 <strong>Git Light → 检查更新…</strong> 保持最新。"
+    },
+    "gatekeeper": {
+      "summary": "macOS 提示“移到废纸篓”或拒绝打开？",
+      "p1": "浏览器会给下载的文件添加隔离标记，而 macOS 会阻止没有 Apple Developer ID 的应用。你的下载并没有问题：",
+      "p2": "<strong>最简单的解决办法：</strong>改用一行安装命令 —— 它的下载会完全跳过隔离标记。如果你已经从 <code>.dmg</code> 安装，请在终端中运行一次："
+    },
+    "allReleases": {
+      "title": "所有版本",
+      "body": "历史版本、校验和以及各平台安装包（.dmg、.exe、.msi、.AppImage、.deb、.rpm）都在 <a href=\"https://github.com/ftuyama/git-light/releases\" target=\"_blank\" rel=\"noopener noreferrer\"><strong>GitHub Releases 页面</strong></a>。"
+    },
+    "source": {
+      "title": "从源码构建",
+      "comment": "克隆并运行"
+    }
+  },
+  "faq": {
+    "eyebrow": "常见问题",
+    "title": "常见问题解答",
+    "subtitle": "关于 Git Light 的快速解答。"
+  },
+  "footer": {
+    "license": "MIT 许可证",
+    "builtBy": "作者：",
+    "sponsor": "在 Ko-fi 上赞助"
+  }
+}

@@ -29,13 +29,13 @@ Update every doc file so it reflects the codebase **right now**. Do not invent f
 |------|--------------|
 | [README.md](README.md) | Hero blurb, feature list, "What works today" table, scripts table, quick-start notes; hero image path (`docs/screenshot.png`) |
 | [ARCHITECTURE.md](ARCHITECTURE.md) | Stack versions, process diagram accuracy, file tables (`src-tauri/src/`, `src/lib/git/`, `src/lib/tauri/`, `shared/git/`), UI layout tree, test file list, extension points |
-| [docs/index.html](docs/index.html) | Hero copy, feature cards, stack tags, install section, screenshot `alt` / titlebar label — GitHub Pages landing page |
+| [site/index.html](site/index.html) + [site/locales/](site/locales/) | Landing-page template and its three locale catalogs (hero, features, stack, install, screenshots, FAQ mirroring README); rendered into `docs/` by `npm run site:build` |
 | [docs/llms.txt](docs/llms.txt) | AI-readable site summary — features, links, install; version line synced by `npm run sync-version` |
 | [docs/screenshot.png](docs/screenshot.png) + [docs/screenshots/](docs/screenshots/) | Fresh app screenshots (see below) — hero shared by README and the landing page; feature gallery embedded in README |
 
 ### Refresh screenshots
 
-[README.md](README.md) embeds the hero `docs/screenshot.png` plus four gallery images in `docs/screenshots/`; [docs/index.html](docs/index.html) reuses the hero. Regenerate the full set whenever the UI has changed visually since the last release.
+[README.md](README.md) embeds the hero `docs/screenshot.png` plus four gallery images in `docs/screenshots/`; the landing page (`site/index.html` + `site/locales/*.json`) reuses the hero and embeds the same gallery. Regenerate the full set whenever the UI has changed visually since the last release.
 
 1. **Run the mock UI** with the AwesomeShop repo so every capture is reproducible:
 
@@ -55,10 +55,12 @@ Update every doc file so it reflects the codebase **right now**. Do not invent f
    | `docs/screenshots/settings.png` | Settings → Appearance, showing the palette grid |
 
    Mock mode serves deterministic diffs from `src/data/mockDiff.ts`. Skip browser-only placeholders such as the terminal panel, which says it is available only in the desktop app. Do not add, rename or remove gallery files — `README.md` links these paths.
-4. **Sync copy** in `docs/index.html` if the visible UI changed:
+4. **Sync copy** in `site/locales/*.json` (and `site/index.html` for structure) if the visible UI changed, then run `npm run site:build`:
    - `.screenshot-title` (window title in the faux titlebar)
-   - `<img alt="…">` (describe what is on screen)
+   - hero and gallery `<img alt="…">` (describe what is on screen)
+   - gallery `<figcaption>` text (keep it aligned with the README captions)
 5. **README** — confirm the hero caption and the gallery image paths/captions still match what each screenshot shows.
+6. **FAQ** — keep the landing page FAQ and its `FAQPage` JSON-LD in sync with the `README.md` FAQ (same questions, same order, same answers in web voice).
 
 Prefer a window screenshot over cropping browser chrome. If automated capture is unavailable, take manual screenshots and save them to the same paths.
 
@@ -80,6 +82,7 @@ Prefer a window screenshot over cropping browser chrome. If automated capture is
 ## Response checklist
 
 - [ ] Codebase scanned; docs reflect current features and stack
-- [ ] README.md, ARCHITECTURE.md, docs/index.html, and docs/llms.txt updated
-- [ ] `docs/screenshot.png` and all four `docs/screenshots/*.png` gallery assets refreshed; README captions and landing page alt/titlebar copy match
+- [ ] README.md, ARCHITECTURE.md, site/locales/*.json, and docs/llms.txt updated; `npm run site:build` run
+- [ ] `docs/screenshot.png` and all four `docs/screenshots/*.png` gallery assets refreshed; README captions, landing page alt/titlebar copy and gallery captions match
+- [ ] Landing page FAQ and `FAQPage` JSON-LD mirror the `README.md` FAQ
 - [ ] Summary returned: files changed (including `docs/screenshot.png` if updated), reminder to run `/release` when ready to bump version and tag

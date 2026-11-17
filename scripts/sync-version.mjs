@@ -6,11 +6,13 @@
  *
  * Targets:
  * - package-lock.json — top-level "version" and packages[""].version
- * - docs/index.html — vX.Y.Z markers (hero badge and footer) and JSON-LD softwareVersion
  * - docs/llms.txt — "Current version:" line in prose
  * - docs/llms-full.txt — Version: line near top
  * - src-tauri/Cargo.toml — [package] version
  * - src-tauri/tauri.conf.json — top-level version
+ * - docs/index.html, docs/<locale>/index.html, docs/sitemap.xml — regenerated
+ *   from `site/` by scripts/build-site.mjs ({{version}} tokens resolved from
+ *   package.json)
  *
  * The app reads package.json at build time (shared/app/metadata.ts); no sync needed there.
  *
@@ -18,6 +20,7 @@
  *   npm run sync-version           # sync all targets
  *   npm run sync-version -- --check  # verify only; exit 1 if out of sync
  */
+import { spawnSync } from 'node:child_process'
 import { readFileSync, writeFileSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -27,7 +30,6 @@ const checkOnly = process.argv.includes('--check')
 
 const packageJsonPath = join(root, 'package.json')
 const packageLockPath = join(root, 'package-lock.json')
-const docsPath = join(root, 'docs/index.html')
 const llmsPath = join(root, 'docs/llms.txt')
 const llmsFullPath = join(root, 'docs/llms-full.txt')
 const cargoPath = join(root, 'src-tauri/Cargo.toml')
@@ -87,40 +89,6 @@ syncTarget('package-lock.json', packageLockPath, () => {
   }
   writeFileSync(packageLockPath, `${JSON.stringify(packageLock, null, 2)}\n`)
 })
-
-// docs/index.html
-const docs = readFileSync(docsPath, 'utf8')
-const markerPattern = /v\d+\.\d+\.\d+/g
-const markers = docs.match(markerPattern) ?? []
-
-if (markers.length === 0) {
-  console.warn('No vX.Y.Z markers found in docs/index.html')
-} else {
-  const uniqueMarkers = [...new Set(markers)]
-  for (const marker of uniqueMarkers) {
-    const actual = marker.slice(1)
-    if (actual !== version) {
-      mismatches.push(`docs/index.html (${marker}): expected v${version}`)
-    }
-  }
-
-  syncTarget('docs/index.html', docsPath, () => {
-    let updated = docs.replace(markerPattern, `v${version}`)
-    updated = updated.replace(
-      /("softwareVersion":\s*")(\d+\.\d+\.\d+)(")/,
-      `$1${version}$3`,
-    )
-    writeFileSync(docsPath, updated)
-  })
-}
-
-// docs/index.html — JSON-LD softwareVersion
-const jsonLdVersionMatch = docs.match(/"softwareVersion":\s*"(\d+\.\d+\.\d+)"/)
-if (!jsonLdVersionMatch) {
-  console.warn('No "softwareVersion" found in docs/index.html JSON-LD')
-} else if (jsonLdVersionMatch[1] !== version) {
-  mismatches.push(`docs/index.html (softwareVersion): expected ${version}`)
-}
 
 // docs/llms.txt
 const llmsProseVersionPattern = /Current version: \d+\.\d+\.\d+\./
@@ -184,6 +152,15 @@ syncTarget('src-tauri/tauri.conf.json', tauriConfPath, () => {
   tauriConf.version = version
   writeFileSync(tauriConfPath, `${JSON.stringify(tauriConf, null, 2)}\n`)
 })
+
+// docs/ — localized landing page (generated from site/)
+const siteArgs = ['scripts/build-site.mjs']
+if (checkOnly) siteArgs.push('--check')
+const siteBuild = spawnSync(process.execPath, siteArgs, { cwd: root, stdio: 'inherit' })
+
+if (siteBuild.status !== 0 && checkOnly) {
+  mismatches.push('docs/ (run `npm run site:build`)')
+}
 
 if (checkOnly) {
   if (mismatches.length > 0) {

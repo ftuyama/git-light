@@ -24,6 +24,12 @@ per feature domain (`common`, `shell`, `graph`, `branches`, `workingTree`,
 preferences store; dates are formatted through `src/lib/format.ts`. Terminology
 and rules: [src/locales/GLOSSARY.md](src/locales/GLOSSARY.md).
 
+The static website reuses the app's locales: `site/index.html` is a
+tokenized template, `site/locales/<code>.json` holds its copy, and
+`scripts/build-site.mjs` renders `docs/` (per-locale pages, `hreflang`,
+localized metadata/JSON-LD and sitemap). Generated pages are committed because
+GitHub Pages serves `docs/` as-is; `npm run site:check` keeps them fresh in CI.
+
 ## Process model
 
 ```
