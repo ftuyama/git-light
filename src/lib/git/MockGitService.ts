@@ -4,6 +4,7 @@ import { isJournalableAction, journalLabel } from '@shared/git/undoPolicy'
 import type { ActionResult, GitAction, GitActionKind, RepositoryData } from '@/types/git'
 import { DEFAULT_COMMIT_GRAPH_LIMIT } from '@/lib/preferences'
 import { generateAwesomeShop } from '@/data/generateAwesomeShop'
+import { mockDiff } from '@/data/mockDiff'
 import type { GitService, SnapshotRefreshOptions } from './GitService'
 
 const ACTION_MESSAGES: Partial<Record<GitActionKind, (target?: string) => string>> = {
@@ -151,16 +152,12 @@ export class MockGitService implements GitService {
     return { commits, page }
   }
 
-  async getDiff(_request: DiffRequest): Promise<DiffResult> {
-    return {
-      path: _request.path,
-      binary: false,
-      tooLarge: false,
-      language: 'plaintext',
-      hunks: [],
-      additions: 0,
-      deletions: 0,
-    }
+  async getDiff(request: DiffRequest): Promise<DiffResult> {
+    const data = await this.load()
+    const file = data.workingTree.find((entry) => entry.path === request.path)
+    const fromHistory = request.source === 'commit' || request.source === 'range'
+    const diff = mockDiff(request.path, fromHistory ? 'modified' : (file?.status ?? 'modified'))
+    return { ...diff, oldPath: file?.oldPath }
   }
 
   async getImagePreview(request: ImagePreviewRequest): Promise<ImagePreviewResult> {
